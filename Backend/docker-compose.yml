@@ -1,0 +1,12 @@
+version: '3.2'
+
+services:
+  postgres:
+    container_name: my-postgres
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: avnadmin
+      POSTGRES_PASSWORD: AVNS_8Sg9XbhenAVT1GYIfrK
