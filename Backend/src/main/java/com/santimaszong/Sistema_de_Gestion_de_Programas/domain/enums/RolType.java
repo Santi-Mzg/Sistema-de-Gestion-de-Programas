@@ -1,6 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums;
 
-public enum UserType {
+public enum RolType {
     ADMIN("Administrador del sistema"),
     ADMINISTRATIVO("Personal administrativo"),
     PROFESOR("Profesor"),
@@ -9,7 +9,7 @@ public enum UserType {
 
     private final String descripcion;
 
-    UserType(String descripcion) {
+    RolType(String descripcion) {
         this.descripcion = descripcion;
     }
 

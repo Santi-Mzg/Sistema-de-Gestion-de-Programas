@@ -1,34 +1,35 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Area;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
+@Entity
+@Table(name="programas")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class ProgramDTO {
+public class ProgramaEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // --- BLOQUE ÚNICO ---
-    private String nombreDepartamento;
-    private String nombreMateria;
-    private String codigoMateria;
+    //    private DepartamentoEntity departamento;
 
-    private Area areaMateria;
+    @ManyToOne
+    @JoinColumn(name = "materia_id")
+    private MateriaEntity materia;
 
+    //    private Area areaMateria;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profesorResponsable_id")
     private UserEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<Carrera> carreras;
+    private Set<Carrera> carreras;
 
     private String plan;
     private String ubicacionEnPlan;
@@ -48,13 +49,20 @@ public class ProgramDTO {
     private String fundamentacion;
     private String objetivos;
 
+    @Column(columnDefinition = "TEXT")
     private String contenidosMinimos;
 
+    @Column(columnDefinition = "TEXT")
     private String programaAnalitico;
 
+    @Column(columnDefinition = "TEXT")
     private String metodologia;
 
+    @Column(columnDefinition = "TEXT")
     private String modalidadEvaluacion;
 
+    @Column(columnDefinition = "TEXT")
     private String bibliografia;
 }
+
+// Año y cuatrimestre de la carrera

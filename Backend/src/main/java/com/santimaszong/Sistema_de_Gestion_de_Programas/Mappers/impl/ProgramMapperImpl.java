@@ -1,13 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.Mappers.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.Mappers.Mapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.ProgramDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.ProgramaDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProgramMapperImpl implements Mapper<ProgramDTO, ProgramEntity> {
+public class ProgramMapperImpl implements Mapper<ProgramaDTO, ProgramaEntity> {
 
     private ModelMapper modelMapper;
 
@@ -16,12 +16,12 @@ public class ProgramMapperImpl implements Mapper<ProgramDTO, ProgramEntity> {
     }
 
     @Override
-    public ProgramEntity mapTo(ProgramDTO programDTO) {
-        return modelMapper.map(programDTO, ProgramEntity.class);
+    public ProgramaEntity mapTo(ProgramaDTO programaDTO) {
+        return modelMapper.map(programaDTO, ProgramaEntity.class);
     }
 
     @Override
-    public ProgramDTO mapFrom(ProgramEntity programEntity) {
-        return modelMapper.map(programEntity, ProgramDTO.class);
+    public ProgramaDTO mapFrom(ProgramaEntity programaEntity) {
+        return modelMapper.map(programaEntity, ProgramaDTO.class);
     }
 }

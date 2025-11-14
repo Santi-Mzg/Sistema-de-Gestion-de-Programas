@@ -1,11 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Departamento;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.UserType;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -19,7 +21,7 @@ public class UserDTO {
     private String apellido;
     private String legajo;
 
-    private Departamento departamento;
+    private DepartamentoEntity departamento;
 
-    private UserType rol;
+    private Set<Rol> roles;
 }

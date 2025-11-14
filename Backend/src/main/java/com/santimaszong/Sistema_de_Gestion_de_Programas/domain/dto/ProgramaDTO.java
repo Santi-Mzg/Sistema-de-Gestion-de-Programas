@@ -1,18 +1,20 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Entity
-@Table(name="programs")
 @Data
-public class ProgramEntity {
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class ProgramaDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // --- BLOQUE ÚNICO ---
@@ -20,16 +22,11 @@ public class ProgramEntity {
     private String nombreMateria;
     private String codigoMateria;
 
-//    @Enumerated(EnumType.STRING)
 //    private Area areaMateria;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
     private UserEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
     private List<Carrera> carreras;
 
     private String plan;
@@ -50,18 +47,13 @@ public class ProgramEntity {
     private String fundamentacion;
     private String objetivos;
 
-    @Column(columnDefinition = "TEXT")
     private String contenidosMinimos;
 
-    @Column(columnDefinition = "TEXT")
     private String programaAnalitico;
 
-    @Column(columnDefinition = "TEXT")
     private String metodologia;
 
-    @Column(columnDefinition = "TEXT")
     private String modalidadEvaluacion;
 
-    @Column(columnDefinition = "TEXT")
     private String bibliografia;
 }

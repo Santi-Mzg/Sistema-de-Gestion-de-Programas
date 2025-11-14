@@ -23,7 +23,7 @@ public class UserMapperImpl implements Mapper<UserDTO, UserEntity> {
         userEntity.setApellido(userDTO.getApellido());
         userEntity.setLegajo(userDTO.getLegajo());
         userEntity.setDepartamento(userDTO.getDepartamento());
-        userEntity.setRol(userDTO.getRol());
+        userEntity.setRoles(userDTO.getRoles());
         return userEntity;
 //        return modelMapper.map(userDTO, UserEntity.class);
     }
@@ -44,7 +44,7 @@ public class UserMapperImpl implements Mapper<UserDTO, UserEntity> {
                 userEntity.getApellido(),
                 userEntity.getLegajo(),
                 userEntity.getDepartamento(),
-                userEntity.getRol()
+                userEntity.getRoles()
         );
 //        return modelMapper.map(userEntity, UserDTO.class);
     }
