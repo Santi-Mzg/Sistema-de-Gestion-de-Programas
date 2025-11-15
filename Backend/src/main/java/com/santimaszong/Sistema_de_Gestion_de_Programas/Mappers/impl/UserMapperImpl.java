@@ -17,35 +17,11 @@ public class UserMapperImpl implements Mapper<UserDTO, UserEntity> {
 
     @Override
     public UserEntity mapTo(UserDTO userDTO) {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userDTO.getId());
-        userEntity.setNombre(userDTO.getNombre());
-        userEntity.setApellido(userDTO.getApellido());
-        userEntity.setLegajo(userDTO.getLegajo());
-        userEntity.setDepartamento(userDTO.getDepartamento());
-        userEntity.setRoles(userDTO.getRoles());
-        return userEntity;
-//        return modelMapper.map(userDTO, UserEntity.class);
+        return modelMapper.map(userDTO, UserEntity.class);
     }
 
     @Override
     public UserDTO mapFrom(UserEntity userEntity) {
-//        UserDTO userDTO = new UserDTO();
-//        userDTO.setId(userEntity.getId());
-//        userDTO.setNombre(userEntity.getNombre());
-//        userDTO.setApellido(userEntity.getApellido());
-//        userDTO.setLegajo(userEntity.getLegajo());
-//        userDTO.setDepartamento(userEntity.getDepartamento());
-//        userDTO.setRol(userEntity.getRol());
-//        return userDTO;
-        return new UserDTO(
-                userEntity.getId(),
-                userEntity.getNombre(),
-                userEntity.getApellido(),
-                userEntity.getLegajo(),
-                userEntity.getDepartamento(),
-                userEntity.getRoles()
-        );
-//        return modelMapper.map(userEntity, UserDTO.class);
+        return modelMapper.map(userEntity, UserDTO.class);
     }
 }

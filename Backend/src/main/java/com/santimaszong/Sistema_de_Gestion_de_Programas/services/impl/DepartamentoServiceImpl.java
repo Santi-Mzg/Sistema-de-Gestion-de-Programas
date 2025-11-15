@@ -5,7 +5,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.DepartamentoD
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,9 +28,6 @@ public class DepartamentoServiceImpl implements DepartamentoService {
         DepartamentoEntity departamentoEntity = departamentoMapper.mapTo(departamentoDTO);
         DepartamentoEntity createdDepartamentoEntity = departamentoRepository.save(departamentoEntity);
 
-//        if(createdDepartamentoEntity==null)
-//            throw new Exception("Error al crear el usuario.");
-
         return departamentoMapper.mapFrom(createdDepartamentoEntity);
     }
 
@@ -51,15 +47,23 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
-    public DepartamentoDTO updateDepartamento(Long id, DepartamentoDTO departamentoDTO) {
-        if(!departamentoRepository.existsById(id)) {
-            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
-        }
+    public Optional<DepartamentoDTO> updateDepartamento(Long id, DepartamentoDTO departamentoDTO) {
+//        if(!departamentoRepository.existsById(id)) {
+//            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
+//        }
+//
+//        DepartamentoEntity departamentoEntity = departamentoMapper.mapTo(departamentoDTO);
+//        DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(departamentoEntity);
+//
 
-        DepartamentoEntity departamentoEntity = departamentoMapper.mapTo(departamentoDTO);
-        DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(departamentoEntity);
+        return departamentoRepository.findById(id)
+                .map(departamentoEntity -> {
+                    departamentoMapper.mapTo(departamentoDTO);
+                    DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(departamentoEntity);
 
-        return departamentoMapper.mapFrom(savedDepartamentoEntity);
+                    return departamentoMapper.mapFrom(savedDepartamentoEntity);
+                });
+
     }
 
     @Override

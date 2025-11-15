@@ -9,6 +9,6 @@ public interface DepartamentoService {
     DepartamentoDTO createDepartamento(DepartamentoDTO user);
     Optional<DepartamentoDTO> getDepartamentoById(Long id);
     List<DepartamentoDTO> listDepartamentos();
-    DepartamentoDTO updateDepartamento(Long id, DepartamentoDTO user);
+    Optional<DepartamentoDTO> updateDepartamento(Long id, DepartamentoDTO user);
     void deleteDepartamento(Long id);
 }

@@ -47,14 +47,9 @@ public class DepartamentoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<DepartamentoDTO> updateDepartamento(@PathVariable Long id, @RequestBody DepartamentoDTO departamento) {
-        try{
-            DepartamentoDTO updatedDepartamento = departamentoService.updateDepartamento(id, departamento);
-
-            return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+            return departamentoService.updateDepartamento(id, departamento)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
