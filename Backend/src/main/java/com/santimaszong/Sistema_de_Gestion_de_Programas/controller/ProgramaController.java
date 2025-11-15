@@ -6,6 +6,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -56,15 +57,95 @@ public class ProgramaController {
 
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRATIVO')")
     public ResponseEntity<ProgramaDTO> createPrograma(@RequestBody ProgramaDTO program) {
-        ProgramaDTO createdProgram = programaService.createProgram(program);
+        ProgramaDTO createdProgram = programaService.createPrograma(program);
 
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
     }
 
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRATIVO')")
+    public ResponseEntity<ProgramaDTO> updatePrograma(@PathVariable Long id, @RequestBody ProgramaDTO program) {
+        try{
+            ProgramaDTO updatedProgram = programaService.updatePrograma(id, program);
+
+            return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
+
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // PROFESOR carga sus datos
+    @PatchMapping("/{id}/profesor")
+    @PreAuthorize("hasRole('PROFESOR')")
+    public ResponseEntity<ProgramaDTO> profesorCarga(@PathVariable Long id,
+                                                     @RequestBody ProgramaDTO programaDTO) {
+        return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO));
+    }
+
+    // PROFESOR rechaza a ADMINISTRACION
+    @PostMapping("/{id}/profesor/rechazar")
+    @PreAuthorize("hasRole('PROFESOR')")
+    public ResponseEntity<Void> profesorRechazarAAdministracion(@PathVariable Long id) {
+        programaService.profesorRechazarAAdministracion(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // COMISION aprueba
+    @PostMapping("/{id}/coordinador/aprobar")
+    @PreAuthorize("hasRole('COORDINADOR')")
+    public ResponseEntity<Void> comisionAprobar(@PathVariable Long id) {
+        programaService.comisionAprobar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // COMISION rechaza a ADMINISTRACION
+    @PostMapping("/{id}/coordinador/rechazar_administracion")
+    @PreAuthorize("hasRole('COORDINADOR')")
+    public ResponseEntity<Void> comisionRechazarAAdministracion(@PathVariable Long id) {
+        programaService.comisionRechazarAAdministracion(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // COMISION rechaza a PROFESOR
+    @PostMapping("/{id}/coordinador/rechazar_profesor")
+    @PreAuthorize("hasRole('COORDINADOR')")
+    public ResponseEntity<Void> comisionRechazarAProfesor(@PathVariable Long id) {
+        programaService.comisionRechazarAProfesor(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // SECRETARÍA aprueba
+    @PostMapping("/{id}/secretaria/aprobar")
+    @PreAuthorize("hasRole('SECRETARIA')")
+    public ResponseEntity<Void> secretariaAprobar(@PathVariable Long id) {
+        programaService.secretariaAprobar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // SECRETARÍA rechaza a ADMINISTRACION
+    @PostMapping("/{id}/secretaria/rechazar_administracion")
+    @PreAuthorize("hasRole('SECRETARIA')")
+    public ResponseEntity<Void> secretariaRechazarAAdministracion(@PathVariable Long id) {
+        programaService.secretariaRechazarAAdministracion(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // SECRETARÍA rechaza a PROFESOR
+    @PostMapping("/{id}/secretaria/rechazar_profesor")
+    @PreAuthorize("hasRole('SECRETARIA')")
+    public ResponseEntity<Void> secretariaRechazarAProfesor(@PathVariable Long id) {
+        programaService.secretariaRechazarAProfesor(id);
+        return ResponseEntity.ok().build();
+    }
+
+
+
     @GetMapping("/{id}")
     public ResponseEntity<ProgramaDTO> getPrograma(@PathVariable Long id) {
-        Optional<ProgramaDTO> foundProgram = programaService.getProgramById(id);
+        Optional<ProgramaDTO> foundProgram = programaService.getProgramaById(id);
 
         return foundProgram
                 .map(ResponseEntity::ok)
@@ -73,48 +154,12 @@ public class ProgramaController {
 
     @GetMapping
     public List<ProgramaDTO> listProgramas() {
-        return programaService.listPrograms();
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<ProgramaDTO> updatePrograma(@PathVariable Long id, @RequestBody ProgramaDTO program) {
-        try{
-            ProgramaDTO updatedProgram = programaService.updateProgram(id, program);
-
-            return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<ProgramaDTO> aprobarPrograma(@PathVariable Long id, @RequestBody ProgramaDTO program) {
-        try{
-            ProgramaDTO updatedProgram = programaService.updateProgram(id, program);
-
-            return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<ProgramaDTO> rechazarPrograma(@PathVariable Long id, @RequestBody ProgramaDTO program) {
-        try{
-            ProgramaDTO updatedProgram = programaService.updateProgram(id, program);
-
-            return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return programaService.listProgramas();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ProgramaDTO> deletePrograma(@PathVariable Long id) {
-        programaService.deleteProgram(id);
+        programaService.deletePrograma(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

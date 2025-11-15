@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -39,11 +40,11 @@ public class ProgramaEntity {
     private String tipoFormacion;
 
     // --- BLOQUE ÚNICO ---
-    private int cargaHorariaTotal;
-    private int cargaHorariaSemanal;
-    private int cargaHorariaPractica;
-    private int creditos;
-    private int cantidadSemanas;
+    private Integer cargaHorariaTotal;
+    private Integer cargaHorariaSemanal;
+    private Integer cargaHorariaPractica;
+    private Integer creditos;
+    private Integer cantidadSemanas;
 
     private String descripcion;
     private String fundamentacion;
@@ -63,6 +64,10 @@ public class ProgramaEntity {
 
     @Column(columnDefinition = "TEXT")
     private String bibliografia;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EstadoPrograma estado;
 }
 
 // Año y cuatrimestre de la carrera

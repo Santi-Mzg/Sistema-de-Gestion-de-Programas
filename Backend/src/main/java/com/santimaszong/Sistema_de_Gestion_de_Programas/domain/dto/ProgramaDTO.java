@@ -37,11 +37,11 @@ public class ProgramaDTO {
     private String tipoFormacion;
 
     // --- BLOQUE ÚNICO ---
-    private int cargaHorariaTotal;
-    private int cargaHorariaSemanal;
-    private int cargaHorariaPractica;
-    private int creditos;
-    private int cantidadSemanas;
+    private Integer cargaHorariaTotal;
+    private Integer cargaHorariaSemanal;
+    private Integer cargaHorariaPractica;
+    private Integer creditos;
+    private Integer cantidadSemanas;
 
     private String descripcion;
     private String fundamentacion;
@@ -56,4 +56,7 @@ public class ProgramaDTO {
     private String modalidadEvaluacion;
 
     private String bibliografia;
+
+    private String estado;
+
 }
