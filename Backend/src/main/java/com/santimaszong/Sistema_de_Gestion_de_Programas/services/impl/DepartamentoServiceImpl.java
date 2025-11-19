@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.DepartamentoMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
@@ -91,11 +92,16 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
             Optional.ofNullable(departamentoDTO.getSecretariaId()).ifPresent( secretariaId -> {
 
-                userRepository.findById(secretariaId).ifPresent(nuevaSecretaria -> {
+                UserEntity nuevaSecretaria = userRepository.findById(secretariaId)
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario secretario no existente"));
 
-                    existingDepartamento.setSecretaria(nuevaSecretaria);
-                    nuevaSecretaria.addRol();
+                Optional.ofNullable(existingDepartamento.getSecretaria()).ifPresent(viejaSecretaria -> {
+                    viejaSecretaria.removeRol(Rol.SECRETARIO);
                 });
+
+                nuevaSecretaria.addRol(Rol.SECRETARIO);
+
+                existingDepartamento.setSecretaria(nuevaSecretaria);
             });
 
             DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);

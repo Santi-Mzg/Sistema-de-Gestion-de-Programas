@@ -1,9 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-public enum RolType {
+public enum Rol {
     ADMIN("Administrador del sistema"),
     ADMINISTRATIVO("Personal administrativo"),
     PROFESOR("Profesor"),
@@ -12,7 +9,7 @@ public enum RolType {
 
     private final String descripcion;
 
-    RolType(String descripcion) {
+    Rol(String descripcion) {
         this.descripcion = descripcion;
     }
 

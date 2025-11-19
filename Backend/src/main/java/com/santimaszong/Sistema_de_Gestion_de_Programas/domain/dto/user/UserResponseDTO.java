@@ -3,8 +3,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Rol;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.RolType;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,6 +29,6 @@ public class UserResponseDTO {
     private CarreraEntity carreraComoProfesor;
     private List<ProgramaEntity> materiasComoProfesor;
 
-    private Set<RolType> roles;
+    private Set<Rol> roles;
 
 }

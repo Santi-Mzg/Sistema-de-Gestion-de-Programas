@@ -1,6 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.RolType;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.HashSet;
@@ -53,15 +53,22 @@ public class UserEntity {
     private List<ProgramaEntity> materiasComoProfesor;
 
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    @JoinTable(
+//            name = "usuarios_roles",
+//            joinColumns = @JoinColumn(name = "usuario_id"),
+//            inverseJoinColumns = @JoinColumn(name = "rol_id")
+//    )
+//    private Set<Rol> roles = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
             name = "usuarios_roles",
-            joinColumns = @JoinColumn(name = "usuario_id"),
-            inverseJoinColumns = @JoinColumn(name = "rol_id")
+            joinColumns = @JoinColumn(name = "usuario_id")
     )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol", nullable = false)
     private Set<Rol> roles = new HashSet<>();
-
-
 
     public void addRol(Rol rol) {
         this.roles.add(rol);
@@ -71,7 +78,7 @@ public class UserEntity {
         this.roles.remove(rol);
     }
 
-    public boolean hasRole(RolType type) {
-        return roles.stream().anyMatch(r -> r.getName() == type);
+    public boolean hasRole(Rol rol) {
+        return roles.contains(rol);
     }
 }

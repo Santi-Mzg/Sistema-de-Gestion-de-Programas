@@ -1,7 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Rol;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.RolType;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,5 +26,5 @@ public class UserCreateDTO {
 //    private Long carreraComoProfesorId;
 //    private List<Long> materiasComoProfesorId;
 
-    private Set<RolType> roles;
+    private Set<Rol> roles;
 }

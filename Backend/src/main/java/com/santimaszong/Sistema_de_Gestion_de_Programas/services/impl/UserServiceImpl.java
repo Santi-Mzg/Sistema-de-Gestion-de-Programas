@@ -2,36 +2,29 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.RolRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RolRepository rolRepository;
     private final DepartamentoRepository departamentoRepository;
     private final CarreraRepository carreraRepository;
 
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, RolRepository rolRepository, DepartamentoRepository departamentoRepository, CarreraRepository carreraRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, DepartamentoRepository departamentoRepository, CarreraRepository carreraRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
-        this.rolRepository = rolRepository;
         this.departamentoRepository = departamentoRepository;
         this.carreraRepository = carreraRepository;
         this.userMapper = userMapper;
@@ -57,13 +50,9 @@ public class UserServiceImpl implements UserService {
 //                        () -> new EntityNotFoundException("La Carrera como Profesor con ID " + userDTO.getCarreraComoProfesorId() + " para el usuario " + userDTO.getNombre()  + "no fue encontrado.")
 //                );
 
-        Set<Rol> roles = rolRepository.findAllByNameIn(userDTO.getRoles());
-        if(userDTO.getRoles().size() != roles.size()){
-            throw new EntityNotFoundException("Uno o más roles no fueron encontrados. Por favor, verifique los nombres de los roles.");
-        }
+
 
 //        userEntity.setDepartamentoAdministracion(departamento);
-        userEntity.setRoles(roles);
 //        userEntity.setCarreraComoComision(carreraComoComision);
 //        userEntity.setCarreraComoProfesor(carreraComoProfesor);
 
