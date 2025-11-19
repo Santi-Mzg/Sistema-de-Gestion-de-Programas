@@ -4,7 +4,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Prog
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProgramaService {
     ProgramaResponseDTO createPrograma(ProgramaCreateDTO programa);
@@ -19,7 +18,7 @@ public interface ProgramaService {
     Void secretariaRechazarAAdministracion(Long id);
     Void secretariaRechazarAProfesor(Long id);
 
-    Optional<ProgramaResponseDTO> getProgramaById(Long id);
+    ProgramaResponseDTO getProgramaById(Long id);
     List<ProgramaResponseDTO> listProgramas();
     void deletePrograma(Long id);
 }

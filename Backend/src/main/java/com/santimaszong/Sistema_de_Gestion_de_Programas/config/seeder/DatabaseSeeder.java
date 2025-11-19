@@ -1,4 +1,4 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.config;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.config.seeder;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.RolType;

@@ -33,11 +33,9 @@ public class DepartamentoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DepartamentoResponseDTO> getDepartamento(@PathVariable Long id) {
-        Optional<DepartamentoResponseDTO> foundDepartamento = departamentoService.getDepartamentoById(id);
+        DepartamentoResponseDTO foundDepartamento = departamentoService.getDepartamentoById(id);
 
-        return foundDepartamento
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundDepartamento);
     }
 
     @GetMapping

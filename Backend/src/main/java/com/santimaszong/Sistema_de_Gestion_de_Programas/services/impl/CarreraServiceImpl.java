@@ -55,10 +55,11 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
-    public Optional<CarreraResponseDTO> getCarreraById(Long id) {
-        Optional<CarreraEntity> foundCarrera = carreraRepository.findById(id);
+    public CarreraResponseDTO getCarreraById(Long id) {
+        CarreraEntity foundCarrera = carreraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
 
-        return foundCarrera.map(carreraMapper::toDTO);
+        return carreraMapper.toDTO(foundCarrera);
     }
 
     @Override
@@ -80,7 +81,7 @@ public class CarreraServiceImpl implements CarreraService {
             CarreraEntity savedCarreraEntity = carreraRepository.save(existingCarrera);
 
             return carreraMapper.toDTO(savedCarreraEntity);
-        }).orElseThrow(() -> new RuntimeException("Carrera no existente"));
+        }).orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
     }
 
     @Override

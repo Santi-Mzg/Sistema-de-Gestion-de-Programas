@@ -4,11 +4,10 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DepartamentoService {
     DepartamentoResponseDTO createDepartamento(DepartamentoCreateDTO user);
-    Optional<DepartamentoResponseDTO> getDepartamentoById(Long id);
+    DepartamentoResponseDTO getDepartamentoById(Long id);
     List<DepartamentoResponseDTO> listDepartamentos();
     DepartamentoResponseDTO updateDepartamento(Long id, DepartamentoCreateDTO user);
     DepartamentoResponseDTO updateSecretarioDepartamento(Long id, DepartamentoCreateDTO departamentoDTO);

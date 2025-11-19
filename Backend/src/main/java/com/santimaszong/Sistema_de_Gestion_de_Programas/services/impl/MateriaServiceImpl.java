@@ -48,10 +48,11 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
-    public Optional<MateriaResponseDTO> getMateriaById(Long id) {
-        Optional<MateriaEntity> foundMateria = materiaRepository.findById(id);
+    public MateriaResponseDTO getMateriaById(Long id) {
+        MateriaEntity foundMateria = materiaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Materia no existente"));;
 
-        return foundMateria.map(materiaMapper::toDTO);
+        return materiaMapper.toDTO(foundMateria);
     }
 
     @Override

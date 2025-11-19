@@ -49,7 +49,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public ProgramaResponseDTO profesorCarga(Long id, ProgramaCreateDTO programaDTO) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
                 && !existingProgram.getEstado().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
@@ -105,7 +105,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void profesorRechazarAAdministracion(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
                 && !existingProgram.getEstado().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
@@ -122,7 +122,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void comisionAprobar(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
             throw new IllegalStateException("El coordinador no puede aprobar en el estado actual.");
@@ -138,7 +138,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void comisionRechazarAAdministracion(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
             throw new IllegalStateException("El coordinador no puede rechazar en el estado actual.");
@@ -154,7 +154,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void comisionRechazarAProfesor(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
             throw new IllegalStateException("El coordinador no puede rechazar en el estado actual.");
@@ -170,7 +170,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void secretariaAprobar(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
             throw new IllegalStateException("El secretario no puede aprobar en el estado actual.");
@@ -186,7 +186,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void secretariaRechazarAAdministracion(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
             throw new IllegalStateException("El secretario no puede rechazar en el estado actual.");
@@ -202,7 +202,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     public Void secretariaRechazarAProfesor(Long id) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Programa no existente"));
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
             throw new IllegalStateException("El secretario no puede rechazar en el estado actual.");
@@ -216,10 +216,11 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public Optional<ProgramaResponseDTO> getProgramaById(Long id) {
-        Optional<ProgramaEntity> foundProgram = programaRepository.findById(id);
+    public ProgramaResponseDTO getProgramaById(Long id) {
+        ProgramaEntity foundProgram = programaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        return foundProgram.map(programaMapper::toDTO);
+        return programaMapper.toDTO(foundProgram);
     }
 
     @Override

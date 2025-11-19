@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface MateriaService {
     MateriaResponseDTO createMateria(MateriaCreateDTO user);
-    Optional<MateriaResponseDTO> getMateriaById(Long id);
+    MateriaResponseDTO getMateriaById(Long id);
     List<MateriaResponseDTO> listMaterias();
     MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO user);
     void deleteMateria(Long id);

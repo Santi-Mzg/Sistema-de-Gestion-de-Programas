@@ -26,22 +26,16 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreateDTO user) {
-        try {
-            UserResponseDTO createdUser = userService.createUser(user);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        UserResponseDTO createdUser = userService.createUser(user);
 
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
-        Optional<UserResponseDTO> foundUser = userService.getUserById(id);
+        UserResponseDTO foundUser = userService.getUserById(id);
 
-        return foundUser
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundUser);
     }
 
     @GetMapping
@@ -51,14 +45,9 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserCreateDTO user) {
-        try{
-            UserResponseDTO updatedUser = userService.updateUser(id, user);
+        UserResponseDTO updatedUser = userService.updateUser(id, user);
 
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

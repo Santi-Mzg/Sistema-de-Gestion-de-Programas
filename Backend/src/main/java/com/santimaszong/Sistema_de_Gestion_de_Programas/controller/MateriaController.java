@@ -34,11 +34,9 @@ public class MateriaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MateriaResponseDTO> getMateria(@PathVariable Long id) {
-        Optional<MateriaResponseDTO> foundMateria = materiaService.getMateriaById(id);
+        MateriaResponseDTO foundMateria = materiaService.getMateriaById(id);
 
-        return foundMateria
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundMateria);
     }
 
     @GetMapping
@@ -48,14 +46,9 @@ public class MateriaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO program) {
-        try{
-            MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);
+        MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);
 
-            return new ResponseEntity<>(updatedMateria, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedMateria, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

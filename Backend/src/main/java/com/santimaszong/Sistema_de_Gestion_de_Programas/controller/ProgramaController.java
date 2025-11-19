@@ -68,14 +68,9 @@ public class ProgramaController {
     @PatchMapping("/{id}")
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
     public ResponseEntity<ProgramaResponseDTO> updatePrograma(@PathVariable Long id, @RequestBody ProgramaCreateDTO program) {
-        try{
-            ProgramaResponseDTO updatedProgram = programaService.updatePrograma(id, program);
+        ProgramaResponseDTO updatedProgram = programaService.updatePrograma(id, program);
 
-            return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
     }
 
     // PROFESOR carga sus datos
@@ -146,11 +141,9 @@ public class ProgramaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProgramaResponseDTO> getPrograma(@PathVariable Long id) {
-        Optional<ProgramaResponseDTO> foundProgram = programaService.getProgramaById(id);
+        ProgramaResponseDTO foundProgram = programaService.getProgramaById(id);
 
-        return foundProgram
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundProgram);
     }
 
     @GetMapping

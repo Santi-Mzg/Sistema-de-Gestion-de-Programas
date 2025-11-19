@@ -53,10 +53,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
-    public Optional<DepartamentoResponseDTO> getDepartamentoById(Long id) {
-        Optional<DepartamentoEntity> foundDepartamento = departamentoRepository.findById(id);
+    public DepartamentoResponseDTO getDepartamentoById(Long id) {
+        DepartamentoEntity foundDepartamento = departamentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
 
-        return foundDepartamento.map(departamentoMapper::toDTO);
+        return departamentoMapper.toDTO(foundDepartamento);
     }
 
     @Override
@@ -80,7 +81,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
                     DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
 
                     return departamentoMapper.toDTO(savedDepartamentoEntity);
-                }).orElseThrow(() -> new RuntimeException("Departamento no existente"));
+                }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
     }
 
     @Override
@@ -96,7 +97,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
 
             return departamentoMapper.toDTO(savedDepartamentoEntity);
-        }).orElseThrow(() -> new RuntimeException("Departamento no existente"));
+        }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
     }
 
     @Override
@@ -116,7 +117,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
 
             return departamentoMapper.toDTO(savedDepartamentoEntity);
-        }).orElseThrow(() -> new RuntimeException("Departamento no existente"));
+        }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
     }
 
     @Override

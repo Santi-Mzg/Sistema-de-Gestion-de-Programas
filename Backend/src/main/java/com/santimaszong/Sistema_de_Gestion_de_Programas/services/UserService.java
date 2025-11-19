@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserService {
     UserResponseDTO createUser(UserCreateDTO user);
-    Optional<UserResponseDTO> getUserById(Long id);
+    UserResponseDTO getUserById(Long id);
     List<UserResponseDTO> listUsers();
     UserResponseDTO updateUser(Long id, UserCreateDTO user);
     void deleteUser(Long id);

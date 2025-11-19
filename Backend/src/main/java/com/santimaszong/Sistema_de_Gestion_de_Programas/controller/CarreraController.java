@@ -34,11 +34,9 @@ public class CarreraController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CarreraResponseDTO> getCarrera(@PathVariable Long id) {
-        Optional<CarreraResponseDTO> foundCarrera = carreraService.getCarreraById(id);
+        CarreraResponseDTO foundCarrera = carreraService.getCarreraById(id);
 
-        return foundCarrera
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundCarrera);
     }
 
     @GetMapping
@@ -48,14 +46,9 @@ public class CarreraController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<CarreraResponseDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO program) {
-        try{
-            CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, program);
+        CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, program);
 
-            return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

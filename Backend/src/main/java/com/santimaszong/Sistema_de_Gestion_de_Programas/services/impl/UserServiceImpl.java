@@ -73,10 +73,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserResponseDTO> getUserById(Long id) {
-        Optional<UserEntity> foundUser = userRepository.findById(id);
+    public UserResponseDTO getUserById(Long id) {
+        UserEntity foundUser = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));;
 
-        return foundUser.map(userMapper::toDTO);
+        return userMapper.toDTO(foundUser);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO updateUser(Long id, UserCreateDTO userDTO) {
         if(!userRepository.existsById(id)) {
-            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
+            throw new EntityNotFoundException("El usuario con ID " + id + " no fue encontrado.");
         }
 
         UserEntity userEntity = userMapper.toEntity(userDTO);
