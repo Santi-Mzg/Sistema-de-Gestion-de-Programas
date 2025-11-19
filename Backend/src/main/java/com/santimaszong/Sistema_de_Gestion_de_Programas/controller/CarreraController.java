@@ -26,8 +26,8 @@ public class CarreraController {
 
 
     @PostMapping
-    public ResponseEntity<CarreraResponseDTO> createCarrera(@RequestBody CarreraCreateDTO program) {
-        CarreraResponseDTO createdCarrera = carreraService.createCarrera(program);
+    public ResponseEntity<CarreraResponseDTO> createCarrera(@RequestBody CarreraCreateDTO carrera) {
+        CarreraResponseDTO createdCarrera = carreraService.createCarrera(carrera);
 
         return new ResponseEntity<>(createdCarrera, HttpStatus.CREATED);
     }
@@ -45,8 +45,15 @@ public class CarreraController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CarreraResponseDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO program) {
-        CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, program);
+    public ResponseEntity<CarreraResponseDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO carrera) {
+        CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, carrera);
+
+        return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
+    }
+
+    @PatchMapping("/cambiar_comision/{id}")
+    public ResponseEntity<CarreraResponseDTO> updateComisionCarrera(Long id, CarreraCreateDTO carrera) {
+        CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, carrera);
 
         return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
     }

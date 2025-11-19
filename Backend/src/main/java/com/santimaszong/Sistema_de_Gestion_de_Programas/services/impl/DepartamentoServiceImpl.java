@@ -88,9 +88,13 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     public DepartamentoResponseDTO updateSecretarioDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
 
         return departamentoRepository.findById(id).map(existingDepartamento -> {
+
             Optional.ofNullable(departamentoDTO.getSecretariaId()).ifPresent( secretariaId -> {
-                userRepository.findById(secretariaId).ifPresent(secretariaEntity -> {
-                    existingDepartamento.setSecretaria(secretariaEntity);
+
+                userRepository.findById(secretariaId).ifPresent(nuevaSecretaria -> {
+
+                    existingDepartamento.setSecretaria(nuevaSecretaria);
+                    nuevaSecretaria.addRol();
                 });
             });
 

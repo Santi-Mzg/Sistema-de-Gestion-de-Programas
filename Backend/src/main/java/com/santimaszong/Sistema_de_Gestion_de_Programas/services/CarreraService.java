@@ -6,9 +6,10 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.Carre
 import java.util.List;
 
 public interface CarreraService {
-    CarreraResponseDTO createCarrera(CarreraCreateDTO user);
+    CarreraResponseDTO createCarrera(CarreraCreateDTO carrera);
     CarreraResponseDTO getCarreraById(Long id);
     List<CarreraResponseDTO> listCarreras();
-    CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO user);
+    CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carrera);
+    CarreraResponseDTO updateComisionCarrera(Long id, CarreraCreateDTO carrera);
     void deleteCarrera(Long id);
 }

@@ -85,6 +85,24 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
+    public CarreraResponseDTO updateComisionCarrera(Long id, CarreraCreateDTO carreraDTO) {
+
+        return carreraRepository.findById(id).map(existingCarrera -> {
+
+            Optional.ofNullable(carreraDTO.getComisionId()).ifPresent(comisionId -> {
+
+                userRepository.findById(comisionId).ifPresent(nuevaComision -> {
+                    existingCarrera.setComision(nuevaComision);
+                });
+            });
+
+            CarreraEntity savedCarreraEntity = carreraRepository.save(existingCarrera);
+
+            return carreraMapper.toDTO(savedCarreraEntity);
+        }).orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
+    }
+
+    @Override
     public void deleteCarrera(Long id) {
         carreraRepository.deleteById(id);
     }

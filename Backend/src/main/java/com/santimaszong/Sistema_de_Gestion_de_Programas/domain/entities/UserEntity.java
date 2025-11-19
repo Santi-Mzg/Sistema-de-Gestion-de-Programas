@@ -61,9 +61,14 @@ public class UserEntity {
     )
     private Set<Rol> roles = new HashSet<>();
 
-    // helper methods
+
+
     public void addRol(Rol rol) {
         this.roles.add(rol);
+    }
+
+    public void removeRol(Rol rol) {
+        this.roles.remove(rol);
     }
 
     public boolean hasRole(RolType type) {
