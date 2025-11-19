@@ -2,7 +2,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Data
 @Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "carreras")
@@ -20,20 +18,20 @@ public class CarreraEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo_carrera", nullable = false)
+    @Column(name = "codigo_carrera", nullable = false, unique = true)
     private String codigo;
 
-    @Column(name = "nombre_carrera", nullable = false)
+    @Column(name = "nombre_carrera", nullable = false, unique = true)
     private String nombre;
 
-    @Column(name = "duracion_carrera")
+    @Column(name = "duracion_carrera", nullable = false)
     private String duracion;
 
-    @Column(name = "cantidadMaterias_carrera")
+    @Column(name = "cantidad_materias_carrera", nullable = false)
     private int cantidadMaterias;
 
 
-    @ManyToMany(mappedBy = "carreras", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "carreras", fetch = FetchType.LAZY)
     private List<MateriaEntity> materias;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,6 +41,6 @@ public class CarreraEntity {
     @OneToOne(mappedBy = "carreraComoComision", fetch = FetchType.LAZY)
     private UserEntity comision;
 
-    @OneToMany(mappedBy = "carreraComoProfesor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "carreraComoProfesor", fetch = FetchType.LAZY)
     private List<UserEntity> profesores;
 }

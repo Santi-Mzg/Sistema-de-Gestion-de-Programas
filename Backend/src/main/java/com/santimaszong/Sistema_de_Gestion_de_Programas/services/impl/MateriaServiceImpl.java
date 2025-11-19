@@ -1,8 +1,9 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.Mappers.Mapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.MateriaDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.MateriaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,50 +17,61 @@ import java.util.stream.Collectors;
 public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
-    private Mapper<MateriaDTO, MateriaEntity> materiaMapper;
+    private final MateriaMapper materiaMapper;
 
-    public MateriaServiceImpl(MateriaRepository materiaRepository, Mapper<MateriaDTO, MateriaEntity> materiaMapper) {
+    public MateriaServiceImpl(MateriaRepository materiaRepository, MateriaMapper materiaMapper) {
         this.materiaRepository = materiaRepository;
         this.materiaMapper = materiaMapper;
     }
 
 
     @Override
-    public MateriaDTO createMateria(MateriaDTO materiaDTO){
-        MateriaEntity materiaEntity = materiaMapper.mapTo(materiaDTO);
+    public MateriaResponseDTO createMateria(MateriaCreateDTO materiaDTO){
+        MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
+
+        List<MateriaEntity> correlativasFuertes = materiaRepository.findAllById(materiaDTO.getCorrelativasFuertesIds());
+        if(materiaDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
+            throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
+        }
+
+        List<MateriaEntity> correlativasDebiles = materiaRepository.findAllById(materiaDTO.getCorrelativasDebilesIds());
+        if(materiaDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
+            throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
+        }
+
+        materiaEntity.setCorrelativasFuertes(correlativasFuertes);
+        materiaEntity.setCorrelativasDebiles(correlativasDebiles);
+
         MateriaEntity createdMateriaEntity = materiaRepository.save(materiaEntity);
 
-//        if(createdMateriaEntity==null)
-//            throw new Exception("Error al crear el usuario.");
-
-        return materiaMapper.mapFrom(createdMateriaEntity);
+        return materiaMapper.toDTO(createdMateriaEntity);
     }
 
     @Override
-    public Optional<MateriaDTO> getMateriaById(Long id) {
+    public Optional<MateriaResponseDTO> getMateriaById(Long id) {
         Optional<MateriaEntity> foundMateria = materiaRepository.findById(id);
 
-        return foundMateria.map(materiaMapper::mapFrom);
+        return foundMateria.map(materiaMapper::toDTO);
     }
 
     @Override
-    public List<MateriaDTO> listMaterias() {
+    public List<MateriaResponseDTO> listMaterias() {
         List<MateriaEntity> materias = materiaRepository.findAll();
         return materias.stream()
-                .map(materiaMapper::mapFrom)
+                .map(materiaMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public MateriaDTO updateMateria(Long id, MateriaDTO materiaDTO) {
+    public MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materiaDTO) {
         if(!materiaRepository.existsById(id)) {
             throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
         }
 
-        MateriaEntity materiaEntity = materiaMapper.mapTo(materiaDTO);
+        MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
         MateriaEntity savedMateriaEntity = materiaRepository.save(materiaEntity);
 
-        return materiaMapper.mapFrom(savedMateriaEntity);
+        return materiaMapper.toDTO(savedMateriaEntity);
     }
 
     @Override

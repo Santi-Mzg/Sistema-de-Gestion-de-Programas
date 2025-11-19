@@ -1,10 +1,9 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,8 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class MateriaDTO {
+public class MateriaResponseDTO {
 
     private Long id;
 

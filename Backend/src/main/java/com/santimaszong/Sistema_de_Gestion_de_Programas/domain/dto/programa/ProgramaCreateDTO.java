@@ -1,9 +1,8 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,8 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class ProgramaDTO {
+public class ProgramaCreateDTO {
 
     private Long id;
 

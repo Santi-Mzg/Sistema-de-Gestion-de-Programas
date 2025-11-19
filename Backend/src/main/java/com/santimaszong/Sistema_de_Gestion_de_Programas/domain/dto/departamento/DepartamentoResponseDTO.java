@@ -1,11 +1,8 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,8 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class DepartamentoDTO {
+public class DepartamentoResponseDTO {
 
     private Long id;
     private String nombre;
@@ -23,7 +19,7 @@ public class DepartamentoDTO {
     private String cuerpo;
     private String email;
     private String sitioWeb;
-    private List<CarreraEntity> carreras;
-    private UserEntity administracion;
+    private List<UserEntity> administracion;
     private UserEntity secretaria;
+    private List<CarreraEntity> carreras;
 }

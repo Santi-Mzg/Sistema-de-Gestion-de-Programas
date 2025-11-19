@@ -1,18 +1,16 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.ProgramaDTO;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ProgramaService {
-    ProgramaDTO createPrograma(ProgramaDTO programa);
-    ProgramaDTO updatePrograma(Long id, ProgramaDTO programa);
+    ProgramaResponseDTO createPrograma(ProgramaCreateDTO programa);
+    ProgramaResponseDTO updatePrograma(Long id, ProgramaCreateDTO programa);
 
-    ProgramaDTO profesorCarga(Long id, ProgramaDTO programa);
+    ProgramaResponseDTO profesorCarga(Long id, ProgramaCreateDTO programa);
     Void profesorRechazarAAdministracion(Long id);
     Void comisionAprobar(Long id);
     Void comisionRechazarAAdministracion(Long id);
@@ -21,7 +19,7 @@ public interface ProgramaService {
     Void secretariaRechazarAAdministracion(Long id);
     Void secretariaRechazarAProfesor(Long id);
 
-    Optional<ProgramaDTO> getProgramaById(Long id);
-    List<ProgramaDTO> listProgramas();
+    Optional<ProgramaResponseDTO> getProgramaById(Long id);
+    List<ProgramaResponseDTO> listProgramas();
     void deletePrograma(Long id);
 }

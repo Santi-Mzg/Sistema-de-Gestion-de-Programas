@@ -3,14 +3,16 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Table(name="programas")
 @Data
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name="programas")
 public class ProgramaEntity {
 
     @Id
@@ -26,7 +28,7 @@ public class ProgramaEntity {
 
     //    private Area areaMateria;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profesorResponsable_id")
+    @JoinColumn(name = "profesor_responsable_id")
     private UserEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---

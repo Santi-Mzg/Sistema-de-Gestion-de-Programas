@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.CarreraDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
@@ -25,15 +26,15 @@ public class CarreraController {
 
 
     @PostMapping
-    public ResponseEntity<CarreraDTO> createCarrera(@RequestBody CarreraDTO program) {
-        CarreraDTO createdCarrera = carreraService.createCarrera(program);
+    public ResponseEntity<CarreraResponseDTO> createCarrera(@RequestBody CarreraCreateDTO program) {
+        CarreraResponseDTO createdCarrera = carreraService.createCarrera(program);
 
         return new ResponseEntity<>(createdCarrera, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CarreraDTO> getCarrera(@PathVariable Long id) {
-        Optional<CarreraDTO> foundCarrera = carreraService.getCarreraById(id);
+    public ResponseEntity<CarreraResponseDTO> getCarrera(@PathVariable Long id) {
+        Optional<CarreraResponseDTO> foundCarrera = carreraService.getCarreraById(id);
 
         return foundCarrera
                 .map(ResponseEntity::ok)
@@ -41,14 +42,14 @@ public class CarreraController {
     }
 
     @GetMapping
-    public List<CarreraDTO> listCarreras() {
+    public List<CarreraResponseDTO> listCarreras() {
         return carreraService.listCarreras();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CarreraDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraDTO program) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<CarreraResponseDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO program) {
         try{
-            CarreraDTO updatedCarrera = carreraService.updateCarrera(id, program);
+            CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, program);
 
             return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
 
@@ -58,7 +59,7 @@ public class CarreraController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CarreraDTO> deleteCarrera(@PathVariable Long id) {
+    public ResponseEntity<CarreraResponseDTO> deleteCarrera(@PathVariable Long id) {
         carreraService.deleteCarrera(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

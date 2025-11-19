@@ -1,8 +1,8 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.DepartamentoDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,15 +25,15 @@ public class DepartamentoController {
 
 
     @PostMapping
-    public ResponseEntity<DepartamentoDTO> createDepartamento(@RequestBody DepartamentoDTO departamento) {
-        DepartamentoDTO createdDepartamento = departamentoService.createDepartamento(departamento);
+    public ResponseEntity<DepartamentoResponseDTO> createDepartamento(@RequestBody DepartamentoCreateDTO departamento) {
+        DepartamentoResponseDTO createdDepartamento = departamentoService.createDepartamento(departamento);
 
         return new ResponseEntity<>(createdDepartamento, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DepartamentoDTO> getDepartamento(@PathVariable Long id) {
-        Optional<DepartamentoDTO> foundDepartamento = departamentoService.getDepartamentoById(id);
+    public ResponseEntity<DepartamentoResponseDTO> getDepartamento(@PathVariable Long id) {
+        Optional<DepartamentoResponseDTO> foundDepartamento = departamentoService.getDepartamentoById(id);
 
         return foundDepartamento
                 .map(ResponseEntity::ok)
@@ -41,19 +41,34 @@ public class DepartamentoController {
     }
 
     @GetMapping
-    public List<DepartamentoDTO> listDepartamentos() {
+    public List<DepartamentoResponseDTO> listDepartamentos() {
         return departamentoService.listDepartamentos();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<DepartamentoDTO> updateDepartamento(@PathVariable Long id, @RequestBody DepartamentoDTO departamento) {
-            return departamentoService.updateDepartamento(id, departamento)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
+    @PatchMapping("/{id}")
+    public ResponseEntity<DepartamentoResponseDTO> updateDepartamento(@PathVariable Long id, @RequestBody DepartamentoCreateDTO departamento) {
+        DepartamentoResponseDTO updatedDepartamento = departamentoService.updateDepartamento(id, departamento);
+
+        return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
+    }
+
+    @PatchMapping("/cambiar_secretaria/{id}")
+
+    public ResponseEntity<DepartamentoResponseDTO> updateSecretarioDepartamento(@PathVariable Long id, @RequestBody DepartamentoCreateDTO departamento) {
+        DepartamentoResponseDTO updatedDepartamento = departamentoService.updateSecretarioDepartamento(id, departamento);
+
+        return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
+    }
+
+    @PatchMapping("/cambiar_administracion/{id}")
+    public ResponseEntity<DepartamentoResponseDTO> updateAdministracionDepartamento(@PathVariable Long id, @RequestBody DepartamentoCreateDTO departamento) {
+        DepartamentoResponseDTO updatedDepartamento = departamentoService.updateAdministracionDepartamento(id, departamento);
+
+        return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<DepartamentoDTO> deleteDepartamento(@PathVariable Long id) {
+    public ResponseEntity<DepartamentoResponseDTO> deleteDepartamento(@PathVariable Long id) {
         departamentoService.deleteDepartamento(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

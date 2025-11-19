@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "departamentos")
@@ -22,16 +21,16 @@ public class DepartamentoEntity {
     @Column(name = "nombre_departamento", nullable = false)
     private String nombre;
 
-    @Column(name = "direccion_departamento")
+    @Column(name = "direccion_departamento", nullable = false)
     private String direccion;
 
-    @Column(name = "cuerpo_departamento")
+    @Column(name = "cuerpo_departamento", nullable = false)
     private String cuerpo;
 
-    @Column(name = "email_departamento")
+    @Column(name = "email_departamento", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "sitioWeb_departamento")
+    @Column(name = "sitio_web_departamento")
     private String sitioWeb;
 
 
@@ -39,9 +38,10 @@ public class DepartamentoEntity {
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CarreraEntity> carreras;
 
-    @OneToOne(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserEntity administracion;
+    @OneToMany(mappedBy = "departamentoAdministracion", fetch = FetchType.LAZY)
+    private List<UserEntity> administracion;
 
-    @OneToOne(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "secretaria_id")
     private UserEntity secretaria;
 }

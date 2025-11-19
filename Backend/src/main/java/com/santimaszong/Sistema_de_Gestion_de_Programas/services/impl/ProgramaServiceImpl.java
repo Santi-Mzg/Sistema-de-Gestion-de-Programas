@@ -1,10 +1,10 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.Mappers.Mapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.ProgramaDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,37 +17,37 @@ import java.util.stream.Collectors;
 @Service
 public class ProgramaServiceImpl implements ProgramaService {
 
-    private ProgramaRepository programaRepository;
-    private Mapper<ProgramaDTO, ProgramaEntity> programaMapper;
+    private final ProgramaRepository programaRepository;
+    private final ProgramaMapper programaMapper;
 
-    public ProgramaServiceImpl(ProgramaRepository programaRepository, Mapper<ProgramaDTO, ProgramaEntity> programaMapper) {
+    public ProgramaServiceImpl(ProgramaRepository programaRepository, ProgramaMapper programaMapper) {
         this.programaRepository = programaRepository;
         this.programaMapper = programaMapper;
     }
 
 
     @Override
-    public ProgramaDTO createPrograma(ProgramaDTO programaDTO){
-        ProgramaEntity programaEntity = programaMapper.mapTo(programaDTO);
+    public ProgramaResponseDTO createPrograma(ProgramaCreateDTO programaDTO){
+        ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
 
-        return programaMapper.mapFrom(createdProgramaEntity);
+        return programaMapper.toDTO(createdProgramaEntity);
     }
 
     @Override
-    public ProgramaDTO updatePrograma(Long id, ProgramaDTO programaDTO) {
+    public ProgramaResponseDTO updatePrograma(Long id, ProgramaCreateDTO programaDTO) {
         if(!programaRepository.existsById(id)) {
             throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
         }
 
-        ProgramaEntity programaEntity = programaMapper.mapTo(programaDTO);
+        ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
         ProgramaEntity savedProgramaEntity = programaRepository.save(programaEntity);
 
-        return programaMapper.mapFrom(savedProgramaEntity);
+        return programaMapper.toDTO(savedProgramaEntity);
     }
 
     @Override
-    public ProgramaDTO profesorCarga(Long id, ProgramaDTO programaDTO) {
+    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCreateDTO programaDTO) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Programa no existente"));
 
@@ -99,7 +99,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
-        return programaMapper.mapFrom(saved);
+        return programaMapper.toDTO(saved);
     }
 
     @Override
@@ -216,17 +216,17 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public Optional<ProgramaDTO> getProgramaById(Long id) {
+    public Optional<ProgramaResponseDTO> getProgramaById(Long id) {
         Optional<ProgramaEntity> foundProgram = programaRepository.findById(id);
 
-        return foundProgram.map(programaMapper::mapFrom);
+        return foundProgram.map(programaMapper::toDTO);
     }
 
     @Override
-    public List<ProgramaDTO> listProgramas() {
+    public List<ProgramaResponseDTO> listProgramas() {
         List<ProgramaEntity> programs = programaRepository.findAll();
         return programs.stream()
-                .map(programaMapper::mapFrom)
+                .map(programaMapper::toDTO)
                 .collect(Collectors.toList());
     }
 

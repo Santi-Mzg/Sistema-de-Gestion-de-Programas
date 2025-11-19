@@ -1,9 +1,14 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.Mappers.Mapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.CarreraDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.CarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,50 +21,66 @@ import java.util.stream.Collectors;
 public class CarreraServiceImpl implements CarreraService {
 
     private final CarreraRepository carreraRepository;
-    private Mapper<CarreraDTO, CarreraEntity> carreraMapper;
+    private final DepartamentoRepository departamentoRepository;
+    private final UserRepository userRepository;
+    private final CarreraMapper carreraMapper;
 
-    public CarreraServiceImpl(CarreraRepository carreraRepository, Mapper<CarreraDTO, CarreraEntity> carreraMapper) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoRepository departamentoRepository, UserRepository userRepository, CarreraMapper carreraMapper) {
         this.carreraRepository = carreraRepository;
+        this.departamentoRepository = departamentoRepository;
+        this.userRepository = userRepository;
         this.carreraMapper = carreraMapper;
     }
 
 
     @Override
-    public CarreraDTO createCarrera(CarreraDTO carreraDTO){
-        CarreraEntity carreraEntity = carreraMapper.mapTo(carreraDTO);
+    public CarreraResponseDTO createCarrera(CarreraCreateDTO carreraDTO){
+        CarreraEntity carreraEntity = carreraMapper.toEntity(carreraDTO);
+
+        DepartamentoEntity departamento = departamentoRepository.findById(carreraDTO.getDepartamentoId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El Departamento " + carreraDTO.getNombre() + " con ID " + carreraDTO.getDepartamentoId() + "no fue encontrado.")
+                );
+
+        UserEntity comision = userRepository.findById(carreraDTO.getComisionId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El Coordinador de la carrera " + carreraDTO.getNombre() + " con ID " + carreraDTO.getComisionId() + "no fue encontrado.")
+                );
+
+        carreraEntity.setDepartamento(departamento);
+        carreraEntity.setComision(comision);
         CarreraEntity createdCarreraEntity = carreraRepository.save(carreraEntity);
 
-//        if(createdCarreraEntity==null)
-//            throw new Exception("Error al crear el usuario.");
-
-        return carreraMapper.mapFrom(createdCarreraEntity);
+        return carreraMapper.toDTO(createdCarreraEntity);
     }
 
     @Override
-    public Optional<CarreraDTO> getCarreraById(Long id) {
+    public Optional<CarreraResponseDTO> getCarreraById(Long id) {
         Optional<CarreraEntity> foundCarrera = carreraRepository.findById(id);
 
-        return foundCarrera.map(carreraMapper::mapFrom);
+        return foundCarrera.map(carreraMapper::toDTO);
     }
 
     @Override
-    public List<CarreraDTO> listCarreras() {
+    public List<CarreraResponseDTO> listCarreras() {
         List<CarreraEntity> carreras = carreraRepository.findAll();
         return carreras.stream()
-                .map(carreraMapper::mapFrom)
+                .map(carreraMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public CarreraDTO updateCarrera(Long id, CarreraDTO carreraDTO) {
-        if(!carreraRepository.existsById(id)) {
-            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
-        }
+    public CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carreraDTO) {
+        return carreraRepository.findById(id).map(existingCarrera -> {
+            Optional.ofNullable(carreraDTO.getNombre()).ifPresent(existingCarrera::setNombre);
+            Optional.ofNullable(carreraDTO.getCodigo()).ifPresent(existingCarrera::setCodigo);
+            Optional.ofNullable(carreraDTO.getDuracion()).ifPresent(existingCarrera::setDuracion);
+            Optional.ofNullable(carreraDTO.getCantidadMaterias()).ifPresent(existingCarrera::setCantidadMaterias);
 
-        CarreraEntity carreraEntity = carreraMapper.mapTo(carreraDTO);
-        CarreraEntity savedCarreraEntity = carreraRepository.save(carreraEntity);
+            CarreraEntity savedCarreraEntity = carreraRepository.save(existingCarrera);
 
-        return carreraMapper.mapFrom(savedCarreraEntity);
+            return carreraMapper.toDTO(savedCarreraEntity);
+        }).orElseThrow(() -> new RuntimeException("Carrera no existente"));
     }
 
     @Override

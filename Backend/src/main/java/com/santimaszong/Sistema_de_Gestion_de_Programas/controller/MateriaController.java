@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.MateriaDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
@@ -25,15 +26,15 @@ public class MateriaController {
 
 
     @PostMapping
-    public ResponseEntity<MateriaDTO> createMateria(@RequestBody MateriaDTO program) {
-        MateriaDTO createdMateria = materiaService.createMateria(program);
+    public ResponseEntity<MateriaResponseDTO> createMateria(@RequestBody MateriaCreateDTO program) {
+        MateriaResponseDTO createdMateria = materiaService.createMateria(program);
 
         return new ResponseEntity<>(createdMateria, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MateriaDTO> getMateria(@PathVariable Long id) {
-        Optional<MateriaDTO> foundMateria = materiaService.getMateriaById(id);
+    public ResponseEntity<MateriaResponseDTO> getMateria(@PathVariable Long id) {
+        Optional<MateriaResponseDTO> foundMateria = materiaService.getMateriaById(id);
 
         return foundMateria
                 .map(ResponseEntity::ok)
@@ -41,14 +42,14 @@ public class MateriaController {
     }
 
     @GetMapping
-    public List<MateriaDTO> listMaterias() {
+    public List<MateriaResponseDTO> listMaterias() {
         return materiaService.listMaterias();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MateriaDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaDTO program) {
+    public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO program) {
         try{
-            MateriaDTO updatedMateria = materiaService.updateMateria(id, program);
+            MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);
 
             return new ResponseEntity<>(updatedMateria, HttpStatus.OK);
 
@@ -58,7 +59,7 @@ public class MateriaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MateriaDTO> deleteMateria(@PathVariable Long id) {
+    public ResponseEntity<MateriaResponseDTO> deleteMateria(@PathVariable Long id) {
         materiaService.deleteMateria(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

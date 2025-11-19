@@ -2,18 +2,13 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.RolType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Data
 @Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "usuarios")
@@ -23,28 +18,42 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "nombre", nullable = false)
     private String nombre;
+
+    @Column(name = "apellido", nullable = false)
     private String apellido;
+
+    @Column(name = "dni", nullable = false, unique = true)
     private String DNI;
+
+    @Column(name = "legajo", nullable = false, unique = true)
     private String legajo;
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "departamento_id")
-    private DepartamentoEntity departamento;
+    @JoinColumn(name = "departamento_administracion_id")
+    private DepartamentoEntity departamentoAdministracion;
+
+    @OneToOne(mappedBy = "secretaria", fetch = FetchType.LAZY)
+    private DepartamentoEntity departamentoSecretaria;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carreraComoComision_id")
+    @JoinColumn(name = "carrera_como_comision_id")
     private CarreraEntity carreraComoComision;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carreraComoProfesor_id")
+    @JoinColumn(name = "carrera_como_profesor_id")
     private CarreraEntity carreraComoProfesor;
 
     @OneToMany(mappedBy = "profesorResponsable", fetch = FetchType.LAZY)
     private List<ProgramaEntity> materiasComoProfesor;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade =  CascadeType.ALL)
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "usuarios_roles",
             joinColumns = @JoinColumn(name = "usuario_id"),
