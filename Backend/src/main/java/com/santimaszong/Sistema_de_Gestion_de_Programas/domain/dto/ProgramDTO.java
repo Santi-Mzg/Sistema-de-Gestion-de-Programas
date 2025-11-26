@@ -1,8 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto;
 
+<<<<<<< Updated upstream:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/ProgramDTO.java
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Area;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
+=======
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.EstadoHistoricoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaCarreraEntity;
+>>>>>>> Stashed changes:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/programa/ProgramaResponseDTO.java
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +27,7 @@ public class ProgramDTO {
     private String nombreDepartamento;
     private String nombreMateria;
     private String codigoMateria;
+<<<<<<< Updated upstream:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/ProgramDTO.java
 
     private Area areaMateria;
 
@@ -36,6 +42,13 @@ public class ProgramDTO {
     private String correlativas;
     private String requisitos;
     private String tipoFormacion;
+=======
+    private String areaMateria;
+    private String profesorResponsable;
+
+    // --- BLOQUE MÚLTIPLE ---
+    private List<ProgramaCarreraEntity> carreras;
+>>>>>>> Stashed changes:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/programa/ProgramaResponseDTO.java
 
     // --- BLOQUE ÚNICO ---
     private int cargaHorariaTotal;
@@ -44,17 +57,17 @@ public class ProgramDTO {
     private int creditos;
     private int cantidadSemanas;
 
-    private String descripcion;
     private String fundamentacion;
     private String objetivos;
-
-    private String contenidosMinimos;
-
     private String programaAnalitico;
-
     private String metodologia;
-
     private String modalidadEvaluacion;
-
     private String bibliografia;
+<<<<<<< Updated upstream:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/ProgramDTO.java
+=======
+
+    private String estado;
+    private List<EstadoHistoricoEntity> historialEstados;
+
+>>>>>>> Stashed changes:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/programa/ProgramaResponseDTO.java
 }
