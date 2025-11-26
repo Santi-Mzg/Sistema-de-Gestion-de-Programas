@@ -1,12 +1,15 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCreateDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -14,28 +17,79 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+
 @Service
 public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
+    private final HistorialRepository historialRepository;
+    private final MateriaRepository materiaRepository;
+    private final UserRepository userRepository;
+    private final CarreraRepository carreraRepository;
     private final ProgramaMapper programaMapper;
 
-    public ProgramaServiceImpl(ProgramaRepository programaRepository, ProgramaMapper programaMapper) {
+    public ProgramaServiceImpl(ProgramaRepository programaRepository,
+                               HistorialRepository historialRepository,
+                               MateriaRepository materiaRepository,
+                               UserRepository userRepository,
+                               CarreraRepository carreraRepository,
+                               ProgramaMapper programaMapper) {
         this.programaRepository = programaRepository;
+        this.materiaRepository = materiaRepository;
+        this.userRepository = userRepository;
+        this.carreraRepository = carreraRepository;
+        this.historialRepository = historialRepository;
         this.programaMapper = programaMapper;
     }
 
 
     @Override
-    public ProgramaResponseDTO createPrograma(ProgramaCreateDTO programaDTO){
+    public ProgramaResponseDTO createPrograma(ProgramaCargaAdministrativoDTO programaDTO){
         ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
+
+        MateriaEntity materia = materiaRepository.findById(programaDTO.getMateriaId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("La Materia con ID " + programaDTO.getMateriaId() + "no fue encontrada.")
+                );
+
+        programaEntity.setMateria(materia);
+
+        UserEntity profesorResponsable = userRepository.findById(programaDTO.getProfesorResponsableId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El profesor con ID " + programaDTO.getProfesorResponsableId() + "no fue encontrado.")
+                );
+
+        programaEntity.setProfesorResponsable(profesorResponsable);
+
+//        List<CarreraEntity> carreras = carreraRepository.findAllById(programaDTO.getCarrerasIds());
+//        if(programaDTO.getCarrerasIds().size() != carreras.size()){
+//            throw new EntityNotFoundException("Una o más carreras especificadas no fueron encontradas. Por favor, verifica los IDs.");
+//        }
+
+        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
+
+        boolean completoAdministracion =
+                programaEntity.getCargaHorariaPractica() != null &&
+                        programaEntity.getFundamentacion() != null &&
+                        programaEntity.getObjetivos() != null &&
+                        programaEntity.getProgramaAnalitico() != null &&
+                        programaEntity.getMetodologia() != null &&
+                        programaEntity.getModalidadEvaluacion() != null &&
+                        programaEntity.getBibliografia() != null;
+
+        if (completoAdministracion) {
+            nuevoEstado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
+        }
+        programaEntity.registrarNuevoEstado(estado);
+
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
 
         return programaMapper.toDTO(createdProgramaEntity);
     }
 
     @Override
-    public ProgramaResponseDTO updatePrograma(Long id, ProgramaCreateDTO programaDTO) {
+    public ProgramaResponseDTO updatePrograma(Long id, ProgramaCargaAdministrativoDTO programaDTO) {
         if(!programaRepository.existsById(id)) {
             throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
         }
@@ -47,12 +101,12 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCreateDTO programaDTO) {
+    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programaDTO) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
-                && !existingProgram.getEstado().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
+        if (!existingProgram.getEstadoActual().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
+                && !existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
             throw new IllegalStateException("El profesor no puede cargar datos en el estado actual.");
         }
 
@@ -61,8 +115,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         Optional.ofNullable(programaDTO.getCargaHorariaPractica())
                 .ifPresent(existingProgram::setCargaHorariaPractica);
 
-        Optional.ofNullable(programaDTO.getDescripcion())
-                .ifPresent(existingProgram::setDescripcion);
+        Optional.ofNullable(programaDTO.getFundamentacion())
+                .ifPresent(existingProgram::setFundamentacion);
 
         Optional.ofNullable(programaDTO.getObjetivos())
                 .ifPresent(existingProgram::setObjetivos);
@@ -83,136 +137,49 @@ public class ProgramaServiceImpl implements ProgramaService {
         // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
         // ----------------------------------------------------------
 
+        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_PROFESOR;
+
         boolean completoProfesor =
                 existingProgram.getCargaHorariaPractica() != null &&
-                existingProgram.getDescripcion() != null &&
-                existingProgram.getObjetivos() != null &&
-                existingProgram.getProgramaAnalitico() != null &&
-                existingProgram.getMetodologia() != null &&
-                existingProgram.getModalidadEvaluacion() != null &&
-                existingProgram.getBibliografia() != null;
+                        existingProgram.getDescripcion() != null &&
+                        existingProgram.getObjetivos() != null &&
+                        existingProgram.getProgramaAnalitico() != null &&
+                        existingProgram.getMetodologia() != null &&
+                        existingProgram.getModalidadEvaluacion() != null &&
+                        existingProgram.getBibliografia() != null;
 
         if (completoProfesor) {
-            existingProgram.setEstado(EstadoPrograma.COMPLETO_POR_PROFESOR);
-        } else {
-            existingProgram.setEstado(EstadoPrograma.INCOMPLETO_POR_PROFESOR);
+            nuevoEstado = EstadoPrograma.COMPLETO_POR_PROFESOR;
         }
+
+        existingProgram.registrarNuevoEstado(nuevoEstado, null, null);
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
         return programaMapper.toDTO(saved);
     }
 
     @Override
-    public Void profesorRechazarAAdministracion(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
+    public ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO) {
+        ProgramaEntity programa = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
-                && !existingProgram.getEstado().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
-            throw new IllegalStateException("El profesor no puede rechazar en el estado actual.");
+        switch (estadoUpdateDTO.getAccion()) {
+
+            case APROBAR:
+                aprobar(programa);
+                break;
+
+            case RECHAZAR:
+                rechazar(programa, estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion());
+                break;
+
+            default:
+                throw new IllegalArgumentException("Acción inválida");
         }
 
-        existingProgram.setEstado(EstadoPrograma.RECHAZADO_A_ADMINISTRACION_POR_PROFESOR);
+        programaRepository.save(programa);
 
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void comisionAprobar(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
-            throw new IllegalStateException("El coordinador no puede aprobar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.APROBADO_POR_COMISION);
-
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void comisionRechazarAAdministracion(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
-            throw new IllegalStateException("El coordinador no puede rechazar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.RECHAZADO_A_ADMINISTRACION_POR_COMISION);
-
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void comisionRechazarAProfesor(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.COMPLETO_POR_PROFESOR)) {
-            throw new IllegalStateException("El coordinador no puede rechazar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.RECHAZADO_A_PROFESOR_POR_COMISION);
-
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void secretariaAprobar(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
-            throw new IllegalStateException("El secretario no puede aprobar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.APROBADO_POR_SECRETARIA);
-
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void secretariaRechazarAAdministracion(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
-            throw new IllegalStateException("El secretario no puede rechazar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.RECHAZADO_A_ADMINISTRACION_POR_SECRETARIA);
-
-        programaRepository.save(existingProgram);
-
-        return null;
-    }
-
-    @Override
-    public Void secretariaRechazarAProfesor(Long id) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-        if (!existingProgram.getEstado().equals(EstadoPrograma.APROBADO_POR_COMISION)) {
-            throw new IllegalStateException("El secretario no puede rechazar en el estado actual.");
-        }
-
-        existingProgram.setEstado(EstadoPrograma.RECHAZADO_A_PROFESOR_POR_SECRETARIA);
-
-        programaRepository.save(existingProgram);
-
-        return null;
+        return programaMapper.toDTO(programa);
     }
 
     @Override
@@ -222,6 +189,14 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         return programaMapper.toDTO(foundProgram);
     }
+
+//    @Override
+//    public List<EstadoHistoricoEntity> getHistorial(@PathVariable Long id) {
+//        ProgramaEntity foundProgram = programaRepository.findById(id)
+//                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+//
+//        return foundProgram.getHistorialEstados();
+//    }
 
     @Override
     public List<ProgramaResponseDTO> listProgramas() {
@@ -235,4 +210,52 @@ public class ProgramaServiceImpl implements ProgramaService {
     public void deletePrograma(Long id) {
         programaRepository.deleteById(id);
     }
+
+
+
+    private void aprobar(ProgramaEntity programa) {
+        EstadoPrograma estadoActual = programa.getEstadoActual();
+        EstadoPrograma estadoNuevo;
+
+        switch (estadoActual) {
+            case COMPLETO_POR_PROFESOR:
+                estadoNuevo = EstadoPrograma.APROBADO_POR_COMISION;
+                break;
+
+            case APROBADO_POR_COMISION:
+                estadoNuevo = EstadoPrograma.APROBADO_POR_SECRETARIA;
+                break;
+
+            default:
+                throw new IllegalArgumentException("No se puede realizar la acción de aprobar en otro estado que no sea COMPLETO_POR_PROFESOR o APROBADO_POR_COMISION");
+        }
+
+        programa.registrarNuevoEstado(estadoNuevo, null, null);
+    }
+
+    private void rechazar(ProgramaEntity programa, Rol destinoRechazo, String justificacion) {
+
+        if (destinoRechazo == null) {
+            throw new IllegalArgumentException("Debe especificar destino al rechazar");
+        }
+
+        EstadoPrograma nuevoEstado = programa.getEstadoActual();
+
+        switch (destinoRechazo) {
+            case Rol.ADMINISTRATIVO:
+                nuevoEstado = EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
+                break;
+
+            case Rol.PROFESOR:
+                nuevoEstado = EstadoPrograma.RECHAZADO_A_PROFESOR;
+                break;
+
+            default:
+                throw new IllegalArgumentException("No se puede realizar la acción de rechazar a menos que sea a ADMINISTRACION o a PROFESOR");
+        }
+
+        programa.registrarNuevoEstado(nuevoEstado, null, justificacion);
+
+    }
+
 }

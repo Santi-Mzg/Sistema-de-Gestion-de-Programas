@@ -1,22 +1,18 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 
 import java.util.List;
 
 public interface ProgramaService {
-    ProgramaResponseDTO createPrograma(ProgramaCreateDTO programa);
-    ProgramaResponseDTO updatePrograma(Long id, ProgramaCreateDTO programa);
+    ProgramaResponseDTO createPrograma(ProgramaCargaAdministrativoDTO programa);
+    ProgramaResponseDTO updatePrograma(Long id, ProgramaCargaAdministrativoDTO programa);
 
-    ProgramaResponseDTO profesorCarga(Long id, ProgramaCreateDTO programa);
-    Void profesorRechazarAAdministracion(Long id);
-    Void comisionAprobar(Long id);
-    Void comisionRechazarAAdministracion(Long id);
-    Void comisionRechazarAProfesor(Long id);
-    Void secretariaAprobar(Long id);
-    Void secretariaRechazarAAdministracion(Long id);
-    Void secretariaRechazarAProfesor(Long id);
+    ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programa);
+    ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO);
 
     ProgramaResponseDTO getProgramaById(Long id);
     List<ProgramaResponseDTO> listProgramas();

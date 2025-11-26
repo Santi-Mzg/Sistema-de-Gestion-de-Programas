@@ -1,10 +1,11 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class ProgramaEntity {
     private UserEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private Set<Carrera> carreras;
+    private Set<CarreraEntity> carreras;
 
     private String plan;
     private String ubicacionEnPlan;
@@ -48,7 +49,6 @@ public class ProgramaEntity {
     private Integer creditos;
     private Integer cantidadSemanas;
 
-    private String descripcion;
     private String fundamentacion;
     private String objetivos;
 
@@ -67,9 +67,26 @@ public class ProgramaEntity {
     @Column(columnDefinition = "TEXT")
     private String bibliografia;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false)
-    private EstadoPrograma estado;
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("fecha ASC")
+    private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
+
+    public EstadoPrograma getEstadoActual() {
+        if (historialEstados.isEmpty()) return EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
+        return historialEstados.get(historialEstados.size() - 1).getEstado();
+    }
+
+    public void registrarNuevoEstado(EstadoPrograma estado, UserEntity actor, String justificacion){
+        EstadoHistoricoEntity nuevoEstado = new EstadoHistoricoEntity();
+        nuevoEstado.setPrograma(this);
+        nuevoEstado.setEstado(estado);
+        nuevoEstado.setRealizadoPor(actor);
+        nuevoEstado.setJustificacion(justificacion);
+        nuevoEstado.setFecha(LocalDateTime.now());
+
+        historialEstados.add(nuevoEstado);
+    }
+
 }
 
 // Año y cuatrimestre de la carrera

@@ -1,7 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +25,7 @@ public class ProgramaResponseDTO {
     private UserEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<Carrera> carreras;
+    private List<CarreraEntity> carreras;
 
     private String plan;
     private String ubicacionEnPlan;
@@ -55,6 +55,6 @@ public class ProgramaResponseDTO {
 
     private String bibliografia;
 
-    private String estado;
+    private List<String> historialEstados;
 
 }

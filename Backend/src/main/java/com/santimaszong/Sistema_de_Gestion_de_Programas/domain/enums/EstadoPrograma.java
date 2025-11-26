@@ -3,15 +3,12 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums;
 public enum EstadoPrograma {
     // Le aparecen pendientes a Administrativo
     INCOMPLETO_POR_ADMINISTRACION,               // administrativo creo y no cargo todos los datos
-    RECHAZADO_A_ADMINISTRACION_POR_PROFESOR,     // rechazado por profesor
-    RECHAZADO_A_ADMINISTRACION_POR_COMISION,     // rechazado por comision curricular
-    RECHAZADO_A_ADMINISTRACION_POR_SECRETARIA,   // rechazado por secretaría académica
+    RECHAZADO_A_ADMINISTRACION,                  // rechazado
 
     // Le aparecen pendientes a Profesor
     COMPLETO_POR_ADMINISTRACION,                 // administrativo creo y cargo todos los datos
     INCOMPLETO_POR_PROFESOR,                     // profesor no cargo todos los datos
-    RECHAZADO_A_PROFESOR_POR_COMISION,           // rechazado por comision curricular
-    RECHAZADO_A_PROFESOR_POR_SECRETARIA,         // rechazado por secretaría académica
+    RECHAZADO_A_PROFESOR,                        // rechazado
 
     // Le aparecen pendientes a Coordinador
     COMPLETO_POR_PROFESOR,                       // profesor cargo todos los datos
@@ -20,5 +17,5 @@ public enum EstadoPrograma {
     APROBADO_POR_COMISION,                       // coordinador aprobo
 
     // Final
-    APROBADO_POR_SECRETARIA,                              // secretaria aprueba
+    APROBADO_POR_SECRETARIA,                     // secretaria aprueba
 }

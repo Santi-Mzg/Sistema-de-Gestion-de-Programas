@@ -39,7 +39,7 @@ public class CarreraServiceImpl implements CarreraService {
 
         DepartamentoEntity departamento = departamentoRepository.findById(carreraDTO.getDepartamentoId())
                 .orElseThrow(
-                        () -> new EntityNotFoundException("El Departamento " + carreraDTO.getNombre() + " con ID " + carreraDTO.getDepartamentoId() + "no fue encontrado.")
+                        () -> new EntityNotFoundException("El Departamento de la carrera " + carreraDTO.getNombre() + " con ID " + carreraDTO.getDepartamentoId() + "no fue encontrado.")
                 );
 
         UserEntity comision = userRepository.findById(carreraDTO.getComisionId())

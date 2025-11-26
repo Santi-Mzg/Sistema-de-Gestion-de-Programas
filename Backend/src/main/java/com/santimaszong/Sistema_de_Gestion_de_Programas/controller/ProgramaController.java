@@ -1,9 +1,10 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Log
 @RestController
@@ -59,7 +59,7 @@ public class ProgramaController {
 
     @PostMapping
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
-    public ResponseEntity<ProgramaResponseDTO> createPrograma(@RequestBody ProgramaCreateDTO program) {
+    public ResponseEntity<ProgramaResponseDTO> createPrograma(@RequestBody ProgramaCargaAdministrativoDTO program) {
         ProgramaResponseDTO createdProgram = programaService.createPrograma(program);
 
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
@@ -67,7 +67,7 @@ public class ProgramaController {
 
     @PatchMapping("/{id}")
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
-    public ResponseEntity<ProgramaResponseDTO> updatePrograma(@PathVariable Long id, @RequestBody ProgramaCreateDTO program) {
+    public ResponseEntity<ProgramaResponseDTO> updatePrograma(@PathVariable Long id, @RequestBody ProgramaCargaAdministrativoDTO program) {
         ProgramaResponseDTO updatedProgram = programaService.updatePrograma(id, program);
 
         return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
@@ -77,64 +77,15 @@ public class ProgramaController {
     @PatchMapping("/{id}/profesor")
 //    @PreAuthorize("hasRole('PROFESOR')")
     public ResponseEntity<ProgramaResponseDTO> profesorCarga(@PathVariable Long id,
-                                                             @RequestBody ProgramaCreateDTO programaDTO) {
+                                                             @RequestBody ProgramaCargaProfesorDTO programaDTO) {
         return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO));
     }
 
-    // PROFESOR rechaza a ADMINISTRACION
-    @PostMapping("/{id}/profesor/rechazar")
-//    @PreAuthorize("hasRole('PROFESOR')")
-    public ResponseEntity<Void> profesorRechazarAAdministracion(@PathVariable Long id) {
-        programaService.profesorRechazarAAdministracion(id);
-        return ResponseEntity.ok().build();
-    }
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long id, @RequestBody EstadoUpdateDTO estadoUpdateDTO) {
+        ProgramaResponseDTO result = programaService.actualizarEstado(id, estadoUpdateDTO);
 
-    // COMISION aprueba
-    @PostMapping("/{id}/coordinador/aprobar")
-//    @PreAuthorize("hasRole('COORDINADOR')")
-    public ResponseEntity<Void> comisionAprobar(@PathVariable Long id) {
-        programaService.comisionAprobar(id);
-        return ResponseEntity.ok().build();
-    }
-
-    // COMISION rechaza a ADMINISTRACION
-    @PostMapping("/{id}/coordinador/rechazar_administracion")
-//    @PreAuthorize("hasRole('COORDINADOR')")
-    public ResponseEntity<Void> comisionRechazarAAdministracion(@PathVariable Long id) {
-        programaService.comisionRechazarAAdministracion(id);
-        return ResponseEntity.ok().build();
-    }
-
-    // COMISION rechaza a PROFESOR
-    @PostMapping("/{id}/coordinador/rechazar_profesor")
-//    @PreAuthorize("hasRole('COORDINADOR')")
-    public ResponseEntity<Void> comisionRechazarAProfesor(@PathVariable Long id) {
-        programaService.comisionRechazarAProfesor(id);
-        return ResponseEntity.ok().build();
-    }
-
-    // SECRETARÍA aprueba
-    @PostMapping("/{id}/secretaria/aprobar")
-//    @PreAuthorize("hasRole('SECRETARIA')")
-    public ResponseEntity<Void> secretariaAprobar(@PathVariable Long id) {
-        programaService.secretariaAprobar(id);
-        return ResponseEntity.ok().build();
-    }
-
-    // SECRETARÍA rechaza a ADMINISTRACION
-    @PostMapping("/{id}/secretaria/rechazar_administracion")
-//    @PreAuthorize("hasRole('SECRETARIA')")
-    public ResponseEntity<Void> secretariaRechazarAAdministracion(@PathVariable Long id) {
-        programaService.secretariaRechazarAAdministracion(id);
-        return ResponseEntity.ok().build();
-    }
-
-    // SECRETARÍA rechaza a PROFESOR
-    @PostMapping("/{id}/secretaria/rechazar_profesor")
-//    @PreAuthorize("hasRole('SECRETARIA')")
-    public ResponseEntity<Void> secretariaRechazarAProfesor(@PathVariable Long id) {
-        programaService.secretariaRechazarAProfesor(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(result);
     }
 
 
@@ -157,4 +108,13 @@ public class ProgramaController {
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+//    @GetMapping("/{id}/historial")
+//    public List<ProgramaHistorialDTO> getHistorial(@PathVariable Long id) {
+//        return programaService.findByProgramaIdOrderByFechaAsc(id)
+//                .stream()
+//                .map(ProgramaHistorialDTO::from)
+//                .toList();
+//    }
+
 }

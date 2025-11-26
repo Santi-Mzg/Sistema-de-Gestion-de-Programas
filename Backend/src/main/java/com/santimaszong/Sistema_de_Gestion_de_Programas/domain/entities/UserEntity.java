@@ -3,6 +3,8 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,17 +51,11 @@ public class UserEntity {
     @JoinColumn(name = "carrera_como_profesor_id")
     private CarreraEntity carreraComoProfesor;
 
-    @OneToMany(mappedBy = "profesorResponsable", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "profesorResponsable")
     private List<ProgramaEntity> materiasComoProfesor;
 
-
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "usuarios_roles",
-//            joinColumns = @JoinColumn(name = "usuario_id"),
-//            inverseJoinColumns = @JoinColumn(name = "rol_id")
-//    )
-//    private Set<Rol> roles = new HashSet<>();
+    @OneToMany(mappedBy = "realizadoPor")
+    private List<EstadoHistoricoEntity> accionesRealizadas = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
