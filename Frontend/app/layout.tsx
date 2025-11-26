@@ -3,15 +3,14 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { ThemeProvider } from "../components/theme-provider"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SyllabUNS - Sistema de Gestión de Programas",
-  description: "Sistema de Gestión de Programas Académicos de la UNS",
-  generator: "Next.js",
+  title: "UNS - Syllabus Management System",
+  description: "University Syllabus Management System for different roles",
+  generator: "v0.app",
   icons: {
     icon: [
       {
@@ -39,14 +38,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`font-sans antialiased`}>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        {children}
         <Analytics />
       </body>
     </html>
