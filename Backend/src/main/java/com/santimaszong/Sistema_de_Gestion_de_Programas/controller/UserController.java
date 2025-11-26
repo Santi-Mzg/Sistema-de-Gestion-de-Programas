@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.UserDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
@@ -24,44 +25,33 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO user) {
-        try {
-            UserDTO createdUser = userService.createUser(user);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreateDTO user) {
+        UserResponseDTO createdUser = userService.createUser(user);
 
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
-        Optional<UserDTO> foundUser = userService.getUserById(id);
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
+        UserResponseDTO foundUser = userService.getUserById(id);
 
-        return foundUser
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(foundUser);
     }
 
     @GetMapping
-    public List<UserDTO> listUsers() {
+    public List<UserResponseDTO> listUsers() {
         return userService.listUsers();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO user) {
-        try{
-            UserDTO updatedUser = userService.updateUser(id, user);
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserCreateDTO user) {
+        UserResponseDTO updatedUser = userService.updateUser(id, user);
 
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<UserDTO> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

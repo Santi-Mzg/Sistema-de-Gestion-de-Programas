@@ -19,7 +19,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ProgramaController {
 
-    private ProgramaService programaService;
+    private final ProgramaService programaService;
 
     public ProgramaController(ProgramaService programaService) {
         this.programaService = programaService;

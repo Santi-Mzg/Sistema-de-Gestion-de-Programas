@@ -71,7 +71,6 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         programaEntity.setMateria(materia);
 
-
         UserEntity profesorResponsable = userRepository.findById(programaDTO.getProfesorResponsableId())
                 .orElseThrow(
                         () -> new EntityNotFoundException("El profesor con ID " + programaDTO.getProfesorResponsableId() + "no fue encontrado.")
@@ -233,9 +232,6 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         return responseMapper.toDTO(foundProgram);
     }
-
-//    @Override
-//    public List<EstadoHistoricoEntity> getHistorial(@PathVariable Long id) {
 //        ProgramaEntity foundProgram = programaRepository.findById(id)
 //                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 //
