@@ -163,7 +163,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
         // ----------------------------------------------------------
 
-        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
 
         boolean completoAdministrativo =
                 existingProgram.getMateria() != null &&
@@ -175,10 +174,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getCantidadSemanas() != null;
 
         if (completoAdministrativo) {
-            nuevoEstado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, null, null);
         }
-
-        existingProgram.registrarNuevoEstado(nuevoEstado, null, null);
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
         return responseMapper.toDTO(saved);
@@ -222,7 +219,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
         // ----------------------------------------------------------
 
-        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_PROFESOR;
 
         boolean completoProfesor =
                 existingProgram.getCargaHorariaPractica() != null &&
@@ -234,10 +230,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getBibliografia() != null;
 
         if (completoProfesor) {
-            nuevoEstado = EstadoPrograma.COMPLETO_POR_PROFESOR;
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, null, null);
         }
-
-        existingProgram.registrarNuevoEstado(nuevoEstado, null, null);
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
         return responseMapper.toDTO(saved);
