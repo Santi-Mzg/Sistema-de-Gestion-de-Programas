@@ -1,22 +1,9 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
-<<<<<<< HEAD:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/ProgramDTO.java
-<<<<<<< Updated upstream:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/ProgramDTO.java
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Area;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Carrera;
-=======
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.EstadoHistoricoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaCarreraEntity;
->>>>>>> Stashed changes:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/programa/ProgramaResponseDTO.java
-=======
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
->>>>>>> RolesAsEnums:Backend/src/main/java/com/santimaszong/Sistema_de_Gestion_de_Programas/domain/dto/programa/ProgramaResponseDTO.java
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Data
@@ -34,7 +21,7 @@ public class ProgramaResponseDTO {
     private String profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<ProgramaCarreraEntity> carreras;
+    private List<ProgramaCarreraResponseDTO> carreras;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
@@ -53,3 +40,4 @@ public class ProgramaResponseDTO {
     private String estado;
     private List<EstadoHistoricoEntity> historialEstados;
 }
+

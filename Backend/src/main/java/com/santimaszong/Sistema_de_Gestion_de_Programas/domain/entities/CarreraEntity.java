@@ -35,7 +35,7 @@ public class CarreraEntity {
     private List<MateriaEntity> materias;
 
     @OneToMany(mappedBy = "carrera", fetch = FetchType.LAZY)
-    private List<UserEntity> programas;
+    private List<ProgramaCarreraEntity> programas;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "departamento_id")

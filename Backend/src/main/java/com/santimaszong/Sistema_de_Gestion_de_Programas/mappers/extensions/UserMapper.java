@@ -3,7 +3,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToDTOMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToEntityMapper;
 import org.mapstruct.Mapper;

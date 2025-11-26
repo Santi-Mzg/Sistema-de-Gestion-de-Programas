@@ -52,9 +52,9 @@ public class MateriaEntity {
     private List<ProgramaEntity> programas = new ArrayList<>();
 
     @ManyToMany(mappedBy = "correlativasFuertes")
-    private List<ProgramaEntity> requierenComoFuerte = new ArrayList<>();
+    private List<ProgramaCarreraEntity> requierenComoFuerte = new ArrayList<>();
 
     @ManyToMany(mappedBy = "correlativasDebiles")
-    private List<ProgramaEntity> requierenComoDebil = new ArrayList<>();
+    private List<ProgramaCarreraEntity> requierenComoDebil = new ArrayList<>();
 
 }

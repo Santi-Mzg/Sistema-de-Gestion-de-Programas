@@ -65,7 +65,7 @@ public class ProgramaController {
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id}/administrativo")
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
     public ResponseEntity<ProgramaResponseDTO> administrativoCarga(@PathVariable Long id, @RequestBody ProgramaCargaAdministrativoDTO program) {
         ProgramaResponseDTO updatedProgram = programaService.administrativoCarga(id, program);

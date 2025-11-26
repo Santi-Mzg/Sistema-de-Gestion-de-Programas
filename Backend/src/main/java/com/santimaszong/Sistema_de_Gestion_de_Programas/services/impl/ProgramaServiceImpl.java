@@ -80,32 +80,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
         List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getCarreras();
-        List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
-
-        for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
-            ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
-            bloqueEntity.setPrograma(programaEntity);
-
-            CarreraEntity carrera = carreraRepository.findById(bloqueDTO.getCarreraId())
-                    .orElseThrow(() -> new EntityNotFoundException("Carrera no encontrada"));
-
-            bloqueEntity.setCarrera(carrera);
-
-            List<MateriaEntity> correlativasFuertes = materiaRepository.findAllById(bloqueDTO.getCorrelativasFuertesIds());
-            if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
-                throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
-            }
-
-            List<MateriaEntity> correlativasDebiles = materiaRepository.findAllById(bloqueDTO.getCorrelativasDebilesIds());
-            if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
-                throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
-            }
-
-            bloqueEntity.setCorrelativasFuertes(correlativasFuertes);
-            bloqueEntity.setCorrelativasDebiles(correlativasDebiles);
-
-            bloquesMultiplesEntity.addLast(bloqueEntity);
-        }
+        List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
 
         programaEntity.setCarreras(bloquesMultiplesEntity);
 
@@ -133,14 +108,80 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaAdministrativoDTO programaDTO) {
-        if(!programaRepository.existsById(id)) {
-            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
+        ProgramaEntity existingProgram = programaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+
+        if (!existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION)
+                && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_ADMINISTRACION)) {
+            throw new IllegalStateException("El administrativo no puede cargar datos en el estado actual.");
         }
 
-        ProgramaEntity programaEntity = adminMapper.toEntity(programaDTO);
-        ProgramaEntity savedProgramaEntity = programaRepository.save(programaEntity);
+        // Aplicar solo campos modificados (PATCH)
+        Optional.ofNullable(programaDTO.getMateriaId())
+                .ifPresent(materiaId -> {
+                    MateriaEntity materiaActual = existingProgram.getMateria();
+                    if(materiaActual != null && materiaActual.getId().equals(materiaId))
+                        return;
 
-        return responseMapper.toDTO(savedProgramaEntity);
+                    MateriaEntity nuevaMateria = materiaRepository.findById(materiaId)
+                            .orElseThrow(() -> new EntityNotFoundException("Materia no encontrada"));
+
+                    existingProgram.setMateria(nuevaMateria);
+                });
+
+        Optional.ofNullable(programaDTO.getProfesorResponsableId())
+                .ifPresent(profesorId -> {
+                    UserEntity profesorActual = existingProgram.getProfesorResponsable();
+                    if(profesorActual != null && profesorActual.getId().equals(profesorId))
+                        return;
+
+                    UserEntity profesorNuevo = userRepository.findById(profesorId)
+                            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+                    existingProgram.setProfesorResponsable(profesorNuevo);
+                });
+
+        Optional.ofNullable(programaDTO.getCarreras())
+                .ifPresent(bloquesMultiplesDTO -> {
+                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
+                    existingProgram.setCarreras(bloquesMultiplesEntity);
+                });
+
+        Optional.ofNullable(programaDTO.getCargaHorariaTotal())
+                .ifPresent(existingProgram::setCargaHorariaTotal);
+
+        Optional.ofNullable(programaDTO.getCargaHorariaSemanal())
+                .ifPresent(existingProgram::setCargaHorariaSemanal);
+
+        Optional.ofNullable(programaDTO.getCreditos())
+                .ifPresent(existingProgram::setCreditos);
+
+        Optional.ofNullable(programaDTO.getCantidadSemanas())
+                .ifPresent(existingProgram::setCantidadSemanas);
+
+        // ----------------------------------------------------------
+        // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
+        // ----------------------------------------------------------
+
+        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
+
+        boolean completoAdministrativo =
+                existingProgram.getMateria() != null &&
+                        existingProgram.getProfesorResponsable() != null &&
+                        existingProgram.getCarreras() != null &&
+                        existingProgram.getCargaHorariaTotal() != null &&
+                        existingProgram.getCargaHorariaSemanal() != null &&
+                        existingProgram.getCreditos() != null &&
+                        existingProgram.getCantidadSemanas() != null;
+
+        if (completoAdministrativo) {
+            nuevoEstado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
+        }
+
+        existingProgram.registrarNuevoEstado(nuevoEstado, null, null);
+
+        ProgramaEntity saved = programaRepository.save(existingProgram);
+        return responseMapper.toDTO(saved);
     }
 
     @Override
@@ -149,7 +190,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         if (!existingProgram.getEstadoActual().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
-                && !existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)) {
+                && !existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)
+                && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_PROFESOR)) {
             throw new IllegalStateException("El profesor no puede cargar datos en el estado actual.");
         }
 
@@ -232,11 +274,6 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         return responseMapper.toDTO(foundProgram);
     }
-//        ProgramaEntity foundProgram = programaRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-//
-//        return foundProgram.getHistorialEstados();
-//    }
 
     @Override
     public List<ProgramaResponseDTO> listProgramas() {
@@ -298,4 +335,33 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     }
 
+    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
+        List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
+
+        for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
+            ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
+            bloqueEntity.setPrograma(programaEntity);
+
+            CarreraEntity carrera = carreraRepository.findById(bloqueDTO.getCarreraId())
+                    .orElseThrow(() -> new EntityNotFoundException("Carrera no encontrada"));
+
+            bloqueEntity.setCarrera(carrera);
+
+            List<MateriaEntity> correlativasFuertes = materiaRepository.findAllById(bloqueDTO.getCorrelativasFuertesIds());
+            if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
+                throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
+            }
+
+            List<MateriaEntity> correlativasDebiles = materiaRepository.findAllById(bloqueDTO.getCorrelativasDebilesIds());
+            if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
+                throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
+            }
+
+            bloqueEntity.setCorrelativasFuertes(correlativasFuertes);
+            bloqueEntity.setCorrelativasDebiles(correlativasDebiles);
+
+            bloquesMultiplesEntity.addLast(bloqueEntity);
+        }
+        return bloquesMultiplesEntity;
+    }
 }
