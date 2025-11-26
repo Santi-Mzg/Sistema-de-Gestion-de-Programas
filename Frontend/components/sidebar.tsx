@@ -2,6 +2,7 @@
 
 import { Users, BookOpen, Settings, LogOut, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModeToggle } from "./mode-toggle"
 
 interface SidebarProps {
   currentRole: "admin" | "professor" | "coordinator" | "secretary"
@@ -20,8 +21,8 @@ export function Sidebar({ currentRole, setCurrentRole }: SidebarProps) {
     <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
       {/* Header */}
       <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-center">UNS</h1>
-        <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de Sílabus</p>
+        <h1 className="text-2xl font-bold text-center">SyllabUNS</h1>
+        <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de Gestión de Programas</p>
       </div>
 
       {/* Role Selector */}
@@ -49,13 +50,17 @@ export function Sidebar({ currentRole, setCurrentRole }: SidebarProps) {
 
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border">
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-2 text-sidebar-foreground border-sidebar-border hover:bg-sidebar-accent/10 bg-transparent"
-        >
-          <LogOut size={16} />
-          Cerrar Sesión
-        </Button>
+        <div className="flex items-center justify-between gap-2"> {/* <- CONTENEDOR NUEVO */}
+          <Button
+            variant="outline"
+            className="justify-start gap-2 text-sidebar-foreground border-sidebar-border hover:bg-sidebar-accent/10 bg-transparent"
+          >
+            <LogOut size={16} />
+            Cerrar Sesión
+          </Button>
+
+          <ModeToggle />
+        </div>
       </div>
     </aside>
   )
