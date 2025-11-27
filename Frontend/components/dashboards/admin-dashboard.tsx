@@ -5,6 +5,7 @@ import { Plus, BookOpen, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SyllabusForm } from "../forms/syllabus-form"
+import { useCreatePrograma } from "@/app/api/generated/syllabusApi"
 
 export function AdminDashboard() {
   const [showForm, setShowForm] = useState(false)
@@ -29,10 +30,10 @@ export function AdminDashboard() {
 
   const handleAddSyllabus = (data: any) => {
     const newSyllabus = {
-      id: syllabuses.length + 1,
       ...data,
-      status: "draft",
+      status: "INCOMPLETO_ADMINISTRACION",
     }
+    useCreatePrograma(newSyllabus) // Llamada a la API para crear el sílabus
     setSyllabuses([...syllabuses, newSyllabus])
     setShowForm(false)
   }
