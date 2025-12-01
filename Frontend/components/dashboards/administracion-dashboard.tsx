@@ -4,10 +4,10 @@ import { useState } from "react"
 import { Plus, BookOpen, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SyllabusForm } from "../forms/syllabus-form"
+import { SyllabusAdministrativoForm } from "../forms/programa-administracion-form"
 import { useCreatePrograma } from "@/app/api/generated/syllabusApi"
 
-export function AdminDashboard() {
+export function AdministracionDashboard() {
   const [showForm, setShowForm] = useState(false)
   const [syllabuses, setSyllabuses] = useState([
     {
@@ -33,7 +33,7 @@ export function AdminDashboard() {
       ...data,
       status: "INCOMPLETO_ADMINISTRACION",
     }
-    useCreatePrograma(newSyllabus) // Llamada a la API para crear el sílabus
+    useCreatePrograma(newSyllabus) // Llamada a la API para crear el programa
     setSyllabuses([...syllabuses, newSyllabus])
     setShowForm(false)
   }
@@ -43,7 +43,7 @@ export function AdminDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Panel Administrativo</h1>
-        <p className="text-muted-foreground">Gestiona todos los sílabus del sistema universitario</p>
+        <p className="text-muted-foreground">Gestiona todos los programa del sistema universitario</p>
       </div>
 
       {/* Action Button */}
@@ -54,7 +54,7 @@ export function AdminDashboard() {
           size="lg"
         >
           <Plus size={20} />
-          {showForm ? "Cancelar" : "Crear Nuevo Sílabus"}
+          {showForm ? "Cancelar" : "Crear Nuevo Programa"}
         </Button>
       </div>
 
@@ -62,11 +62,11 @@ export function AdminDashboard() {
       {showForm && (
         <Card className="mb-8 border-primary/20">
           <CardHeader className="bg-primary/5 border-b border-primary/10">
-            <CardTitle className="text-primary">Crear Nuevo Sílabus</CardTitle>
-            <CardDescription>Completa los campos para crear un nuevo sílabus académico</CardDescription>
+            <CardTitle className="text-primary">Crear Nuevo Programa</CardTitle>
+            <CardDescription>Completa los campos para crear un nuevo programa académico</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <SyllabusForm onSubmit={handleAddSyllabus} onCancel={() => setShowForm(false)} />
+            <SyllabusAdministrativoForm onSubmit={handleAddSyllabus} onCancel={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
@@ -122,7 +122,7 @@ export function AdminDashboard() {
         <Card className="border-dashed border-primary/20">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BookOpen size={48} className="text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground text-center">No hay sílabus creados aún</p>
+            <p className="text-muted-foreground text-center">No hay programa creados aún</p>
             <p className="text-xs text-muted-foreground text-center mt-1">
               Crea uno nuevo para comenzar a gestionar contenido académico
             </p>

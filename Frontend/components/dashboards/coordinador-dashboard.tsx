@@ -1,7 +1,7 @@
 import { Users, CheckCircle2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function CoordinatorDashboard() {
+export function CoordinadorDashboard() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">

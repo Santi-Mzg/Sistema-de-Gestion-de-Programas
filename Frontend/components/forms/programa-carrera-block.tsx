@@ -4,14 +4,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
-import type { ProgramaCarreraDTO, Carrera, Materia } from "@/lib/types"
+import { ProgramaCarreraCreateDTO } from "@/app/api/generated/model/programaCarreraCreateDTO"
+import { CarreraResponseDTO, MateriaResponseDTO } from "@/app/api/generated/model"
 
 interface ProgramaCarreraBlockProps {
-  block: ProgramaCarreraDTO
+  block: ProgramaCarreraCreateDTO
   index: number
-  carreras: Carrera[]
-  materiasPorCarrera: Record<number, Materia[]>
-  onUpdate: (index: number, block: ProgramaCarreraDTO) => void
+  carreras: CarreraResponseDTO[]
+  materiasPorCarrera: Record<number, MateriaResponseDTO[]>
+  onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
   onRemove: (index: number) => void
 }
 
@@ -23,8 +24,8 @@ export function ProgramaCarreraBlock({
   onUpdate,
   onRemove,
 }: ProgramaCarreraBlockProps) {
-  const [selectedCarreraId, setSelectedCarreraId] = useState<number | null>(block.carreraId)
-  const [materiasDisponibles, setMateriasDisponibles] = useState<Materia[]>([])
+  const [selectedCarreraId, setSelectedCarreraId] = useState<number | null>(block.carreraId || null)
+  const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
 
   useEffect(() => {
     if (selectedCarreraId) {
@@ -41,7 +42,7 @@ export function ProgramaCarreraBlock({
     })
   }
 
-  const handleFieldChange = (field: keyof ProgramaCarreraDTO, value: any) => {
+  const handleFieldChange = (field: keyof ProgramaCarreraCreateDTO, value: any) => {
     onUpdate(index, {
       ...block,
       [field]: value,
@@ -49,13 +50,13 @@ export function ProgramaCarreraBlock({
   }
 
   const toggleCorrelativaFuerte = (materiaId: number) => {
-    const nuevosFuertes = block.correlativasFuertesIds.includes(materiaId)
+    const nuevosFuertes = block.correlativasFuertesIds?.includes(materiaId)
       ? block.correlativasFuertesIds.filter((id) => id !== materiaId)
-      : [...block.correlativasFuertesIds, materiaId]
+      : [...(block.correlativasFuertesIds || []), materiaId]
 
     // Si se agrega como fuerte, remover de débiles
     const nuevasDebiles = nuevosFuertes.includes(materiaId)
-      ? block.correlativasDebilesIds.filter((id) => id !== materiaId)
+      ? block.correlativasDebilesIds?.filter((id) => id !== materiaId)
       : block.correlativasDebilesIds
 
     onUpdate(index, {
@@ -66,13 +67,13 @@ export function ProgramaCarreraBlock({
   }
 
   const toggleCorrelativaDebil = (materiaId: number) => {
-    const nuevasDebiles = block.correlativasDebilesIds.includes(materiaId)
+    const nuevasDebiles = block.correlativasDebilesIds?.includes(materiaId)
       ? block.correlativasDebilesIds.filter((id) => id !== materiaId)
-      : [...block.correlativasDebilesIds, materiaId]
+      : [...(block.correlativasDebilesIds || []), materiaId]
 
     // Si se agrega como débil, remover de fuertes
     const nuevosFuertes = nuevasDebiles.includes(materiaId)
-      ? block.correlativasFuertesIds.filter((id) => id !== materiaId)
+      ? block.correlativasFuertesIds?.filter((id) => id !== materiaId)
       : block.correlativasFuertesIds
 
     onUpdate(index, {
@@ -158,9 +159,9 @@ export function ProgramaCarreraBlock({
               >
                 <input
                   type="checkbox"
-                  checked={block.correlativasFuertesIds.includes(materia.id)}
-                  onChange={() => toggleCorrelativaFuerte(materia.id)}
-                  disabled={block.correlativasDebilesIds.includes(materia.id)}
+                  checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
+                  onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
+                  disabled={block.correlativasDebilesIds?.includes(materia.id || 0)}
                   className="rounded border-border"
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -183,9 +184,9 @@ export function ProgramaCarreraBlock({
               >
                 <input
                   type="checkbox"
-                  checked={block.correlativasDebilesIds.includes(materia.id)}
-                  onChange={() => toggleCorrelativaDebil(materia.id)}
-                  disabled={block.correlativasFuertesIds.includes(materia.id)}
+                  checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
+                  onChange={() => toggleCorrelativaDebil(materia.id || 0)}
+                  disabled={block.correlativasFuertesIds?.includes(materia.id || 0)}
                   className="rounded border-border"
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>

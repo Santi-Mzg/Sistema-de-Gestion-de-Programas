@@ -1,7 +1,7 @@
 import { FileText, Clock, Archive } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function SecretaryDashboard() {
+export function SecretarioDashboard() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">

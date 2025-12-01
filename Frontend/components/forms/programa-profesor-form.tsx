@@ -6,103 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus } from "lucide-react"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import type { SyllabusCreateDTO, ProgramaCarreraDTO, Carrera, Materia, Profesor } from "@/lib/types"
+import { ProgramaResponseDTO, ProgramaCargaProfesorDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
 
 interface SyllabusFormProps {
-  onSubmit: (data: SyllabusCreateDTO) => void
-  onCancel: () => void
+  programa: ProgramaResponseDTO
+  onSubmit: (data: ProgramaCargaProfesorDTO) => void
+  onCancel?: () => void
 }
 
-// Mock data - Reemplazar con fetches reales
-const mockMaterias: Materia[] = [
-  { id: 1, nombre: "Cálculo I", codigo: "MAT101" },
-  { id: 2, nombre: "Álgebra Lineal", codigo: "MAT102" },
-  { id: 3, nombre: "Programación", codigo: "INF101" },
-  { id: 4, nombre: "Física I", codigo: "FIS101" },
-]
 
-const mockProfesores: Profesor[] = [
-  { id: 1, nombre: "Dr. Juan García", email: "juan@uns.edu.ar" },
-  { id: 2, nombre: "Dra. María López", email: "maria@uns.edu.ar" },
-  { id: 3, nombre: "Ing. Carlos Martínez", email: "carlos@uns.edu.ar" },
-]
-
-const mockCarreras: Carrera[] = [
-  { id: 1, nombre: "Ingeniería en Sistemas" },
-  { id: 2, nombre: "Ingeniería Química" },
-  { id: 3, nombre: "Ingeniería Civil" },
-]
-
-// Mock: materias disponibles por carrera
-const mockMateriasPorCarrera: Record<number, Materia[]> = {
-  1: [
-    { id: 1, nombre: "Cálculo I", codigo: "MAT101" },
-    { id: 2, nombre: "Álgebra Lineal", codigo: "MAT102" },
-    { id: 3, nombre: "Programación", codigo: "INF101" },
-  ],
-  2: [
-    { id: 1, nombre: "Cálculo I", codigo: "MAT101" },
-    { id: 4, nombre: "Física I", codigo: "FIS101" },
-  ],
-  3: [
-    { id: 1, nombre: "Cálculo I", codigo: "MAT101" },
-    { id: 4, nombre: "Física I", codigo: "FIS101" },
-    { id: 2, nombre: "Álgebra Lineal", codigo: "MAT102" },
-  ],
-}
-
-export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
-  const [formData, setFormData] = useState<SyllabusCreateDTO>({
-    // Bloque único
-    materiaId: 0,
-    profesorResponsableId: 0,
-
-    // Bloque múltiple
-    carreras: [],
-    cargaHorariaTotal: 0,
-    cargaHorariaSemanal: 0,
-    creditos: 0,
-    cantidadSemanas: 0,
-    cargaHorariaPractica: 0,
-    fundamentacion: "",
-    objetivos: "",
-    programaAnalitico: "",
-    metodologia: "",
-    modalidadEvaluacion: "",
-    bibliografia: "",
+export function SyllabusProfesorForm({ programa, onSubmit, onCancel }: SyllabusFormProps) {
+  const [formData, setFormData] = useState<ProgramaCargaProfesorDTO>({
+      cargaHorariaPractica: 0,
+      fundamentacion: "",
+      objetivos: "",
+      programaAnalitico: "",
+      metodologia: "",
+      modalidadEvaluacion: "",
+      bibliografia: "",
+      estado: EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
   })
 
-  const handleAddProgramaCarrera = () => {
-    const newBlock: ProgramaCarreraDTO = {
-      carreraId: 0,
-      plan: "",
-      ubicacionEnPlan: "",
-      correlativasFuertesIds: [],
-      correlativasDebilesIds: [],
-      contribucion: "",
-      contenidosMinimos: "",
-    }
-    setFormData((prev) => ({
-      ...prev,
-      carreras: [...prev.carreras, newBlock],
-    }))
-  }
-
-  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraDTO) => {
-    setFormData((prev) => ({
-      ...prev,
-      carreras: prev.carreras.map((c, i) => (i === index ? block : c)),
-    }))
-  }
-
-  const handleRemoveProgramaCarrera = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      carreras: prev.carreras.filter((_, i) => i !== index),
-    }))
-  }
 
   const handleSingleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -112,18 +37,7 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validaciones básicas
-    if (!formData.materiaId || !formData.profesorResponsableId) {
-      alert("Por favor completa los campos obligatorios del bloque único")
-      return
-    }
-
-    if (formData.carreras.length === 0) {
-      alert("Por favor agrega al menos una carrera")
-      return
-    }
+    e.preventDefault() 
 
     onSubmit(formData)
   }
@@ -135,45 +49,44 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
         <h2 className="text-lg font-bold text-primary mb-6">Bloque Único</h2>
 
         <div className="space-y-4">
-          {/* Materia */}
+          <div className="space-y-2">
+            <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
+              Departamento *
+            </Label>
+            <select
+              id="materia"
+              value={programa.nombreDepartamento || ""}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled
+            >
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
               Materia *
             </Label>
             <select
               id="materia"
-              value={formData.materiaId || ""}
-              onChange={(e) => handleSingleFieldChange("materiaId", Number.parseInt(e.target.value))}
+              value={programa.codigoMateria + " - " + programa.nombreMateria || ""}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
+              disabled
             >
-              <option value="">Seleccionar materia...</option>
-              {mockMaterias.map((materia) => (
-                <option key={materia.id} value={materia.id}>
-                  {materia.nombre} ({materia.codigo})
-                </option>
-              ))}
             </select>
           </div>
 
-          {/* Profesor Responsable */}
           <div className="space-y-2">
             <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
               Profesor Responsable *
             </Label>
             <select
               id="profesor"
-              value={formData.profesorResponsableId || ""}
-              onChange={(e) => handleSingleFieldChange("profesorResponsableId", Number.parseInt(e.target.value))}
+              value={programa.profesorResponsable || ""}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
+              disabled
             >
-              <option value="">Seleccionar profesor...</option>
-              {mockProfesores.map((profesor) => (
-                <option key={profesor.id} value={profesor.id}>
-                  {profesor.nombre}
-                </option>
-              ))}
             </select>
           </div>
         </div>
@@ -183,37 +96,21 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
       <div className="border-l-4 border-accent pl-6 py-4 bg-accent/5 rounded-r-lg">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-accent">Bloques por Carrera</h2>
-          <Button
-            type="button"
-            onClick={handleAddProgramaCarrera}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
-            size="sm"
-          >
-            <Plus size={18} />
-            Agregar Carrera
-          </Button>
         </div>
 
-        {formData.carreras.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground bg-background rounded-lg border-2 border-dashed border-accent/20">
-            <p>No hay carreras agregadas aún</p>
-            <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {formData.carreras.map((block, index) => (
-              <ProgramaCarreraBlock
-                key={index}
-                block={block}
-                index={index}
-                carreras={mockCarreras}
-                materiasPorCarrera={mockMateriasPorCarrera}
-                onUpdate={handleUpdateProgramaCarrera}
-                onRemove={handleRemoveProgramaCarrera}
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-6">
+          {programa.carreras?.map((block, index) => (
+            <ProgramaCarreraBlock
+              key={index}
+              block={block}
+              index={index}
+              carreras={[]}
+              materiasPorCarrera={[]}
+              onUpdate={() => {}}
+              onRemove={() => {}}
+            />
+          ))}
+        </div>
       </div>
 
       {/* CONFIGURACIÓN GENERAL */}
@@ -229,10 +126,10 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             <Input
               id="cargaTotal"
               type="number"
-              value={formData.cargaHorariaTotal}
-              onChange={(e) => handleSingleFieldChange("cargaHorariaTotal", Number.parseInt(e.target.value))}
-              placeholder="ej: 120"
+              value={programa.cargaHorariaTotal}
+              placeholder="ej: 128"
               className="border-border focus:border-primary"
+              disabled
             />
           </div>
           <div className="space-y-2">
@@ -242,10 +139,11 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             <Input
               id="cargaSemanal"
               type="number"
-              value={formData.cargaHorariaSemanal}
+              value={programa.cargaHorariaSemanal}
               onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
-              placeholder="ej: 6"
+              placeholder="ej: 8"
               className="border-border focus:border-primary"
+              disabled
             />
           </div>
           <div className="space-y-2">
@@ -255,10 +153,11 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             <Input
               id="creditos"
               type="number"
-              value={formData.creditos}
+              value={programa.creditos}
               onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
               placeholder="ej: 4"
               className="border-border focus:border-primary"
+              disabled
             />
           </div>
           <div className="space-y-2">
@@ -268,10 +167,11 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             <Input
               id="semanas"
               type="number"
-              value={formData.cantidadSemanas}
+              value={programa.cantidadSemanas}
               onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
-              placeholder="ej: 15"
+              placeholder="ej: 16"
               className="border-border focus:border-primary"
+              disabled
             />
           </div>
         </div>
@@ -286,7 +186,7 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             type="number"
             value={formData.cargaHorariaPractica}
             onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
-            placeholder="ej: 40"
+            placeholder="ej: 64"
             className="border-border focus:border-primary"
           />
         </div>
@@ -300,7 +200,7 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             id="fundamentacion"
             value={formData.fundamentacion}
             onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
-            placeholder="Justifica la importancia de esta materia..."
+            placeholder="Justifica la importancia de esta Materia..."
             className="border-border focus:border-primary min-h-20 resize-none"
           />
         </div>
@@ -340,7 +240,7 @@ export function SyllabusForm({ onSubmit, onCancel }: SyllabusFormProps) {
             value={formData.metodologia}
             onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
             placeholder="Describe los métodos de enseñanza..."
-            className="border-border focus:border-primary min-h-20 resize-none"
+            className="border-border focus:border-primary min-h-20 resize-none" 
           />
         </div>
 

@@ -5,6 +5,9 @@ import { Analytics } from "@vercel/analytics/next"
 import "../../styles/globals.css"
 import { Providers } from "../providers/providers"
 import { ThemeProvider } from "../providers/theme-provider"
+import { Sidebar } from "@/components/sidebar"
+import { UserResponseDTO } from "../api/generated/model"
+import { RoleProvider } from "../context/RoleContext"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -32,6 +35,14 @@ export const metadata: Metadata = {
   },
 }
 
+const mockUser: UserResponseDTO = {
+  id: 1,
+  nombre: "ad",
+  apellido: "min",
+  email: "admin@gmail.com",
+  roles: ["ADMIN", "ADMINISTRATIVO", "PROFESOR", "SECRETARIO", "COORDINADOR"],
+} 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,7 +58,15 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <RoleProvider userRoles={mockUser.roles}>
+                <div className="flex min-h-screen bg-background text-foreground">
+                  <Sidebar />
+                  <main className="flex-1 ml-64 p-8">
+                    <img src="/logo_uns_v1.png" alt="Logo UNS" className="h-20 mx-auto mb-2 top-5 right-5 fixed" />
+                    {children}
+                  </main>
+                </div>
+             </RoleProvider>
             </ThemeProvider>
           </Providers>
         <Analytics />

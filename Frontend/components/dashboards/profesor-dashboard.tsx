@@ -1,7 +1,7 @@
 import { BookOpen, BarChart3, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function ProfessorDashboard() {
+export function ProfesorDashboard() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
