@@ -6,7 +6,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
+import { DepartamentoCreateDTO, UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
+import { useCreateUser } from "@/app/api/generated/syllabusApi"
 
 const AVAILABLE_ROLES = Object.values(UserCreateDTORolesItem).map((value) => ({
   value,
@@ -14,11 +15,10 @@ const AVAILABLE_ROLES = Object.values(UserCreateDTORolesItem).map((value) => ({
 }));
 
 interface UsuarioFormProps {
-  onSubmit: (data: UserCreateDTO) => void
   onCancel?: () => void
 }
 
-export function UsuarioForm({ onSubmit, onCancel }: UsuarioFormProps) {
+export function UsuarioForm({ onCancel }: UsuarioFormProps) {
   const [formData, setFormData] = useState<UserCreateDTO>({
     nombre: "",
     apellido: "",
@@ -27,6 +27,23 @@ export function UsuarioForm({ onSubmit, onCancel }: UsuarioFormProps) {
     email: "",
     roles: [],
   })
+
+  const { mutate, isPending } = useCreateUser({
+      mutation: {
+        onSuccess: () => {
+          alert("Usuario creado exitosamente!");
+          // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+        },
+        onError: (error: Error) => {
+          alert(`Error al crear: ${error.message}`);
+        },
+      }
+  });
+
+  const handleFormSubmit = (data: DepartamentoCreateDTO) => {
+    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+    mutate({ data }); 
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -45,7 +62,7 @@ export function UsuarioForm({ onSubmit, onCancel }: UsuarioFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    handleFormSubmit(formData)
     setFormData({
       nombre: "",
       apellido: "",

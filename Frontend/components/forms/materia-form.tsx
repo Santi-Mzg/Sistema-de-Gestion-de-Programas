@@ -6,21 +6,41 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MateriaCreateDTO } from "@/app/api/generated/model"
+import { DepartamentoResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
+import { useCreateMateria } from "@/app/api/generated/syllabusApi"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
 
 interface MateriaFormProps {
-  onSubmit: (data: MateriaCreateDTO) => void
+  departamentos: DepartamentoResponseDTO[] 
   onCancel?: () => void
 }
 
-export function MateriaForm({ onSubmit, onCancel }: MateriaFormProps) {
+export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
   const [formData, setFormData] = useState<MateriaCreateDTO>({
     codigo: "",
     nombre: "",
     area: "",
     departamentoId: undefined,
   })
+
+
+    const { mutate, isPending } = useCreateMateria({
+        mutation: {
+          onSuccess: () => {
+            alert("Materia creado exitosamente!");
+            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+          },
+          onError: (error: Error) => {
+            alert(`Error al crear: ${error.message}`);
+          },
+        }
+    });
+
+    const handleFormSubmit = (data: MateriaCreateDTO) => {
+      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+      mutate({ data }); 
+    };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -30,9 +50,16 @@ export function MateriaForm({ onSubmit, onCancel }: MateriaFormProps) {
     }))
   }
 
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      departamentoId: value ? Number.parseInt(value) : undefined,
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    handleFormSubmit(formData)
     setFormData({
       codigo: "",
       nombre: "",
@@ -93,21 +120,24 @@ export function MateriaForm({ onSubmit, onCancel }: MateriaFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="departamentoId" className="text-sm font-semibold">
-              Departamento
+              Departamento *
             </Label>
-            <select
-              id="departamentoId"
-              name="departamentoId"
-              value={formData.departamentoId || ""}
-              onChange={handleChange}
+            <Select
+              value={formData.departamentoId?.toString() ?? ""}
+              onValueChange={handleSelectChange}
               required
-              className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
             >
-              <option value="">Seleccionar departamento</option>
-              <option value="1">Ingeniería</option>
-              <option value="2">Ciencias Exactas</option>
-              <option value="3">Humanidades</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar departamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {departamentos.map((departamento) => (
+                  <SelectItem key={departamento.id} value={departamento.id!.toString()}>
+                    {departamento.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

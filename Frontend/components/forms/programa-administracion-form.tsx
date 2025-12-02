@@ -9,24 +9,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
-import { getMateria, useGetMateria, useListDepartamentos, useListMaterias, useListUsers } from "@/app/api/generated/syllabusApi"
-import { get } from "http"
+import { useCreatePrograma, useListProfesores, useListMateriasDepartamento } from "@/app/api/generated/syllabusApi"
 
 interface SyllabusFormProps {
   programa?: ProgramaResponseDTO
   departamentosDisponibles: DepartamentoResponseDTO[]
   carrerasDisponibles: CarreraResponseDTO[]
-  onSubmit: (data: ProgramaCargaAdministrativoDTO) => void
-  onCancel?: () => void
 }
 
-export function SyllabusAdministrativoForm({ programa, departamentosDisponibles, carrerasDisponibles, onSubmit, onCancel }: SyllabusFormProps) {
+export function SyllabusAdministrativoForm({ programa, departamentosDisponibles, carrerasDisponibles }: SyllabusFormProps) {
   const [formData, setFormData] = useState<ProgramaCargaAdministrativoDTO>({
-    // Bloque único
     materiaId: 0,
     profesorResponsableId: 0,
-
-    // Bloque múltiple
     bloqueMultiple: [],
     cargaHorariaTotal: 0,
     cargaHorariaSemanal: 0,
@@ -37,18 +31,42 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
   const [departamento, setDepartamento] = useState<DepartamentoResponseDTO | null>(null)
   const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
   const [profesoresDisponibles, setProfesoresDisponibles] = useState<UserResponseDTO[]>([])
-  const materiasPorCarrera: Record<number, MateriaResponseDTO[]> = {}
 
-  const { data: materias } = useListMaterias()
-  const { data: profesores } = useListUsers()
+
+  const { data: profesores } = useListProfesores()
+
+  const {
+    data: materias,
+  } = useListMateriasDepartamento(departamento?.id!, {
+    query: {
+      queryKey: ["materiasPorDepartamento", departamento?.id],
+      enabled: !!departamento,
+    },
+  })
+  console.log("materias "+ materias)
 
   useEffect(() => {
-    if (materias) setMateriasDisponibles(materias)
+    if (profesores) {
+      setProfesoresDisponibles(profesores)
+    }
+  }, [profesores])
+
+  useEffect(() => {
+    if (materias) {
+      setMateriasDisponibles(materias)
+    }
   }, [materias])
 
-  useEffect(() => {
-    if (profesores) setProfesoresDisponibles(profesores)
-  }, [profesores])
+  const { mutate, isPending } = useCreatePrograma({
+    mutation: {
+      onSuccess: () => alert("Programa creado exitosamente!"),
+      onError: (error: Error) => alert(`Error: ${error.message}`),
+    }
+  });
+
+  const onSubmit = (data: any) => {
+    mutate({ data });
+  };
 
 
   const handleAddProgramaCarrera = () => {
@@ -112,7 +130,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
         <h2 className="text-lg font-bold text-primary mb-6">Bloque Único</h2>
 
         <div className="space-y-4">
-                    <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
               Departamento *
             </Label>
@@ -125,7 +143,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
             >
               <option value="">Seleccionar Departamento...</option>
               {departamentosDisponibles.map((departamento) => (
-                <option key={departamento.id} value={departamento.id}>
+                <option key={departamento.id} value={departamento.nombre}>
                   {departamento.nombre}
                 </option>
               ))}
@@ -202,7 +220,6 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
                 block={block}
                 index={index}
                 carreras={carrerasDisponibles}
-                materiasPorCarrera={materiasPorCarrera}
                 onUpdate={handleUpdateProgramaCarrera}
                 onRemove={handleRemoveProgramaCarrera}
               />
@@ -227,7 +244,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
               value={formData.cargaHorariaTotal}
               onChange={(e) => handleSingleFieldChange("cargaHorariaTotal", Number.parseInt(e.target.value))}
               placeholder="ej: 128"
-              className="border-border focus:border-primary"
+              className="border-border focus:border-primary bg-background"
             />
           </div>
           <div className="space-y-2">
@@ -240,7 +257,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
               value={formData.cargaHorariaSemanal}
               onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
               placeholder="ej: 8"
-              className="border-border focus:border-primary"
+              className="border-border focus:border-primary bg-background"
             />
           </div>
           <div className="space-y-2">
@@ -253,7 +270,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
               value={formData.creditos}
               onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
               placeholder="ej: 4"
-              className="border-border focus:border-primary"
+              className="border-border focus:border-primary bg-background"
             />
           </div>
           <div className="space-y-2">
@@ -266,7 +283,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
               value={formData.cantidadSemanas}
               onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
               placeholder="ej: 16"
-              className="border-border focus:border-primary"
+              className="border-border focus:border-primary bg-background"
             />
           </div>
         </div>
@@ -380,7 +397,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
         </Button>
         <Button
           type="button"
-          onClick={onCancel}
+          onClick={() => {}}
           variant="outline"
           className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
           disabled

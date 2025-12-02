@@ -12,6 +12,4 @@ export interface CarreraCreateDTO {
   cantidadMaterias?: number;
   materiasIds?: number[];
   departamentoId?: number;
-  comisionId?: number;
-  profesoresIds?: number[];
 }

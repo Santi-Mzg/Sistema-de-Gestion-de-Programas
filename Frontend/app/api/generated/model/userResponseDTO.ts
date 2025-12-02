@@ -18,5 +18,5 @@ export interface UserResponseDTO {
   carreraComoComision?: string;
   carreraComoProfesor?: string;
   materiasComoProfesor?: string[];
-  roles: UserResponseDTORolesItem[];
+  roles?: UserResponseDTORolesItem[];
 }

@@ -7,12 +7,16 @@ import Link from "next/link";
 
 const menuConfig = {
   ADMINISTRATIVO: [
-    { label: "Crear Usuario", href: "/usuarios" },
+    { label: "Crear Usuario", href: "/usuarios/crear" },
     { label: "Crear Departamento", href: "/departamentos/crear" },
     { label: "Crear Carrera", href: "/carreras/crear" },
     { label: "Crear Materia", href: "/materias/crear" },
     { label: "Crear Programa", href: "/programas/crear" },
     { label: "Programas", href: "/programas" },
+    { label: "Usuarios", href: "/usuarios" },
+    { label: "Departamentos", href: "/departamentos" },
+    { label: "Carreras", href: "/carreras" },
+    { label: "Materias", href: "/materias" },
   ],
   PROFESOR: [
     { label: "Mis materias", href: "/materias" },

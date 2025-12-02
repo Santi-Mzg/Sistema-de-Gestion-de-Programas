@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DepartamentoCreateDTO } from "@/app/api/generated/model"
+import { useCreateDepartamento } from "@/app/api/generated/syllabusApi"
 
 interface DepartamentoFormProps {
-  onSubmit: (data: DepartamentoCreateDTO) => void
   onCancel?: () => void
 }
 
-export function DepartamentoForm({ onSubmit, onCancel }: DepartamentoFormProps) {
+export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
     nombre: "",
     direccion: "",
@@ -24,6 +24,24 @@ export function DepartamentoForm({ onSubmit, onCancel }: DepartamentoFormProps) 
     administracionIds: [],
     secretariaId: undefined,
   })
+
+    const { mutate, isPending } = useCreateDepartamento({
+        mutation: {
+          onSuccess: () => {
+            alert("Departamento creado exitosamente!");
+            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+          },
+          onError: (error: Error) => {
+            alert(`Error al crear: ${error.message}`);
+          },
+        }
+    });
+
+    // 💡 Esta es la función que se pasa al formulario
+    const handleFormSubmit = (data: DepartamentoCreateDTO) => {
+      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+      mutate({ data }); 
+    };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -35,7 +53,7 @@ export function DepartamentoForm({ onSubmit, onCancel }: DepartamentoFormProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    handleFormSubmit(formData)
     setFormData({
       nombre: "",
       direccion: "",

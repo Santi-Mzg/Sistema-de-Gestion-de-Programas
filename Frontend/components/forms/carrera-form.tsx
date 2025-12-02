@@ -6,14 +6,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CarreraCreateDTO } from "@/app/api/generated/model"
+import { CarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
+import { useCreateCarrera } from "@/app/api/generated/syllabusApi"
 
 interface CarreraFormProps {
-  onSubmit: (data: CarreraCreateDTO) => void
+  departamentos: DepartamentoResponseDTO[] 
   onCancel?: () => void
 }
 
-export function CarreraForm({ onSubmit, onCancel }: CarreraFormProps) {
+export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     codigo: "",
     nombre: "",
@@ -21,9 +22,25 @@ export function CarreraForm({ onSubmit, onCancel }: CarreraFormProps) {
     cantidadMaterias: undefined,
     materiasIds: [],
     departamentoId: undefined,
-    comisionId: undefined,
-    profesoresIds: [],
   })
+
+    const { mutate, isPending } = useCreateCarrera({
+        mutation: {
+          onSuccess: () => {
+            alert("Carrera creada exitosamente!");
+            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+          },
+          onError: (error: Error) => {
+            alert(`Error al crear: ${error.message}`);
+          },
+        }
+    });
+
+    // 💡 Esta es la función que se pasa al formulario
+    const handleFormSubmit = (data: CarreraCreateDTO) => {
+      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+      mutate({ data }); 
+    };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -39,7 +56,7 @@ export function CarreraForm({ onSubmit, onCancel }: CarreraFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    handleFormSubmit(formData)
     setFormData({
       codigo: "",
       nombre: "",
@@ -47,8 +64,6 @@ export function CarreraForm({ onSubmit, onCancel }: CarreraFormProps) {
       cantidadMaterias: undefined,
       materiasIds: [],
       departamentoId: undefined,
-      comisionId: undefined,
-      profesoresIds: [],
     })
   }
 
@@ -130,26 +145,12 @@ export function CarreraForm({ onSubmit, onCancel }: CarreraFormProps) {
               onChange={handleChange}
               className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
             >
-              <option value="">Seleccionar departamento</option>
-              <option value="1">Ingeniería</option>
-              <option value="2">Ciencias Exactas</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="comisionId" className="text-sm font-semibold">
-              Comisión
-            </Label>
-            <select
-              id="comisionId"
-              name="comisionId"
-              value={formData.comisionId || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
-            >
-              <option value="">Seleccionar comisión</option>
-              <option value="1">Comisión A</option>
-              <option value="2">Comisión B</option>
+              <option value="">Seleccionar Departamento...</option>
+              {departamentos.map((departamento) => (
+                <option key={departamento.id} value={departamento.id}>
+                  {departamento.nombre}
+                </option>
+              ))}
             </select>
           </div>
         </div>

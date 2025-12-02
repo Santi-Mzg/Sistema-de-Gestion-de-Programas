@@ -6,12 +6,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
 import { ProgramaCarreraCreateDTO } from "@/app/api/generated/model/programaCarreraCreateDTO"
 import { CarreraResponseDTO, MateriaResponseDTO } from "@/app/api/generated/model"
+import { useListMateriasCarrera } from "@/app/api/generated/syllabusApi"
 
 interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraCreateDTO
   index: number
   carreras: CarreraResponseDTO[]
-  materiasPorCarrera: Record<number, MateriaResponseDTO[]>
   onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
   onRemove: (index: number) => void
 }
@@ -20,19 +20,27 @@ export function ProgramaCarreraBlock({
   block,
   index,
   carreras,
-  materiasPorCarrera,
   onUpdate,
   onRemove,
 }: ProgramaCarreraBlockProps) {
   const [selectedCarreraId, setSelectedCarreraId] = useState<number | null>(block.carreraId || null)
   const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
 
+
+  const { 
+    data: materias 
+  } = useListMateriasCarrera(selectedCarreraId!, {
+    query: {
+      queryKey: ["materiasPorCarrera", selectedCarreraId],
+      enabled: !!selectedCarreraId,
+    },
+  })
+
   useEffect(() => {
-    if (selectedCarreraId) {
-      const materias = materiasPorCarrera[selectedCarreraId] || []
-      setMateriasDisponibles(materias)
+    if (materias) {
+          setMateriasDisponibles(materias) 
     }
-  }, [selectedCarreraId, materiasPorCarrera])
+  }, [materias])
 
   const handleCarreraChange = (carreraId: number) => {
     setSelectedCarreraId(carreraId)
@@ -126,7 +134,7 @@ export function ProgramaCarreraBlock({
           value={block.plan}
           onChange={(e) => handleFieldChange("plan", e.target.value)}
           placeholder="ej: Plan 2023"
-          className="border-border focus:border-primary"
+          className="border-border focus:border-primary bg-background"
         />
       </div>
 
@@ -140,7 +148,7 @@ export function ProgramaCarreraBlock({
           value={block.ubicacionEnPlan}
           onChange={(e) => handleFieldChange("ubicacionEnPlan", e.target.value)}
           placeholder="ej: Segundo semestre"
-          className="border-border focus:border-primary"
+          className="border-border focus:border-primary bg-background"
         />
       </div>
 
@@ -149,7 +157,6 @@ export function ProgramaCarreraBlock({
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
             Correlativas Fuertes
-            <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
           </Label>
           <div className="max-h-40 overflow-y-auto space-y-2">
             {materiasDisponibles.map((materia) => (
@@ -174,7 +181,6 @@ export function ProgramaCarreraBlock({
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
             Correlativas Débiles
-            <span className="text-xs text-muted-foreground">(Recomendado)</span>
           </Label>
           <div className="max-h-40 overflow-y-auto space-y-2">
             {materiasDisponibles.map((materia) => (
