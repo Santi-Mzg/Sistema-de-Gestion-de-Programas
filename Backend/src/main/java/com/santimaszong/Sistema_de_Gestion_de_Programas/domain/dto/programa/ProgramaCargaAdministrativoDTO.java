@@ -16,7 +16,7 @@ public class ProgramaCargaAdministrativoDTO {
     private Long profesorResponsableId;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<ProgramaCarreraCreateDTO> carreras;
+    private List<ProgramaCarreraCreateDTO> bloqueMultiple;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;

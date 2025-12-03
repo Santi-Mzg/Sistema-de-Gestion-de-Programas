@@ -19,5 +19,4 @@ public class DepartamentoCreateDTO {
     private String sitioWeb;
     private List<Long> administracionIds;
     private Long secretariaId;
-//    private List<Long> carrerasIds;
 }

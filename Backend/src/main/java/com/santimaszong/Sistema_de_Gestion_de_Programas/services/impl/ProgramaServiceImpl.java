@@ -79,10 +79,10 @@ public class ProgramaServiceImpl implements ProgramaService {
         programaEntity.setProfesorResponsable(profesorResponsable);
 
 
-        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getCarreras();
+        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
         List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
 
-        programaEntity.setCarreras(bloquesMultiplesEntity);
+        programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
 
 
         EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
@@ -94,12 +94,13 @@ public class ProgramaServiceImpl implements ProgramaService {
                         programaEntity.getCantidadSemanas() != null &&
                         programaEntity.getMateria() != null &&
                         programaEntity.getProfesorResponsable() != null &&
-                        programaEntity.getCarreras() != null;
+                        programaEntity.getBloqueMultiple() != null;
 
         if (completoAdministracion) {
             nuevoEstado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
         }
-        programaEntity.registrarNuevoEstado(nuevoEstado, null, null);
+
+        programaEntity.registrarNuevoEstado(nuevoEstado, profesorResponsable, null); // MOCKEADO EL ACTOR
 
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
 
@@ -141,10 +142,10 @@ public class ProgramaServiceImpl implements ProgramaService {
                     existingProgram.setProfesorResponsable(profesorNuevo);
                 });
 
-        Optional.ofNullable(programaDTO.getCarreras())
+        Optional.ofNullable(programaDTO.getBloqueMultiple())
                 .ifPresent(bloquesMultiplesDTO -> {
                     List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
-                    existingProgram.setCarreras(bloquesMultiplesEntity);
+                    existingProgram.setBloqueMultiple(bloquesMultiplesEntity);
                 });
 
         Optional.ofNullable(programaDTO.getCargaHorariaTotal())
@@ -167,7 +168,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         boolean completoAdministrativo =
                 existingProgram.getMateria() != null &&
                         existingProgram.getProfesorResponsable() != null &&
-                        existingProgram.getCarreras() != null &&
+                        existingProgram.getBloqueMultiple() != null &&
                         existingProgram.getCargaHorariaTotal() != null &&
                         existingProgram.getCargaHorariaSemanal() != null &&
                         existingProgram.getCreditos() != null &&

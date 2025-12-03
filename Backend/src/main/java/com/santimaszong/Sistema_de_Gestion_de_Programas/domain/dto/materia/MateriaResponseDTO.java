@@ -1,5 +1,8 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
@@ -19,12 +22,5 @@ public class MateriaResponseDTO {
     private String codigo;
     private String nombre;
     private String area;
-    private int horasSemanales;
-    private int horasTotales;
-    private List<CarreraEntity> carreras;
-    private List<ProgramaEntity> programas;
-    private List<MateriaEntity> correlativasFuertes;
-    private List<MateriaEntity> correlativasDebiles;
-    private List<MateriaEntity> requierenComoFuerte;
-    private List<MateriaEntity> requierenComoDebil;
+    private String departamento;
 }

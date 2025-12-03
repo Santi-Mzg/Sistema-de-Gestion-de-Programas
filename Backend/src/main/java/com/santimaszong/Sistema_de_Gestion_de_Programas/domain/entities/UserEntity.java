@@ -27,7 +27,7 @@ public class UserEntity {
     private String apellido;
 
     @Column(name = "dni", nullable = false, unique = true)
-    private String DNI;
+    private String dni;
 
     @Column(name = "legajo", nullable = false, unique = true)
     private String legajo;

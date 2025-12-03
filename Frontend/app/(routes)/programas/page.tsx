@@ -1,11 +1,12 @@
 import { ProgramaResponseDTO } from "@/app/api/generated/model";
-import { useListProgramas } from "@/app/api/generated/syllabusApi";
+import { listProgramas } from "@/app/api/generated/syllabusApi";
+import { ProgramasList } from "@/components/pages/programas-list";
 
-export default function Programas() {
+export default async function Programas() {
 
-    const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
+    const programas: ProgramaResponseDTO[] = await listProgramas();
 
     return (
-      <div className="p-8 max-w-7xl mx-auto">Lista de programas.</div>
+      <ProgramasList programas={programas} />
     );
 }

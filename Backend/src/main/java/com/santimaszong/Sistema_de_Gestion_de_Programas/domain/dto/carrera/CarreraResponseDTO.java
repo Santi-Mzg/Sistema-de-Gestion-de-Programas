@@ -1,8 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCarreraResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,9 +15,8 @@ public class CarreraResponseDTO {
     private String codigo;
     private String nombre;
     private String duracion;
-    private int cantidadMaterias;
-    private List<MateriaEntity> materias;
-    private DepartamentoEntity departamento;
-    private UserEntity comision;
-    private List<UserEntity> profesores;
+    private Integer cantidadMaterias;
+    private List<ProgramaCarreraResponseDTO> materias;
+    private String departamento;
+    private String comision;
 }

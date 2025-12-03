@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "../../styles/globals.css"
 import { Providers } from "../providers/providers"
 import { ThemeProvider } from "../providers/theme-provider"
-import { Sidebar } from "@/components/sidebar"
+import { Sidebar } from "@/components/nav/sidebar"
 import { UserResponseDTO } from "../api/generated/model"
 import { RoleProvider } from "../context/RoleContext"
 

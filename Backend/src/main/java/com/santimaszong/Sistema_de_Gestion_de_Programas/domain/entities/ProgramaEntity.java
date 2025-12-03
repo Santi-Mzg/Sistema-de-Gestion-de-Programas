@@ -32,7 +32,7 @@ public class ProgramaEntity {
 
     // --- BLOQUE MÚLTIPLE ---
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProgramaCarreraEntity> carreras = new ArrayList<>();
+    private List<ProgramaCarreraEntity> bloqueMultiple = new ArrayList<>();
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;

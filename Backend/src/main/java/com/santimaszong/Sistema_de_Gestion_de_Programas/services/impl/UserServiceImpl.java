@@ -3,6 +3,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
@@ -76,6 +77,43 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<UserResponseDTO> listProfesores() {
+        List<UserEntity> profesores = userRepository.findAllByRoles(Rol.PROFESOR);
+
+        return profesores.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponseDTO> listAdministrativos() {
+        List<UserEntity> administrativos = userRepository.findAllByRoles(Rol.ADMINISTRATIVO);
+
+        return administrativos.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponseDTO> listCoordinadores() {
+        List<UserEntity> coordinadores = userRepository.findAllByRoles(Rol.COORDINADOR);
+
+        return coordinadores.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponseDTO> listSecretarios() {
+        List<UserEntity> secretarios = userRepository.findAllByRoles(Rol.SECRETARIO);
+
+        return secretarios.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public UserResponseDTO updateUser(Long id, UserCreateDTO userDTO) {

@@ -43,6 +43,26 @@ public class UserController {
         return userService.listUsers();
     }
 
+    @GetMapping("/profesores")
+    public List<UserResponseDTO> listProfesores() {
+        return userService.listProfesores();
+    }
+
+    @GetMapping("/administrativos")
+    public List<UserResponseDTO> listAdministrativos() {
+        return userService.listAdministrativos();
+    }
+
+    @GetMapping("/secretarios")
+    public List<UserResponseDTO> listSecretarios() {
+        return userService.listSecretarios();
+    }
+
+    @GetMapping("/coordinadores")
+    public List<UserResponseDTO> listCoordinadores() {
+        return userService.listCoordinadores();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserCreateDTO user) {
         UserResponseDTO updatedUser = userService.updateUser(id, user);

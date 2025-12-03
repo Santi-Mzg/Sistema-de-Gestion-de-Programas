@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
@@ -44,6 +45,11 @@ public class CarreraController {
         return carreraService.listCarreras();
     }
 
+    @GetMapping("/{id}/materias")
+    public List<MateriaResponseDTO> listMateriasCarrera(@PathVariable Long id) {
+        return carreraService.listMateriasByCarrera(id);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<CarreraResponseDTO> updateCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO carrera) {
         CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, carrera);
@@ -52,8 +58,8 @@ public class CarreraController {
     }
 
     @PatchMapping("/cambiar_comision/{id}")
-    public ResponseEntity<CarreraResponseDTO> updateComisionCarrera(Long id, CarreraCreateDTO carrera) {
-        CarreraResponseDTO updatedCarrera = carreraService.updateCarrera(id, carrera);
+    public ResponseEntity<CarreraResponseDTO> updateComisionCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO carrera) {
+        CarreraResponseDTO updatedCarrera = carreraService.updateComisionCarrera(id, carrera);
 
         return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
     }

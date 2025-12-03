@@ -33,7 +33,8 @@ public class DepartamentoEntity {
     @Column(name = "sitio_web_departamento")
     private String sitioWeb;
 
-
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<MateriaEntity> materias;
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CarreraEntity> carreras;

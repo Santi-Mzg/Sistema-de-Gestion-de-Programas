@@ -14,7 +14,7 @@ public interface ProgramaCargaProfesorMapper extends ToEntityMapper<ProgramaCarg
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "materia", ignore = true)
     @Mapping(target = "profesorResponsable", ignore = true)
-    @Mapping(target = "carreras", ignore = true)
+    @Mapping(target = "bloqueMultiple", ignore = true)
     @Mapping(target = "cargaHorariaTotal", ignore = true)
     @Mapping(target = "cargaHorariaSemanal", ignore = true)
     @Mapping(target = "creditos", ignore = true)

@@ -1,5 +1,8 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import lombok.AllArgsConstructor;
@@ -19,7 +22,8 @@ public class DepartamentoResponseDTO {
     private String cuerpo;
     private String email;
     private String sitioWeb;
-    private List<UserEntity> administracion;
-    private UserEntity secretaria;
-    private List<CarreraEntity> carreras;
+    private List<String> administracion;
+    private String secretaria;
+    private List<CarreraResponseDTO> carreras;
+    private List<MateriaResponseDTO> materias;
 }

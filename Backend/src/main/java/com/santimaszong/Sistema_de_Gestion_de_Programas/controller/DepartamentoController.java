@@ -2,6 +2,8 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
@@ -49,6 +51,16 @@ public class DepartamentoController {
 
         return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
     }
+
+    @GetMapping("/{id}/materias")
+    public List<MateriaResponseDTO> listMateriasDepartamento(@PathVariable Long id) {
+        return departamentoService.listMateriasByDepartamento(id);
+    }
+
+//    @GetMapping("/{id}/profesores")
+//    public List<UserResponseDTO> listProfesoresDepartamento(@PathVariable Long id) {
+//        return departamentoService.listProfesoresByDepartamento(id);
+//    }
 
     @PatchMapping("/cambiar_secretaria/{id}")
 

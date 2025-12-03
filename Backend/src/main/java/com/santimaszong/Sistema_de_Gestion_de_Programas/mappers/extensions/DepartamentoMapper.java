@@ -5,10 +5,18 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToDTOMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToEntityMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.utils.UserToStringMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                CarreraMapper.class,
+                MateriaMapper.class,
+                UserToStringMapper.class,
+        }
+)
 public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO, DepartamentoEntity>, ToDTOMapper<DepartamentoEntity, DepartamentoResponseDTO> {
 
     @Override
@@ -18,7 +26,11 @@ public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO
     DepartamentoEntity toEntity(DepartamentoCreateDTO dto);
 
     @Override
-    @Mapping(source = "administracion", target = "administracion")
-    @Mapping(source = "secretaria", target = "secretaria")
+    @Mapping(source = "materias", target = "materias")
+    @Mapping(source = "carreras", target = "carreras")
+    @Mapping(source = "administracion", target = "administracion", qualifiedByName = "usersToString")
+    @Mapping(source = "secretaria", target = "secretaria", qualifiedByName = "userToString")
     DepartamentoResponseDTO toDTO(DepartamentoEntity entity);
+
+
 }

@@ -16,15 +16,9 @@ public class UserCreateDTO {
 
     private String nombre;
     private String apellido;
-    private String DNI;
+    private String dni;
     private String legajo;
     private String email;
-
-//    private Long departamentoAdministracionId;
-
-//    private Long carreraComoComisionId;
-//    private Long carreraComoProfesorId;
-//    private List<Long> materiasComoProfesorId;
 
     private Set<Rol> roles;
 }

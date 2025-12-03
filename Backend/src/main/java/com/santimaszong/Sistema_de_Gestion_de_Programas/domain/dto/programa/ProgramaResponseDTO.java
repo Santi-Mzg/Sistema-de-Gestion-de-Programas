@@ -1,6 +1,5 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.EstadoHistoricoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +20,7 @@ public class ProgramaResponseDTO {
     private String profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<ProgramaCarreraResponseDTO> carreras;
+    private List<ProgramaCarreraResponseDTO> bloqueMultiple;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
@@ -38,6 +37,6 @@ public class ProgramaResponseDTO {
     private String bibliografia;
 
     private String estado;
-    private List<EstadoHistoricoEntity> historialEstados;
+    private List<EstadoHistoricoResponseDTO> historialEstados;
 }
 

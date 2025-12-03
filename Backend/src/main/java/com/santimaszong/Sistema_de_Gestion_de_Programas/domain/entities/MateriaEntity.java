@@ -27,26 +27,9 @@ public class MateriaEntity {
     @Column(name = "area_materia", nullable = false)
     private String area;
 
-    @Column(name = "horas_semanales")
-    private int horasSemanales;
-
-    @Column(name = "horas_totales")
-    private int horasTotales;
-
-
-    // 🔹 Relación con Profesor (User con rol profesor)
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "profesor_id")
-//    private UserEntity profesor;
-
-    // 🔹 Relación con Carrera (muchas materias pueden pertenecer a muchas carreras)
-    @ManyToMany
-    @JoinTable(
-            name = "carrera_materia",
-            joinColumns = @JoinColumn(name = "materia_id"),
-            inverseJoinColumns = @JoinColumn(name = "carrera_id")
-    )
-    private List<CarreraEntity> carreras = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departamento_id")
+    private DepartamentoEntity departamento;
 
     @OneToMany(mappedBy = "materia", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProgramaEntity> programas = new ArrayList<>();

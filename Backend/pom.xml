@@ -57,6 +57,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 <!--        <dependency>-->
@@ -105,7 +111,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-
 			</plugin>
 
             <plugin>
@@ -132,6 +137,19 @@
                             <version>${org.mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>11.17.0</version>
+                <configuration>
+                    <user>avnadmin</user>
+                    <password>AVNS_8Sg9XbhenAVT1GYIfrK</password>
+                    <schemas>
+                        <schema>public</schema>
+                    </schemas>
                 </configuration>
             </plugin>
 		</plugins>
