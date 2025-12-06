@@ -14,7 +14,7 @@ export interface ProgramaResponseDTO {
   codigoMateria?: string;
   areaMateria?: string;
   profesorResponsable?: string;
-  carreras?: ProgramaCarreraResponseDTO[];
+  bloqueMultiple?: ProgramaCarreraResponseDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
   cargaHorariaPractica?: number;

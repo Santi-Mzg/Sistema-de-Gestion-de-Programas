@@ -4,7 +4,7 @@ import { AdministracionDashboard } from "@/components/dashboards/administracion-
 import { ProfesorDashboard } from "@/components/dashboards/profesor-dashboard"
 import { CoordinadorDashboard } from "@/components/dashboards/coordinador-dashboard"
 import { SecretarioDashboard } from "@/components/dashboards/secretario-dashboard"
-import { useRole } from "../context/RoleContext"
+import { useRole } from "@/context/role-context"
 
 
 export default function Dashboard() {

@@ -2,8 +2,11 @@
 
 import { Users, BookOpen, Settings, LogOut, Home, ChevronRight, Building2, BookMarked, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRole } from "@/app/context/RoleContext";
+import { useRole } from "@/context/role-context";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
+import { AuthContext } from "@/context/auth-context";
 
 const menuConfig = {
   ADMINISTRATIVO: [
@@ -29,11 +32,28 @@ const menuConfig = {
 };
 
 export function Sidebar() {
+  const { logout } = useContext(AuthContext);
   const { availableRoles, activeRole, setActiveRole } = useRole();
-
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false)
   const options = menuConfig[activeRole as keyof typeof menuConfig] ?? [];
 
-  console.log(options)
+
+  const handleLogout = () => {
+    setIsLoading(true)
+    try {
+      logout()
+      
+      router.push("/login")
+
+    } catch (err) {
+      console.error("Error al registrarse:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+
   return (
     <aside className="fixed w-64 top-0 left-0 z-30 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-screen overflow-hidden">
       {/* Header */}
@@ -96,6 +116,7 @@ export function Sidebar() {
         <Button
           variant="outline"
           className="w-full justify-start gap-2 text-sidebar-foreground border-sidebar-border hover:bg-destructive/10 bg-transparent"
+          onClick={handleLogout}
         >
           <LogOut size={16} />
           <span className="text-xs">Cerrar Sesión</span>

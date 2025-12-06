@@ -4,13 +4,14 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { UserCreateDTORolesItem } from './userCreateDTORolesItem';
+import type { RegisterRequestRolesItem } from './registerRequestRolesItem';
 
-export interface UserCreateDTO {
+export interface RegisterRequest {
   nombre?: string;
   apellido?: string;
   dni?: string;
   legajo?: string;
   email?: string;
-  roles?: UserCreateDTORolesItem[];
+  password?: string;
+  roles?: RegisterRequestRolesItem[];
 }

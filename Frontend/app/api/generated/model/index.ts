@@ -5,6 +5,7 @@
  * OpenAPI spec version: v0
  */
 
+export * from './authResponse';
 export * from './carreraCreateDTO';
 export * from './carreraResponseDTO';
 export * from './departamentoCreateDTO';
@@ -14,6 +15,7 @@ export * from './estadoHistoricoResponseDTOEstado';
 export * from './estadoUpdateDTO';
 export * from './estadoUpdateDTOAccion';
 export * from './estadoUpdateDTODestinoRechazo';
+export * from './loginRequest';
 export * from './materiaCreateDTO';
 export * from './materiaResponseDTO';
 export * from './programaCargaAdministrativoDTO';
@@ -21,6 +23,8 @@ export * from './programaCargaProfesorDTO';
 export * from './programaCarreraCreateDTO';
 export * from './programaCarreraResponseDTO';
 export * from './programaResponseDTO';
+export * from './registerRequest';
+export * from './registerRequestRolesItem';
 export * from './userCreateDTO';
 export * from './userCreateDTORolesItem';
 export * from './userResponseDTO';
