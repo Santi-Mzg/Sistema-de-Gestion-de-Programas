@@ -4,14 +4,13 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.Carre
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @Log
 @RestController
@@ -19,7 +18,7 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class CarreraController {
 
-    private CarreraService carreraService;
+    private final CarreraService carreraService;
 
     public CarreraController(CarreraService carreraService) {
         this.carreraService = carreraService;

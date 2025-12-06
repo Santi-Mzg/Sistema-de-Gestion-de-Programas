@@ -19,7 +19,7 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class DepartamentoController {
 
-    private DepartamentoService departamentoService;
+    private final DepartamentoService departamentoService;
 
     public DepartamentoController(DepartamentoService departamentoService) {
         this.departamentoService = departamentoService;

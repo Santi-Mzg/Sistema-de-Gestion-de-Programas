@@ -1,33 +1,74 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.util.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        List<String> generalErrors = new ArrayList<>();
+        ex.getBindingResult().getAllErrors().forEach((error -> {
+            if (error instanceof FieldError fieldError) {
+                String fieldName = fieldError.getField();
+                String errorMsg = fieldError.getDefaultMessage();
+                errors.put(fieldName, errorMsg);
+            } else {
+                generalErrors.add(error.getDefaultMessage());
+            }
+        }));
+
+        String requestedURI = "";
+
+        if (request instanceof HttpServletRequest servletWebRequest) {
+            requestedURI = servletWebRequest.getRequestURI();
+        }
+
+        HttpErrorResponse response = HttpErrorResponse.of(
+                "Validation Failed",
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                errors,
+                generalErrors,
+                requestedURI
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
+    public ResponseEntity<HttpErrorResponse> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        List<String> generalErrors = new ArrayList<>();
+
+        errors.put("Error" ,ex.getMessage());
+
+        HttpErrorResponse response = HttpErrorResponse.of(
                 "Invalid operation in the current state",
-                ex.getMessage(),
+                HttpStatus.BAD_REQUEST.value(),
+                errors,
+                generalErrors,
                 request.getRequestURI()
         );
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -35,17 +76,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * y devuelve un código de estado 404 NOT FOUND.
      */
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<HttpErrorResponse> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
+        Map<String, String> errors = new HashMap<>();
+        List<String> generalErrors = new ArrayList<>();
+
+        errors.put("Error" ,ex.getMessage());
+
+        HttpErrorResponse response = HttpErrorResponse.of(
                 "Resource not found",
-                ex.getMessage(),
+                HttpStatus.NOT_FOUND.value(),
+                errors,
+                generalErrors,
                 request.getRequestURI()
         );
 
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -53,15 +99,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * Devuelve un código de estado 500 INTERNAL SERVER ERROR.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+    public ResponseEntity<HttpErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        List<String> generalErrors = new ArrayList<>();
+
+        errors.put("Error" ,ex.getMessage());
+
+        HttpErrorResponse response = HttpErrorResponse.of(
                 "Internal Server Error",
-                ex.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                errors,
+                generalErrors,
                 request.getRequestURI()
         );
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

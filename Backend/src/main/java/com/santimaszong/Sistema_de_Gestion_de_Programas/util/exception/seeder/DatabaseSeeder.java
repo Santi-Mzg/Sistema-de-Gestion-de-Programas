@@ -1,4 +1,4 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.config.seeder;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.util.exception.seeder;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;

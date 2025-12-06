@@ -16,7 +16,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class MateriaController {
 
-    private MateriaService materiaService;
+    private final MateriaService materiaService;
 
     public MateriaController(MateriaService materiaService) {
         this.materiaService = materiaService;

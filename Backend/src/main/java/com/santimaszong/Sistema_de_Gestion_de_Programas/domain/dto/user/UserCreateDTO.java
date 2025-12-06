@@ -12,8 +12,6 @@ import java.util.Set;
 @NoArgsConstructor
 public class UserCreateDTO {
 
-    private Long id;
-
     private String nombre;
     private String apellido;
     private String dni;
