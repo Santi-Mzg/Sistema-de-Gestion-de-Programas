@@ -57,6 +57,7 @@ public class UserServiceImpl implements UserService {
 //        userEntity.setCarreraComoComision(carreraComoComision);
 //        userEntity.setCarreraComoProfesor(carreraComoProfesor);
 
+        userEntity.setPassword("test");
         UserEntity createdUserEntity = userRepository.save(userEntity);
 
         return userMapper.toDTO(createdUserEntity);

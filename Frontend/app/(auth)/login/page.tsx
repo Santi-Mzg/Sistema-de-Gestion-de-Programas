@@ -14,8 +14,7 @@ import { LoginRequest } from "@/app/api/generated/model"
 import { AuthContext } from "@/context/auth-context"
 
 export default function LoginPage() {
-  // const login = useLogin()
-  const { user, login } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)

@@ -4,11 +4,14 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Esta
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,38 +28,6 @@ public class ProgramaController {
         this.programaService = programaService;
     }
 
-    /*
-    Administrativo
-
-    POST /programas
-
-    PUT /programas/{id}
-
-    Profesor
-
-    PUT /programas/{id}/profesor
-
-            Coordinador
-
-    POST /programas/{id}/coordinador/aprobar
-
-    POST /programas/{id}/coordinador/rechazar
-
-            Secretaría
-
-    POST /programas/{id}/secretaria/aprobar
-
-    POST /programas/{id}/secretaria/rechazar
-
-    Listado y consultas generales
-
-    GET /programas (con filtros opcionales por estado)
-
-    GET /programas/{id}
-    */
-
-
-
     @PostMapping
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
     public ResponseEntity<ProgramaResponseDTO> createPrograma(@RequestBody ProgramaCargaAdministrativoDTO program) {
@@ -67,8 +38,8 @@ public class ProgramaController {
 
     @PatchMapping("/{id}/administrativo")
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
-    public ResponseEntity<ProgramaResponseDTO> administrativoCarga(@PathVariable Long id, @RequestBody ProgramaCargaAdministrativoDTO program) {
-        ProgramaResponseDTO updatedProgram = programaService.administrativoCarga(id, program);
+    public ResponseEntity<ProgramaResponseDTO> administrativoCarga(@PathVariable Long id, @RequestBody ProgramaCargaAdministrativoDTO program, @AuthenticationPrincipal UserEntity actor) {
+        ProgramaResponseDTO updatedProgram = programaService.administrativoCarga(id, program, actor);
 
         return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
     }
@@ -77,13 +48,17 @@ public class ProgramaController {
     @PatchMapping("/{id}/profesor")
 //    @PreAuthorize("hasRole('PROFESOR')")
     public ResponseEntity<ProgramaResponseDTO> profesorCarga(@PathVariable Long id,
-                                                             @RequestBody ProgramaCargaProfesorDTO programaDTO) {
-        return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO));
+                                                             @RequestBody ProgramaCargaProfesorDTO programaDTO,
+                                                             @AuthenticationPrincipal UserEntity actor) {
+
+        return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO, actor));
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long id, @RequestBody EstadoUpdateDTO estadoUpdateDTO) {
-        ProgramaResponseDTO result = programaService.actualizarEstado(id, estadoUpdateDTO);
+    public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long id,
+                                                                @RequestBody EstadoUpdateDTO estadoUpdateDTO,
+                                                                @AuthenticationPrincipal UserEntity actor) {
+        ProgramaResponseDTO result = programaService.actualizarEstado(id, estadoUpdateDTO, actor);
 
         return ResponseEntity.ok(result);
     }

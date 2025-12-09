@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SyllabusAdministrativoForm } from "../forms/programa-administracion-form"
 import { useCreatePrograma } from "@/app/api/generated/syllabusApi"
+import Link from "next/link"
 
 export function AdministracionDashboard() {
   const [showForm, setShowForm] = useState(false)
@@ -48,28 +49,16 @@ export function AdministracionDashboard() {
 
       {/* Action Button */}
       <div className="mb-6">
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="gap-2 bg-primary hover:bg-accent text-primary-foreground"
-          size="lg"
-        >
-          <Plus size={20} />
-          {showForm ? "Cancelar" : "Crear Nuevo Programa"}
-        </Button>
+        <Link href={"/programas/crear"}>
+          <Button
+            className="gap-2 bg-primary hover:bg-accent text-primary-foreground"
+            size="lg"
+          >
+            <Plus size={20} />
+            {showForm ? "Cancelar" : "Crear Nuevo Programa"}
+          </Button>
+        </Link>
       </div>
-
-      {/* Form Section */}
-      {showForm && (
-        <Card className="mb-8 border-primary/20">
-          <CardHeader className="bg-primary/5 border-b border-primary/10">
-            <CardTitle className="text-primary">Crear Nuevo Programa</CardTitle>
-            <CardDescription>Completa los campos para crear un nuevo programa académico</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <SyllabusAdministrativoForm onSubmit={handleAddSyllabus} onCancel={() => setShowForm(false)} />
-          </CardContent>
-        </Card>
-      )}
 
       {/* Syllabuses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

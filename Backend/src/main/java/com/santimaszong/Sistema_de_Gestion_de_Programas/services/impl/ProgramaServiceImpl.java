@@ -11,6 +11,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.Progr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaAdministrativoDTO programaDTO) {
+    public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaAdministrativoDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
@@ -175,7 +176,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getCantidadSemanas() != null;
 
         if (completoAdministrativo) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, null, null);
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, actor, null);
         }
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
@@ -183,7 +184,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programaDTO) {
+    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
@@ -231,7 +232,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getBibliografia() != null;
 
         if (completoProfesor) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, null, null);
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, actor, null);
         }
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
@@ -239,18 +240,18 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO) {
+    public ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor) {
         ProgramaEntity programa = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         switch (estadoUpdateDTO.getAccion()) {
 
             case APROBAR:
-                aprobar(programa);
+                aprobar(programa, actor);
                 break;
 
             case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion());
+                rechazar(programa, estadoUpdateDTO, actor);
                 break;
 
             default:
@@ -283,9 +284,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         programaRepository.deleteById(id);
     }
 
-
-
-    private void aprobar(ProgramaEntity programa) {
+    private void aprobar(ProgramaEntity programa, UserEntity actor) {
         EstadoPrograma estadoActual = programa.getEstadoActual();
         EstadoPrograma estadoNuevo;
 
@@ -302,10 +301,12 @@ public class ProgramaServiceImpl implements ProgramaService {
                 throw new IllegalArgumentException("No se puede realizar la acción de aprobar en otro estado que no sea COMPLETO_POR_PROFESOR o APROBADO_POR_COMISION");
         }
 
-        programa.registrarNuevoEstado(estadoNuevo, null, null);
+        programa.registrarNuevoEstado(estadoNuevo, actor, null);
     }
 
-    private void rechazar(ProgramaEntity programa, Rol destinoRechazo, String justificacion) {
+    private void rechazar(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor) {
+
+        Rol destinoRechazo = estadoUpdateDTO.getDestinoRechazo();
 
         if (destinoRechazo == null) {
             throw new IllegalArgumentException("Debe especificar destino al rechazar");
@@ -326,7 +327,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                 throw new IllegalArgumentException("No se puede realizar la acción de rechazar a menos que sea a ADMINISTRACION o a PROFESOR");
         }
 
-        programa.registrarNuevoEstado(nuevoEstado, null, justificacion);
+        programa.registrarNuevoEstado(nuevoEstado, actor, estadoUpdateDTO.getJustificacion());
 
     }
 

@@ -1,12 +1,14 @@
+"use client"
+
 import { CarreraResponseDTO, DepartamentoResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO } from "@/app/api/generated/model";
-import { listCarreras, listDepartamentos } from "@/app/api/generated/syllabusApi";
+import { listCarreras, listDepartamentos, useListCarreras, useListDepartamentos } from "@/app/api/generated/syllabusApi";
 import { SyllabusAdministrativoForm } from "@/components/forms/programa-administracion-form";
 
 
-export default async function CrearPrograma() {
+export default function CrearPrograma() {
 
-  const departamentosDisponibles: DepartamentoResponseDTO[] = await listDepartamentos();
-  const carrerasDisponibles: CarreraResponseDTO[] = await listCarreras();
+  const departamentosDisponibles: DepartamentoResponseDTO[] = useListDepartamentos().data || [];
+  const carrerasDisponibles: CarreraResponseDTO[] = useListCarreras().data || [];
 
     return (
       <SyllabusAdministrativoForm departamentosDisponibles={departamentosDisponibles} carrerasDisponibles={carrerasDisponibles} />

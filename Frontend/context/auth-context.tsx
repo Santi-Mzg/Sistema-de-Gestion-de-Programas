@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, ReactNode } from "react";
 import { LoginRequest, UserResponseDTO } from "@/app/api/generated/model";
 import { useLogin, useLogout, useMe } from "@/app/api/generated/syllabusApi";
 
@@ -43,11 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 🔐 LOGIN
   const login = async (data: LoginRequest) => {
-    await loginMutation.mutateAsync({ data });
+    const user = await loginMutation.mutateAsync({ data });
 
-    // backend seteó cookie → ahora pedimos /me
-    const me = await authMeQuery.refetch();
-    if (me.data) setUser(me.data);
+    if (user) setUser(user);
   };
 
   // 🔓 LOGOUT

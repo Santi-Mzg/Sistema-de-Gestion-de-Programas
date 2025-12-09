@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     control,
     formState: { errors },
   } = useForm<RegisterFormData>({
@@ -31,11 +32,18 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const password = watch("password")
+  const selectedRole = watch("roles");
+
+  useEffect(() => {
+      if (selectedRole && typeof selectedRole === 'string') {
+          // Reemplaza el valor de "roles" en el formulario con un array
+          setValue("roles", [selectedRole], { shouldValidate: true });
+      }
+  }, [selectedRole, setValue]);
 
 
   const onSubmit = async (formData: RegisterFormData) => {
     setIsLoading(true)
-
 
     try {
       const requestData: RegisterRequest = {

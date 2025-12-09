@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus } from "lucide-react"
+import { AlertCircle, Plus } from "lucide-react"
+import Link from "next/link"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
 import { useCreatePrograma, useListProfesores, useListMateriasDepartamento } from "@/app/api/generated/syllabusApi"
@@ -123,6 +124,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
     onSubmit(formData)
   }
 
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* BLOQUE ÚNICO */}
@@ -222,6 +224,7 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
                 carreras={carrerasDisponibles}
                 onUpdate={handleUpdateProgramaCarrera}
                 onRemove={handleRemoveProgramaCarrera}
+                isDisabled={false}
               />
             ))}
           </div>
@@ -393,17 +396,19 @@ export function SyllabusAdministrativoForm({ programa, departamentosDisponibles,
       {/* Action Buttons */}
       <div className="flex gap-3 pt-4 border-t border-border">
         <Button type="submit" className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium">
-          Crear Sílabus
+          Crear Programa
         </Button>
-        <Button
-          type="button"
-          onClick={() => {}}
-          variant="outline"
-          className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
-          disabled
-        >
-          Cancelar
-        </Button>
+        <Link href="/programas">
+          <Button
+            type="button"
+            onClick={() => {}}
+            variant="outline"
+            className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
+            disabled
+          >
+            Cancelar
+          </Button>
+        </Link>
       </div>
     </form>
   )

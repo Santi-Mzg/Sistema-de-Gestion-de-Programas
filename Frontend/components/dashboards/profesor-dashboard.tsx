@@ -1,7 +1,29 @@
+"use client"
+
 import { BookOpen, BarChart3, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
+import { useListProgramas } from "@/app/api/generated/syllabusApi";
+import { EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model";
+import { ProgramasListReduced } from "../pages/programas-list-reduced";
+import { useContext } from "react";
+import { AuthContext } from "@/context/auth-context";
+import { useRouter } from "next/navigation"
 
 export function ProfesorDashboard() {
+  const { user } = useContext(AuthContext);
+  const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
+  // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
+  const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
+  const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR || programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_ADMINISTRACION);
+  const programasRechazados = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR);
+
+  const router = useRouter();
+
+  const handleNavigate = (id: number) => {
+    router.push(`/programas/completar/${id}`);
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -53,12 +75,31 @@ export function ProfesorDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Mis Cursos</CardTitle>
-          <CardDescription>Sílabus que tiene asignados</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 text-muted-foreground">Funcionalidad de profesor en desarrollo</div>
+          <ProgramasListReduced programas={programasVigentes} onRowClick={handleNavigate} />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Rechazados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProgramasListReduced programas={programasRechazados} onRowClick={handleNavigate} />
+        </CardContent>
+      </Card>
+
+            <Card>
+        <CardHeader>
+          <CardTitle>Pendientes</CardTitle>
+          <CardDescription></CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
+        </CardContent>
+      </Card>
+
     </div>
   )
 }

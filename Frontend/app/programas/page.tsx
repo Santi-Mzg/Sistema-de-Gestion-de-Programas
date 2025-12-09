@@ -1,23 +1,26 @@
+"use client"
 import { ProgramaResponseDTO } from "@/app/api/generated/model";
-import { listProgramas } from "@/app/api/generated/syllabusApi";
+import { useListProgramas } from "@/app/api/generated/syllabusApi";
 import { ProgramasList } from "@/components/pages/programas-list";
 
-export default async function Programas(props: {
-  searchParams?: Promise<{
-    search?: string;
-    page?: string;
-  }>;
-}) {
+export default function Programas() {
 
-  const PROGRAMAS_PER_PAGE = 8
-  const searchParams = await props.searchParams;
-  const searchTerm = searchParams?.search || '';
-  const currentPage = Number(searchParams?.page) || 1;
+  // props: {
+  //   searchParams?: Promise<{
+  //     search?: string;
+  //     page?: string;
+  //   }>;
+  // }
+
+  // const PROGRAMAS_PER_PAGE = 8
+  // const searchParams = await props.searchParams;
+  // const searchTerm = searchParams?.search || '';
+  // const currentPage = Number(searchParams?.page) || 1;
 
   // const { programas, total } = await getProgramasByPage(currentPage, PRODUCTS_PER_PAGE, searchTerm)
   // const totalPages = Math.ceil(total / PROGRAMAS_PER_PAGE)
 
-    const programas: ProgramaResponseDTO[] = await listProgramas();
+    const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
 
     return (
       <ProgramasList programas={programas} />

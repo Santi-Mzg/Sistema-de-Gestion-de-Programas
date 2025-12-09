@@ -1,11 +1,13 @@
+"use client"
+
 import { DepartamentoResponseDTO } from "@/app/api/generated/model";
-import { listDepartamentos } from "@/app/api/generated/syllabusApi";
+import { listDepartamentos, useListDepartamentos } from "@/app/api/generated/syllabusApi";
 import { MateriaForm } from "@/components/forms/materia-form";
 
 
-export default async function CrearMateria() {
+export default function CrearMateria() {
 
-    const departamentosDisponibles: DepartamentoResponseDTO[] = await listDepartamentos();
+    const departamentosDisponibles: DepartamentoResponseDTO[] = useListDepartamentos().data || [];
   
     return (
       <MateriaForm departamentos={departamentosDisponibles} />

@@ -1,14 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.AuthResponse;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.RegisterRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.AuthService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.java.Log;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -26,34 +25,27 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public AuthResponse register(@RequestBody RegisterRequest req) {
-        return authService.register(req);
+    public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
+        authService.register(req);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest req, HttpServletResponse res) {
-        return authService.login(req, res);
+    public ResponseEntity<UserResponseDTO> login(@RequestBody LoginRequest req, HttpServletResponse res) {
+        UserResponseDTO user = authService.login(req, res);
+        return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/refresh")
-    public AuthResponse refresh(HttpServletRequest req) {
-        // Get cookie
-        Cookie[] cookies = req.getCookies();
-        if (cookies == null) throw new IllegalArgumentException("No refresh cookie");
-        String refresh = null;
-        for (Cookie c : cookies) {
-            if ("refresh_token".equals(c.getName())) {
-                refresh = c.getValue();
-                break;
-            }
-        }
-        if (refresh == null) throw new IllegalArgumentException("No refresh token");
-        return authService.refresh(refresh);
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> me(Authentication authentication) {
+        UserResponseDTO user = authService.me(authentication);
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletResponse res) {
+    public ResponseEntity<Void> logout(HttpServletResponse res) {
         authService.logout(res);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -4,9 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "../styles/globals.css"
 import { Providers } from "../providers/providers"
-import { ThemeProvider } from "../providers/theme-provider"
 import { Sidebar } from "@/components/nav/sidebar"
-import { UserResponseDTO } from "./api/generated/model"
 import { RoleProvider } from "@/context/role-context"
 import { AuthProvider } from "@/context/auth-context"
 
@@ -36,13 +34,6 @@ export const metadata: Metadata = {
   },
 }
 
-const mockUser: UserResponseDTO = {
-  id: 1,
-  nombre: "ad",
-  apellido: "min",
-  email: "admin@gmail.com",
-  roles: ["ADMIN", "ADMINISTRATIVO", "PROFESOR", "SECRETARIO", "COORDINADOR"],
-} 
 
 export default function RootLayout({
   children,
@@ -53,14 +44,8 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning={true}>
       <body className={`font-sans antialiased`}>
           <Providers>          
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
               <AuthProvider>
-                <RoleProvider userRoles={mockUser.roles || []}>
+                <RoleProvider >
                   <div className="flex min-h-screen bg-background text-foreground">
                     <Sidebar />
                     <main className="flex-1 ml-64 p-8">
@@ -70,7 +55,6 @@ export default function RootLayout({
                   </div>
                 </RoleProvider>
               </AuthProvider>
-            </ThemeProvider>
           </Providers>
         <Analytics />
       </body>

@@ -1,13 +1,15 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.AuthResponse;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.RegisterRequest;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,9 +26,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final MyUserDetailsService userDetailsService;
+    private final UserMapper userMapper;
 
-    public AuthResponse register(RegisterRequest req) {
+    public void register(RegisterRequest req) {
         if (userRepo.existsByEmail(req.email())) {
             throw new IllegalArgumentException("Email already in use");
         }
@@ -40,12 +42,9 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(req.password()));
 
         userRepo.save(user);
-        String access = jwtService.generateToken(user.getUsername());
-
-        return new AuthResponse(access);
     }
 
-    public AuthResponse login(LoginRequest req, HttpServletResponse response) {
+    public UserResponseDTO login(LoginRequest req, HttpServletResponse response) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         req.email(),
@@ -53,39 +52,45 @@ public class AuthService {
                 )
         );
 
-//        UserEntity user = userRepo.findByEmail(req.email())
-//                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        UserDetails user = (UserDetails) auth.getPrincipal();
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
-        String accessToken = jwtService.generateToken(user.getUsername() );
+        String token = jwtService.generateToken(userDetails.getUsername());
 
-//        // Set refresh token as HttpOnly cookie
-//        Cookie cookie = new Cookie("refresh_token", refreshToken);
-//        cookie.setHttpOnly(true);
-//        cookie.setPath("/auth/refresh");
-//        cookie.setMaxAge((int) (jwtService.getRefreshExpirationMs() / 1000));
-//        // cookie.setSecure(true); // enable in prod
-//        cookie.setSameSite("Strict"); // Tomcat 9+ supports via response header; may require helper
-//        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+//                .secure(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .build();
 
-        return new AuthResponse(accessToken);
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        UserEntity user = userRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
+
+        return userMapper.toDTO(user);
     }
 
-    public AuthResponse refresh(String refreshToken) {
-        String username = jwtService.extractUsername(refreshToken);
-        var user = (UserEntity) userDetailsService.loadUserByUsername(username);
-        if (!jwtService.isTokenValid(refreshToken, user)) {
-            throw new IllegalArgumentException("Refresh token inválido");
-        }
-        String newAccess = jwtService.generateToken(user.getUsername());
-        return new AuthResponse(newAccess);
+    public UserResponseDTO me(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserEntity user = userRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
+
+        return userMapper.toDTO(user);
     }
 
     public void logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("refresh_token", "");
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("jwt", null)
+                .httpOnly(true)
+//                .secure(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

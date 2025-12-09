@@ -20,84 +20,23 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
   const [filterProfesor, setFilterProfesor] = useState<string>("todos")
   const [filterDepartamento, setFilterDepartamento] = useState<string>("todos")
 
-  const mockSyllabuses: ProgramaResponseDTO[] = [
-    {
-      id: 1,
-      nombreMateria: "Cálculo I",
-      codigoMateria: "MAT101",
-      nombreDepartamento: "Matemática",
-      profesorResponsable: "Dr. Juan Pérez",
-      estado: "publicado",
-      creditos: 4,
-      cargaHorariaTotal: 64,
-      cargaHorariaSemanal: 4,
-    },
-    {
-      id: 2,
-      nombreMateria: "Física General",
-      codigoMateria: "FIS102",
-      nombreDepartamento: "Física",
-      profesorResponsable: "Dra. María García",
-      estado: "borrador",
-      creditos: 5,
-      cargaHorariaTotal: 80,
-      cargaHorariaSemanal: 5,
-    },
-    {
-      id: 3,
-      nombreMateria: "Programación I",
-      codigoMateria: "CS101",
-      nombreDepartamento: "Informática",
-      profesorResponsable: "Ing. Carlos López",
-      estado: "publicado",
-      creditos: 4,
-      cargaHorariaTotal: 64,
-      cargaHorariaSemanal: 4,
-    },
-    {
-      id: 4,
-      nombreMateria: "Álgebra Lineal",
-      codigoMateria: "MAT201",
-      nombreDepartamento: "Matemática",
-      profesorResponsable: "Dr. Juan Pérez",
-      estado: "en revision",
-      creditos: 4,
-      cargaHorariaTotal: 64,
-      cargaHorariaSemanal: 4,
-    },
-    {
-      id: 5,
-      nombreMateria: "Base de Datos",
-      codigoMateria: "CS201",
-      nombreDepartamento: "Informática",
-      profesorResponsable: "Ing. Ana Martínez",
-      estado: "publicado",
-      creditos: 4,
-      cargaHorariaTotal: 64,
-      cargaHorariaSemanal: 4,
-    },
-  ]
-
-  // const dataTouse = programas && programas.length > 0 ? programas : mockSyllabuses
-  const dataTouse = mockSyllabuses
   
-
   // Get unique values for filters
   const uniqueEstados = useMemo(() => {
-    return [...new Set(dataTouse.map((s) => s.estado).filter(Boolean))]
-  }, [dataTouse])
+    return [...new Set(programas.map((s) => s.estado).filter(Boolean))]
+  }, [programas])
 
   const uniqueProfesores = useMemo(() => {
-    return [...new Set(dataTouse.map((s) => s.profesorResponsable).filter(Boolean))]
-  }, [dataTouse])
+    return [...new Set(programas.map((s) => s.profesorResponsable).filter(Boolean))]
+  }, [programas])
 
   const uniqueDepartamentos = useMemo(() => {
-    return [...new Set(dataTouse.map((s) => s.nombreDepartamento).filter(Boolean))]
-  }, [dataTouse])
+    return [...new Set(programas.map((s) => s.nombreDepartamento).filter(Boolean))]
+  }, [programas])
 
   // Filter and sort data
   const filteredAndSortedSyllabuses = useMemo(() => {
-    const filtered = dataTouse.filter((programa) => {
+    const filtered = programas.filter((programa) => {
       const matchesSearch =
         !searchTerm ||
         programa.nombreMateria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,7 +59,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
     })
 
     return filtered
-  }, [dataTouse, searchTerm, sortField, sortOrder, filterEstado, filterProfesor, filterDepartamento])
+  }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterProfesor, filterDepartamento])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -229,7 +168,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{dataTouse.length}</span> programa
+          <span className="font-semibold text-foreground">{programas.length}</span> programa
         </div>
 
         {/* Table */}

@@ -1,7 +1,28 @@
+"use client"
+
 import { FileText, Clock, Archive } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useContext } from "react";
+import { AuthContext } from "@/context/auth-context";
+import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model";
+import { useListProgramas } from "@/app/api/generated/syllabusApi";
+import { ProgramasListReduced } from "../pages/programas-list-reduced";
+import { useRouter } from "next/navigation"
 
 export function SecretarioDashboard() {
+    const { user } = useContext(AuthContext);
+    const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
+    // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
+    const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_COMISION);
+  
+
+    const router = useRouter();
+  
+    const handleNavigate = (id: number) => {
+      router.push(`/programas/revisar/${id}`);
+    };
+    
+  
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -52,11 +73,11 @@ export function SecretarioDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Sílabus en Archivo</CardTitle>
-          <CardDescription>Documentos archivados y disponibles</CardDescription>
+          <CardTitle>Programas en Revisión</CardTitle>
+          <CardDescription>Programas que requieren tu aprobación</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 text-muted-foreground">Funcionalidad de secretaria en desarrollo</div>
+          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
         </CardContent>
       </Card>
     </div>

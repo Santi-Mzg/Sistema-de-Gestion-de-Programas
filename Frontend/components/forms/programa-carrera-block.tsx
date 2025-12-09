@@ -14,6 +14,7 @@ interface ProgramaCarreraBlockProps {
   carreras: CarreraResponseDTO[]
   onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
   onRemove: (index: number) => void
+  isDisabled?: boolean
 }
 
 export function ProgramaCarreraBlock({
@@ -22,11 +23,11 @@ export function ProgramaCarreraBlock({
   carreras,
   onUpdate,
   onRemove,
+  isDisabled
 }: ProgramaCarreraBlockProps) {
   const [selectedCarreraId, setSelectedCarreraId] = useState<number | null>(block.carreraId || null)
   const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
-
-
+  const selectedCarreraName = carreras.find((c) => c.id === selectedCarreraId)?.nombre || ""
   const { 
     data: materias 
   } = useListMateriasCarrera(selectedCarreraId!, {
@@ -36,19 +37,22 @@ export function ProgramaCarreraBlock({
     },
   })
 
+
   useEffect(() => {
     if (materias) {
           setMateriasDisponibles(materias) 
     }
   }, [materias])
 
-  const handleCarreraChange = (carreraId: number) => {
-    setSelectedCarreraId(carreraId)
+  const handleCarreraChange = (carreraId: string) => {
+    const id = Number.parseInt(carreraId)
+    setSelectedCarreraId(id)
     onUpdate(index, {
       ...block,
-      carreraId,
+      carreraId: id,
     })
   }
+
 
   const handleFieldChange = (field: keyof ProgramaCarreraCreateDTO, value: any) => {
     onUpdate(index, {
@@ -97,34 +101,43 @@ export function ProgramaCarreraBlock({
         onClick={() => onRemove(index)}
         className="absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive"
         title="Eliminar bloque"
+        disabled={isDisabled}
       >
         <X size={20} />
       </button>
 
       <div className="text-sm font-semibold text-primary">Programa Carrera #{index + 1}</div>
 
-      {/* Carrera Selection */}
       <div className="space-y-2">
         <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
           Carrera *
         </Label>
-        <select
-          id={`carrera-${index}`}
-          value={selectedCarreraId || ""}
-          onChange={(e) => handleCarreraChange(Number(e.target.value))}
-          className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          required
-        >
-          <option value="">Seleccionar carrera...</option>
-          {carreras.map((carrera) => (
-            <option key={carrera.id} value={carrera.id}>
-              {carrera.nombre}
-            </option>
-          ))}
-        </select>
+        {isDisabled ? (
+          <Input
+            id={`carrera-${index}`}
+            type="text"
+            value={selectedCarreraName}
+            disabled
+            className="bg-background border-border"
+          />
+        ) : (
+          <select
+            id={`carrera-${index}`}
+            value={selectedCarreraId || ""}
+            onChange={(e) => handleCarreraChange(e.target.value)}
+            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          >
+            <option value="">Seleccionar carrera...</option>
+            {carreras.map((carrera) => (
+              <option key={carrera.id} value={carrera.id}>
+                {carrera.nombre}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {/* Plan */}
       <div className="space-y-2">
         <Label htmlFor={`plan-${index}`} className="text-sm font-semibold text-foreground">
           Plan
@@ -134,11 +147,11 @@ export function ProgramaCarreraBlock({
           value={block.plan}
           onChange={(e) => handleFieldChange("plan", e.target.value)}
           placeholder="ej: Plan 2023"
-          className="border-border focus:border-primary bg-background"
+          className="border-border focus:border-primary"
+          disabled={isDisabled}
         />
       </div>
 
-      {/* Ubicación en Plan */}
       <div className="space-y-2">
         <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
           Ubicación en Plan
@@ -148,15 +161,16 @@ export function ProgramaCarreraBlock({
           value={block.ubicacionEnPlan}
           onChange={(e) => handleFieldChange("ubicacionEnPlan", e.target.value)}
           placeholder="ej: Segundo semestre"
-          className="border-border focus:border-primary bg-background"
+          className="border-border focus:border-primary"
+          disabled={isDisabled}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Correlativas Fuertes */}
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
             Correlativas Fuertes
+            <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
           </Label>
           <div className="max-h-40 overflow-y-auto space-y-2">
             {materiasDisponibles.map((materia) => (
@@ -168,7 +182,7 @@ export function ProgramaCarreraBlock({
                   type="checkbox"
                   checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
                   onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
-                  disabled={block.correlativasDebilesIds?.includes(materia.id || 0)}
+                  disabled={isDisabled || block.correlativasDebilesIds?.includes(materia.id || 0)}
                   className="rounded border-border"
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -177,10 +191,10 @@ export function ProgramaCarreraBlock({
           </div>
         </div>
 
-        {/* Correlativas Débiles */}
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
             Correlativas Débiles
+            <span className="text-xs text-muted-foreground">(Recomendado)</span>
           </Label>
           <div className="max-h-40 overflow-y-auto space-y-2">
             {materiasDisponibles.map((materia) => (
@@ -192,7 +206,7 @@ export function ProgramaCarreraBlock({
                   type="checkbox"
                   checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
                   onChange={() => toggleCorrelativaDebil(materia.id || 0)}
-                  disabled={block.correlativasFuertesIds?.includes(materia.id || 0)}
+                  disabled={isDisabled || block.correlativasFuertesIds?.includes(materia.id || 0)}
                   className="rounded border-border"
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -202,7 +216,6 @@ export function ProgramaCarreraBlock({
         </div>
       </div>
 
-      {/* Contribución */}
       <div className="space-y-2">
         <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
           Contribución
@@ -213,10 +226,10 @@ export function ProgramaCarreraBlock({
           onChange={(e) => handleFieldChange("contribucion", e.target.value)}
           placeholder="Describe la contribución de esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
+          disabled={isDisabled}
         />
       </div>
 
-      {/* Contenidos Mínimos */}
       <div className="space-y-2">
         <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
           Contenidos Mínimos
@@ -227,6 +240,7 @@ export function ProgramaCarreraBlock({
           onChange={(e) => handleFieldChange("contenidosMinimos", e.target.value)}
           placeholder="Lista los contenidos mínimos requeridos..."
           className="border-border focus:border-primary min-h-16 resize-none"
+          disabled={isDisabled}
         />
       </div>
     </div>
