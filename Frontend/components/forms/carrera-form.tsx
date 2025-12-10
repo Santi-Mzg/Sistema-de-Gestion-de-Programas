@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
-import { useCreateCarrera } from "@/app/api/generated/syllabusApi"
+import { useCreateCarrera } from "@/app/api/generated/client"
 
 interface CarreraFormProps {
   departamentos: DepartamentoResponseDTO[] 

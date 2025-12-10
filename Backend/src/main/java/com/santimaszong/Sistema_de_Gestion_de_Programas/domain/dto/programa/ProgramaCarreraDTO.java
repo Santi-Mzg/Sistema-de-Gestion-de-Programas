@@ -13,11 +13,12 @@ import java.util.List;
 public class ProgramaCarreraResponseDTO {
 
     // --- BLOQUE MÚLTIPLE ---
+    private String key;
     private String carrera;
     private String plan;
     private String ubicacionEnPlan;
-    private List<String> correlativasFuertes;
-    private List<String> correlativasDebiles;
+    private List<Long> correlativasFuertesIds;
+    private List<Long> correlativasDebilesIds;
     private String contribucion;
     private String contenidosMinimos;
 }

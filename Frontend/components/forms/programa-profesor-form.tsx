@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaProfesorDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
-import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/syllabusApi"
+import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
 import { AlertCircle } from "lucide-react"
 
 interface SyllabusFormProps {
@@ -171,7 +171,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
         <div className="space-y-6">
           {programa.bloqueMultiple?.map((block, index) => (
             <ProgramaCarreraBlock
-              key={index}
+              key={block.key}
               block={block}
               index={index}
               carreras={[]}

@@ -6,6 +6,7 @@
  */
 
 export interface ProgramaCarreraCreateDTO {
+  key: string;
   carreraId?: number;
   plan?: string;
   ubicacionEnPlan?: string;

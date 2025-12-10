@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { LoginRequest, UserResponseDTO } from "@/app/api/generated/model";
-import { useLogin, useLogout, useMe } from "@/app/api/generated/syllabusApi";
+import { useLogin, useLogout, useMe } from "@/app/api/generated/client";
 
 interface AuthContextType {
   user: UserResponseDTO | null;

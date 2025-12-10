@@ -5,7 +5,6 @@
  * OpenAPI spec version: v0
  */
 
-export * from './authResponse';
 export * from './carreraCreateDTO';
 export * from './carreraResponseDTO';
 export * from './departamentoCreateDTO';

@@ -6,11 +6,12 @@
  */
 
 export interface ProgramaCarreraResponseDTO {
-  carrera?: string;
+  key: string;
+  carreraId?: number;
   plan?: string;
   ubicacionEnPlan?: string;
-  correlativasFuertes?: string[];
-  correlativasDebiles?: string[];
+  correlativasFuertesIds?: number[];
+  correlativasDebilesIds?: number[];
   contribucion?: string;
   contenidosMinimos?: string;
 }

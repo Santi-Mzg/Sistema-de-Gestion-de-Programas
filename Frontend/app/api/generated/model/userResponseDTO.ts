@@ -10,7 +10,6 @@ export interface UserResponseDTO {
   id?: number;
   nombre?: string;
   apellido?: string;
-  dni?: string;
   legajo?: string;
   email?: string;
   departamentoAdministracion?: string;

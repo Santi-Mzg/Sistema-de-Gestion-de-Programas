@@ -6,12 +6,15 @@ import { ProgramasListReduced } from "../pages/programas-list-reduced"
 import { useContext } from "react";
 import { AuthContext } from "@/context/auth-context";
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model";
-import { useListProgramas } from "@/app/api/generated/syllabusApi";
+import { useListProgramas } from "@/app/api/generated/client";
 import { useRouter } from "next/navigation"
 
-export function CoordinadorDashboard() {
+interface DashboardProps {
+  programas: ProgramaResponseDTO[]
+}
+
+export function CoordinadorDashboard({ programas }: DashboardProps) {
   const { user } = useContext(AuthContext);
-  const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
   // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_PROFESOR);
 

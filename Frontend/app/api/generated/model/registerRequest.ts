@@ -9,9 +9,9 @@ import type { RegisterRequestRolesItem } from './registerRequestRolesItem';
 export interface RegisterRequest {
   nombre?: string;
   apellido?: string;
-  dni?: string;
   legajo?: string;
   email?: string;
   password?: string;
   roles?: RegisterRequestRolesItem[];
+  departamentoId?: number;
 }

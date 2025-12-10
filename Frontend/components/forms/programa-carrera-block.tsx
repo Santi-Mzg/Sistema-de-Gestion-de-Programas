@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
 import { ProgramaCarreraCreateDTO } from "@/app/api/generated/model/programaCarreraCreateDTO"
 import { CarreraResponseDTO, MateriaResponseDTO } from "@/app/api/generated/model"
-import { useListMateriasCarrera } from "@/app/api/generated/syllabusApi"
+import { useListMateriasCarrera } from "@/app/api/generated/client"
 
 interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraCreateDTO

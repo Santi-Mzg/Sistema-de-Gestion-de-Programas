@@ -5,10 +5,16 @@ import { Plus, BookOpen, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SyllabusAdministrativoForm } from "../forms/programa-administracion-form"
-import { useCreatePrograma } from "@/app/api/generated/syllabusApi"
 import Link from "next/link"
+import { ProgramasListReduced } from "../pages/programas-list-reduced"
+import { useRouter } from "next/navigation"
+import { CarreraResponseDTO, EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model"
 
-export function AdministracionDashboard() {
+interface DashboardProps {
+  programas: ProgramaResponseDTO[]
+}
+
+export function AdministracionDashboard({ programas }: DashboardProps) {
   const [showForm, setShowForm] = useState(false)
   const [syllabuses, setSyllabuses] = useState([
     {
@@ -28,16 +34,14 @@ export function AdministracionDashboard() {
       status: "draft",
     },
   ])
+  const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_ADMINISTRACION);
 
-  const handleAddSyllabus = (data: any) => {
-    const newSyllabus = {
-      ...data,
-      status: "INCOMPLETO_ADMINISTRACION",
-    }
-    useCreatePrograma(newSyllabus) // Llamada a la API para crear el programa
-    setSyllabuses([...syllabuses, newSyllabus])
-    setShowForm(false)
-  }
+
+  const router = useRouter();
+
+  const handleNavigate = (id: number) => {
+    router.push(`/programas/crear/${id}`);
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -118,6 +122,17 @@ export function AdministracionDashboard() {
           </CardContent>
         </Card>
       )}
+
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pendientes</CardTitle>
+          <CardDescription></CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

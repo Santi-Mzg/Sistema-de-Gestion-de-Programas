@@ -3,16 +3,19 @@
 import { BookOpen, BarChart3, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
-import { useListProgramas } from "@/app/api/generated/syllabusApi";
+import { useListProgramas } from "@/app/api/generated/client";
 import { EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useContext } from "react";
 import { AuthContext } from "@/context/auth-context";
 import { useRouter } from "next/navigation"
 
-export function ProfesorDashboard() {
+interface DashboardProps {
+  programas: ProgramaResponseDTO[]
+}
+
+export function ProfesorDashboard({ programas }: DashboardProps) {
   const { user } = useContext(AuthContext);
-  const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
   // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
   const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR || programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_ADMINISTRACION);
@@ -49,7 +52,7 @@ export function ProfesorDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Clock size={16} className="text-accent" />
-              Sílabus Pendientes
+              Programas Pendientes
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -90,7 +93,7 @@ export function ProfesorDashboard() {
         </CardContent>
       </Card>
 
-            <Card>
+      <Card>
         <CardHeader>
           <CardTitle>Pendientes</CardTitle>
           <CardDescription></CardDescription>

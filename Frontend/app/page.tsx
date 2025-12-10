@@ -24,6 +24,10 @@ export default function Dashboard() {
 
     case "ADMINISTRATIVO":
       return <AdministracionDashboard />;
+       
+    case "DIRECTOR_ADMINISTRATIVO":
+      // return <DirectorAdministrativoDashboard />;
+
     default:
       return <div className="p-8 max-w-7xl mx-auto">Seleccione un rol para ver el panel correspondiente.</div>;
   }

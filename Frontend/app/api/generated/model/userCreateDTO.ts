@@ -9,7 +9,6 @@ import type { UserCreateDTORolesItem } from './userCreateDTORolesItem';
 export interface UserCreateDTO {
   nombre?: string;
   apellido?: string;
-  dni?: string;
   legajo?: string;
   email?: string;
   roles?: UserCreateDTORolesItem[];

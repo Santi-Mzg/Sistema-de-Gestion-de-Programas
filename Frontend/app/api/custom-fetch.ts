@@ -1,0 +1,34 @@
+import { cookies } from "next/headers";
+
+export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+
+
+
+export async function customFetch<T>(
+  url: string,
+  options?: RequestInit
+): Promise<T> {
+  const cookieStore = await cookies();
+  const jwt = cookieStore.get('jwt')?.value;
+
+  const res = await fetch(`${BASE_URL}${url}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...(options?.headers || {}),
+      ...(jwt ? { Cookie: `jwt=${jwt}` } : {}),
+      'Content-Type': 'application/json'
+    },   
+    cache: "no-store",        
+    next: { revalidate: 0 }  
+  })
+
+
+  const json = await res.json()
+
+  return {
+    data: json,
+    status: res.status,
+    headers: res.headers
+  } as T
+};
