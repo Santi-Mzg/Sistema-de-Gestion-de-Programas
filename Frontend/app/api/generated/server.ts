@@ -5,6 +5,8 @@
  * OpenAPI spec version: v0
  */
 import type {
+  AreaCreateDTO,
+  AreaResponseDTO,
   CarreraCreateDTO,
   CarreraResponseDTO,
   DepartamentoCreateDTO,
@@ -214,6 +216,107 @@ export const getDeleteMateriaUrl = (id: number,) => {
 export const deleteMateria = async (id: number, options?: RequestInit): Promise<deleteMateriaResponse> => {
   
   return customFetch<deleteMateriaResponse>(getDeleteMateriaUrl(id),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+export type getAreaResponse200 = {
+  data: AreaResponseDTO
+  status: 200
+}
+    
+export type getAreaResponseSuccess = (getAreaResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getAreaResponse = (getAreaResponseSuccess)
+
+export const getGetAreaUrl = (id: number,) => {
+
+
+  
+
+  return `/api/areas/${id}`
+}
+
+export const getArea = async (id: number, options?: RequestInit): Promise<getAreaResponse> => {
+  
+  return customFetch<getAreaResponse>(getGetAreaUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+export type updateAreaResponse200 = {
+  data: AreaResponseDTO
+  status: 200
+}
+    
+export type updateAreaResponseSuccess = (updateAreaResponse200) & {
+  headers: Headers;
+};
+;
+
+export type updateAreaResponse = (updateAreaResponseSuccess)
+
+export const getUpdateAreaUrl = (id: number,) => {
+
+
+  
+
+  return `/api/areas/${id}`
+}
+
+export const updateArea = async (id: number,
+    areaCreateDTO: AreaCreateDTO, options?: RequestInit): Promise<updateAreaResponse> => {
+  
+  return customFetch<updateAreaResponse>(getUpdateAreaUrl(id),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      areaCreateDTO,)
+  }
+);}
+
+
+
+export type deleteAreaResponse200 = {
+  data: AreaResponseDTO
+  status: 200
+}
+    
+export type deleteAreaResponseSuccess = (deleteAreaResponse200) & {
+  headers: Headers;
+};
+;
+
+export type deleteAreaResponse = (deleteAreaResponseSuccess)
+
+export const getDeleteAreaUrl = (id: number,) => {
+
+
+  
+
+  return `/api/areas/${id}`
+}
+
+export const deleteArea = async (id: number, options?: RequestInit): Promise<deleteAreaResponse> => {
+  
+  return customFetch<deleteAreaResponse>(getDeleteAreaUrl(id),
   {      
     ...options,
     method: 'DELETE'
@@ -655,6 +758,73 @@ export const login = async (loginRequest: LoginRequest, options?: RequestInit): 
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
       loginRequest,)
+  }
+);}
+
+
+
+export type listAreasResponse200 = {
+  data: AreaResponseDTO[]
+  status: 200
+}
+    
+export type listAreasResponseSuccess = (listAreasResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listAreasResponse = (listAreasResponseSuccess)
+
+export const getListAreasUrl = () => {
+
+
+  
+
+  return `/api/areas`
+}
+
+export const listAreas = async ( options?: RequestInit): Promise<listAreasResponse> => {
+  
+  return customFetch<listAreasResponse>(getListAreasUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+export type createAreaResponse200 = {
+  data: AreaResponseDTO
+  status: 200
+}
+    
+export type createAreaResponseSuccess = (createAreaResponse200) & {
+  headers: Headers;
+};
+;
+
+export type createAreaResponse = (createAreaResponseSuccess)
+
+export const getCreateAreaUrl = () => {
+
+
+  
+
+  return `/api/areas`
+}
+
+export const createArea = async (areaCreateDTO: AreaCreateDTO, options?: RequestInit): Promise<createAreaResponse> => {
+  
+  return customFetch<createAreaResponse>(getCreateAreaUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      areaCreateDTO,)
   }
 );}
 

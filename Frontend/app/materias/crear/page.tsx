@@ -1,5 +1,3 @@
-"use client"
-
 import { DepartamentoResponseDTO } from "@/app/api/generated/model";
 import { listDepartamentos } from "@/app/api/generated/server";
 import { MateriaForm } from "@/components/forms/materia-form";

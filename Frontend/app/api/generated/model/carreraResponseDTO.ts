@@ -4,7 +4,7 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ProgramaCarreraResponseDTO } from './programaCarreraResponseDTO';
+import type { ProgramaCarreraDTO } from './programaCarreraDTO';
 
 export interface CarreraResponseDTO {
   id?: number;
@@ -12,7 +12,7 @@ export interface CarreraResponseDTO {
   nombre?: string;
   duracion?: string;
   cantidadMaterias?: number;
-  materias?: ProgramaCarreraResponseDTO[];
+  materias?: ProgramaCarreraDTO[];
   departamento?: string;
   comision?: string;
 }

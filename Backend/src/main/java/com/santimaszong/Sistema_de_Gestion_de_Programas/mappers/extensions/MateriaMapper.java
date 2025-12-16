@@ -5,24 +5,23 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.Mater
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToDTOMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToEntityMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.utils.DepartamentoToStringMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(
-        componentModel = "spring",
-        uses = {
-                DepartamentoToStringMapper.class
-        }
-)
+@Mapper(componentModel = "spring")
 public interface MateriaMapper extends ToEntityMapper<MateriaCreateDTO, MateriaEntity>, ToDTOMapper<MateriaEntity, MateriaResponseDTO> {
 
     @Override
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "area", ignore = true)
     @Mapping(target = "departamento", ignore = true)
+    @Mapping(target = "programas", ignore = true)
+    @Mapping(target = "requierenComoFuerte", ignore = true)
+    @Mapping(target = "requierenComoDebil", ignore = true)
     MateriaEntity toEntity(MateriaCreateDTO dto);
 
     @Override
-    @Mapping(source = "departamento", target = "departamento", qualifiedByName = "departamentoToString")
+    @Mapping(source = "departamento.nombre", target = "departamento")
+    @Mapping(source = "area.nombre", target = "area")
     MateriaResponseDTO toDTO(MateriaEntity entity);
 }

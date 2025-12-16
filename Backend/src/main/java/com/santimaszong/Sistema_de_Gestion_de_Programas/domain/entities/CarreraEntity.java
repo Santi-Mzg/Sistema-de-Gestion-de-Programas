@@ -1,5 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,9 +38,8 @@ public class CarreraEntity {
     @JoinColumn(name = "departamento_id")
     private DepartamentoEntity departamento;
 
-    @OneToOne(mappedBy = "carreraComoComision", fetch = FetchType.LAZY)
-    private UserEntity comision;
+    @ManyToOne
+    @JoinColumn(name = "comision_id")
+    private UsuarioDepartamentoEntity comision;
 
-    @OneToMany(mappedBy = "carreraComoProfesor", fetch = FetchType.LAZY)
-    private List<UserEntity> profesores;
 }

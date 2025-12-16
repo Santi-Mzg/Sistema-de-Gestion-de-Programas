@@ -1,20 +1,23 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoUpdateCargoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.DepartamentoMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UsuarioDepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,14 +28,16 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
     private final DepartamentoRepository departamentoRepository;
     private final UserRepository userRepository;
+    private final UsuarioDepartamentoRepository userDptoRepository;
 
     private final DepartamentoMapper departamentoMapper;
     private final MateriaMapper materiaMapper;
 
 
-    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UserRepository userRepository, DepartamentoMapper departamentoMapper, MateriaMapper materiaMapper) {
+    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UserRepository userRepository, UsuarioDepartamentoRepository userDptoRepository, DepartamentoMapper departamentoMapper, MateriaMapper materiaMapper) {
         this.departamentoRepository = departamentoRepository;
         this.userRepository = userRepository;
+        this.userDptoRepository = userDptoRepository;
         this.departamentoMapper = departamentoMapper;
         this.materiaMapper = materiaMapper;
     }
@@ -41,20 +46,6 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     @Override
     public DepartamentoResponseDTO createDepartamento(DepartamentoCreateDTO departamentoDTO) {
         DepartamentoEntity existingDepartamento = departamentoMapper.toEntity(departamentoDTO);
-
-//        List<UserEntity> administracion = userRepository.findAllById(departamentoDTO.getAdministracionIds());
-//        if(departamentoDTO.getAdministracionIds().size() != administracion.size()) {
-//            throw new EntityNotFoundException("Uno o más Administrativos no fueron encontrados. Por favor, verifique los IDs.");
-//        }
-//
-//        UserEntity secretaria = userRepository.findById(departamentoDTO.getSecretariaId())
-//                .orElseThrow(
-//                        () -> new EntityNotFoundException("El Secretario del departamento " + departamentoDTO.getNombre() + " con ID " + departamentoDTO.getSecretariaId() + "no fue encontrado.")
-//                );
-//
-//        existingDepartamento.setAdministracion(administracion);
-//        existingDepartamento.setSecretaria(secretaria);
-
         DepartamentoEntity createdDepartamentoEntity = departamentoRepository.save(existingDepartamento);
 
         return departamentoMapper.toDTO(createdDepartamentoEntity);
@@ -119,52 +110,89 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
-    public DepartamentoResponseDTO updateSecretarioDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
+    @Transactional
+    public void updateSecretaria(Long id, DepartamentoUpdateCargoDTO departamentoDTO) {
 
-        return departamentoRepository.findById(id).map(existingDepartamento -> {
+        DepartamentoEntity dpto = departamentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
 
-            Optional.ofNullable(departamentoDTO.getSecretariaId()).ifPresent( secretariaId -> {
+        Long nuevaSecretariaId = departamentoDTO.getUsuarioId();
 
-                UserEntity nuevaSecretaria = userRepository.findById(secretariaId)
-                        .orElseThrow(() -> new EntityNotFoundException("Usuario secretario no existente"));
+        if (nuevaSecretariaId == null) {
+            throw new IllegalArgumentException("Debe enviar un secretariaId");
+        }
 
-                Optional.ofNullable(existingDepartamento.getSecretaria()).ifPresent(viejaSecretaria -> {
-                    viejaSecretaria.removeRol(Rol.SECRETARIO);
-                });
+        UserEntity nuevaSecretaria = userRepository.findById(nuevaSecretariaId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario secretario no existente"));
 
-                nuevaSecretaria.addRol(Rol.SECRETARIO);
+        dpto.getUsuarios().forEach(ude -> { // Elimina secretario anterior
+            ude.getRoles().remove(Rol.SECRETARIA);
+        });
 
-                existingDepartamento.setSecretaria(nuevaSecretaria);
-            });
+        UsuarioDepartamentoEntity udeNuevoSecretario = dpto.getUsuarios().stream()
+                .filter(ude -> ude.getUsuario().getId().equals(nuevaSecretariaId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no relacionado al departamento"));
 
-            DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
+        udeNuevoSecretario.getRoles().add(Rol.SECRETARIA);
 
-            return departamentoMapper.toDTO(savedDepartamentoEntity);
-        }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+        userDptoRepository.save(udeNuevoSecretario);
+    }
+
+    @Override
+    @Transactional
+    public void updateDireccionAdministrativa(Long id, DepartamentoUpdateCargoDTO departamentoDTO) {
+
+        DepartamentoEntity dpto = departamentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+
+        Long nuevaDireccionId = departamentoDTO.getUsuarioId();
+
+        if (nuevaDireccionId == null) {
+            throw new IllegalArgumentException("Debe enviar un direccionAdministrativaId");
+        }
+
+        UserEntity nuevaDireccion = userRepository.findById(nuevaDireccionId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario director administrativo no existente"));
+
+        dpto.getUsuarios().forEach(ude -> { // Elimina direccion anterior
+            ude.getRoles().remove(Rol.DIRECCION_ADMINISTRATIVA);
+        });
+
+        UsuarioDepartamentoEntity udeNuevaDireccion = dpto.getUsuarios().stream()
+                .filter(ude -> ude.getUsuario().getId().equals(nuevaDireccionId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no relacionado al departamento"));
+
+        udeNuevaDireccion.getRoles().add(Rol.DIRECCION_ADMINISTRATIVA);
+
+        userDptoRepository.save(udeNuevaDireccion);
+
     }
 
     @Override
     public DepartamentoResponseDTO updateAdministracionDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
-
-        return departamentoRepository.findById(id).map(existingDepartamento -> {
-            Optional.ofNullable(departamentoDTO.getAdministracionIds()).ifPresent(administracionIds -> {
-                List<UserEntity> administracion = userRepository.findAllById(administracionIds);
-
-                if (departamentoDTO.getAdministracionIds().size() != administracion.size()) {
-                    throw new EntityNotFoundException("Uno o más Administrativos no fueron encontrados. Por favor, verifique los IDs.");
-                }
-
-                existingDepartamento.setAdministracion(administracion);
-            });
-
-            DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
-
-            return departamentoMapper.toDTO(savedDepartamentoEntity);
-        }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+            return null;
+//        return departamentoRepository.findById(id).map(existingDepartamento -> {
+//            Optional.ofNullable(departamentoDTO.getAdministracionIds()).ifPresent(administracionIds -> {
+//                List<UserEntity> administracion = userRepository.findAllById(administracionIds);
+//
+//                if (departamentoDTO.getAdministracionIds().size() != administracion.size()) {
+//                    throw new EntityNotFoundException("Uno o más Administrativos no fueron encontrados. Por favor, verifique los IDs.");
+//                }
+//
+//                existingDepartamento.setAdministracion(administracion);
+//            });
+//
+//            DepartamentoEntity savedDepartamentoEntity = departamentoRepository.save(existingDepartamento);
+//
+//            return departamentoMapper.toDTO(savedDepartamentoEntity);
+//        }).orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
     }
 
     @Override
     public void deleteDepartamento(Long id) {
         departamentoRepository.deleteById(id);
     }
+
 }

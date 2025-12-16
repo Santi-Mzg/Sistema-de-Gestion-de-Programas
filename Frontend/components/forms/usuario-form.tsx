@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DepartamentoCreateDTO, UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
-import { useCreateUser } from "@/app/api/generated/syllabusApi"
 
 const AVAILABLE_ROLES = Object.values(UserCreateDTORolesItem).map((value) => ({
   value,
@@ -40,7 +39,7 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
       }
   });
 
-  const handleFormSubmit = (data: DepartamentoCreateDTO) => {
+  const handleFormSubmit = (data: DepartamentoCreateDTO) => { 
     // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
     mutate({ data }); 
   };

@@ -4,12 +4,17 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraE
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CarreraToStringMapper {
 
-    @Named("carreraToString")
-    default String carreraToString(CarreraEntity u) {
-        if (u == null) return null;
-        return u.getNombre();
+
+    @Named("carrerasToString")
+    default List<String> carrerasToString(List<CarreraEntity> carreras) {
+        if (carreras == null) return null;
+        return carreras.stream()
+                .map(m -> m.getNombre())
+                .toList();
     }
 }

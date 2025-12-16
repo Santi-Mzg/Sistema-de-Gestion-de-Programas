@@ -1,5 +1,4 @@
 import { ProgramaCargaProfesorDTO, ProgramaResponseDTO } from "@/app/api/generated/model";
-import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/syllabusApi";
 import { SyllabusProfesorForm } from "@/components/forms/programa-profesor-form";
 
 

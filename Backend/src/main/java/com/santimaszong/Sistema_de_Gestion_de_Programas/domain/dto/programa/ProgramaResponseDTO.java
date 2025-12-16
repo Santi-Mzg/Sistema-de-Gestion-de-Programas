@@ -20,7 +20,7 @@ public class ProgramaResponseDTO {
     private String profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<ProgramaCarreraResponseDTO> bloqueMultiple;
+    private List<ProgramaCarreraDTO> bloqueMultiple;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;

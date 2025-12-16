@@ -23,16 +23,8 @@ public class UserResponseDTO {
 
     private String nombre;
     private String apellido;
-    private String dni;
     private String legajo;
-    private String email;
 
-    private String departamentoAdministracion;
-    private String departamentoSecretaria;
-    private String carreraComoComision;
-    private String carreraComoProfesor;
-    private List<String> materiasComoProfesor;
-
-    private Set<Rol> roles;
+    private List<UsuarioDepartamentoDTO> departamentos;
 
 }

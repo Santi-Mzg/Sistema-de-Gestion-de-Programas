@@ -2,9 +2,11 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.AreaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.MateriaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
@@ -19,12 +21,14 @@ public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
     private final DepartamentoRepository departamentoRepository;
+    private final AreaRepository areaRepository;
 
     private final MateriaMapper materiaMapper;
 
-    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoRepository departamentoRepository, MateriaMapper materiaMapper) {
+    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoRepository departamentoRepository, AreaRepository areaRepository, MateriaMapper materiaMapper) {
         this.materiaRepository = materiaRepository;
         this.departamentoRepository = departamentoRepository;
+        this.areaRepository = areaRepository;
         this.materiaMapper = materiaMapper;
     }
 
@@ -39,7 +43,13 @@ public class MateriaServiceImpl implements MateriaService {
                         () -> new EntityNotFoundException("El Departamento de la materia " + materiaDTO.getNombre() + " con ID " + materiaDTO.getDepartamentoId() + "no fue encontrado.")
                 );
 
+        AreaEntity area = areaRepository.findById(materiaDTO.getAreaId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El Area de la materia " + materiaDTO.getNombre() + " con ID " + materiaDTO.getAreaId() + "no fue encontrado.")
+                );
+
         materiaEntity.setDepartamento(departamento);
+        materiaEntity.setArea(area);
 
         MateriaEntity createdMateriaEntity = materiaRepository.save(materiaEntity);
 

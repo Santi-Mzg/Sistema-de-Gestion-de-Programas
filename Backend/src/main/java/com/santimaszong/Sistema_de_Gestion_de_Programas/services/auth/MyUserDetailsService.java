@@ -14,8 +14,8 @@ public class MyUserDetailsService implements UserDetailsService {
     private final UserRepository userRepo;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepo.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + email));
+    public UserDetails loadUserByUsername(String legajo) throws UsernameNotFoundException {
+        return userRepo.findByLegajo(legajo)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con legajo: " + legajo));
     }
 }

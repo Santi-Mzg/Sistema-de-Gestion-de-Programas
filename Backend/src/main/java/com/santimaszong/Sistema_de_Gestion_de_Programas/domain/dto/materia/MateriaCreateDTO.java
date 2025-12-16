@@ -13,6 +13,6 @@ public class MateriaCreateDTO {
 
     private String codigo;
     private String nombre;
-    private String area;
+    private Long areaId;
     private Long departamentoId;
 }

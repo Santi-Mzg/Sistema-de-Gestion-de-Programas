@@ -3,7 +3,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
@@ -34,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO createUser(UserCreateDTO userDTO){
-        UserEntity userEntity = userMapper.toEntity(userDTO);
+//        UserEntity userEntity = userMapper.toEntity(userDTO);
 
 //        DepartamentoEntity departamento = departamentoRepository.findById(userDTO.getDepartamentoAdministracionId())
 //                .orElseThrow(
@@ -57,10 +56,10 @@ public class UserServiceImpl implements UserService {
 //        userEntity.setCarreraComoComision(carreraComoComision);
 //        userEntity.setCarreraComoProfesor(carreraComoProfesor);
 
-        userEntity.setPassword("test");
-        UserEntity createdUserEntity = userRepository.save(userEntity);
+//        UserEntity createdUserEntity = userRepository.save(userEntity);
 
-        return userMapper.toDTO(createdUserEntity);
+//        return userMapper.toDTO(createdUserEntity);
+        return null;
     }
 
     @Override
@@ -71,49 +70,49 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDTO(foundUser);
     }
 
-    @Override
-    public List<UserResponseDTO> listUsers() {
-        List<UserEntity> users = userRepository.findAll();
-        return users.stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserResponseDTO> listProfesores() {
-        List<UserEntity> profesores = userRepository.findAllByRoles(Rol.PROFESOR);
-
-        return profesores.stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserResponseDTO> listAdministrativos() {
-        List<UserEntity> administrativos = userRepository.findAllByRoles(Rol.ADMINISTRATIVO);
-
-        return administrativos.stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserResponseDTO> listCoordinadores() {
-        List<UserEntity> coordinadores = userRepository.findAllByRoles(Rol.COORDINADOR);
-
-        return coordinadores.stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserResponseDTO> listSecretarios() {
-        List<UserEntity> secretarios = userRepository.findAllByRoles(Rol.SECRETARIO);
-
-        return secretarios.stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
-    }
+//    @Override
+//    public List<UserResponseDTO> listUsers() {
+//        List<UserEntity> users = userRepository.findAll();
+//        return users.stream()
+//                .map(userMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    public List<UserResponseDTO> listProfesores() {
+//        List<UserEntity> profesores = userRepository.findAllByRoles(Rol.PROFESOR);
+//
+//        return profesores.stream()
+//                .map(userMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    public List<UserResponseDTO> listAdministrativos() {
+//        List<UserEntity> administrativos = userRepository.findAllByRoles(Rol.ADMINISTRATIVO);
+//
+//        return administrativos.stream()
+//                .map(userMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    public List<UserResponseDTO> listCoordinadores() {
+//        List<UserEntity> coordinadores = userRepository.findAllByRoles(Rol.COORDINACION_COMISION_CURRICULAR);
+//
+//        return coordinadores.stream()
+//                .map(userMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    public List<UserResponseDTO> listSecretarios() {
+//        List<UserEntity> secretarios = userRepository.findAllByRoles(Rol.SECRETARIA);
+//
+//        return secretarios.stream()
+//                .map(userMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
 
 
     @Override

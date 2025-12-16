@@ -4,7 +4,7 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ProgramaCarreraResponseDTO } from './programaCarreraResponseDTO';
+import type { ProgramaCarreraDTO } from './programaCarreraDTO';
 import type { EstadoHistoricoResponseDTO } from './estadoHistoricoResponseDTO';
 
 export interface ProgramaResponseDTO {
@@ -14,7 +14,7 @@ export interface ProgramaResponseDTO {
   codigoMateria?: string;
   areaMateria?: string;
   profesorResponsable?: string;
-  bloqueMultiple?: ProgramaCarreraResponseDTO[];
+  bloqueMultiple?: ProgramaCarreraDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
   cargaHorariaPractica?: number;

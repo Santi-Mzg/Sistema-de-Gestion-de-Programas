@@ -4,15 +4,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
-import { ProgramaCarreraCreateDTO } from "@/app/api/generated/model/programaCarreraCreateDTO"
-import { CarreraResponseDTO, MateriaResponseDTO } from "@/app/api/generated/model"
+import { CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO } from "@/app/api/generated/model"
 import { useListMateriasCarrera } from "@/app/api/generated/client"
 
 interface ProgramaCarreraBlockProps {
-  block: ProgramaCarreraCreateDTO
+  block: ProgramaCarreraDTO
   index: number
   carreras: CarreraResponseDTO[]
-  onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
+  onUpdate: (index: number, block: ProgramaCarreraDTO) => void
   onRemove: (index: number) => void
   isDisabled?: boolean
 }
@@ -54,7 +53,7 @@ export function ProgramaCarreraBlock({
   }
 
 
-  const handleFieldChange = (field: keyof ProgramaCarreraCreateDTO, value: any) => {
+  const handleFieldChange = (field: keyof ProgramaCarreraDTO, value: any) => {
     onUpdate(index, {
       ...block,
       [field]: value,
@@ -63,12 +62,12 @@ export function ProgramaCarreraBlock({
 
   const toggleCorrelativaFuerte = (materiaId: number) => {
     const nuevosFuertes = block.correlativasFuertesIds?.includes(materiaId)
-      ? block.correlativasFuertesIds.filter((id) => id !== materiaId)
+      ? block.correlativasFuertesIds.filter((id: number) => id !== materiaId)
       : [...(block.correlativasFuertesIds || []), materiaId]
 
     // Si se agrega como fuerte, remover de débiles
     const nuevasDebiles = nuevosFuertes.includes(materiaId)
-      ? block.correlativasDebilesIds?.filter((id) => id !== materiaId)
+      ? block.correlativasDebilesIds?.filter((id: number) => id !== materiaId)
       : block.correlativasDebilesIds
 
     onUpdate(index, {
@@ -80,12 +79,12 @@ export function ProgramaCarreraBlock({
 
   const toggleCorrelativaDebil = (materiaId: number) => {
     const nuevasDebiles = block.correlativasDebilesIds?.includes(materiaId)
-      ? block.correlativasDebilesIds.filter((id) => id !== materiaId)
+      ? block.correlativasDebilesIds.filter((id: number) => id !== materiaId)
       : [...(block.correlativasDebilesIds || []), materiaId]
 
     // Si se agrega como débil, remover de fuertes
     const nuevosFuertes = nuevasDebiles.includes(materiaId)
-      ? block.correlativasFuertesIds?.filter((id) => id !== materiaId)
+      ? block.correlativasFuertesIds?.filter((id: number) => id !== materiaId)
       : block.correlativasFuertesIds
 
     onUpdate(index, {

@@ -28,72 +28,28 @@ public class UserEntity implements UserDetails {
     private String apellido;
 
     @Column(nullable = false, unique = true)
-    private String dni;
-
-    @Column(nullable = false, unique = true)
     private String legajo;
-
-    @Column(nullable = false, unique = true)
-    private String email;
 
     @Column(nullable=false)
     private String password;
+
+    private boolean isAdmin;
+
 
     // ============================
     // RELACIONES
     // ============================
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "departamento_administracion_id")
-    private DepartamentoEntity departamentoAdministracion;
-
-    @OneToOne(mappedBy = "secretaria", fetch = FetchType.LAZY)
-    private DepartamentoEntity departamentoSecretaria;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carrera_como_comision_id")
-    private CarreraEntity carreraComoComision;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carrera_como_profesor_id")
-    private CarreraEntity carreraComoProfesor;
-
-    @OneToMany(mappedBy = "profesorResponsable")
-    private List<ProgramaEntity> materiasComoProfesor;
-
     @OneToMany(mappedBy = "realizadoPor")
     private List<EstadoHistoricoEntity> accionesRealizadas = new ArrayList<>();
 
-    // ============================
-    // ROLES
-    // ============================
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "usuarios_roles",
-            joinColumns = @JoinColumn(name = "usuario_id")
-    )
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Set<Rol> roles = new HashSet<>();
-
-    public void addRol(Rol rol) {
-        this.roles.add(rol);
-    }
-
-    public void removeRol(Rol rol) {
-        this.roles.remove(rol);
-    }
-
-    public boolean hasRole(Rol rol) {
-        return roles.contains(rol);
-    }
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<UsuarioDepartamentoEntity> departamentos = new ArrayList<>();
 
 
     // ============================
     // USERDETAILS IMPLEMENTATION
     // ============================
-
 
     /**
      * Spring usa esto para saber qué permisos/roles tiene el usuario.
@@ -101,7 +57,7 @@ public class UserEntity implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
+        return departamentos.getFirst().getRoles().stream()
                 .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.name()))
                 .toList();
     }
@@ -112,7 +68,7 @@ public class UserEntity implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return this.email;
+        return this.legajo;
     }
 
     @Override

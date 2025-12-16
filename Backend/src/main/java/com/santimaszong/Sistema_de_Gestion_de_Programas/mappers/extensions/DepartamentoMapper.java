@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
         uses = {
                 CarreraMapper.class,
                 MateriaMapper.class,
+                AreaMapper.class,
                 UserToStringMapper.class,
         }
 )
@@ -21,14 +22,16 @@ public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO
 
     @Override
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "administracion", ignore = true)
-    @Mapping(target = "secretaria", ignore = true)
+    @Mapping(target = "areas", ignore = true)
+    @Mapping(target = "carreras", ignore = true)
+    @Mapping(target = "materias", ignore = true)
+    @Mapping(target = "usuarios", ignore = true)
     DepartamentoEntity toEntity(DepartamentoCreateDTO dto);
 
     @Override
     @Mapping(source = "materias", target = "materias")
     @Mapping(source = "carreras", target = "carreras")
-    @Mapping(source = "administracion", target = "administracion", qualifiedByName = "usersToString")
+    @Mapping(source = "areas", target = "areas")
     @Mapping(source = "secretaria", target = "secretaria", qualifiedByName = "userToString")
     DepartamentoResponseDTO toDTO(DepartamentoEntity entity);
 

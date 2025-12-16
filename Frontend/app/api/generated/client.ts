@@ -22,6 +22,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AreaCreateDTO,
+  AreaResponseDTO,
   CarreraCreateDTO,
   CarreraResponseDTO,
   DepartamentoCreateDTO,
@@ -471,6 +473,224 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getDeleteMateriaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const getArea = (
+    id: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AreaResponseDTO>(
+      {url: `/api/areas/${id}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetAreaQueryKey = (id?: number,) => {
+    return [
+    `/api/areas/${id}`
+    ] as const;
+    }
+
+    
+export const getGetAreaQueryOptions = <TData = Awaited<ReturnType<typeof getArea>>, TError = unknown>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAreaQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getArea>>> = ({ signal }) => getArea(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAreaQueryResult = NonNullable<Awaited<ReturnType<typeof getArea>>>
+export type GetAreaQueryError = unknown
+
+
+
+export function useGetArea<TData = Awaited<ReturnType<typeof getArea>>, TError = unknown>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAreaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetAreaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getArea>>, TError = unknown>(id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAreaQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getArea>>> = ({ signal }) => getArea(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAreaSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getArea>>>
+export type GetAreaSuspenseQueryError = unknown
+
+
+
+export function useGetAreaSuspense<TData = Awaited<ReturnType<typeof getArea>>, TError = unknown>(
+ id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getArea>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAreaSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const updateArea = (
+    id: number,
+    areaCreateDTO: AreaCreateDTO,
+ ) => {
+      
+      
+      return customInstance<AreaResponseDTO>(
+      {url: `/api/areas/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: areaCreateDTO
+    },
+      );
+    }
+  
+
+
+export const getUpdateAreaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateArea>>, TError,{id: number;data: AreaCreateDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateArea>>, TError,{id: number;data: AreaCreateDTO}, TContext> => {
+
+const mutationKey = ['updateArea'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateArea>>, {id: number;data: AreaCreateDTO}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateArea(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAreaMutationResult = NonNullable<Awaited<ReturnType<typeof updateArea>>>
+    export type UpdateAreaMutationBody = AreaCreateDTO
+    export type UpdateAreaMutationError = unknown
+
+    export const useUpdateArea = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateArea>>, TError,{id: number;data: AreaCreateDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateArea>>,
+        TError,
+        {id: number;data: AreaCreateDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateAreaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const deleteArea = (
+    id: number,
+ ) => {
+      
+      
+      return customInstance<AreaResponseDTO>(
+      {url: `/api/areas/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteAreaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteArea>>, TError,{id: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteArea>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteArea'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteArea>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteArea(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAreaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteArea>>>
+    
+    export type DeleteAreaMutationError = unknown
+
+    export const useDeleteArea = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteArea>>, TError,{id: number}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteArea>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteAreaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -1456,6 +1676,168 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getLoginMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const listAreas = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AreaResponseDTO[]>(
+      {url: `/api/areas`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getListAreasQueryKey = () => {
+    return [
+    `/api/areas`
+    ] as const;
+    }
+
+    
+export const getListAreasQueryOptions = <TData = Awaited<ReturnType<typeof listAreas>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAreasQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreas>>> = ({ signal }) => listAreas(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAreasQueryResult = NonNullable<Awaited<ReturnType<typeof listAreas>>>
+export type ListAreasQueryError = unknown
+
+
+
+export function useListAreas<TData = Awaited<ReturnType<typeof listAreas>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAreasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListAreasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listAreas>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAreasQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreas>>> = ({ signal }) => listAreas(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAreasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listAreas>>>
+export type ListAreasSuspenseQueryError = unknown
+
+
+
+export function useListAreasSuspense<TData = Awaited<ReturnType<typeof listAreas>>, TError = unknown>(
+  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreas>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAreasSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const createArea = (
+    areaCreateDTO: AreaCreateDTO,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AreaResponseDTO>(
+      {url: `/api/areas`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: areaCreateDTO, signal
+    },
+      );
+    }
+  
+
+
+export const getCreateAreaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createArea>>, TError,{data: AreaCreateDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createArea>>, TError,{data: AreaCreateDTO}, TContext> => {
+
+const mutationKey = ['createArea'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createArea>>, {data: AreaCreateDTO}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createArea(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAreaMutationResult = NonNullable<Awaited<ReturnType<typeof createArea>>>
+    export type CreateAreaMutationBody = AreaCreateDTO
+    export type CreateAreaMutationError = unknown
+
+    export const useCreateArea = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createArea>>, TError,{data: AreaCreateDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createArea>>,
+        TError,
+        {data: AreaCreateDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateAreaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

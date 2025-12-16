@@ -1,7 +1,12 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,12 +42,19 @@ public class DepartamentoEntity {
     private List<MateriaEntity> materias;
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<AreaEntity> areas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CarreraEntity> carreras;
 
-    @OneToMany(mappedBy = "departamentoAdministracion", fetch = FetchType.LAZY)
-    private List<UserEntity> administracion;
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UsuarioDepartamentoEntity> usuarios;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "secretaria_id")
-    private UserEntity secretaria;
+    public UserEntity getSecretaria() {
+        return usuarios.stream()
+                .filter(ude -> ude.getRoles().contains(Rol.SECRETARIA))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .findFirst()
+                .orElse(null);
+    }
 }

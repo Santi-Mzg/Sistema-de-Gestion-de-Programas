@@ -5,6 +5,7 @@
  * OpenAPI spec version: v0
  */
 import type { CarreraResponseDTO } from './carreraResponseDTO';
+import type { AreaResponseDTO } from './areaResponseDTO';
 import type { MateriaResponseDTO } from './materiaResponseDTO';
 
 export interface DepartamentoResponseDTO {
@@ -17,5 +18,6 @@ export interface DepartamentoResponseDTO {
   administracion?: string[];
   secretaria?: string;
   carreras?: CarreraResponseDTO[];
+  areas?: AreaResponseDTO[];
   materias?: MateriaResponseDTO[];
 }

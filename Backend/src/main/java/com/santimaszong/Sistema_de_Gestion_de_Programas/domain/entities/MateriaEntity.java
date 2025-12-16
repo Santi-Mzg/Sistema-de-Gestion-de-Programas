@@ -18,14 +18,15 @@ public class MateriaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo_materia", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String codigo;
 
-    @Column(name = "nombre_materia", nullable = false)
+    @Column(nullable = false)
     private String nombre;
 
-    @Column(name = "area_materia", nullable = false)
-    private String area;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "area_id")
+    private AreaEntity area;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "departamento_id")

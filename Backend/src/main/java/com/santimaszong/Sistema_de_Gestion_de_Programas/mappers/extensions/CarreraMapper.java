@@ -5,7 +5,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.Carre
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToDTOMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToEntityMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.utils.DepartamentoToStringMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.utils.UserToStringMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,7 +13,6 @@ import org.mapstruct.Mapping;
         componentModel = "spring",
         uses = {
                 ProgramaCarreraMapper.class,
-                DepartamentoToStringMapper.class,
                 UserToStringMapper.class
         }
 )
@@ -24,11 +22,12 @@ public interface CarreraMapper extends ToEntityMapper<CarreraCreateDTO, CarreraE
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "departamento", ignore = true)
     @Mapping(target = "comision", ignore = true)
+    @Mapping(target = "materias", ignore = true)
     CarreraEntity toEntity(CarreraCreateDTO dto);
 
     @Override
     @Mapping(source = "materias", target = "materias")
-    @Mapping(source = "departamento", target = "departamento", qualifiedByName = "departamentoToString")
-    @Mapping(source = "comision", target = "comision", qualifiedByName = "userToString")
+    @Mapping(source = "departamento.nombre", target = "departamento")
+    @Mapping(source = "comision.usuario", target = "comision", qualifiedByName = "userToString")
     CarreraResponseDTO toDTO(CarreraEntity entity);
 }

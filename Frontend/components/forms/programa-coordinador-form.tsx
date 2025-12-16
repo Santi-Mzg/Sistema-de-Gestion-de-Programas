@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO, DepartamentoResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, DepartamentoResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
 import { useCreatePrograma, useListProfesores, useListMateriasDepartamento, useActualizarEstado, useGetPrograma } from "@/app/api/generated/client"
-import { RechazoDialog } from "./rechazo-dialog"
+import { RechazoDialog } from "../modals/rechazo-dialog"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO

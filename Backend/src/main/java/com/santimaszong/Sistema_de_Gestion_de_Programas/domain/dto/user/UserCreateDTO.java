@@ -14,7 +14,6 @@ public class UserCreateDTO {
 
     private String nombre;
     private String apellido;
-    private String dni;
     private String legajo;
     private String email;
 

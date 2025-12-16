@@ -10,6 +10,6 @@ public interface MateriaService {
     MateriaResponseDTO createMateria(MateriaCreateDTO user);
     MateriaResponseDTO getMateriaById(Long id);
     List<MateriaResponseDTO> listMaterias();
-    MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO user);
+    MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materia);
     void deleteMateria(Long id);
 }

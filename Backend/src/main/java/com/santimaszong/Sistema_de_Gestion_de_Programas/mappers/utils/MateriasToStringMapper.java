@@ -12,10 +12,10 @@ public interface MateriasToStringMapper {
 
 
     @Named("materiasToString")
-    default List<String> materiasToString(List<MateriaEntity> materias) {
+    default List<Long> materiasToString(List<MateriaEntity> materias) {
         if (materias == null) return null;
         return materias.stream()
-                .map(m -> m.getCodigo() + " - " + m.getNombre())
+                .map(m -> m.getId())
                 .toList();
     }
 

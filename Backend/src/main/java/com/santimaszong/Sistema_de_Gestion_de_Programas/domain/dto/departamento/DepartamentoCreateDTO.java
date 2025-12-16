@@ -17,6 +17,4 @@ public class DepartamentoCreateDTO {
     private String cuerpo;
     private String email;
     private String sitioWeb;
-    private List<Long> administracionIds;
-    private Long secretariaId;
 }

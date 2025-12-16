@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraUpdateComisionDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import lombok.extern.java.Log;
@@ -57,10 +58,10 @@ public class CarreraController {
     }
 
     @PatchMapping("/cambiar_comision/{id}")
-    public ResponseEntity<CarreraResponseDTO> updateComisionCarrera(@PathVariable Long id, @RequestBody CarreraCreateDTO carrera) {
-        CarreraResponseDTO updatedCarrera = carreraService.updateComisionCarrera(id, carrera);
+    public ResponseEntity<CarreraResponseDTO> updateComision(@PathVariable Long id, @RequestBody CarreraUpdateComisionDTO carrera) {
+        carreraService.updateComision(id, carrera);
 
-        return new ResponseEntity<>(updatedCarrera, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/{id}")

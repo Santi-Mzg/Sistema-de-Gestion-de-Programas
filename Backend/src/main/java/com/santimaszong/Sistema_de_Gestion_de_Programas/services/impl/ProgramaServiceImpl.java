@@ -11,7 +11,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.Progr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +29,8 @@ public class ProgramaServiceImpl implements ProgramaService {
     private final UserRepository userRepository;
     private final CarreraRepository carreraRepository;
     private final ProgramaCarreraRepository programaCarreraRepository;
+    private final UsuarioDepartamentoRepository udeRepo;
+
 
     private final ProgramaResponseMapper responseMapper;
     private final ProgramaCargaAdministradorMapper adminMapper;
@@ -43,6 +44,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                UserRepository userRepository,
                                CarreraRepository carreraRepository,
                                ProgramaCarreraRepository programaCarreraRepository,
+                               UsuarioDepartamentoRepository udeRepo,
                                ProgramaResponseMapper responseMapper,
                                ProgramaCargaAdministradorMapper adminMapper,
                                ProgramaCargaProfesorMapper profesorMapper,
@@ -54,6 +56,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.carreraRepository = carreraRepository;
         this.programaCarreraRepository = programaCarreraRepository;
         this.historialRepository = historialRepository;
+        this.udeRepo = udeRepo;
         this.responseMapper = responseMapper;
         this.adminMapper = adminMapper;
         this.profesorMapper = profesorMapper;
@@ -77,10 +80,23 @@ public class ProgramaServiceImpl implements ProgramaService {
                         () -> new EntityNotFoundException("El profesor con ID " + programaDTO.getProfesorResponsableId() + "no fue encontrado.")
                 );
 
-        programaEntity.setProfesorResponsable(profesorResponsable);
+        Long dptoId = materia.getDepartamento().getId();
+
+        UsuarioDepartamentoEntity ude = udeRepo.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El profesor seleccionado no esta relacionado con el departamento en cuestion.")
+                );
+
+        programaEntity.setProfesorResponsable(ude);
+
+//        programaEntity.setProfesorResponsable(profesorResponsable.getDepartamentos().stream()
+//                .filter(ude -> ude.getDepartamento().getId().equals(dptoId))
+//                .findFirst()
+//                .orElseThrow(() -> new EntityNotFoundException("Departamento relacionoado no encontrado"))
+//        );
 
 
-        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
+        List<ProgramaCarreraDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
         List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
 
         programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
@@ -133,14 +149,21 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         Optional.ofNullable(programaDTO.getProfesorResponsableId())
                 .ifPresent(profesorId -> {
-                    UserEntity profesorActual = existingProgram.getProfesorResponsable();
+                    UserEntity profesorActual = existingProgram.getProfesorResponsable().getUsuario();
                     if(profesorActual != null && profesorActual.getId().equals(profesorId))
                         return;
 
-                    UserEntity profesorNuevo = userRepository.findById(profesorId)
-                            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+//                    UserEntity profesorNuevo = userRepository.findById(profesorId)
+//                            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-                    existingProgram.setProfesorResponsable(profesorNuevo);
+                    MateriaEntity materiaActual = existingProgram.getMateria();
+                    DepartamentoEntity dpto = materiaActual.getDepartamento();
+
+                    UsuarioDepartamentoEntity udeProfesorNuevo = udeRepo.findByUsuarioIdAndDepartamentoId(profesorId, dpto.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("El profesor seleccionado no esta relacionado con el departamento en cuestion."));
+
+
+                    existingProgram.setProfesorResponsable(udeProfesorNuevo);
                 });
 
         Optional.ofNullable(programaDTO.getBloqueMultiple())
@@ -331,10 +354,10 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     }
 
-    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
+    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
         List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
 
-        for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
+        for (ProgramaCarreraDTO bloqueDTO : bloquesMultiplesDTO) {
             ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
             bloqueEntity.setPrograma(programaEntity);
 

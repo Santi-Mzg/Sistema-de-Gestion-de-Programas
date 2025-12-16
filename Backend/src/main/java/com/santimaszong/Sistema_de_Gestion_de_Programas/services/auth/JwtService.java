@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -14,10 +15,14 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "una-clave-muy-larga-para-hmac-sha256-que-tenga-al-menos-32-bytes";
+    @Value("${security.jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${security.jwt.expiration-ms}")
+    private long jwtExpirationMs;
 
     private Key getSigningKey() {
-        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -42,7 +47,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey())
                 .compact();
     }

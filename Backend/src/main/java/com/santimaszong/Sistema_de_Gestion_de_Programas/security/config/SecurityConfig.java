@@ -1,8 +1,9 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.config;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.filter.JwtAuthenticationFilter;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.security.config;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.security.filter.JwtAuthenticationFilter;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.JwtService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.MyUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,11 +28,13 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final MyUserDetailsService userDetailsService;
+    @Value("${app.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:3000"));
+        cors.setAllowedOrigins(List.of(allowedOrigins));
         cors.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cors.setAllowedHeaders(List.of("*"));
         cors.setExposedHeaders(List.of("Set-Cookie"));

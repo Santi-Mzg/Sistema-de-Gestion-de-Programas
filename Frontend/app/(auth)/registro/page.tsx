@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Check, X, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useRegister } from "@/app/api/generated/syllabusApi"
 import { RegisterRequest, RegisterRequestRolesItem } from "@/app/api/generated/model"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema, type RegisterFormData } from "@/lib/schemas"
+import { useRegister } from "@/app/api/generated/client"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -36,6 +36,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
       if (selectedRole && typeof selectedRole === 'string') {
+        console.log("Selected Role:", selectedRole);
           // Reemplaza el valor de "roles" en el formulario con un array
           setValue("roles", [selectedRole], { shouldValidate: true });
       }
@@ -49,7 +50,6 @@ export default function RegisterPage() {
       const requestData: RegisterRequest = {
         nombre: formData.nombre,
         apellido: formData.apellido,
-        dni: formData.dni,
         legajo: formData.legajo,
         email: formData.email,
         password: formData.password,
@@ -204,7 +204,7 @@ export default function RegisterPage() {
                   ))}
                 </div>
                 {errors.roles && <p className="text-xs text-destructive">{errors.roles.message}</p>}
-              </div>
+              </div> 
 
               {/* Password Field */}
               <div className="space-y-2">

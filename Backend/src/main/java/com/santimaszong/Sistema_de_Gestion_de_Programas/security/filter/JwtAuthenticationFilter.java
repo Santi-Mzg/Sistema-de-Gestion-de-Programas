@@ -1,4 +1,4 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.filter;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.security.filter;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.JwtService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.MyUserDetailsService;

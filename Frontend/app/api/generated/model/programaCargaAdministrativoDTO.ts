@@ -4,12 +4,12 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ProgramaCarreraCreateDTO } from './programaCarreraCreateDTO';
+import type { ProgramaCarreraDTO } from './programaCarreraDTO';
 
 export interface ProgramaCargaAdministrativoDTO {
   materiaId?: number;
   profesorResponsableId?: number;
-  bloqueMultiple?: ProgramaCarreraCreateDTO[];
+  bloqueMultiple?: ProgramaCarreraDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
   creditos?: number;

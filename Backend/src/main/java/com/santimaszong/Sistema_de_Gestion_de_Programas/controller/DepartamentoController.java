@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoUpdateCargoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
@@ -63,11 +64,18 @@ public class DepartamentoController {
 //    }
 
     @PatchMapping("/cambiar_secretaria/{id}")
+    public ResponseEntity<DepartamentoResponseDTO> updateSecretaria(@PathVariable Long id, @RequestBody DepartamentoUpdateCargoDTO departamento) {
+        departamentoService.updateSecretaria(id, departamento);
 
-    public ResponseEntity<DepartamentoResponseDTO> updateSecretarioDepartamento(@PathVariable Long id, @RequestBody DepartamentoCreateDTO departamento) {
-        DepartamentoResponseDTO updatedDepartamento = departamentoService.updateSecretarioDepartamento(id, departamento);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
-        return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
+    }
+
+    @PatchMapping("/cambiar_direccion_administrativa/{id}")
+    public ResponseEntity<DepartamentoResponseDTO> updateDireccionAdministrativa(@PathVariable Long id, @RequestBody DepartamentoUpdateCargoDTO departamento) {
+        departamentoService.updateDireccionAdministrativa(id, departamento);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PatchMapping("/cambiar_administracion/{id}")

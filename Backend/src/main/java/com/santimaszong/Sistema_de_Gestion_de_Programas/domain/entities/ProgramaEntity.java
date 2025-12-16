@@ -28,7 +28,7 @@ public class ProgramaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profesor_responsable_id")
-    private UserEntity profesorResponsable;
+    private UsuarioDepartamentoEntity profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)

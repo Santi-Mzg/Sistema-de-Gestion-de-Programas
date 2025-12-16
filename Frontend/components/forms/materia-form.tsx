@@ -2,13 +2,13 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DepartamentoResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
-import { useCreateMateria } from "@/app/api/generated/syllabusApi"
+import { AreaResponseDTO, DepartamentoResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { useCreateMateria } from "@/app/api/generated/client"
 
 
 interface MateriaFormProps {
@@ -17,30 +17,50 @@ interface MateriaFormProps {
 }
 
 export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
+  const [departamento, setDepartamento] = useState<DepartamentoResponseDTO | null>(null)
+  const [areasDisponibles, setAreasDisponibles] = useState<AreaResponseDTO[]>([])
   const [formData, setFormData] = useState<MateriaCreateDTO>({
     codigo: "",
     nombre: "",
-    area: "",
+    areaId: 0,
     departamentoId: undefined,
   })
 
 
-    const { mutate, isPending } = useCreateMateria({
-        mutation: {
-          onSuccess: () => {
-            alert("Materia creado exitosamente!");
-            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
-          },
-          onError: (error: Error) => {
-            alert(`Error al crear: ${error.message}`);
-          },
-        }
-    });
+  // const {
+  //   data: areas,
+  // } = useListAreasDepartamento(departamento?.id!, {
+  //   query: {
+  //     queryKey: ["areasPorDepartamento", departamento?.id],
+  //     enabled: !!departamento,
+  //   },
+  // })
 
-    const handleFormSubmit = (data: MateriaCreateDTO) => {
-      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-      mutate({ data }); 
-    };
+  const areas: AreaResponseDTO[] = departamento?.areas || []
+
+  useEffect(() => {
+    if (areas) {
+      setAreasDisponibles(areas)
+    }
+  }, [areas])
+
+
+  const { mutate, isPending } = useCreateMateria({
+      mutation: {
+        onSuccess: () => {
+          alert("Materia creado exitosamente!");
+          // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+        },
+        onError: (error: Error) => {
+          alert(`Error al crear: ${error.message}`);
+        },
+      }
+  });
+
+  const handleFormSubmit = (data: MateriaCreateDTO) => {
+    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+    mutate({ data }); 
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -50,20 +70,13 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
     }))
   }
 
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      departamentoId: value ? Number.parseInt(value) : undefined,
-    }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     handleFormSubmit(formData)
     setFormData({
       codigo: "",
       nombre: "",
-      area: "",
+      areaId: 0,
       departamentoId: undefined,
     })
   }
@@ -105,17 +118,28 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="area" className="text-sm font-semibold">
-              Área
+            <Label htmlFor="areaId" className="text-sm font-semibold">
+              Area *
             </Label>
-            <Input
-              id="area"
-              name="area"
-              value={formData.area}
-              onChange={handleChange}
-              placeholder="Ej: Matemáticas"
-              className="border-2 border-border focus:border-primary"
-            />
+            <Select
+              value={formData.areaId?.toString() ?? ""}
+              onValueChange={(e) => setFormData((prev) => ({
+                ...prev,
+                areaId: Number(e),
+              }))}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar área" />
+              </SelectTrigger>
+              <SelectContent>
+                {areas.map((area) => (
+                  <SelectItem key={area.id} value={area.id!.toString()}>
+                    {area.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -124,18 +148,18 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
             </Label>
             <Select
               value={formData.departamentoId?.toString() ?? ""}
-              onValueChange={handleSelectChange}
+              // onValueChange={(e) => setDepartamento(departamentos.find(d => d.id === Number(e)) || null)}
               required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar departamento" />
               </SelectTrigger>
               <SelectContent>
-                {departamentos.map((departamento) => (
+                {/* {departamentos.map((departamento) => (
                   <SelectItem key={departamento.id} value={departamento.id!.toString()}>
                     {departamento.nombre}
                   </SelectItem>
-                ))}
+                ))} */}
               </SelectContent>
             </Select>
           </div>

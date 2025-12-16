@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
 import { useCreatePrograma, useListMateriasDepartamento } from "@/app/api/generated/client"
 import { CargarProgramaAnteriorDialog } from "../modals/cargar-programa-dialog"
 
@@ -127,7 +127,7 @@ const handleLoadProgramaAnterior = async () => {
 
 
   const handleAddProgramaCarrera = () => {
-    const newBlock: ProgramaCarreraCreateDTO = {
+    const newBlock: ProgramaCarreraDTO = {
       key: Date.now().toString(),
       carreraId: 0,
       plan: "",
@@ -144,7 +144,7 @@ const handleLoadProgramaAnterior = async () => {
     }));
   }
 
-  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
+  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraDTO) => {
     setFormData((prev) => ({
       ...prev,
       bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
