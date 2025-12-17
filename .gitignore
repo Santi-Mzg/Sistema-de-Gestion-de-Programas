@@ -1,0 +1,79 @@
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
+
+### 1. BACKEND (Spring Boot / Maven) ###
+/Backend/target/
+/Backend/*.jar
+# Ajustar rutas de exclusión si es necesario:
+/Backend/!**/src/main/**/target/
+/Backend/!**/src/test/**/target/
+
+### 2. FRONTEND (Next.js / Node) ###
+
+# dependencies
+/Frontend/node_modules
+/Frontend/.pnp
+/Frontend/.pnp.*
+/Frontend/.yarn/*
+!/Frontend/.yarn/patches
+!/Frontend/.yarn/plugins
+!/Frontend/.yarn/releases
+!/Frontend/.yarn/versions
+
+# testing
+/Frontend/coverage
+
+# next.js build
+/Frontend/.next/  # <--- CRUCIAL: Apuntando a la carpeta de compilación
+/Frontend/out/
+/Frontend/build
+
+# debug
+/Frontend/npm-debug.log*
+/Frontend/yarn-debug.log*
+/Frontend/yarn-error.log*
+/Frontend/.pnpm-debug.log*
+
+# env files (deben estar en la carpeta Frontend/ si se usan)
+/Frontend/.env*
+.env # Por si lo tienes en la raíz
+
+# vercel
+.vercel
+
+# typescript
+/Frontend/*.tsbuildinfo
+/Frontend/next-env.d.ts
+
+# --- REGLAS GLOBALES (IDE/OS) ---
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# misc
+.DS_Store
+*.pem

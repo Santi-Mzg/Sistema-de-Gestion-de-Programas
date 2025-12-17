@@ -16,14 +16,4 @@ public class SistemaDeGestionDeProgramasApplication {
 		SpringApplication.run(SistemaDeGestionDeProgramasApplication.class, args);
 	}
 
-
-//    @Bean
-//    CommandLineRunner run(UserRepository repo) {
-//        return args -> {
-//            UserEntity user = new UserEntity();
-//            user.setNombre("Santiago");
-//            repo.save(user);
-//            System.out.println("Persona guardada en Aiven PostgreSQL!");
-//        };
-//    }
 }
