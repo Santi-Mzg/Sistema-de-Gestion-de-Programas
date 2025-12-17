@@ -1,7 +1,7 @@
 // orval.config.ts
 import { defineConfig } from 'orval';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
 export default defineConfig({
   // --- CLIENT (React Query + Axios) ---

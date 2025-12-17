@@ -16,10 +16,9 @@ interface CarreraFormProps {
 
 export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
   const [formData, setFormData] = useState<CarreraCreateDTO>({
-    codigo: "",
+    plan: "",
     nombre: "",
     duracion: "",
-    // cantidadMaterias: undefined,
     departamentoId: undefined,
   })
 
@@ -57,7 +56,6 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
     e.preventDefault()
     handleFormSubmit(formData)
     setFormData({
-      codigo: "",
       nombre: "",
       duracion: "",
       // cantidadMaterias: undefined,
@@ -70,30 +68,30 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
       <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="codigo" className="text-sm font-semibold">
-              Código
-            </Label>
-            <Input
-              id="codigo"
-              name="codigo"
-              value={formData.codigo}
-              onChange={handleChange}
-              placeholder="Ej: ING-001"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre de la Carrera
+              Nombre de la Carrera *
             </Label>
             <Input
               id="nombre"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
-              placeholder="Ej: Ingeniería en Informática"
+              placeholder="Ej: Licenciatura en Computación"
+              required
+              className="border-2 border-border focus:border-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="plan" className="text-sm font-semibold">
+              Plan *
+            </Label>
+            <Input
+              id="plan"
+              name="plan"
+              value={formData.plan}
+              onChange={handleChange}
+              placeholder="Ej: Plan 2025 - Versión 1"
               required
               className="border-2 border-border focus:border-primary"
             />
@@ -103,38 +101,24 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="duracion" className="text-sm font-semibold">
-              Duración (años)
+              Duración (cuatrimestres) *
             </Label>
             <Input
               id="duracion"
               name="duracion"
               value={formData.duracion}
               onChange={handleChange}
-              placeholder="Ej: 4"
+              placeholder="Ej: 10 Cuat."
               className="border-2 border-border focus:border-primary"
+              required
             />
           </div>
-
-          {/* <div className="space-y-2">
-            <Label htmlFor="cantidadMaterias" className="text-sm font-semibold">
-              Cantidad de Materias
-            </Label>
-            <Input
-              id="cantidadMaterias"
-              name="cantidadMaterias"
-              type="number"
-              value={formData.cantidadMaterias || ""}
-              onChange={handleChange}
-              placeholder="Ej: 40"
-              className="border-2 border-border focus:border-primary"
-            />
-          </div> */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="departamentoId" className="text-sm font-semibold">
-              Departamento
+              Departamento *
             </Label>
             <select
               id="departamentoId"

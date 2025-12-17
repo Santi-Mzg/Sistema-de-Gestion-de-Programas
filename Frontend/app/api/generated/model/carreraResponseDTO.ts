@@ -8,7 +8,7 @@ import type { ProgramaCarreraDTO } from './programaCarreraDTO';
 
 export interface CarreraResponseDTO {
   id?: number;
-  codigo?: string;
+  plan?: string;
   nombre?: string;
   duracion?: string;
   cantidadMaterias?: number;

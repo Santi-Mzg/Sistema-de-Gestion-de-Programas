@@ -1,6 +1,6 @@
 import Axios, { AxiosRequestConfig } from 'axios';
 
-export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,

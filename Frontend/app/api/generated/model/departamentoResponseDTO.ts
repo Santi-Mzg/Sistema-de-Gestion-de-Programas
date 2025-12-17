@@ -4,19 +4,13 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { CarreraResponseDTO } from './carreraResponseDTO';
-import type { AreaResponseDTO } from './areaResponseDTO';
-import type { MateriaResponseDTO } from './materiaResponseDTO';
 
 export interface DepartamentoResponseDTO {
   id?: number;
   nombre?: string;
   direccion?: string;
-  cuerpo?: string;
+  telefono?: string;
   email?: string;
   sitioWeb?: string;
   secretaria?: string;
-  carreras?: CarreraResponseDTO[];
-  areas?: AreaResponseDTO[];
-  materias?: MateriaResponseDTO[];
 }

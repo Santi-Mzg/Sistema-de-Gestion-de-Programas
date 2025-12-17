@@ -26,53 +26,38 @@ export function RoleProvider({
   const [availableRoles, setAvailableRoles] = useState<UsuarioDepartamentoDTORolesItem[]>([]);
   
 useEffect(() => {
-    // Si el usuario se carga con éxito o si cambia:
-    if (
-      user &&
-      Array.isArray(user.departamentos) &&
-      user.departamentos.length > 0 &&
-      Array.isArray(user.departamentos[0].roles) &&
-      user.departamentos[0].roles.length > 0
-    ) {
-      const departamento = user.departamentos[0];
-
-      // A. Definir roles disponibles (basado en la lógica ADMIN)
-      const roles: UsuarioDepartamentoDTORolesItem[] = user.isAdmin
-        ? ["ADMINISTRACION", "DOCENTE", "COORDINACION_COMISION_CURRICULAR", "SECRETARIA", "DIRECCION_ADMINISTRATIVA"]
-        : departamento.roles as UsuarioDepartamentoDTORolesItem[];
-          
-      setAvailableRoles(roles);
-
-      // B. Intentar recuperar de localStorage
-      const savedRole = localStorage.getItem("activeRole");
-      
-      // C. Establecer el rol activo (prioridad: guardado > primero de la lista)
-      if (savedRole && roles.includes(savedRole as unknown as UsuarioDepartamentoDTORolesItem)) {
-        setActiveRole(savedRole as unknown as UsuarioDepartamentoDTORolesItem);
-      } else {
-        // Establecer el primer rol si no hay uno guardado o el guardado no es válido
-        setActiveRole(roles[0] || null);
+    if (!user) {
+        if (!isLoading) {
+          setActiveRole(null);
+          setAvailableRoles([]);
+        }
+        return;
       }
-    } else if (!user && !isLoading) {
-      // 3. Manejar el caso de NO autenticado (limpiar roles)
-      setActiveRole(null);
-      setAvailableRoles([]);
+    let roles: UsuarioDepartamentoDTORolesItem[] = [];
+
+    if (user.isAdmin) {
+      roles = ["ADMINISTRACION", "DOCENTE", "COORDINACION_COMISION_CURRICULAR", "SECRETARIA", "DIRECCION_ADMINISTRATIVA"];
+    } else if (user.departamentos && user.departamentos.length > 0) {
+      roles = user.departamentos[0].roles as UsuarioDepartamentoDTORolesItem[];
+    }
+
+    setAvailableRoles(roles);
+
+    if (roles.length > 0) {
+      const savedRole = localStorage.getItem("activeRole");
+      if (savedRole && roles.includes(savedRole as any)) {
+        if (activeRole !== savedRole) setActiveRole(savedRole as any);
+      } else {
+        if (activeRole !== roles[0]) setActiveRole(roles[0]);
+      }
     }
   }, [user, isLoading]);
+
 
   const updateRole = (role: UsuarioDepartamentoDTORolesItem) => {
     setActiveRole(role);
     localStorage.setItem("activeRole", String(role));
   };
-
-  // if (isLoading) {
-  //     return <div>Cargando usuario...</div>;
-  // }
-  
-  // if (!activeRole) {
-  //     // Opcional: devolver null o un spinner si el usuario está autenticado pero el rol no está listo
-  //     return null; 
-  // }
 
   return (
     <RoleContext.Provider

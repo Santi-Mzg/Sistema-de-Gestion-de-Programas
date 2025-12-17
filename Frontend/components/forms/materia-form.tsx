@@ -36,13 +36,13 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
   //   },
   // })
 
-  const areas: AreaResponseDTO[] = departamento?.areas || []
+  const areas: AreaResponseDTO[] = []
 
-  useEffect(() => {
-    if (areas) {
-      setAreasDisponibles(areas)
-    }
-  }, [areas])
+  // useEffect(() => {
+  //   if (areas) {
+  //     setAreasDisponibles(areas)
+  //   }
+  // }, [areas])
 
 
   const { mutate, isPending } = useCreateMateria({
@@ -118,6 +118,26 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
+            <Label htmlFor="departamentoId" className="text-sm font-semibold">
+              Departamento *
+            </Label>
+            <select
+              id="departamentoId"
+              name="departamentoId"
+              value={formData.departamentoId || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
+            >
+              <option value="">Seleccionar Departamento...</option>
+              {departamentos.map((departamento) => (
+                <option key={departamento.id} value={departamento.id}>
+                  {departamento.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="areaId" className="text-sm font-semibold">
               Area *
             </Label>
@@ -138,28 +158,6 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
                     {area.nombre}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="departamentoId" className="text-sm font-semibold">
-              Departamento *
-            </Label>
-            <Select
-              value={formData.departamentoId?.toString() ?? ""}
-              // onValueChange={(e) => setDepartamento(departamentos.find(d => d.id === Number(e)) || null)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* {departamentos.map((departamento) => (
-                  <SelectItem key={departamento.id} value={departamento.id!.toString()}>
-                    {departamento.nombre}
-                  </SelectItem>
-                ))} */}
               </SelectContent>
             </Select>
           </div>

@@ -11,6 +11,7 @@ export interface UserResponseDTO {
   nombre?: string;
   apellido?: string;
   legajo?: string;
-  isAdmin?: boolean;
   departamentos?: UsuarioDepartamentoDTO[];
+  admin?: boolean;
+  isAdmin?: boolean;
 }

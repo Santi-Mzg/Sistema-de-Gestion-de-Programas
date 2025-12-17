@@ -1,6 +1,6 @@
 import { getJwtCookie } from '@/lib/server-utils';
 
-export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
 
 

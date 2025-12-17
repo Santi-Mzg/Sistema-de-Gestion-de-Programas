@@ -8,7 +8,7 @@
 export interface DepartamentoCreateDTO {
   nombre?: string;
   direccion?: string;
-  cuerpo?: string;
+  telefono?: string;
   email?: string;
   sitioWeb?: string;
 }

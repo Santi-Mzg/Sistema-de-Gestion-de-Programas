@@ -6,7 +6,7 @@
  */
 
 export interface CarreraCreateDTO {
-  codigo?: string;
+  plan?: string;
   nombre?: string;
   duracion?: string;
   departamentoId?: number;

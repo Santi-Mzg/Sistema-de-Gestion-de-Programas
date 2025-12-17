@@ -43,6 +43,24 @@ export function Sidebar() {
   const options = menuConfig[activeRole as keyof typeof menuConfig] ?? [];
 
 
+
+  const handleDptoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    console.log("Selected Departamento ID:", selectedId);
+      if (!selectedId) {
+        // Aquí podrías decidir si quieres permitir que sea null o no
+        return;
+      }
+
+      const selected = availableDepartamentos.find(
+        (dept) => dept.departamento?.toString() === selectedId
+      );
+
+      if (selected) {
+        setActiveDepartamento(selected);
+      }
+  }
+
   const handleLogout = () => {
     setIsLoading(true)
     try {
@@ -74,30 +92,23 @@ export function Sidebar() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="departamentoId" className="text-sm font-semibold">
-              Departamento *
-            </Label>
-            <Select
-              value={activeDepartamento?.departamento ?? ""}
-              onValueChange={(e) => setActiveDepartamento(
-                availableDepartamentos.find(dept => dept.departamento!.toString() === e)!
-              )}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableDepartamentos?.map((departamento) => (
-                  <SelectItem key={departamento.id} value={departamento.departamento!.toString()}>
-                    {departamento.departamento}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2 p-4 border-b border-sidebar-border/50">
+          <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-4">
+            Departamento
+          </h2>
+          <select
+            id="departamentoId"
+            name="departamentoId"
+            value={activeDepartamento?.departamento ?? "Seleccionar departamento..."}
+            onChange={handleDptoChange}
+            className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 text-sidebar-primary-foreground"
+          >
+            {availableDepartamentos.map((departamento) => (
+              <option key={departamento.id} value={departamento.departamento!.toString()} className="text-sidebar-foreground bg-sidebar-primary hover:bg-sidebar-accent/20 border-transparent hover:border-sidebar-accent/30">
+                {departamento.departamento}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Role Selector */}

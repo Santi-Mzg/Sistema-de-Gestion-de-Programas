@@ -82,12 +82,12 @@ export default function LoginPage() {
               {/* Legajo Field */}
               <div className="space-y-2">
                 <label htmlFor="legajo" className="text-sm font-medium text-foreground">
-                  Correo Electrónico
+                  Número de Legajo
                 </label>
                 <Input
                   id="legajo"
                   type="legajo"
-                  placeholder="correo@uns.edu.ar"
+                  placeholder="12345"
                   {...register("legajo")}
                   disabled={isLoading}
                   className="border-2"
