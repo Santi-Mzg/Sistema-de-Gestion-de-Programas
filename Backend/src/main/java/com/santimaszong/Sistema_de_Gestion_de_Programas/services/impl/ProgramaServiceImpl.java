@@ -5,7 +5,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaAdministradorMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaProfesorMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
@@ -24,42 +23,33 @@ import java.util.stream.Collectors;
 public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
-    private final HistorialRepository historialRepository;
     private final MateriaRepository materiaRepository;
     private final UserRepository userRepository;
     private final CarreraRepository carreraRepository;
-    private final ProgramaCarreraRepository programaCarreraRepository;
     private final UsuarioDepartamentoRepository udeRepo;
 
 
     private final ProgramaResponseMapper responseMapper;
     private final ProgramaCargaAdministradorMapper adminMapper;
-    private final ProgramaCargaProfesorMapper profesorMapper;
     private final ProgramaCarreraMapper programaCarreraMapper;
 
 
     public ProgramaServiceImpl(ProgramaRepository programaRepository,
-                               HistorialRepository historialRepository,
                                MateriaRepository materiaRepository,
                                UserRepository userRepository,
                                CarreraRepository carreraRepository,
-                               ProgramaCarreraRepository programaCarreraRepository,
                                UsuarioDepartamentoRepository udeRepo,
                                ProgramaResponseMapper responseMapper,
                                ProgramaCargaAdministradorMapper adminMapper,
-                               ProgramaCargaProfesorMapper profesorMapper,
                                ProgramaCarreraMapper programaCarreraMapper) {
 
         this.programaRepository = programaRepository;
         this.materiaRepository = materiaRepository;
         this.userRepository = userRepository;
         this.carreraRepository = carreraRepository;
-        this.programaCarreraRepository = programaCarreraRepository;
-        this.historialRepository = historialRepository;
         this.udeRepo = udeRepo;
         this.responseMapper = responseMapper;
         this.adminMapper = adminMapper;
-        this.profesorMapper = profesorMapper;
         this.programaCarreraMapper = programaCarreraMapper;
     }
 
@@ -338,11 +328,11 @@ public class ProgramaServiceImpl implements ProgramaService {
         EstadoPrograma nuevoEstado = programa.getEstadoActual();
 
         switch (destinoRechazo) {
-            case Rol.ADMINISTRATIVO:
+            case Rol.ADMINISTRACION:
                 nuevoEstado = EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
                 break;
 
-            case Rol.PROFESOR:
+            case Rol.DOCENTE:
                 nuevoEstado = EstadoPrograma.RECHAZADO_A_PROFESOR;
                 break;
 

@@ -3,12 +3,10 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.WhereJoinTable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity

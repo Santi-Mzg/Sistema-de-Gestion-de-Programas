@@ -3,9 +3,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

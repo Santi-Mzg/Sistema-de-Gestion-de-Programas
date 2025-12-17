@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DepartamentoCreateDTO, UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
+import { useCreateUser } from "@/app/api/generated/client"
 
 const AVAILABLE_ROLES = Object.values(UserCreateDTORolesItem).map((value) => ({
   value,
@@ -21,7 +22,6 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
   const [formData, setFormData] = useState<UserCreateDTO>({
     nombre: "",
     apellido: "",
-    dni: "",
     legajo: "",
     email: "",
     roles: [],
@@ -65,7 +65,6 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
     setFormData({
       nombre: "",
       apellido: "",
-      dni: "",
       legajo: "",
       email: "",
       roles: [],
@@ -120,20 +119,6 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
               onChange={handleChange}
               placeholder="usuario@uns.edu.ar"
               required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dni" className="text-sm font-semibold">
-              DNI
-            </Label>
-            <Input
-              id="dni"
-              name="dni"
-              value={formData.dni}
-              onChange={handleChange}
-              placeholder="Ej: 12345678"
               className="border-2 border-border focus:border-primary"
             />
           </div>

@@ -3,8 +3,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 
-import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
     UserResponseDTO createUser(UserCreateDTO user);

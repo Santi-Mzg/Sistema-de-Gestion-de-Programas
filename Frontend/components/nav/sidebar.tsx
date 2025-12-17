@@ -1,12 +1,15 @@
 "use client"
 
 import { Users, BookOpen, Settings, LogOut, Home, ChevronRight, Building2, BookMarked, User } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { AuthContext } from "@/context/auth-context";
+import { useDept } from "@/context/dept-context";
+import { Label } from "@radix-ui/react-label";
 
 const menuConfig = {
   ADMINISTRATIVO: [
@@ -34,6 +37,7 @@ const menuConfig = {
 export function Sidebar() {
   const { logout } = useContext(AuthContext);
   const { availableRoles, activeRole, setActiveRole } = useRole();
+  const { availableDepartamentos, activeDepartamento, setActiveDepartamento } = useDept();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false)
   const options = menuConfig[activeRole as keyof typeof menuConfig] ?? [];
@@ -70,13 +74,39 @@ export function Sidebar() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="departamentoId" className="text-sm font-semibold">
+              Departamento *
+            </Label>
+            <Select
+              value={activeDepartamento?.departamento ?? ""}
+              onValueChange={(e) => setActiveDepartamento(
+                availableDepartamentos.find(dept => dept.departamento!.toString() === e)!
+              )}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar departamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableDepartamentos?.map((departamento) => (
+                  <SelectItem key={departamento.id} value={departamento.departamento!.toString()}>
+                    {departamento.departamento}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Role Selector */}
         <div className="p-4">
           <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-4">
             Seleccionar Rol
           </h2>
           <div className="space-y-2">
-            {availableRoles.filter((role) => role !== "ADMIN").map((role) => (
+            {availableRoles.map((role) => (
               <button
                 key={role}
                 value={role}

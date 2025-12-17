@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const loginSchema = z.object({
-  email: z.string().min(1, "El correo electrónico es requerido").email("Ingresa un correo electrónico válido"),
+  legajo: z.string().min(1, "El legajo es requerido").regex(/^\d+$/, "El legajo solo debe contener números"),
   password: z.string().min(1, "La contraseña es requerida").min(5, "La contraseña debe tener al menos 6 caracteres"),
 })
 

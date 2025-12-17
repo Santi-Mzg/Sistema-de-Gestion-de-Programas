@@ -15,7 +15,6 @@ export interface DepartamentoResponseDTO {
   cuerpo?: string;
   email?: string;
   sitioWeb?: string;
-  administracion?: string[];
   secretaria?: string;
   carreras?: CarreraResponseDTO[];
   areas?: AreaResponseDTO[];

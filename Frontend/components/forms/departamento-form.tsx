@@ -21,8 +21,6 @@ export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
     cuerpo: "",
     email: "",
     sitioWeb: "",
-    administracionIds: [],
-    secretariaId: undefined,
   })
 
     const { mutate, isPending } = useCreateDepartamento({
@@ -60,8 +58,6 @@ export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
       cuerpo: "",
       email: "",
       sitioWeb: "",
-      administracionIds: [],
-      secretariaId: undefined,
     })
   }
 

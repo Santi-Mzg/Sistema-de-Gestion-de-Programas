@@ -5,7 +5,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Prog
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;

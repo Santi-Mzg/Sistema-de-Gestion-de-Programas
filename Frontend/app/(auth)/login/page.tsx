@@ -31,7 +31,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const requestData: LoginRequest = {
-        email: formData.email,
+        legajo: formData.legajo,
         password: formData.password,
       }
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {backendError && (
                 <div className="flex gap-3 p-3 bg-destructive/10 border-2 border-destructive rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-destructive">Credenciales inválidas</p>
                     <p className="text-xs text-destructive/90">{backendError}</p>
@@ -79,22 +79,22 @@ export default function LoginPage() {
                 </div>
               )}
               
-              {/* Email Field */}
+              {/* Legajo Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
+                <label htmlFor="legajo" className="text-sm font-medium text-foreground">
                   Correo Electrónico
                 </label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="legajo"
+                  type="legajo"
                   placeholder="correo@uns.edu.ar"
-                  {...register("email")}
+                  {...register("legajo")}
                   disabled={isLoading}
                   className="border-2"
-                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-invalid={errors.legajo ? "true" : "false"}
                   required
                 />
-                {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                {errors.legajo && <p className="text-xs text-destructive">{errors.legajo.message}</p>}
               </div>
 
               {/* Password Field */}

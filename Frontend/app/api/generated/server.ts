@@ -9,8 +9,10 @@ import type {
   AreaResponseDTO,
   CarreraCreateDTO,
   CarreraResponseDTO,
+  CarreraUpdateComisionDTO,
   DepartamentoCreateDTO,
   DepartamentoResponseDTO,
+  DepartamentoUpdateCargoDTO,
   EstadoUpdateDTO,
   LoginRequest,
   MateriaCreateDTO,
@@ -320,39 +322,6 @@ export const deleteArea = async (id: number, options?: RequestInit): Promise<del
   {      
     ...options,
     method: 'DELETE'
-    
-    
-  }
-);}
-
-
-
-export type listUsersResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listUsersResponseSuccess = (listUsersResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listUsersResponse = (listUsersResponseSuccess)
-
-export const getListUsersUrl = () => {
-
-
-  
-
-  return `/api/usuarios`
-}
-
-export const listUsers = async ( options?: RequestInit): Promise<listUsersResponse> => {
-  
-  return customFetch<listUsersResponse>(getListUsersUrl(),
-  {      
-    ...options,
-    method: 'GET'
     
     
   }
@@ -1036,19 +1005,19 @@ export const updateDepartamento = async (id: number,
 
 
 
-export type updateSecretarioDepartamentoResponse200 = {
+export type updateSecretariaResponse200 = {
   data: DepartamentoResponseDTO
   status: 200
 }
     
-export type updateSecretarioDepartamentoResponseSuccess = (updateSecretarioDepartamentoResponse200) & {
+export type updateSecretariaResponseSuccess = (updateSecretariaResponse200) & {
   headers: Headers;
 };
 ;
 
-export type updateSecretarioDepartamentoResponse = (updateSecretarioDepartamentoResponseSuccess)
+export type updateSecretariaResponse = (updateSecretariaResponseSuccess)
 
-export const getUpdateSecretarioDepartamentoUrl = (id: number,) => {
+export const getUpdateSecretariaUrl = (id: number,) => {
 
 
   
@@ -1056,16 +1025,51 @@ export const getUpdateSecretarioDepartamentoUrl = (id: number,) => {
   return `/api/departamentos/cambiar_secretaria/${id}`
 }
 
-export const updateSecretarioDepartamento = async (id: number,
-    departamentoCreateDTO: DepartamentoCreateDTO, options?: RequestInit): Promise<updateSecretarioDepartamentoResponse> => {
+export const updateSecretaria = async (id: number,
+    departamentoUpdateCargoDTO: DepartamentoUpdateCargoDTO, options?: RequestInit): Promise<updateSecretariaResponse> => {
   
-  return customFetch<updateSecretarioDepartamentoResponse>(getUpdateSecretarioDepartamentoUrl(id),
+  return customFetch<updateSecretariaResponse>(getUpdateSecretariaUrl(id),
   {      
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      departamentoCreateDTO,)
+      departamentoUpdateCargoDTO,)
+  }
+);}
+
+
+
+export type updateDireccionAdministrativaResponse200 = {
+  data: DepartamentoResponseDTO
+  status: 200
+}
+    
+export type updateDireccionAdministrativaResponseSuccess = (updateDireccionAdministrativaResponse200) & {
+  headers: Headers;
+};
+;
+
+export type updateDireccionAdministrativaResponse = (updateDireccionAdministrativaResponseSuccess)
+
+export const getUpdateDireccionAdministrativaUrl = (id: number,) => {
+
+
+  
+
+  return `/api/departamentos/cambiar_direccion_administrativa/${id}`
+}
+
+export const updateDireccionAdministrativa = async (id: number,
+    departamentoUpdateCargoDTO: DepartamentoUpdateCargoDTO, options?: RequestInit): Promise<updateDireccionAdministrativaResponse> => {
+  
+  return customFetch<updateDireccionAdministrativaResponse>(getUpdateDireccionAdministrativaUrl(id),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      departamentoUpdateCargoDTO,)
   }
 );}
 
@@ -1207,19 +1211,19 @@ export const updateCarrera = async (id: number,
 
 
 
-export type updateComisionCarreraResponse200 = {
+export type updateComisionResponse200 = {
   data: CarreraResponseDTO
   status: 200
 }
     
-export type updateComisionCarreraResponseSuccess = (updateComisionCarreraResponse200) & {
+export type updateComisionResponseSuccess = (updateComisionResponse200) & {
   headers: Headers;
 };
 ;
 
-export type updateComisionCarreraResponse = (updateComisionCarreraResponseSuccess)
+export type updateComisionResponse = (updateComisionResponseSuccess)
 
-export const getUpdateComisionCarreraUrl = (id: number,) => {
+export const getUpdateComisionUrl = (id: number,) => {
 
 
   
@@ -1227,148 +1231,16 @@ export const getUpdateComisionCarreraUrl = (id: number,) => {
   return `/api/carreras/cambiar_comision/${id}`
 }
 
-export const updateComisionCarrera = async (id: number,
-    carreraCreateDTO: CarreraCreateDTO, options?: RequestInit): Promise<updateComisionCarreraResponse> => {
+export const updateComision = async (id: number,
+    carreraUpdateComisionDTO: CarreraUpdateComisionDTO, options?: RequestInit): Promise<updateComisionResponse> => {
   
-  return customFetch<updateComisionCarreraResponse>(getUpdateComisionCarreraUrl(id),
+  return customFetch<updateComisionResponse>(getUpdateComisionUrl(id),
   {      
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      carreraCreateDTO,)
-  }
-);}
-
-
-
-export type listSecretariosResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listSecretariosResponseSuccess = (listSecretariosResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listSecretariosResponse = (listSecretariosResponseSuccess)
-
-export const getListSecretariosUrl = () => {
-
-
-  
-
-  return `/api/usuarios/secretarios`
-}
-
-export const listSecretarios = async ( options?: RequestInit): Promise<listSecretariosResponse> => {
-  
-  return customFetch<listSecretariosResponse>(getListSecretariosUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export type listProfesoresResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listProfesoresResponseSuccess = (listProfesoresResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listProfesoresResponse = (listProfesoresResponseSuccess)
-
-export const getListProfesoresUrl = () => {
-
-
-  
-
-  return `/api/usuarios/profesores`
-}
-
-export const listProfesores = async ( options?: RequestInit): Promise<listProfesoresResponse> => {
-  
-  return customFetch<listProfesoresResponse>(getListProfesoresUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export type listCoordinadoresResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listCoordinadoresResponseSuccess = (listCoordinadoresResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listCoordinadoresResponse = (listCoordinadoresResponseSuccess)
-
-export const getListCoordinadoresUrl = () => {
-
-
-  
-
-  return `/api/usuarios/coordinadores`
-}
-
-export const listCoordinadores = async ( options?: RequestInit): Promise<listCoordinadoresResponse> => {
-  
-  return customFetch<listCoordinadoresResponse>(getListCoordinadoresUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export type listAdministrativosResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listAdministrativosResponseSuccess = (listAdministrativosResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listAdministrativosResponse = (listAdministrativosResponseSuccess)
-
-export const getListAdministrativosUrl = () => {
-
-
-  
-
-  return `/api/usuarios/administrativos`
-}
-
-export const listAdministrativos = async ( options?: RequestInit): Promise<listAdministrativosResponse> => {
-  
-  return customFetch<listAdministrativosResponse>(getListAdministrativosUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
+      carreraUpdateComisionDTO,)
   }
 );}
 

@@ -1,32 +1,26 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
+import org.springframework.stereotype.Service;
+
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import jakarta.persistence.EntityNotFoundException;
+
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final DepartamentoRepository departamentoRepository;
-    private final CarreraRepository carreraRepository;
 
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, DepartamentoRepository departamentoRepository, CarreraRepository carreraRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
-        this.departamentoRepository = departamentoRepository;
-        this.carreraRepository = carreraRepository;
         this.userMapper = userMapper;
     }
 
@@ -65,7 +59,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO getUserById(Long id) {
         UserEntity foundUser = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));;
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
 
         return userMapper.toDTO(foundUser);
     }

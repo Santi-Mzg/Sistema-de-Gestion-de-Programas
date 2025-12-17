@@ -11,6 +11,4 @@ export interface DepartamentoCreateDTO {
   cuerpo?: string;
   email?: string;
   sitioWeb?: string;
-  administracionIds?: number[];
-  secretariaId?: number;
 }

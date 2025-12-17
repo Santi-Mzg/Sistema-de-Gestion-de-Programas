@@ -1,19 +1,23 @@
+"use client"
+
+import { useListCarreras, useListDepartamentos } from "@/app/api/generated/client";
 import { CarreraResponseDTO, DepartamentoResponseDTO, UserResponseDTO } from "@/app/api/generated/model";
-import { listDepartamentos, listCarreras, listProfesores } from "@/app/api/generated/server";
 import { SyllabusAdministrativoForm } from "@/components/forms/programa-administracion-form";
 
 
-export default async function CrearPrograma() {
+export default function CrearPrograma() {
 
-  const departamentosDisponibles: DepartamentoResponseDTO[] = (await listDepartamentos()).data;
-  const carrerasDisponibles: CarreraResponseDTO[] = (await listCarreras()).data;
-  const profesoresDisponibles: UserResponseDTO[] = (await listProfesores()).data;
+  // const departamentosDisponibles: DepartamentoResponseDTO[] = (await listDepartamentos()).data;
+  const departamentosDisponibles: DepartamentoResponseDTO[] =  useListDepartamentos().data || [];
 
-  console.log("DEPARTAMENTOS RAW:", departamentosDisponibles);
-  console.log("CARRERAS RAW:", carrerasDisponibles);
-  console.log("PROFESORES RAW:", profesoresDisponibles);
+
+  // const carrerasDisponibles: CarreraResponseDTO[] = (await listCarreras()).data;
+  const carrerasDisponibles: CarreraResponseDTO[] = useListCarreras().data || [];
+
+  // const profesoresDisponibles: UserResponseDTO[] = (await listProfesores()).data;
+
   
     return (
-      <SyllabusAdministrativoForm departamentosDisponibles={departamentosDisponibles} carrerasDisponibles={carrerasDisponibles} profesoresDisponibles={profesoresDisponibles} />
+      <SyllabusAdministrativoForm departamentosDisponibles={departamentosDisponibles} carrerasDisponibles={carrerasDisponibles} profesoresDisponibles={[]} />
     );
 }

@@ -5,7 +5,6 @@
  * OpenAPI spec version: v0
  */
 
-export interface LoginRequest {
-  legajo?: string;
-  password?: string;
+export interface DepartamentoUpdateCargoDTO {
+  usuarioId?: number;
 }

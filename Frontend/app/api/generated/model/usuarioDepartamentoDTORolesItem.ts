@@ -5,14 +5,13 @@
  * OpenAPI spec version: v0
  */
 
-export type UserCreateDTORolesItem = typeof UserCreateDTORolesItem[keyof typeof UserCreateDTORolesItem];
+export type UsuarioDepartamentoDTORolesItem = typeof UsuarioDepartamentoDTORolesItem[keyof typeof UsuarioDepartamentoDTORolesItem];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UserCreateDTORolesItem = {
-  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
-  ADMINISTRATIVO: 'ADMINISTRATIVO',
-  PROFESOR: 'PROFESOR',
+export const UsuarioDepartamentoDTORolesItem = {
+  ADMINISTRACION: 'ADMINISTRACION',
+  DOCENTE: 'DOCENTE',
   COORDINACION_COMISION_CURRICULAR: 'COORDINACION_COMISION_CURRICULAR',
   SECRETARIA: 'SECRETARIA',
   DIRECCION_ADMINISTRATIVA: 'DIRECCION_ADMINISTRATIVA',

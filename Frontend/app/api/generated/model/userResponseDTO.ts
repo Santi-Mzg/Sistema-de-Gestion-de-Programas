@@ -4,18 +4,13 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { UserResponseDTORolesItem } from './userResponseDTORolesItem';
+import type { UsuarioDepartamentoDTO } from './usuarioDepartamentoDTO';
 
 export interface UserResponseDTO {
   id?: number;
   nombre?: string;
   apellido?: string;
   legajo?: string;
-  email?: string;
-  departamentoAdministracion?: string;
-  departamentoSecretaria?: string;
-  carreraComoComision?: string;
-  carreraComoProfesor?: string;
-  materiasComoProfesor?: string[];
-  roles?: UserResponseDTORolesItem[];
+  isAdmin?: boolean;
+  departamentos?: UsuarioDepartamentoDTO[];
 }

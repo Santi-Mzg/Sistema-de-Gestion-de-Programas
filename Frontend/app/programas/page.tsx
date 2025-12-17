@@ -1,8 +1,10 @@
-import { ProgramasList } from "@/components/pages/programas-list";
-import { listProgramas } from "../api/generated/server";
-import { ProgramaResponseDTO } from "../api/generated/model";
+"use client"
 
-export default async function Programas() {
+import { ProgramasList } from "@/components/pages/programas-list";
+import { ProgramaResponseDTO } from "../api/generated/model";
+import { useListProgramas } from "../api/generated/client";
+
+export default function Programas() {
 
   // props: {
   //   searchParams?: Promise<{
@@ -19,7 +21,7 @@ export default async function Programas() {
   // const { programas, total } = await getProgramasByPage(currentPage, PRODUCTS_PER_PAGE, searchTerm)
   // const totalPages = Math.ceil(total / PROGRAMAS_PER_PAGE)
 
-    const programas: ProgramaResponseDTO[] = (await listProgramas()).data;
+    const programas: ProgramaResponseDTO[] = useListProgramas().data || [];
 
     return (
       <ProgramasList programas={programas} />

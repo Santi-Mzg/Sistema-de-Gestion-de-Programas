@@ -3,7 +3,6 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraUpdateComisionDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoUpdateCargoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
@@ -30,16 +29,14 @@ public class CarreraServiceImpl implements CarreraService {
     private final CarreraRepository carreraRepository;
     private final DepartamentoRepository departamentoRepository;
     private final UserRepository userRepository;
-    private final UsuarioDepartamentoRepository userDptoRepository;
     private final CarreraMapper carreraMapper;
     private final MateriaMapper materiaMapper;
 
 
-    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoRepository departamentoRepository, UserRepository userRepository, UsuarioDepartamentoRepository userDptoRepository, CarreraMapper carreraMapper, MateriaMapper materiaMapper) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoRepository departamentoRepository, UserRepository userRepository, CarreraMapper carreraMapper, MateriaMapper materiaMapper) {
         this.carreraRepository = carreraRepository;
         this.departamentoRepository = departamentoRepository;
         this.userRepository = userRepository;
-        this.userDptoRepository = userDptoRepository;
         this.carreraMapper = carreraMapper;
         this.materiaMapper = materiaMapper;
     }

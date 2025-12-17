@@ -92,7 +92,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {backendError && (
                 <div className="flex gap-3 p-3 bg-destructive/10 border-2 border-destructive rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-destructive">Error en el inicio de sesión</p>
                     <p className="text-xs text-destructive/90">{backendError}</p>
@@ -316,9 +316,9 @@ function RequirementItem({ met, text }: { met: boolean; text: string }) {
   return (
     <div className="flex items-center gap-2">
       {met ? (
-        <Check size={16} className="text-green-600 flex-shrink-0" />
+        <Check size={16} className="text-green-600 shrink-0" />
       ) : (
-        <X size={16} className="text-muted-foreground flex-shrink-0" />
+        <X size={16} className="text-muted-foreground shrink-0" />
       )}
       <span className={`text-xs ${met ? "text-foreground" : "text-muted-foreground"}`}>{text}</span>
     </div>

@@ -1,13 +1,12 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 
+import java.util.List;
+
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
-
-import java.util.List;
 
 public interface ProgramaService {
     ProgramaResponseDTO createPrograma(ProgramaCargaAdministrativoDTO programa);

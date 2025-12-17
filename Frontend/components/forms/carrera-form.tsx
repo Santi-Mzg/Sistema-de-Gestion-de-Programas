@@ -19,8 +19,7 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
     codigo: "",
     nombre: "",
     duracion: "",
-    cantidadMaterias: undefined,
-    materiasIds: [],
+    // cantidadMaterias: undefined,
     departamentoId: undefined,
   })
 
@@ -61,8 +60,7 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
       codigo: "",
       nombre: "",
       duracion: "",
-      cantidadMaterias: undefined,
-      materiasIds: [],
+      // cantidadMaterias: undefined,
       departamentoId: undefined,
     })
   }
@@ -117,7 +115,7 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="cantidadMaterias" className="text-sm font-semibold">
               Cantidad de Materias
             </Label>
@@ -130,7 +128,7 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
               placeholder="Ej: 40"
               className="border-2 border-border focus:border-primary"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

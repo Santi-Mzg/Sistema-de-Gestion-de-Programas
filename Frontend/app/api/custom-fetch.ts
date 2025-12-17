@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
+import { getJwtCookie } from '@/lib/server-utils';
 
-export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
 
 
 
@@ -8,8 +8,10 @@ export async function customFetch<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-  const cookieStore = await cookies();
-  const jwt = cookieStore.get('jwt')?.value;
+  // const cookieStore = await cookies();
+  // const jwt = cookieStore.get('jwt')?.value;
+
+  const jwt = getJwtCookie();
 
   const res = await fetch(`${BASE_URL}${url}`, {
     ...options,

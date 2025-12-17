@@ -9,7 +9,5 @@ export interface CarreraCreateDTO {
   codigo?: string;
   nombre?: string;
   duracion?: string;
-  cantidadMaterias?: number;
-  materiasIds?: number[];
   departamentoId?: number;
 }
