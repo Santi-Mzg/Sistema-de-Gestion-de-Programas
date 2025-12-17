@@ -1,15 +1,15 @@
 "use client"
 
-import { Users, BookOpen, Settings, LogOut, Home, ChevronRight, Building2, BookMarked, User } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { LogOut, ChevronRight, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRole } from "@/context/role-context";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { AuthContext } from "@/context/auth-context";
-import { useDept } from "@/context/dept-context";
-import { Label } from "@radix-ui/react-label";
+import { useRole } from "@/context/role-context"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useContext, useState } from "react"
+import { AuthContext } from "@/context/auth-context"
+import { useDept } from "@/context/dept-context"
+import { DepartamentoSelectorDialog } from "@/components/modals/departamento-selector-dialog"
+import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 
 const menuConfig = {
   ADMINISTRATIVO: [
@@ -32,137 +32,145 @@ const menuConfig = {
     { label: "Programas", href: "/programas" },
     { label: "Inscripciones", href: "/inscripciones" },
   ],
-};
+}
+
+const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
+  const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
+    SYSTEM_ADMIN: "Admin",
+    ADMINISTRACION: "Administración",
+    DOCENTE: "Docente",
+    COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
+    SECRETARIA: "Secretaría",
+    DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
+  }
+  return roleLabels[role] || role
+}
 
 export function Sidebar() {
-  const { logout } = useContext(AuthContext);
-  const { availableRoles, activeRole, setActiveRole } = useRole();
-  const { availableDepartamentos, activeDepartamento, setActiveDepartamento } = useDept();
-  const router = useRouter();
+  const { logout } = useContext(AuthContext)
+  const { availableRoles, activeRole, setActiveRole } = useRole()
+  const { availableDepartamentos, activeDepartamento, setActiveDepartamento } = useDept()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const options = menuConfig[activeRole as keyof typeof menuConfig] ?? [];
+  const [isDeptDialogOpen, setIsDeptDialogOpen] = useState(false)
 
+  const options = menuConfig[activeRole as keyof typeof menuConfig] ?? []
 
+  const handleDptoChange = (deptId: string) => {
+    if (!deptId) return
 
-  const handleDptoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    console.log("Selected Departamento ID:", selectedId);
-      if (!selectedId) {
-        // Aquí podrías decidir si quieres permitir que sea null o no
-        return;
-      }
+    const selected = availableDepartamentos.find((dept) => dept.departamento?.toString() === deptId)
 
-      const selected = availableDepartamentos.find(
-        (dept) => dept.departamento?.toString() === selectedId
-      );
-
-      if (selected) {
-        setActiveDepartamento(selected);
-      }
+    if (selected) {
+      setActiveDepartamento(selected)
+    }
   }
 
   const handleLogout = () => {
     setIsLoading(true)
     try {
       logout()
-      
       router.push("/login")
-
     } catch (err) {
-      console.error("Error al registrarse:", err)
+      console.error("Error al cerrar sesión:", err)
     } finally {
       setIsLoading(false)
     }
   }
 
-
   return (
-    <aside className="fixed w-64 top-0 left-0 z-30 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-screen overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-sidebar-border/50">
-        <Link href="/">
-          <div className="flex items-center justify-center">
-            <h1 className="text-3xl font-bold">SyllabUNS</h1>
-            <img src="/uns_pluma_v3.png" alt="Logo UNS" className="h-11 ml-1" />
-          </div>
-        </Link>
-        <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de Gestión de Programas</p>
-      </div>
+    <>
+      <DepartamentoSelectorDialog
+        open={isDeptDialogOpen}
+        onOpenChange={setIsDeptDialogOpen}
+        availableDepartamentos={availableDepartamentos}
+        activeDepartamento={activeDepartamento}
+        onSelectDepartamento={handleDptoChange}
+      />
 
-
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="space-y-2 p-4 border-b border-sidebar-border/50">
-          <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-4">
-            Departamento
-          </h2>
-          <select
-            id="departamentoId"
-            name="departamentoId"
-            value={activeDepartamento?.departamento ?? "Seleccionar departamento..."}
-            onChange={handleDptoChange}
-            className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 text-sidebar-primary-foreground"
-          >
-            {availableDepartamentos.map((departamento) => (
-              <option key={departamento.id} value={departamento.departamento!.toString()} className="text-sidebar-foreground bg-sidebar-primary hover:bg-sidebar-accent/20 border-transparent hover:border-sidebar-accent/30">
-                {departamento.departamento}
-              </option>
-            ))}
-          </select>
+      <aside className="fixed w-64 top-0 left-0 z-30 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-screen">
+        {/* Header */}
+        <div className="p-4 border-b border-sidebar-border/50 flex-shrink-0">
+          <Link href="/">
+            <div className="flex items-center justify-center">
+              <h1 className="text-2xl font-bold">SyllabUNS</h1>
+              <img src="/uns_pluma_v3.png" alt="Logo UNS" className="h-9 ml-1" />
+            </div>
+          </Link>
+          <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de Gestión de Programas</p>
         </div>
 
-        {/* Role Selector */}
-        <div className="p-4">
-          <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-4">
-            Seleccionar Rol
-          </h2>
-          <div className="space-y-2">
-            {availableRoles.map((role) => (
-              <button
-                key={role}
-                value={role}
-                onClick={() => setActiveRole(role)}
-                className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-sm font-medium border ${
-                  activeRole === role
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-primary shadow-md"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/20 border-transparent hover:border-sidebar-accent/30"
-                }`}
-              >
-                <span className="flex-1 text-left">{role}</span>
-                {activeRole === role && <ChevronRight size={16} />}
-              </button>
-            ))}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="p-4 border-b border-sidebar-border/50">
+            <button
+              onClick={() => setIsDeptDialogOpen(true)}
+              className="w-full p-3 rounded-lg border border-sidebar-border bg-sidebar-accent/10 hover:bg-sidebar-accent/20 transition-colors flex items-center gap-3"
+            >
+              <Building2 size={18} className="text-sidebar-foreground/70 flex-shrink-0" />
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-xs text-sidebar-foreground/60">Departamento</p>
+                <p className="text-sm font-medium text-sidebar-foreground">
+                  {activeDepartamento?.departamento || "Seleccionar"}
+                </p>
+              </div>
+              <ChevronRight size={16} className="text-sidebar-foreground/50 flex-shrink-0" />
+            </button>
           </div>
-        </div>
 
-
-        <div className="p-4 border-t border-sidebar-border/50">
-          <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-4">Acciones</h2>
-          <div className="space-y-2">
-            {options.map((item) => (
-              <Link href={item.href} key={item.href}>
+          {/* Role Selector */}
+          <div className="p-4">
+            <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-3">
+              Seleccionar Rol
+            </h2>
+            <div className="space-y-1.5">
+              {availableRoles.map((role) => (
                 <button
-                  className="w-full px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all text-xs font-medium text-sidebar-foreground hover:bg-sidebar-accent/30 border border-transparent hover:border-sidebar-accent/40"
+                  key={role}
+                  onClick={() => setActiveRole(role)}
+                  className={`w-full px-3 py-2.5 rounded-md flex items-center gap-2 transition-all text-sm font-medium ${
+                    activeRole === role
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/20"
+                  }`}
                 >
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className="flex-1 text-left truncate">{getRoleLabel(role)}</span>
+                  {activeRole === role && <ChevronRight size={14} className="flex-shrink-0" />}
                 </button>
-              </Link>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          {/* Actions Menu */}
+          <div className="px-4 pb-4 border-t border-sidebar-border/50">
+            <h2 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wide mb-3 mt-4">
+              Acciones
+            </h2>
+            <div className="space-y-1">
+              {options.map((item) => (
+                <Link href={item.href} key={item.href}>
+                  <button className="w-full px-3 py-2 rounded-md flex items-center gap-2 transition-all text-sm text-sidebar-foreground hover:bg-sidebar-accent/20">
+                    <span className="flex-1 text-left truncate">{item.label}</span>
+                  </button>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-sidebar-border/50 space-y-2">
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-2 text-sidebar-foreground border-sidebar-border hover:bg-destructive/10 bg-transparent"
-          onClick={handleLogout}
-        >
-          <LogOut size={16} />
-          <span className="text-xs">Cerrar Sesión</span>
-        </Button>
-      </div>
-    </aside>
+        {/* Footer */}
+        <div className="p-3 border-t border-sidebar-border/50 flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start gap-2 text-sidebar-foreground border-sidebar-border hover:bg-destructive/10 bg-transparent"
+            onClick={handleLogout}
+            disabled={isLoading}
+          >
+            <LogOut size={14} />
+            <span className="text-xs">{isLoading ? "Cerrando..." : "Cerrar Sesión"}</span>
+          </Button>
+        </div>
+      </aside>
+    </>
   )
 }
