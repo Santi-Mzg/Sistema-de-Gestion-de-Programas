@@ -24,7 +24,7 @@ HELP.md
 /Frontend/coverage
 
 # next.js build
-/Frontend/.next/  # <--- CRUCIAL: Apuntando a la carpeta de compilación
+/Frontend/.next/
 /Frontend/out/
 /Frontend/build
 
@@ -36,7 +36,7 @@ HELP.md
 
 # env files (deben estar en la carpeta Frontend/ si se usan)
 /Frontend/.env*
-.env # Por si lo tienes en la raíz
+.env
 
 # vercel
 .vercel
