@@ -36,7 +36,7 @@ useEffect(() => {
     let roles: UsuarioDepartamentoDTORolesItem[] = [];
 
     if (user.isAdmin) {
-      roles = ["ADMINISTRACION", "DOCENTE", "COORDINACION_COMISION_CURRICULAR", "SECRETARIA", "DIRECCION_ADMINISTRATIVA"];
+      roles = ["SYSTEM_ADMIN", "ADMINISTRACION", "DOCENTE", "COORDINACION_COMISION_CURRICULAR", "SECRETARIA", "DIRECCION_ADMINISTRATIVA"];
     } else if (user.departamentos && user.departamentos.length > 0) {
       roles = user.departamentos[0].roles as UsuarioDepartamentoDTORolesItem[];
     }

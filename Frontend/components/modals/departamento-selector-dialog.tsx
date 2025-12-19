@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 interface DepartamentoSelectorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  availableDepartamentos: Array<{ id?: number; departamento?: string }>
-  activeDepartamento: { id?: number; departamento?: string } | null
+  availableDepartamentos: Array<{ departamentoId?: number; departamentoNombre?: string }>
+  activeDepartamento: { departamentoId?: number; departamentoNombre?: string } | null
   onSelectDepartamento: (deptId: string) => void
 }
 
@@ -21,7 +21,7 @@ export function DepartamentoSelectorDialog({
   activeDepartamento,
   onSelectDepartamento,
 }: DepartamentoSelectorDialogProps) {
-  const [selectedDept, setSelectedDept] = useState<string>(activeDepartamento?.departamento?.toString() || "")
+  const [selectedDept, setSelectedDept] = useState<string>(activeDepartamento?.departamentoNombre?.toString() || "")
 
   const handleConfirm = () => {
     if (selectedDept) {
@@ -46,16 +46,16 @@ export function DepartamentoSelectorDialog({
           <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
             {availableDepartamentos.map((dept) => (
               <button
-                key={dept.id}
-                onClick={() => setSelectedDept(dept.departamento!.toString())}
+                key={dept.departamentoId}
+                onClick={() => setSelectedDept(dept.departamentoNombre!.toString())}
                 className={`w-full px-4 py-3 rounded-lg border-2 flex items-center justify-between transition-all ${
-                  selectedDept === dept.departamento?.toString()
+                  selectedDept === dept.departamentoNombre?.toString()
                     ? "border-primary bg-primary/5 text-primary font-medium"
                     : "border-border hover:border-primary/50 hover:bg-accent/50"
                 }`}
               >
-                <span className="text-sm">{dept.departamento}</span>
-                {selectedDept === dept.departamento?.toString() && <Check className="h-4 w-4" />}
+                <span className="text-sm">{dept.departamentoNombre}</span>
+                {selectedDept === dept.departamentoNombre?.toString() && <Check className="h-4 w-4" />}
               </button>
             ))}
           </div>

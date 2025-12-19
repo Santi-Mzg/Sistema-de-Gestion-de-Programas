@@ -8,13 +8,13 @@ import { SyllabusAdministrativoForm } from "../forms/programa-administracion-for
 import Link from "next/link"
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
 import { useRouter } from "next/navigation"
-import { CarreraResponseDTO, EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model"
+import { CarreraResponseDTO, EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { useRole } from "@/context/role-context"
+import { useDept } from "@/context/dept-context"
+import { useListProgramas } from "@/app/api/generated/client"
 
-interface DashboardProps {
-  programas: ProgramaResponseDTO[]
-}
 
-export function AdministracionDashboard({ programas }: DashboardProps) {
+export function AdministracionDashboard() {
   const [showForm, setShowForm] = useState(false)
   const [syllabuses, setSyllabuses] = useState([
     {
@@ -34,6 +34,15 @@ export function AdministracionDashboard({ programas }: DashboardProps) {
       status: "draft",
     },
   ])
+  const { activeDepartamento } = useDept()
+  const { activeRole } = useRole();
+  
+  const programas: ProgramaResponseDTO[] = useListProgramas({
+      departamentoId: activeDepartamento?.departamentoId,
+      rolActivo: activeRole || UsuarioDepartamentoDTORolesItem.ADMINISTRACION
+  }).data || [];
+
+  const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_ADMINISTRACION);
 
 

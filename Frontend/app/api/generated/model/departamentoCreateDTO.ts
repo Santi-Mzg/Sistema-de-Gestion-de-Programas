@@ -11,4 +11,5 @@ export interface DepartamentoCreateDTO {
   telefono?: string;
   email?: string;
   sitioWeb?: string;
+  dirAdminId?: number;
 }

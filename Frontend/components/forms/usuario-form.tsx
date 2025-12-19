@@ -1,15 +1,22 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DepartamentoCreateDTO, UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
+import { UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
 import { useCreateUser } from "@/app/api/generated/client"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { CreateUserFormData, createUserSchema } from "@/lib/schemas"
+import { useDept } from "@/context/dept-context"
 
-const AVAILABLE_ROLES = Object.values(UserCreateDTORolesItem).map((value) => ({
+
+const ROLES_PERMITIDOS = [
+  UserCreateDTORolesItem.ADMINISTRACION,
+  UserCreateDTORolesItem.DOCENTE
+];
+
+
+const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
   value,
   label: value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " "),
 }));
@@ -19,155 +26,125 @@ interface UsuarioFormProps {
 }
 
 export function UsuarioForm({ onCancel }: UsuarioFormProps) {
-  const [formData, setFormData] = useState<UserCreateDTO>({
-    nombre: "",
-    apellido: "",
-    legajo: "",
-    email: "",
-    roles: [],
+  const { activeDepartamento } = useDept()
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors }, 
+    reset,
+    watch,
+    setValue
+  } = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: { roles: [] }
   })
 
   const { mutate, isPending } = useCreateUser({
-      mutation: {
-        onSuccess: () => {
-          alert("Usuario creado exitosamente!");
-          // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
-        },
-        onError: (error: Error) => {
-          alert(`Error al crear: ${error.message}`);
-        },
-      }
+    mutation: {
+      onSuccess: () => { alert("Éxito"); reset(); },
+      onError: (err: Error) => alert("Error: " + err.message)
+    }
   });
 
-  const handleFormSubmit = (data: DepartamentoCreateDTO) => { 
-    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-    mutate({ data }); 
+  const onSubmit = (formData: CreateUserFormData) => {
+      const requestData: UserCreateDTO = {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        legajo: formData.legajo,
+        email: formData.email,
+        departamentoId: activeDepartamento?.departamentoId || undefined,
+        roles: formData.roles as UserCreateDTORolesItem[],
+      }
+
+    mutate({ data: requestData });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
+  const selectedRoles = watch("roles");
 
-  const handleRoleChange = (role: UserCreateDTORolesItem) => {
-    setFormData((prev) => ({
-      ...prev,
-      roles: prev.roles?.includes(role) ? prev.roles.filter((r) => r !== role) : [...(prev.roles || []), role],
-    }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleFormSubmit(formData)
-    setFormData({
-      nombre: "",
-      apellido: "",
-      legajo: "",
-      email: "",
-      roles: [],
-    })
-  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre
-            </Label>
-            <Input
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              placeholder="Nombre del usuario"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="apellido" className="text-sm font-semibold">
-              Apellido
-            </Label>
-            <Input
-              id="apellido"
-              name="apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              placeholder="Apellido del usuario"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-semibold">
-              Email
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="usuario@uns.edu.ar"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="legajo" className="text-sm font-semibold">
-            Legajo
-          </Label>
-          <Input
-            id="legajo"
-            name="legajo"
-            value={formData.legajo}
-            onChange={handleChange}
-            placeholder="Número de legajo"
-            className="border-2 border-border focus:border-primary"
+   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4 bg-white rounded-lg shadow">
+      
+      {/* INPUT ESTÁNDAR */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="apellido">Apellido</Label>
+          <input 
+            {...register("apellido")} 
+            className={`border p-2 rounded ${errors.apellido ? 'border-red-500' : 'border-gray-300'}`}
           />
+          {errors.apellido && <span className="text-red-500 text-sm">{errors.apellido.message}</span>}
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-sm font-semibold">Roles</Label>
-          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border-2 border-border">
-            {AVAILABLE_ROLES.map(({ value, label }) => (
-              <div key={value} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id={`role-${value}`}
-                  checked={formData.roles?.includes(value) || false}
-                  onChange={() => handleRoleChange(value)}
-                  className="border-2 border-primary"
-                />
-                <label htmlFor={`role-${value}`} className="text-sm cursor-pointer">
-                  {label}
-                </label>
-              </div>
-            ))}
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="nombre">Nombre</Label>
+          <input 
+            {...register("nombre")}
+            className={`border p-2 rounded ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
+          />
+          {errors.nombre && <span className="text-red-500 text-sm">{errors.nombre.message}</span>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="legajo">Legajo</Label>
+          <input 
+            type="text"
+            inputMode="numeric"
+            onKeyDown={(e) => {
+              if (!/[0-9]/.test(e.key) && e.key !== "Backspace" && e.key !== "Tab" && !e.key.includes("Arrow")) {
+                e.preventDefault();
+              }
+            }}
+            {...register("legajo")}
+            className={`border p-2 rounded ${errors.legajo ? 'border-red-500' : 'border-gray-300'}`}
+          />
+          {errors.legajo && <span className="text-red-500 text-sm">{errors.legajo.message}</span>}
         </div>
 
-        <div className="flex gap-3 pt-4">
-          <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-            Crear Usuario
-          </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-              Cancelar
-            </Button>
-          )}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email</Label>
+          <input 
+            type="email"
+            {...register("email")}
+            className="border p-2 rounded border-gray-300"
+          />
+          {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
         </div>
+      </div>
+
+      {/* MANEJO DE ROLES (Checkbox) */}
+      <div className="space-y-3">
+        <Label>Roles</Label>
+        <div className="flex-col space-y-3">
+          {AVAILABLE_ROLES.map(({ value, label }) => (
+            <label key={value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                value={value}
+                checked={selectedRoles?.includes(value)}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  const nextRoles = isChecked
+                    ? [...selectedRoles, value]
+                    : selectedRoles.filter((r) => r !== value);
+                  
+                  setValue("roles", nextRoles, { shouldValidate: true });
+                }}
+              />
+              <span className="text-sm font-medium text-gray-700">{label}</span>
+            </label>
+          ))}
+        </div>
+        {errors.roles && <span className="text-red-500 text-sm">{errors.roles.message}</span>}
+      </div>
+
+      <div className="flex gap-2">
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Cargando..." : "Crear"}
+        </Button>
+        <Button type="button" onClick={onCancel} variant="outline">Cancelar</Button>
       </div>
     </form>
   )

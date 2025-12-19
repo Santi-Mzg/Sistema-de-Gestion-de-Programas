@@ -4,6 +4,7 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
+import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 
 export interface DepartamentoResponseDTO {
   id?: number;
@@ -12,5 +13,6 @@ export interface DepartamentoResponseDTO {
   telefono?: string;
   email?: string;
   sitioWeb?: string;
-  secretaria?: string;
+  secretaria?: UserResponseReducedDTO;
+  direccionAdministrativa?: UserResponseReducedDTO;
 }

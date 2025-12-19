@@ -11,37 +11,14 @@ import { useDept } from "@/context/dept-context"
 import { DepartamentoSelectorDialog } from "@/components/modals/departamento-selector-dialog"
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 
-const menuConfig = {
-  ADMINISTRATIVO: [
-    { label: "Crear Usuario", href: "/usuarios/crear" },
-    { label: "Crear Departamento", href: "/departamentos/crear" },
-    { label: "Crear Carrera", href: "/carreras/crear" },
-    { label: "Crear Materia", href: "/materias/crear" },
-    { label: "Crear Programa", href: "/programas/crear" },
-    { label: "Programas", href: "/programas" },
-    { label: "Usuarios", href: "/usuarios" },
-    { label: "Departamentos", href: "/departamentos" },
-    { label: "Carreras", href: "/carreras" },
-    { label: "Materias", href: "/materias" },
-  ],
-  PROFESOR: [
-    { label: "Mis materias", href: "/materias" },
-    { label: "Cargar notas", href: "/notas" },
-  ],
-  SECRETARIO: [
-    { label: "Programas", href: "/programas" },
-    { label: "Inscripciones", href: "/inscripciones" },
-  ],
-}
-
 const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
   const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
-    SYSTEM_ADMIN: "Admin",
-    ADMINISTRACION: "Administración",
-    DOCENTE: "Docente",
-    COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
-    SECRETARIA: "Secretaría",
+    SYSTEM_ADMIN: "System Admin",
     DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
+    SECRETARIA: "Secretaría",
+    COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
+    DOCENTE: "Docente",
+    ADMINISTRACION: "Administración",
   }
   return roleLabels[role] || role
 }
@@ -54,12 +31,79 @@ export function Sidebar() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDeptDialogOpen, setIsDeptDialogOpen] = useState(false)
 
+
+
+  const menuConfig = {
+    SYSTEM_ADMIN: [
+      { label: "Crear Departamento", href: "/departamentos/crear" },
+      { label: "Crear Area", href: "/areas/crear" },
+      { label: "Crear Carrera", href: "/carreras/crear" },
+      { label: "Crear Materia", href: "/materias/crear" },
+      { label: "Crear Programa", href: "/programas/crear" },
+      { label: "Crear Usuario", href: "/usuarios/crear" },
+      { label: "Departamentos", href: "/departamentos" },
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}`},
+      { label: "Areas", href: "/areas" },
+      { label: "Carreras", href: "/carreras" },
+      { label: "Materias", href: "/materias" },
+      { label: "Programas", href: "/programas" },
+      { label: "Usuarios", href: "/usuarios" },
+    ],
+    DIRECCION_ADMINISTRATIVA: [
+      { label: "Crear Area", href: "/areas/crear" },
+      { label: "Crear Carrera", href: "/carreras/crear" },
+      { label: "Crear Materia", href: "/materias/crear" },
+      { label: "Crear Programa", href: "/programas/crear" },
+      { label: "Crear Usuario", href: "/usuarios/crear" },
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Areas", href: "/areas" },
+      { label: "Carreras", href: "/carreras" },
+      { label: "Materias", href: "/materias" },
+      { label: "Programas", href: "/programas" },
+      { label: "Usuarios", href: "/usuarios" },
+    ],
+    SECRETARIA: [
+      { label: "Crear Area", href: "/areas/crear" },
+      { label: "Crear Carrera", href: "/carreras/crear" },
+      { label: "Crear Materia", href: "/materias/crear" },
+      { label: "Crear Programa", href: "/programas/crear" },
+      { label: "Crear Usuario", href: "/usuarios/crear" },
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Areas", href: "/areas" },
+      { label: "Carreras", href: "/carreras" },
+      { label: "Materias", href: "/materias" },
+      { label: "Programas", href: "/programas" },
+      { label: "Usuarios", href: "/usuarios" },
+    ],
+    ADMINISTRACION: [
+      { label: "Crear Usuario", href: "/usuarios/crear" },
+      { label: "Crear Carrera", href: "/carreras/crear" },
+      { label: "Crear Materia", href: "/materias/crear" },
+      { label: "Crear Programa", href: "/programas/crear" },
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", href: "/programas" },
+      { label: "Usuarios", href: "/usuarios" },
+      { label: "Carreras", href: "/carreras" },
+      { label: "Materias", href: "/materias" },
+    ],
+    COORDINACION_COMISION_CURRICULAR: [
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", href: "/programas" },
+    ],
+    DOCENTE: [
+      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", href: "/programas" },
+    ],
+  }
+
+
+
   const options = menuConfig[activeRole as keyof typeof menuConfig] ?? []
 
   const handleDptoChange = (deptId: string) => {
     if (!deptId) return
 
-    const selected = availableDepartamentos.find((dept) => dept.departamento?.toString() === deptId)
+    const selected = availableDepartamentos.find((dept) => dept.departamentoNombre?.toString() === deptId)
 
     if (selected) {
       setActiveDepartamento(selected)
@@ -90,7 +134,7 @@ export function Sidebar() {
 
       <aside className="fixed w-64 top-0 left-0 z-30 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-screen">
         {/* Header */}
-        <div className="p-4 border-b border-sidebar-border/50 flex-shrink-0">
+        <div className="p-4 border-b border-sidebar-border/50 shrink-0">
           <Link href="/">
             <div className="flex items-center justify-center">
               <h1 className="text-2xl font-bold">SyllabUNS</h1>
@@ -110,7 +154,7 @@ export function Sidebar() {
               <div className="flex-1 text-left min-w-0">
                 <p className="text-xs text-sidebar-foreground/60">Departamento</p>
                 <p className="text-sm font-medium text-sidebar-foreground">
-                  {activeDepartamento?.departamento || "Seleccionar"}
+                  {activeDepartamento?.departamentoNombre || "Seleccionar"}
                 </p>
               </div>
               <ChevronRight size={16} className="text-sidebar-foreground/50 flex-shrink-0" />
@@ -134,7 +178,7 @@ export function Sidebar() {
                   }`}
                 >
                   <span className="flex-1 text-left truncate">{getRoleLabel(role)}</span>
-                  {activeRole === role && <ChevronRight size={14} className="flex-shrink-0" />}
+                  {activeRole === role && <ChevronRight size={14} className="shrink-0" />}
                 </button>
               ))}
             </div>
@@ -158,7 +202,7 @@ export function Sidebar() {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-sidebar-border/50 flex-shrink-0">
+        <div className="p-3 border-t border-sidebar-border/50 shrink-0">
           <Button
             variant="outline"
             size="sm"

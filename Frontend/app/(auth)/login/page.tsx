@@ -53,12 +53,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary mb-4">
-            <span className="text-2xl font-bold text-primary-foreground">UNS</span>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">SyllabUNS</h1>
-          <p className="text-muted-foreground mt-2">Universidad Nacional del Sur</p>
+        <div className="p-4 border-sidebar-border/50 shrink-0">
+          <Link href="/">
+            <div className=" text-center">
+              <div className="flex items-center justify-center">
+                <h1 className="text-5xl font-bold">SyllabUNS</h1>
+                <img src="/uns_pluma_orig_bgless.png" alt="Logo UNS" className="h-18 ml-1" />
+              </div>
+              <p className="text-muted-foreground mt-2">Sistema de Gestión de Programas</p>
+            </div>
+          </Link>
         </div>
 
         {/* Login Card */}

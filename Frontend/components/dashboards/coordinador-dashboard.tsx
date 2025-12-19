@@ -5,20 +5,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
 import { useContext } from "react";
 import { AuthContext } from "@/context/auth-context";
-import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model";
+import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { useListProgramas } from "@/app/api/generated/client";
 import { useRouter } from "next/navigation"
+import { useRole } from "@/context/role-context";
+import { useDept } from "@/context/dept-context";
 
-interface DashboardProps {
-  programas: ProgramaResponseDTO[]
-}
 
-export function CoordinadorDashboard({ programas }: DashboardProps) {
+export function CoordinadorDashboard() {
   const { user } = useContext(AuthContext);
-  // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
+  const { activeDepartamento } = useDept()
+  const { activeRole } = useRole();
+  const router = useRouter();
+
+  const programas: ProgramaResponseDTO[] = useListProgramas({
+    departamentoId: activeDepartamento?.departamentoId,
+    // carreraId: activeDepartamento?.carreraId,
+    rolActivo: activeRole || UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR
+  }).data || [];
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_PROFESOR);
 
-  const router = useRouter();
 
   const handleNavigate = (id: number) => {
     router.push(`/programas/revisar/${id}`);

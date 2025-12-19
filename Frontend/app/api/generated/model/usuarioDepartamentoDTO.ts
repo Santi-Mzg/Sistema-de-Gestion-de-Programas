@@ -7,8 +7,8 @@
 import type { UsuarioDepartamentoDTORolesItem } from './usuarioDepartamentoDTORolesItem';
 
 export interface UsuarioDepartamentoDTO {
-  id?: number;
-  departamento?: string;
+  departamentoId?: number;
+  departamentoNombre?: string;
   email?: string;
   carrerasComoComision?: string[];
   materiasComoProfesor?: string[];

@@ -1,8 +1,8 @@
 "use client"
 
 import { ProgramasList } from "@/components/pages/programas-list";
-import { ProgramaResponseDTO } from "../api/generated/model";
-import { useListProgramas } from "../api/generated/client";
+import { ProgramaResponseDTO } from "../../api/generated/model";
+import { useListProgramas } from "../../api/generated/client";
 
 export default function Programas() {
 

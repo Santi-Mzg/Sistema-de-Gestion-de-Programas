@@ -10,17 +10,19 @@ import type {
   CarreraCreateDTO,
   CarreraResponseDTO,
   CarreraUpdateComisionDTO,
+  CreateUser200,
   DepartamentoCreateDTO,
   DepartamentoResponseDTO,
   DepartamentoUpdateCargoDTO,
   EstadoUpdateDTO,
+  ListProgramasParams,
   LoginRequest,
   MateriaCreateDTO,
   MateriaResponseDTO,
   ProgramaCargaAdministrativoDTO,
   ProgramaCargaProfesorDTO,
   ProgramaResponseDTO,
-  RegisterRequest,
+  ResetPassword200,
   UserCreateDTO,
   UserResponseDTO
 } from './model';
@@ -95,7 +97,7 @@ export const updateUser = async (id: number,
 
 
 export type deleteUserResponse200 = {
-  data: UserResponseDTO
+  data: void
   status: 200
 }
     
@@ -196,7 +198,7 @@ export const updateMateria = async (id: number,
 
 
 export type deleteMateriaResponse200 = {
-  data: MateriaResponseDTO
+  data: void
   status: 200
 }
     
@@ -297,7 +299,7 @@ export const updateArea = async (id: number,
 
 
 export type deleteAreaResponse200 = {
-  data: AreaResponseDTO
+  data: void
   status: 200
 }
     
@@ -329,8 +331,41 @@ export const deleteArea = async (id: number, options?: RequestInit): Promise<del
 
 
 
+export type listUsersResponse200 = {
+  data: UserResponseDTO[]
+  status: 200
+}
+    
+export type listUsersResponseSuccess = (listUsersResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listUsersResponse = (listUsersResponseSuccess)
+
+export const getListUsersUrl = () => {
+
+
+  
+
+  return `/api/usuarios`
+}
+
+export const listUsers = async ( options?: RequestInit): Promise<listUsersResponse> => {
+  
+  return customFetch<listUsersResponse>(getListUsersUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
 export type createUserResponse200 = {
-  data: UserResponseDTO
+  data: CreateUser200
   status: 200
 }
     
@@ -375,17 +410,24 @@ export type listProgramasResponseSuccess = (listProgramasResponse200) & {
 
 export type listProgramasResponse = (listProgramasResponseSuccess)
 
-export const getListProgramasUrl = () => {
+export const getListProgramasUrl = (params: ListProgramasParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
-  
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/programas`
+  return stringifiedParams.length > 0 ? `/api/programas?${stringifiedParams}` : `/api/programas`
 }
 
-export const listProgramas = async ( options?: RequestInit): Promise<listProgramasResponse> => {
+export const listProgramas = async (params: ListProgramasParams, options?: RequestInit): Promise<listProgramasResponse> => {
   
-  return customFetch<listProgramasResponse>(getListProgramasUrl(),
+  return customFetch<listProgramasResponse>(getListProgramasUrl(params),
   {      
     ...options,
     method: 'GET'
@@ -631,35 +673,35 @@ export const createCarrera = async (carreraCreateDTO: CarreraCreateDTO, options?
 
 
 
-export type registerResponse200 = {
-  data: void
+export type resetPasswordResponse200 = {
+  data: ResetPassword200
   status: 200
 }
     
-export type registerResponseSuccess = (registerResponse200) & {
+export type resetPasswordResponseSuccess = (resetPasswordResponse200) & {
   headers: Headers;
 };
 ;
 
-export type registerResponse = (registerResponseSuccess)
+export type resetPasswordResponse = (resetPasswordResponseSuccess)
 
-export const getRegisterUrl = () => {
+export const getResetPasswordUrl = () => {
 
 
   
 
-  return `/api/auth/register`
+  return `/api/auth/reset-password`
 }
 
-export const register = async (registerRequest: RegisterRequest, options?: RequestInit): Promise<registerResponse> => {
+export const resetPassword = async (resetPasswordBody: string, options?: RequestInit): Promise<resetPasswordResponse> => {
   
-  return customFetch<registerResponse>(getRegisterUrl(),
+  return customFetch<resetPasswordResponse>(getResetPasswordUrl(),
   {      
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      registerRequest,)
+      resetPasswordBody,)
   }
 );}
 
@@ -938,7 +980,7 @@ export const getDepartamento = async (id: number, options?: RequestInit): Promis
 
 
 export type deleteDepartamentoResponse200 = {
-  data: DepartamentoResponseDTO
+  data: void
   status: 200
 }
     
@@ -1144,7 +1186,7 @@ export const getCarrera = async (id: number, options?: RequestInit): Promise<get
 
 
 export type deleteCarreraResponse200 = {
-  data: CarreraResponseDTO
+  data: void
   status: 200
 }
     
@@ -1246,6 +1288,72 @@ export const updateComision = async (id: number,
 
 
 
+export type getUser1Response200 = {
+  data: UserResponseDTO
+  status: 200
+}
+    
+export type getUser1ResponseSuccess = (getUser1Response200) & {
+  headers: Headers;
+};
+;
+
+export type getUser1Response = (getUser1ResponseSuccess)
+
+export const getGetUser1Url = (legajo: string,) => {
+
+
+  
+
+  return `/api/usuarios/legajo/${legajo}`
+}
+
+export const getUser1 = async (legajo: string, options?: RequestInit): Promise<getUser1Response> => {
+  
+  return customFetch<getUser1Response>(getGetUser1Url(legajo),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+export type listUsersByDepartamentoResponse200 = {
+  data: UserResponseDTO[]
+  status: 200
+}
+    
+export type listUsersByDepartamentoResponseSuccess = (listUsersByDepartamentoResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listUsersByDepartamentoResponse = (listUsersByDepartamentoResponseSuccess)
+
+export const getListUsersByDepartamentoUrl = (departamentoId: number,) => {
+
+
+  
+
+  return `/api/usuarios/departamento/${departamentoId}`
+}
+
+export const listUsersByDepartamento = async (departamentoId: number, options?: RequestInit): Promise<listUsersByDepartamentoResponse> => {
+  
+  return customFetch<listUsersByDepartamentoResponse>(getListUsersByDepartamentoUrl(departamentoId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
 export type getProgramaResponse200 = {
   data: ProgramaResponseDTO
   status: 200
@@ -1280,7 +1388,7 @@ export const getPrograma = async (id: number, options?: RequestInit): Promise<ge
 
 
 export type deleteProgramaResponse200 = {
-  data: ProgramaResponseDTO
+  data: void
   status: 200
 }
     

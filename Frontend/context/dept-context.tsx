@@ -23,8 +23,8 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
 
   const adminDepartamentos = useMemo(() => {
     return (allDepartamentos || []).map(dept => ({
-      id: dept.id,
-      departamento: dept.nombre,
+      departamentoId: dept.id,
+      departamentoNombre: dept.nombre,
     }));
   }, [allDepartamentos]);
 
@@ -47,7 +47,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
     setAvailableDepartamentos(departamentos);
 
     setAvailableDepartamentos(prev => {
-      if (prev.length === departamentos.length && prev[0]?.id === departamentos[0]?.id) return prev;
+      if (prev.length === departamentos.length && prev[0]?.departamentoId === departamentos[0]?.departamentoId) return prev;
       return departamentos;
     });
 
@@ -58,7 +58,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
     if (savedDepartamentoRaw) {
       const savedDepartamento: UsuarioDepartamentoDTO = JSON.parse(savedDepartamentoRaw);
 
-      const found = departamentos.find(d => d.id === savedDepartamento.id);
+      const found = departamentos.find(d => d.departamentoId === savedDepartamento.departamentoId);
 
       if (found) {
         setActiveDepartamento(found);
@@ -66,11 +66,11 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
       }
     }
 
-    if (activeDepartamento?.id !== targetDept.id) {
+    if (activeDepartamento?.departamentoId !== targetDept.departamentoId) {
       setActiveDepartamento(targetDept);
     }
 
-  }, [user, isLoading, adminDepartamentos, activeDepartamento?.id]); 
+  }, [user, isLoading, adminDepartamentos, activeDepartamento?.departamentoId]);
 
 
   const updateDepartamento = (departamento: UsuarioDepartamentoDTO) => {

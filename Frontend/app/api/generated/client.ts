@@ -27,17 +27,19 @@ import type {
   CarreraCreateDTO,
   CarreraResponseDTO,
   CarreraUpdateComisionDTO,
+  CreateUser200,
   DepartamentoCreateDTO,
   DepartamentoResponseDTO,
   DepartamentoUpdateCargoDTO,
   EstadoUpdateDTO,
+  ListProgramasParams,
   LoginRequest,
   MateriaCreateDTO,
   MateriaResponseDTO,
   ProgramaCargaAdministrativoDTO,
   ProgramaCargaProfesorDTO,
   ProgramaResponseDTO,
-  RegisterRequest,
+  ResetPassword200,
   UserCreateDTO,
   UserResponseDTO
 } from './model';
@@ -210,7 +212,7 @@ export const deleteUser = (
  ) => {
       
       
-      return customInstance<UserResponseDTO>(
+      return customInstance<void>(
       {url: `/api/usuarios/${id}`, method: 'DELETE'
     },
       );
@@ -428,7 +430,7 @@ export const deleteMateria = (
  ) => {
       
       
-      return customInstance<MateriaResponseDTO>(
+      return customInstance<void>(
       {url: `/api/materias/${id}`, method: 'DELETE'
     },
       );
@@ -646,7 +648,7 @@ export const deleteArea = (
  ) => {
       
       
-      return customInstance<AreaResponseDTO>(
+      return customInstance<void>(
       {url: `/api/areas/${id}`, method: 'DELETE'
     },
       );
@@ -697,13 +699,116 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const listUsers = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseDTO[]>(
+      {url: `/api/usuarios`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getListUsersQueryKey = () => {
+    return [
+    `/api/usuarios`
+    ] as const;
+    }
+
+    
+export const getListUsersQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsers>>> = ({ signal }) => listUsers(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>
+export type ListUsersQueryError = unknown
+
+
+
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListUsersSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsers>>> = ({ signal }) => listUsers(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsersSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>
+export type ListUsersSuspenseQueryError = unknown
+
+
+
+export function useListUsersSuspense<TData = Awaited<ReturnType<typeof listUsers>>, TError = unknown>(
+  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsersSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const createUser = (
     userCreateDTO: UserCreateDTO,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<UserResponseDTO>(
+      return customInstance<CreateUser200>(
       {url: `/api/usuarios`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: userCreateDTO, signal
@@ -757,13 +862,14 @@ const {mutation: mutationOptions} = options ?
     }
     
 export const listProgramas = (
-    
+    params: ListProgramasParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<ProgramaResponseDTO[]>(
-      {url: `/api/programas`, method: 'GET', signal
+      {url: `/api/programas`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -771,23 +877,23 @@ export const listProgramas = (
 
 
 
-export const getListProgramasQueryKey = () => {
+export const getListProgramasQueryKey = (params?: ListProgramasParams,) => {
     return [
-    `/api/programas`
+    `/api/programas`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListProgramasQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export const getListProgramasQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(params, signal);
 
       
 
@@ -802,11 +908,11 @@ export type ListProgramasQueryError = unknown
 
 
 export function useListProgramas<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+ params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListProgramasQueryOptions(options)
+  const queryOptions = getListProgramasQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -818,16 +924,16 @@ export function useListProgramas<TData = Awaited<ReturnType<typeof listProgramas
 
 
 
-export const getListProgramasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export const getListProgramasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(params, signal);
 
       
 
@@ -842,11 +948,11 @@ export type ListProgramasSuspenseQueryError = unknown
 
 
 export function useListProgramasSuspense<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
-  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+ params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListProgramasSuspenseQueryOptions(options)
+  const queryOptions = getListProgramasSuspenseQueryOptions(params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1404,27 +1510,27 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
-export const register = (
-    registerRequest: RegisterRequest,
+export const resetPassword = (
+    resetPasswordBody: string,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<void>(
-      {url: `/api/auth/register`, method: 'POST',
+      return customInstance<ResetPassword200>(
+      {url: `/api/auth/reset-password`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: registerRequest, signal
+      data: resetPasswordBody, signal
     },
       );
     }
   
 
 
-export const getRegisterMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext> => {
+export const getResetPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext> => {
 
-const mutationKey = ['register'];
+const mutationKey = ['resetPassword'];
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -1434,10 +1540,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: RegisterRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPassword>>, {data: string}> = (props) => {
           const {data} = props ?? {};
 
-          return  register(data,)
+          return  resetPassword(data,)
         }
 
         
@@ -1445,20 +1551,20 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
-    export type RegisterMutationBody = RegisterRequest
-    export type RegisterMutationError = unknown
+    export type ResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
+    export type ResetPasswordMutationBody = string
+    export type ResetPasswordMutationError = unknown
 
-    export const useRegister = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, }
+    export const useResetPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext>, }
  ): UseMutationResult<
-        Awaited<ReturnType<typeof register>>,
+        Awaited<ReturnType<typeof resetPassword>>,
         TError,
-        {data: RegisterRequest},
+        {data: string},
         TContext
       > => {
 
-      const mutationOptions = getRegisterMutationOptions(options);
+      const mutationOptions = getResetPasswordMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -2026,7 +2132,7 @@ export const deleteDepartamento = (
  ) => {
       
       
-      return customInstance<DepartamentoResponseDTO>(
+      return customInstance<void>(
       {url: `/api/departamentos/${id}`, method: 'DELETE'
     },
       );
@@ -2421,7 +2527,7 @@ export const deleteCarrera = (
  ) => {
       
       
-      return customInstance<CarreraResponseDTO>(
+      return customInstance<void>(
       {url: `/api/carreras/${id}`, method: 'DELETE'
     },
       );
@@ -2590,6 +2696,212 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const getUser1 = (
+    legajo: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseDTO>(
+      {url: `/api/usuarios/legajo/${legajo}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetUser1QueryKey = (legajo?: string,) => {
+    return [
+    `/api/usuarios/legajo/${legajo}`
+    ] as const;
+    }
+
+    
+export const getGetUser1QueryOptions = <TData = Awaited<ReturnType<typeof getUser1>>, TError = unknown>(legajo: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUser1QueryKey(legajo);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUser1>>> = ({ signal }) => getUser1(legajo, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(legajo), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUser1QueryResult = NonNullable<Awaited<ReturnType<typeof getUser1>>>
+export type GetUser1QueryError = unknown
+
+
+
+export function useGetUser1<TData = Awaited<ReturnType<typeof getUser1>>, TError = unknown>(
+ legajo: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUser1QueryOptions(legajo,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetUser1SuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getUser1>>, TError = unknown>(legajo: string, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUser1QueryKey(legajo);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUser1>>> = ({ signal }) => getUser1(legajo, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUser1SuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getUser1>>>
+export type GetUser1SuspenseQueryError = unknown
+
+
+
+export function useGetUser1Suspense<TData = Awaited<ReturnType<typeof getUser1>>, TError = unknown>(
+ legajo: string, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getUser1>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUser1SuspenseQueryOptions(legajo,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listUsersByDepartamento = (
+    departamentoId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseDTO[]>(
+      {url: `/api/usuarios/departamento/${departamentoId}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getListUsersByDepartamentoQueryKey = (departamentoId?: number,) => {
+    return [
+    `/api/usuarios/departamento/${departamentoId}`
+    ] as const;
+    }
+
+    
+export const getListUsersByDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listUsersByDepartamento>>, TError = unknown>(departamentoId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersByDepartamentoQueryKey(departamentoId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersByDepartamento>>> = ({ signal }) => listUsersByDepartamento(departamentoId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(departamentoId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsersByDepartamentoQueryResult = NonNullable<Awaited<ReturnType<typeof listUsersByDepartamento>>>
+export type ListUsersByDepartamentoQueryError = unknown
+
+
+
+export function useListUsersByDepartamento<TData = Awaited<ReturnType<typeof listUsersByDepartamento>>, TError = unknown>(
+ departamentoId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsersByDepartamentoQueryOptions(departamentoId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListUsersByDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listUsersByDepartamento>>, TError = unknown>(departamentoId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersByDepartamentoQueryKey(departamentoId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersByDepartamento>>> = ({ signal }) => listUsersByDepartamento(departamentoId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsersByDepartamentoSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listUsersByDepartamento>>>
+export type ListUsersByDepartamentoSuspenseQueryError = unknown
+
+
+
+export function useListUsersByDepartamentoSuspense<TData = Awaited<ReturnType<typeof listUsersByDepartamento>>, TError = unknown>(
+ departamentoId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersByDepartamento>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsersByDepartamentoSuspenseQueryOptions(departamentoId,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const getPrograma = (
     id: number,
  signal?: AbortSignal
@@ -2698,7 +3010,7 @@ export const deletePrograma = (
  ) => {
       
       
-      return customInstance<ProgramaResponseDTO>(
+      return customInstance<void>(
       {url: `/api/programas/${id}`, method: 'DELETE'
     },
       );

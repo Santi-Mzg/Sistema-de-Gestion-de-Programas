@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await logoutMutation.mutateAsync();
     setUser(null);
+    // router.push("/login");
     window.location.href = "/login";
   };
 

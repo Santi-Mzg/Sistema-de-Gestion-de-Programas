@@ -9,14 +9,18 @@ import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useContext } from "react";
 import { AuthContext } from "@/context/auth-context";
 import { useRouter } from "next/navigation"
+import { useRole } from "@/context/role-context";
+import { useDept } from "@/context/dept-context";
 
-interface DashboardProps {
-  programas: ProgramaResponseDTO[]
-}
+export function ProfesorDashboard() {
+  const { activeDepartamento } = useDept();
+  const { activeRole } = useRole();
 
-export function ProfesorDashboard({ programas }: DashboardProps) {
-  const { user } = useContext(AuthContext);
-  // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
+  const programas: ProgramaResponseDTO[] = useListProgramas({
+    departamentoId: activeDepartamento?.departamentoId,
+    rolActivo: activeRole || "DOCENTE"
+  }).data || [];
+  
   const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR || programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_ADMINISTRACION);
   const programasRechazados = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR);

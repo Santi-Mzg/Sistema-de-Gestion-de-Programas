@@ -2,20 +2,25 @@
 
 import { FileText, Clock, Archive } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useContext } from "react";
-import { AuthContext } from "@/context/auth-context";
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO } from "@/app/api/generated/model";
 import { useListProgramas } from "@/app/api/generated/client";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
+import { useRole } from "@/context/role-context";
+import { useDept } from "@/context/dept-context";
 
-interface DashboardProps {
-  programas: ProgramaResponseDTO[]
-}
 
-export function SecretarioDashboard({ programas }: DashboardProps) {
-    const { user } = useContext(AuthContext);
-    // const programasFiltrados = programas.filter((programa) => programa.profesorResponsable === user?.apellido+" - "+user?.nombre);
+export function SecretarioDashboard() {
+    const { activeDepartamento } = useDept();
+    const { activeRole } = useRole();
+    
+    const programas: ProgramaResponseDTO[] = useListProgramas({
+      departamentoId: activeDepartamento?.departamentoId,
+      rolActivo: activeRole || "DOCENTE"
+    }).data || [];
+
+    const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
+
     const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_COMISION);
   
 

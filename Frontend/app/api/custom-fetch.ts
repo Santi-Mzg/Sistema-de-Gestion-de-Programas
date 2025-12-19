@@ -1,17 +1,15 @@
-import { getJwtCookie } from '@/lib/server-utils';
+import { cookies } from "next/headers";
 
-export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 
 export async function customFetch<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-  // const cookieStore = await cookies();
-  // const jwt = cookieStore.get('jwt')?.value;
 
-  const jwt = getJwtCookie();
+  const cookieStore = await cookies();
+  const jwt = cookieStore.get('jwt')?.value;
 
   const res = await fetch(`${BASE_URL}${url}`, {
     ...options,
