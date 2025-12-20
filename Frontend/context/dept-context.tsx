@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { DepartamentoResponseDTO, UsuarioDepartamentoDTO } from "../app/api/generated/model";
-import { AuthContext } from "./auth-context";
+import { UsuarioDepartamentoDTO } from "../app/api/generated/model";
+import { useAuth } from "./auth-context";
 import { useListDepartamentos } from "@/app/api/generated/client";
 
 
@@ -10,13 +10,15 @@ interface DepartamentoContextType {
   availableDepartamentos: UsuarioDepartamentoDTO[];
   activeDepartamento: UsuarioDepartamentoDTO | null;
   setActiveDepartamento: (dept: UsuarioDepartamentoDTO) => void;
+  isLoading: boolean;
 }
 
 const DepartamentoContext = createContext<DepartamentoContextType | null>(null);
 
 export function DepartamentoProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useContext(AuthContext);
+  const { user, isLoading: isLoadingUser } = useAuth();
   const { data: allDepartamentos } = useListDepartamentos();
+  const [isLoading, setIsLoading] = useState(true);
 
   console.log("Current user in layout:", user);
 
@@ -33,7 +35,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!user) {
-      if (!isLoading) {
+      if (!isLoadingUser) {
         setActiveDepartamento(null);
         setAvailableDepartamentos([]);
       }
@@ -70,7 +72,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
       setActiveDepartamento(targetDept);
     }
 
-  }, [user, isLoading, adminDepartamentos, activeDepartamento?.departamentoId]);
+  }, [user, isLoadingUser, adminDepartamentos, activeDepartamento?.departamentoId]);
 
 
   const updateDepartamento = (departamento: UsuarioDepartamentoDTO) => {
@@ -91,6 +93,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
         availableDepartamentos,
         activeDepartamento,
         setActiveDepartamento: updateDepartamento,
+        isLoading,
       }}
     >
       {children}

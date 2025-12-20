@@ -60,12 +60,10 @@ export async function proxy(req: NextRequest) {
   } catch (error) {
     console.log("Auth me status:", error);
 
-    // const response = NextResponse.redirect(new URL("/login", req.url));
-    // response.cookies.delete("jwt"); 
-    // return response;
+    const response = NextResponse.redirect(new URL("/login", req.url));
+    response.cookies.delete("jwt"); 
+    return response;
   }
-
-  return NextResponse.next();
 }
 
 // Rutas que debe interceptar el middleware

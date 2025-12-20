@@ -5,6 +5,7 @@
  * OpenAPI spec version: v0
  */
 import type { ProgramaCarreraDTO } from './programaCarreraDTO';
+import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 
 export interface CarreraResponseDTO {
   id?: number;
@@ -13,6 +14,6 @@ export interface CarreraResponseDTO {
   duracion?: string;
   cantidadMaterias?: number;
   materias?: ProgramaCarreraDTO[];
+  comision?: UserResponseReducedDTO;
   departamento?: string;
-  comision?: string;
 }

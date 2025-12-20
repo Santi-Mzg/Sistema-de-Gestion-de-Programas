@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useContext, useState } from "react"
-import { AuthContext } from "@/context/auth-context"
+import { useState } from "react"
+import { useAuth } from "@/context/auth-context"
 import { useDept } from "@/context/dept-context"
 import { DepartamentoSelectorDialog } from "@/components/modals/departamento-selector-dialog"
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
@@ -24,7 +24,7 @@ const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
 }
 
 export function Sidebar() {
-  const { logout } = useContext(AuthContext)
+  const { logout } = useAuth()
   const { availableRoles, activeRole, setActiveRole } = useRole()
   const { availableDepartamentos, activeDepartamento, setActiveDepartamento } = useDept()
   const router = useRouter()

@@ -11,10 +11,10 @@ import { AlertCircle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { loginSchema, type LoginFormData } from "@/lib/schemas"
 import { LoginRequest } from "@/app/api/generated/model"
-import { AuthContext } from "@/context/auth-context"
+import { useAuth } from "@/context/auth-context"
 
 export default function LoginPage() {
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)

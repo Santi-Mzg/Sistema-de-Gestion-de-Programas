@@ -21,12 +21,21 @@ const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
   label: value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " "),
 }));
 
-interface UsuarioFormProps {
-  onCancel?: () => void
-}
 
-export function UsuarioForm({ onCancel }: UsuarioFormProps) {
+export function UsuarioForm() {
   const { activeDepartamento } = useDept()
+  
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
   const { 
     register, 
     handleSubmit, 
@@ -52,7 +61,7 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
         apellido: formData.apellido,
         legajo: formData.legajo,
         email: formData.email,
-        departamentoId: activeDepartamento?.departamentoId || undefined,
+        departamentoId: activeDepartamento.departamentoId || undefined,
         roles: formData.roles as UserCreateDTORolesItem[],
       }
 
@@ -141,10 +150,9 @@ export function UsuarioForm({ onCancel }: UsuarioFormProps) {
       </div>
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
           {isPending ? "Cargando..." : "Crear"}
         </Button>
-        <Button type="button" onClick={onCancel} variant="outline">Cancelar</Button>
       </div>
     </form>
   )

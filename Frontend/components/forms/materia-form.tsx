@@ -8,42 +8,68 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AreaResponseDTO, DepartamentoResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { useCreateMateria } from "@/app/api/generated/client"
+import { useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
+import { useDept } from "@/context/dept-context"
+import { AlertCircle } from "lucide-react"
 
 
-interface MateriaFormProps {
-  departamentos: DepartamentoResponseDTO[] 
-  onCancel?: () => void
-}
 
-export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
-  const [departamento, setDepartamento] = useState<DepartamentoResponseDTO | null>(null)
-  const [areasDisponibles, setAreasDisponibles] = useState<AreaResponseDTO[]>([])
+export function MateriaForm() {
+  const { activeDepartamento } = useDept()
+
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId);
+  const areas: AreaResponseDTO[] | undefined = areasQuery.data;
+
+  if (areasQuery.isLoading) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando áreas para la materias...</p>
+            </div>
+        </div>
+      )
+  }
+
+  if (areasQuery.error) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="text-red-600" size={24} />
+          <p className="text-red-700">Error al obtener las áreas</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!areas || areas.length === 0) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <AlertCircle className="text-yellow-600" size={24} />
+          <p className="text-yellow-700">No hay áreas registradas. El Director Administrativo debe crear áreas para poder crear materias.</p>
+        </div>
+      </div>
+    )
+  }
+
   const [formData, setFormData] = useState<MateriaCreateDTO>({
     codigo: "",
     nombre: "",
-    areaId: 0,
-    departamentoId: undefined,
+    areaId: areas[0].id,
+    departamentoId: activeDepartamento.departamentoId,
   })
-
-
-  // const {
-  //   data: areas,
-  // } = useListAreasDepartamento(departamento?.id!, {
-  //   query: {
-  //     queryKey: ["areasPorDepartamento", departamento?.id],
-  //     enabled: !!departamento,
-  //   },
-  // })
-
-  const areas: AreaResponseDTO[] = []
-
-  // useEffect(() => {
-  //   if (areas) {
-  //     setAreasDisponibles(areas)
-  //   }
-  // }, [areas])
-
 
   const { mutate, isPending } = useCreateMateria({
       mutation: {
@@ -76,8 +102,8 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
     setFormData({
       codigo: "",
       nombre: "",
-      areaId: 0,
-      departamentoId: undefined,
+      areaId: areas[0].id,
+      departamentoId: activeDepartamento.departamentoId,
     })
   }
 
@@ -121,20 +147,18 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
             <Label htmlFor="departamentoId" className="text-sm font-semibold">
               Departamento *
             </Label>
-            <select
-              id="departamentoId"
-              name="departamentoId"
-              value={formData.departamentoId || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
+            <Select
+              value={formData.departamentoId?.toString() ?? ""}
             >
-              <option value="">Seleccionar Departamento...</option>
-              {departamentos.map((departamento) => (
-                <option key={departamento.id} value={departamento.id}>
-                  {departamento.nombre}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder={activeDepartamento.departamentoNombre} />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem key={activeDepartamento.departamentoId} value={activeDepartamento.departamentoId!.toString()}>
+                    {activeDepartamento?.departamentoNombre}
+                  </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -164,14 +188,9 @@ export function MateriaForm( {departamentos, onCancel}: MateriaFormProps ) {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-            Crear Materia
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+            {isPending ? "Cargando..." : "Crear"}
           </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-              Cancelar
-            </Button>
-          )}
         </div>
       </div>
     </form>

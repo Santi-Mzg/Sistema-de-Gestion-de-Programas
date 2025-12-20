@@ -3,8 +3,6 @@
 import { Users, CheckCircle2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
-import { useContext } from "react";
-import { AuthContext } from "@/context/auth-context";
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { useListProgramas } from "@/app/api/generated/client";
 import { useRouter } from "next/navigation"
@@ -13,7 +11,6 @@ import { useDept } from "@/context/dept-context";
 
 
 export function CoordinadorDashboard() {
-  const { user } = useContext(AuthContext);
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const router = useRouter();

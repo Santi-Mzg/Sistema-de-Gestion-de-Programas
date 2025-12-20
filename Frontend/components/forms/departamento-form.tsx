@@ -6,19 +6,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { DepartamentoCreateDTO } from "@/app/api/generated/model"
 import { useCreateDepartamento } from "@/app/api/generated/client"
 
-interface DepartamentoFormProps {
-  onCancel?: () => void
-}
 
-export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
+export function DepartamentoForm() {
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
     nombre: "",
     direccion: "",
-    cuerpo: "",
+    telefono: "",
     email: "",
     sitioWeb: "",
   })
@@ -55,7 +51,7 @@ export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
     setFormData({
       nombre: "",
       direccion: "",
-      cuerpo: "",
+      telefono: "",
       email: "",
       sitioWeb: "",
     })
@@ -111,16 +107,16 @@ export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cuerpo" className="text-sm font-semibold">
-            Descripción/Cuerpo
+          <Label htmlFor="telefono" className="text-sm font-semibold">
+            Teléfono
           </Label>
-          <Textarea
-            id="cuerpo"
-            name="cuerpo"
-            value={formData.cuerpo}
+          <Input
+            id="telefono"
+            name="telefono"
+            value={formData.telefono}
             onChange={handleChange}
-            placeholder="Descripción del departamento"
-            className="border-2 border-border focus:border-primary min-h-24"
+            placeholder="Teléfono del departamento"
+            className="border-2 border-border focus:border-primary"
           />
         </div>
 
@@ -139,14 +135,9 @@ export function DepartamentoForm({ onCancel }: DepartamentoFormProps) {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-            Crear Departamento
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+            {isPending ? "Cargando..." : "Crear"}
           </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-              Cancelar
-            </Button>
-          )}
       </div>
       </div>
     </form>

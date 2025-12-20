@@ -10,76 +10,88 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { useGetDepartamento, useListUsersByDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa } from "@/app/api/generated/client"
+import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
+import { useGetCarrera, useListUsersByDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
+import { useDept } from "@/context/dept-context"
 
 
-export default function EditDepartamentoPage() {
+export default function EditCarreraPage() {
+  const { activeDepartamento } = useDept()
+
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const departamentoQuery = useGetDepartamento(Number(id));
-  const departamento: DepartamentoResponseDTO | undefined = departamentoQuery.data;
 
-  if (departamentoQuery.isLoading) {
+  const carreraQuery = useGetCarrera(Number(id));
+  const carrera: CarreraResponseDTO | undefined = carreraQuery.data;
+
+if (carreraQuery.isLoading) {
     return (
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando datos del departamento...</p>
+          <p className="text-muted-foreground">Cargando datos de la carrera...</p>
         </div>
       </div>
     )
   }
 
-  if (departamentoQuery.error) {
+  if (carreraQuery.error) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">Error al obtener el departamento</p>
+          <p className="text-red-700">Error al obtener la carrera</p>
         </div>
       </div>
     )
   }
 
-  if (!departamento || !departamento.id) {
+  if (!carrera || !carrera.id) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <AlertCircle className="text-yellow-600" size={24} />
-          <p className="text-yellow-700">El departamento solicitado no existe o no pudo ser cargado</p>
+          <p className="text-yellow-700">La carrera solicitada no existe o no pudo ser cargada</p>
         </div>
       </div>
     )
   }
 
-
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
-  const [direccionAdministrativa, setDireccionAdministrativa] = useState<UserResponseReducedDTO>()
-  const [formData, setFormData] = useState<DepartamentoCreateDTO>({
-        nombre: departamento.nombre,
-        direccion: departamento.direccion,
-        telefono: departamento.telefono,
-        email: departamento.email,
-        sitioWeb: departamento.sitioWeb,
+  const [comision, setComision] = useState<UserResponseReducedDTO>()
+  const [formData, setFormData] = useState<CarreraCreateDTO>({
+        nombre: carrera.nombre,
+        plan: carrera.plan,
+        duracion: carrera.duracion,
+        departamentoId: activeDepartamento.departamentoId,
   })
 
   const usuarios: UserResponseDTO[] = useListUsersByDepartamento(Number(id)).data || [];
 
   useEffect(() => {
-    if(!departamento) return
+    if(!carrera) return
 
     setFormData({ 
-        nombre: departamento.nombre,
-        direccion: departamento.direccion,
-        telefono: departamento.telefono,
-        email: departamento.email,
-        sitioWeb: departamento.sitioWeb,
+        nombre: carrera.nombre,
+        plan: carrera.plan,
+        duracion: carrera.duracion,
+        departamentoId: activeDepartamento.departamentoId,
     })
-    setDireccionAdministrativa(departamento.direccionAdministrativa)
-  }, [departamento])
+    setComision(carrera.comision)
+  }, [carrera])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -88,8 +100,9 @@ export default function EditDepartamentoPage() {
       [name]: value,
     }))
   }
+
   
-  const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateDepartamento({
+  const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateCarrera({
       mutation: {
           onSuccess: () => { alert("Éxito"); },
           onError: (err: Error) => alert("Error: " + err.message)
@@ -101,56 +114,55 @@ export default function EditDepartamentoPage() {
     setIsLoading(true)
 
     try {
-      if(departamento?.id) {
+      if(carrera.id) {
         mutateDpto({
-            id: departamento.id, 
+            id: carrera.id, 
             data: formData
         });
         
-        alert("Departamento actualizado exitosamente")
+        alert("Carrera actualizado exitosamente")
       }
-    //   router.push("/departamentos")
+    //   router.push("/Carreras")
     } catch (error) {
-      console.error("Error updating departamento:", error)
-      alert("Error al actualizar el departamento")
+      console.error("Error updating Carrera:", error)
+      alert("Error al actualizar el Carrera")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const { mutate, isPending } = useUpdateDireccionAdministrativa({
-      mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
-      }
-  });
+    const { mutate, isPending } = useUpdateComision({
+        mutation: {
+            onSuccess: () => { alert("Éxito"); },
+            onError: (err: Error) => alert("Error: " + err.message)
+        }
+    });
 
-  const handleDirectorChange = async (newDirector: UserResponseReducedDTO) => {
-    if (!departamento?.id || !newDirector?.id) return
+  const handleComisionChange = async (newComision: UserResponseReducedDTO) => {
+    if (!carrera?.id || !newComision?.id) return
 
     setIsLoading(true)
 
     try {
     
       mutate({
-        id: departamento.id, 
+        id: carrera.id, 
         data: { 
-            usuarioId: newDirector.id 
+            comisionId: newComision.id 
         }
       });
 
 
-      setDireccionAdministrativa(newDirector)
+      setComision(newComision)
 
-      alert(`Director actualizado: ${newDirector.apellido} ${newDirector.nombre}`)
+      alert(`Comisión actualizada: ${newComision.apellido} ${newComision.nombre}`)
     } catch (error) {
-      console.error("Error updating director:", error)
-      alert("Error al actualizar el director")
+      console.error("Error updating comision:", error)
+      alert("Error al actualizar el comision")
     } finally {
       setIsLoading(false)
     }
   }
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,9 +179,9 @@ export default function EditDepartamentoPage() {
           </Button>
           <div className="flex items-center gap-3 mb-2">
             <Building2 size={40} />
-            <h1 className="text-4xl font-bold text-balance">Editar Departamento</h1>
+            <h1 className="text-4xl font-bold text-balance">Editar Carrera</h1>
           </div>
-          <p className="text-primary-foreground/90 text-lg">Modifica la información general y gestiona el director</p>
+          <p className="text-primary-foreground/90 text-lg">Modifica la información general y gestiona la comisión</p>
         </div>
       </div>
 
@@ -183,20 +195,20 @@ export default function EditDepartamentoPage() {
                   <Building2 size={24} />
                   Información General
                 </CardTitle>
-                <CardDescription className="text-base">Actualiza los datos básicos del departamento</CardDescription>
+                <CardDescription className="text-base">Actualiza los datos básicos de la carrera</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
-                      Nombre del Departamento *
+                      Nombre de la Carrera *
                     </Label>
                     <Input
                       id="nombre"
                       name="nombre"
                       value={formData.nombre}
                       onChange={handleChange}
-                      placeholder="Ej: Departamento de Agronomía"
+                      placeholder="Ej: Abogacía"
                       required
                       className="border-2 border-border focus:border-primary"
                     />
@@ -204,62 +216,33 @@ export default function EditDepartamentoPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="telefono" className="text-sm font-semibold">
-                        Teléfono
+                      <Label htmlFor="plan" className="text-sm font-semibold">
+                        Plan
                       </Label>
                       <Input
-                        id="telefono"
-                        name="telefono"
-                        value={formData.telefono}
+                        id="plan"
+                        name="plan"
+                        value={formData.plan}
                         onChange={handleChange}
-                        placeholder="Ej: (0291) 459-5101"
+                        placeholder="Ej: Plan 2025 - Versión 1"
                         className="border-2 border-border focus:border-primary"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-semibold">
+                      <Label htmlFor="duracion" className="text-sm font-semibold">
                         Email
                       </Label>
                       <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
+                        id="duracion"
+                        name="duracion"
+                        type="text"
+                        value={formData.duracion}
                         onChange={handleChange}
-                        placeholder="Ej: agronomia@uns.edu.ar"
+                        placeholder="Ej: 10 Cuat."
                         className="border-2 border-border focus:border-primary"
                       />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="direccion" className="text-sm font-semibold">
-                      Dirección
-                    </Label>
-                    <Input
-                      id="direccion"
-                      name="direccion"
-                      value={formData.direccion}
-                      onChange={handleChange}
-                      placeholder="Ej: San Andrés 800"
-                      className="border-2 border-border focus:border-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="sitioWeb" className="text-sm font-semibold">
-                      Sitio Web
-                    </Label>
-                    <Input
-                      id="sitioWeb"
-                      name="sitioWeb"
-                      type="url"
-                      value={formData.sitioWeb}
-                      onChange={handleChange}
-                      placeholder="Ej: https://www.uns.edu.ar/agronomia"
-                      className="border-2 border-border focus:border-primary"
-                    />
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t-2 border-border">
@@ -292,30 +275,30 @@ export default function EditDepartamentoPage() {
               <CardHeader className="bg-gradient-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
-                  Director Administrativo
+                  Comisión Curricular
                 </CardTitle>
-                <CardDescription>Gestiona el director del departamento</CardDescription>
+                <CardDescription>Gestiona la comisión curricular de la carrera</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                {departamento?.direccionAdministrativa ? (
+                {carrera?.comision ? (
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Director Actual
+                        Comisión Actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
                         {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
                           <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                            {getInitials(departamento?.directorAdministrativo)}
+                            {getInitials(Carrera?.directorAdministrativo)}
                           </AvatarFallback>
                         </Avatar> */}
                         <div>
                           <p className="font-bold text-lg text-foreground">
-                            {departamento?.direccionAdministrativa.apellido} {departamento?.direccionAdministrativa.nombre}
+                            {carrera?.comision.apellido} {carrera?.comision.nombre}
                           </p>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Legajo: {departamento.direccionAdministrativa.legajo}
+                            Legajo: {carrera?.comision.legajo}
                           </p>
                         </div>
                       </div>
@@ -328,14 +311,14 @@ export default function EditDepartamentoPage() {
                       disabled={isLoading}
                     >
                       <User size={18} className="mr-2" />
-                      Cambiar Director
+                      Cambiar Comisión
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="bg-muted/30 rounded-xl p-6 text-center border-2 border-dashed border-border">
                       <User size={48} className="mx-auto text-muted-foreground mb-3 opacity-50" />
-                      <p className="text-sm text-muted-foreground">No hay director asignado</p>
+                      <p className="text-sm text-muted-foreground">No hay comisión asignada</p>
                     </div>
                     <Button
                       onClick={() => setDirectorDialogOpen(true)}
@@ -343,7 +326,7 @@ export default function EditDepartamentoPage() {
                       disabled={isLoading}
                     >
                       <User size={18} className="mr-2" />
-                      Asignar Director
+                      Asignar Comisión
                     </Button>
                   </div>
                 )}
@@ -357,13 +340,13 @@ export default function EditDepartamentoPage() {
       <UserSelectorDialog
         open={directorDialogOpen}
         onOpenChange={setDirectorDialogOpen}
-        onConfirm={handleDirectorChange}
-        currentUser={departamento?.direccionAdministrativa}
+        onConfirm={handleComisionChange}
+        currentUser={carrera?.comision}
         availableUsers={usuarios}
-        title="Seleccionar Director Administrativo"
-        description="Elige un usuario para asignar como Director Administrativo"
-        roleLabel="Director Actual"
-        confirmLabel="Asignar Director"
+        title="Seleccionar Comisión"
+        description="Elige un usuario para asignar como Comisión"
+        roleLabel="Comisión Actual"
+        confirmLabel="Asignar Comisión"
         isLoading={isLoading}
       />
     </div>

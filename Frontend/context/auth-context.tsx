@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import { LoginRequest, UserResponseDTO } from "@/app/api/generated/model";
 import { useLogin, useLogout, useMe } from "@/app/api/generated/client";
 
@@ -13,7 +13,7 @@ interface AuthContextType {
   setUser: (user: UserResponseDTO | null) => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: false,
   isAuthenticated: false,
@@ -71,3 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+};

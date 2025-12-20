@@ -6,39 +6,46 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CarreraCreateDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
+import { CarreraCreateDTO } from "@/app/api/generated/model"
 import { useCreateCarrera } from "@/app/api/generated/client"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { useDept } from "@/context/dept-context"
 
-interface CarreraFormProps {
-  departamentos: DepartamentoResponseDTO[] 
-  onCancel?: () => void
-}
+export function CarreraForm() {
+  const { activeDepartamento } = useDept()
 
-export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     plan: "",
     nombre: "",
     duracion: "",
-    departamentoId: undefined,
+    departamentoId: activeDepartamento.departamentoId,
   })
 
-    const { mutate, isPending } = useCreateCarrera({
-        mutation: {
-          onSuccess: () => {
-            alert("Carrera creada exitosamente!");
-            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
-          },
-          onError: (error: Error) => {
-            alert(`Error al crear: ${error.message}`);
-          },
-        }
-    });
+  const { mutate, isPending } = useCreateCarrera({
+      mutation: {
+        onSuccess: () => {
+          alert("Carrera creada exitosamente!");
+        },
+        onError: (error: Error) => {
+          alert(`Error al crear: ${error.message}`);
+        },
+      }
+  });
 
-    // 💡 Esta es la función que se pasa al formulario
-    const handleFormSubmit = (data: CarreraCreateDTO) => {
-      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-      mutate({ data }); 
-    };
+  const handleFormSubmit = (data: CarreraCreateDTO) => {
+    mutate({ data }); 
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -62,6 +69,8 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
       departamentoId: undefined,
     })
   }
+
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,39 +122,30 @@ export function CarreraForm({ departamentos, onCancel }: CarreraFormProps) {
               required
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="departamentoId" className="text-sm font-semibold">
               Departamento *
             </Label>
-            <select
-              id="departamentoId"
-              name="departamentoId"
-              value={formData.departamentoId || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border-2 border-border rounded-lg focus:border-primary focus:ring-0 bg-background"
+            <Select
+              value={formData.departamentoId?.toString() ?? ""}
             >
-              <option value="">Seleccionar Departamento...</option>
-              {departamentos.map((departamento) => (
-                <option key={departamento.id} value={departamento.id}>
-                  {departamento.nombre}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder={activeDepartamento.departamentoNombre} />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem key={activeDepartamento.departamentoId} value={activeDepartamento.departamentoId!.toString()}>
+                    {activeDepartamento?.departamentoNombre}
+                  </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-            Crear Carrera
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+            {isPending ? "Cargando..." : "Crear"}
           </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
-              Cancelar
-            </Button>
-          )}
         </div>
       </div>
     </form>

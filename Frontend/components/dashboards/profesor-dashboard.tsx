@@ -6,8 +6,6 @@ import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseD
 import { useListProgramas } from "@/app/api/generated/client";
 import { EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
-import { useContext } from "react";
-import { AuthContext } from "@/context/auth-context";
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";

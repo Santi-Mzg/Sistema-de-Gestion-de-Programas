@@ -1064,7 +1064,7 @@ export const getUpdateSecretariaUrl = (id: number,) => {
 
   
 
-  return `/api/departamentos/cambiar_secretaria/${id}`
+  return `/api/departamentos/${id}/cambiar_secretaria`
 }
 
 export const updateSecretaria = async (id: number,
@@ -1099,7 +1099,7 @@ export const getUpdateDireccionAdministrativaUrl = (id: number,) => {
 
   
 
-  return `/api/departamentos/cambiar_direccion_administrativa/${id}`
+  return `/api/departamentos/${id}/cambiar_direccion_administrativa`
 }
 
 export const updateDireccionAdministrativa = async (id: number,
@@ -1134,7 +1134,7 @@ export const getUpdateAdministracionDepartamentoUrl = (id: number,) => {
 
   
 
-  return `/api/departamentos/cambiar_administracion/${id}`
+  return `/api/departamentos/${id}/cambiar_administracion`
 }
 
 export const updateAdministracionDepartamento = async (id: number,
@@ -1321,39 +1321,6 @@ export const getUser1 = async (legajo: string, options?: RequestInit): Promise<g
 
 
 
-export type listUsersByDepartamentoResponse200 = {
-  data: UserResponseDTO[]
-  status: 200
-}
-    
-export type listUsersByDepartamentoResponseSuccess = (listUsersByDepartamentoResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listUsersByDepartamentoResponse = (listUsersByDepartamentoResponseSuccess)
-
-export const getListUsersByDepartamentoUrl = (departamentoId: number,) => {
-
-
-  
-
-  return `/api/usuarios/departamento/${departamentoId}`
-}
-
-export const listUsersByDepartamento = async (departamentoId: number, options?: RequestInit): Promise<listUsersByDepartamentoResponse> => {
-  
-  return customFetch<listUsersByDepartamentoResponse>(getListUsersByDepartamentoUrl(departamentoId),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
 export type getProgramaResponse200 = {
   data: ProgramaResponseDTO
   status: 200
@@ -1420,6 +1387,39 @@ export const deletePrograma = async (id: number, options?: RequestInit): Promise
 
 
 
+export type listUsersByDepartamentoResponse200 = {
+  data: UserResponseDTO[]
+  status: 200
+}
+    
+export type listUsersByDepartamentoResponseSuccess = (listUsersByDepartamentoResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listUsersByDepartamentoResponse = (listUsersByDepartamentoResponseSuccess)
+
+export const getListUsersByDepartamentoUrl = (id: number,) => {
+
+
+  
+
+  return `/api/departamentos/${id}/users`
+}
+
+export const listUsersByDepartamento = async (id: number, options?: RequestInit): Promise<listUsersByDepartamentoResponse> => {
+  
+  return customFetch<listUsersByDepartamentoResponse>(getListUsersByDepartamentoUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
 export type listMateriasDepartamentoResponse200 = {
   data: MateriaResponseDTO[]
   status: 200
@@ -1443,6 +1443,72 @@ export const getListMateriasDepartamentoUrl = (id: number,) => {
 export const listMateriasDepartamento = async (id: number, options?: RequestInit): Promise<listMateriasDepartamentoResponse> => {
   
   return customFetch<listMateriasDepartamentoResponse>(getListMateriasDepartamentoUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+export type listCarrerasDepartamentoResponse200 = {
+  data: CarreraResponseDTO[]
+  status: 200
+}
+    
+export type listCarrerasDepartamentoResponseSuccess = (listCarrerasDepartamentoResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listCarrerasDepartamentoResponse = (listCarrerasDepartamentoResponseSuccess)
+
+export const getListCarrerasDepartamentoUrl = (id: number,) => {
+
+
+  
+
+  return `/api/departamentos/${id}/carreras`
+}
+
+export const listCarrerasDepartamento = async (id: number, options?: RequestInit): Promise<listCarrerasDepartamentoResponse> => {
+  
+  return customFetch<listCarrerasDepartamentoResponse>(getListCarrerasDepartamentoUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+export type listAreasDepartamentoResponse200 = {
+  data: AreaResponseDTO[]
+  status: 200
+}
+    
+export type listAreasDepartamentoResponseSuccess = (listAreasDepartamentoResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listAreasDepartamentoResponse = (listAreasDepartamentoResponseSuccess)
+
+export const getListAreasDepartamentoUrl = (id: number,) => {
+
+
+  
+
+  return `/api/departamentos/${id}/areas`
+}
+
+export const listAreasDepartamento = async (id: number, options?: RequestInit): Promise<listAreasDepartamentoResponse> => {
+  
+  return customFetch<listAreasDepartamentoResponse>(getListAreasDepartamentoUrl(id),
   {      
     ...options,
     method: 'GET'

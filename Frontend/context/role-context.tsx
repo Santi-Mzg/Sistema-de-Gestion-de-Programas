@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { AuthContext } from "./auth-context";
+import { useAuth } from "./auth-context";
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 
 
@@ -18,7 +18,7 @@ export function RoleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useContext(AuthContext);
+  const { user, isLoading } = useAuth();
   console.log("Current user in layout:", user);
 
 
