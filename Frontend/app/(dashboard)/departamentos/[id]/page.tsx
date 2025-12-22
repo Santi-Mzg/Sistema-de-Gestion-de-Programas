@@ -56,6 +56,7 @@ export default function EditDepartamentoPage() {
         sitioWeb: departamento.sitioWeb,
     })
     setDireccionAdministrativa(departamento.direccionAdministrativa)
+    setSecretaria(departamento.secretaria)
   }, [departamento])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -211,9 +212,8 @@ export default function EditDepartamentoPage() {
           </Button>
           <div className="flex items-center gap-3 mb-2">
             <Building2 size={40} />
-            <h1 className="text-4xl font-bold text-balance">Editar Departamento</h1>
+            <h1 className="text-4xl font-bold text-balance">Departamento de {departamento?.nombre}</h1>
           </div>
-          <p className="text-primary-foreground/90 text-lg">Modifica la información general y gestiona el director</p>
         </div>
       </div>
 
@@ -227,7 +227,7 @@ export default function EditDepartamentoPage() {
                   <Building2 size={24} />
                   Información General
                 </CardTitle>
-                <CardDescription className="text-base">Actualiza los datos básicos del departamento</CardDescription>
+                <CardDescription className="text-base">Datos del departamento</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -338,7 +338,7 @@ export default function EditDepartamentoPage() {
 
           {/* Director Card - 1 column */}
           <div className="lg:col-span-1">
-            <Card className="border-2 border-primary/30 shadow-xl sticky top-8">
+            <Card className="border-2 border-primary/30 shadow-xl top-8 mb-4">
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
@@ -404,7 +404,7 @@ export default function EditDepartamentoPage() {
             </Card>
 
 
-            <Card className="border-2 border-primary/30 shadow-xl sticky top-8">
+            <Card className="border-2 border-primary/30 shadow-xl top-8">
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
