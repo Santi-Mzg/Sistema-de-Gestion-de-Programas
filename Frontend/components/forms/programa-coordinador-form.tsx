@@ -89,13 +89,13 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
     onSubmit(data)
   }
 
-  const handleRechazarConfirm = (destino: "ADMINISTRATIVO" | "PROFESOR", justificacion: string) => {
+  const handleRechazarConfirm = (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => {
     const data: EstadoUpdateDTO = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
       destinoRechazo:
-        destino === "ADMINISTRATIVO"
-          ? EstadoUpdateDTODestinoRechazo.ADMINISTRATIVO
-          : EstadoUpdateDTODestinoRechazo.PROFESOR,
+        destino === "ADMINISTRACION"
+          ? EstadoUpdateDTODestinoRechazo.ADMINISTRACION
+          : EstadoUpdateDTODestinoRechazo.DOCENTE,
       justificacion,
     }
     setRechazDialogOpen(false)

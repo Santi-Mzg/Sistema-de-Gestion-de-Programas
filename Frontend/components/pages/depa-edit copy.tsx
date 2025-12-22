@@ -11,39 +11,62 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getListUsersByDepartamentoQueryKey, useGetDepartamento, useListUsersByDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
+import { useGetDepartamento, useListUsersByDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
-import { useRole } from "@/context/role-context"
-import { set } from "zod"
 
 
 export default function EditDepartamentoPage() {
-  const { activeRole } = useRole()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const departamentoQuery = useGetDepartamento(Number(id));
   const departamento: DepartamentoResponseDTO | undefined = departamentoQuery.data;
 
+  if (departamentoQuery.isLoading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando datos del departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (departamentoQuery.error) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="text-red-600" size={24} />
+          <p className="text-red-700">Error al obtener el departamento</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!departamento || !departamento.id) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <AlertCircle className="text-yellow-600" size={24} />
+          <p className="text-yellow-700">El departamento solicitado no existe o no pudo ser cargado</p>
+        </div>
+      </div>
+    )
+  }
+
+
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
   const [direccionAdministrativa, setDireccionAdministrativa] = useState<UserResponseReducedDTO>()
-  const [secretariaDialogOpen, setSecretariaDialogOpen] = useState(false)
-  const [secretaria, setSecretaria] = useState<UserResponseReducedDTO>()
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
-        nombre: departamento?.nombre,
-        direccion: departamento?.direccion,
-        telefono: departamento?.telefono,
-        email: departamento?.email,
-        sitioWeb: departamento?.sitioWeb,
+        nombre: departamento.nombre,
+        direccion: departamento.direccion,
+        telefono: departamento.telefono,
+        email: departamento.email,
+        sitioWeb: departamento.sitioWeb,
   })
 
-  const { data: usuarios = [] } = useListUsersByDepartamento(Number(id), {
-    query: {
-      enabled: activeRole === 'SYSTEM_ADMIN',
-      queryKey: getListUsersByDepartamentoQueryKey(Number(id)),
-    },
-  })
-
+  const usuarios: UserResponseDTO[] = useListUsersByDepartamento(Number(id)).data || [];
 
   useEffect(() => {
     if(!departamento) return
@@ -95,7 +118,7 @@ export default function EditDepartamentoPage() {
     }
   }
 
-  const { mutate: mutateDireccion, isPending: isPendingDireccion } = useUpdateDireccionAdministrativa({
+  const { mutate, isPending } = useUpdateDireccionAdministrativa({
       mutation: {
           onSuccess: () => { alert("Éxito"); },
           onError: (err: Error) => alert("Error: " + err.message)
@@ -109,7 +132,7 @@ export default function EditDepartamentoPage() {
 
     try {
     
-      mutateDireccion({
+      mutate({
         id: departamento.id, 
         data: { 
             usuarioId: newDirector.id 
@@ -126,73 +149,6 @@ export default function EditDepartamentoPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const { mutate: mutateSecretaria, isPending: isPendingSecretaria } = useUpdateSecretaria({
-      mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
-      }
-  });
-
-
-  const handleSecretariaChange = async (newSecretaria: UserResponseReducedDTO) => {
-    if (!departamento?.id || !newSecretaria?.id) return
-
-    setIsLoading(true)
-
-    try {
-    
-      mutateSecretaria({
-        id: departamento.id, 
-        data: { 
-            usuarioId: newSecretaria.id 
-        }
-      });
-
-
-      setSecretaria(newSecretaria)
-
-      alert(`Secretaría actualizada: ${newSecretaria.apellido} ${newSecretaria.nombre}`)
-    } catch (error) {
-      console.error("Error updating director:", error)
-      alert("Error al actualizar el director")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-    if (departamentoQuery.isLoading) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando datos del departamento...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (departamentoQuery.error) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">Error al obtener el departamento</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!departamento || !departamento.id) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertCircle className="text-yellow-600" size={24} />
-          <p className="text-yellow-700">El departamento solicitado no existe o no pudo ser cargado</p>
-        </div>
-      </div>
-    )
   }
 
 
@@ -243,7 +199,6 @@ export default function EditDepartamentoPage() {
                       placeholder="Ej: Departamento de Agronomía"
                       required
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
 
@@ -259,7 +214,6 @@ export default function EditDepartamentoPage() {
                         onChange={handleChange}
                         placeholder="Ej: (0291) 459-5101"
                         className="border-2 border-border focus:border-primary"
-                        disabled={activeRole !== 'SYSTEM_ADMIN'}
                       />
                     </div>
 
@@ -275,7 +229,6 @@ export default function EditDepartamentoPage() {
                         onChange={handleChange}
                         placeholder="Ej: agronomia@uns.edu.ar"
                         className="border-2 border-border focus:border-primary"
-                        disabled={activeRole !== 'SYSTEM_ADMIN'}
                       />
                     </div>
                   </div>
@@ -291,7 +244,6 @@ export default function EditDepartamentoPage() {
                       onChange={handleChange}
                       placeholder="Ej: San Andrés 800"
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
 
@@ -307,30 +259,28 @@ export default function EditDepartamentoPage() {
                       onChange={handleChange}
                       placeholder="Ej: https://www.uns.edu.ar/agronomia"
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
-                  {activeRole === 'SYSTEM_ADMIN' && (
-                    <div className="flex gap-3 pt-4 border-t-2 border-border">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.back()}
-                        disabled={isLoading}
-                        className="flex-1 border-2"
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isLoading || !formData.nombre}
-                        className="flex-1 bg-primary hover:bg-primary/90"
-                      >
-                        <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Cambios"}
-                      </Button>
-                    </div>
-                  )}
+
+                  <div className="flex gap-3 pt-4 border-t-2 border-border">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                      disabled={isLoading}
+                      className="flex-1 border-2"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !formData.nombre}
+                      className="flex-1 bg-primary hover:bg-primary/90"
+                    >
+                      <Save size={18} className="mr-2" />
+                      {isLoading ? "Guardando..." : "Guardar Cambios"}
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
@@ -342,8 +292,9 @@ export default function EditDepartamentoPage() {
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
-                  Dirección Administrativa
+                  Director Administrativo
                 </CardTitle>
+                <CardDescription>Gestiona el director del departamento</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 {departamento?.direccionAdministrativa ? (
@@ -351,7 +302,7 @@ export default function EditDepartamentoPage() {
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Dirección Actual
+                        Director Actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
                         {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
@@ -370,99 +321,30 @@ export default function EditDepartamentoPage() {
                       </div>
                     </div>
 
-                    {activeRole === 'SYSTEM_ADMIN' && (
-
-                      <Button
-                        onClick={() => setDirectorDialogOpen(true)}
-                        className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
-                      >
-                        <User size={18} className="mr-2" />
-                        Cambiar Dirección
-                      </Button>
-                    )}
+                    {/* Change Director Button */}
+                    <Button
+                      onClick={() => setDirectorDialogOpen(true)}
+                      className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
+                      disabled={isLoading}
+                    >
+                      <User size={18} className="mr-2" />
+                      Cambiar Director
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="bg-muted/30 rounded-xl p-6 text-center border-2 border-dashed border-border">
                       <User size={48} className="mx-auto text-muted-foreground mb-3 opacity-50" />
-                      <p className="text-sm text-muted-foreground">No hay dirección asignada</p>
+                      <p className="text-sm text-muted-foreground">No hay director asignado</p>
                     </div>
-                    {activeRole === 'SYSTEM_ADMIN' && (
-                      <Button
-                        onClick={() => setDirectorDialogOpen(true)}
-                        className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
-                      >
-                        <User size={18} className="mr-2" />
-                        Asignar Dirección
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-
-            <Card className="border-2 border-primary/30 shadow-xl sticky top-8">
-              <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
-                <CardTitle className="text-xl text-primary flex items-center gap-2">
-                  <User size={22} />
-                  Secretaría Académica
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                {departamento?.secretaria ? (
-                  <div className="space-y-6">
-                    {/* Current Director Display */}
-                    <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Secretaría Actual
-                      </p>
-                      <div className="flex flex-col items-center text-center gap-3">
-                        {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                            {getInitials(departamento?.directorAdministrativo)}
-                          </AvatarFallback>
-                        </Avatar> */}
-                        <div>
-                          <p className="font-bold text-lg text-foreground">
-                            {departamento?.secretaria.apellido} {departamento?.secretaria.nombre}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Legajo: {departamento.secretaria.legajo}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {(activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SYSTEM_ADMIN') && (
-                      <Button
-                        onClick={() => setSecretariaDialogOpen(true)}
-                        className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
-                      >
-                        <User size={18} className="mr-2" />
-                        Cambiar Secretaría
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-muted/30 rounded-xl p-6 text-center border-2 border-dashed border-border">
-                      <User size={48} className="mx-auto text-muted-foreground mb-3 opacity-50" />
-                      <p className="text-sm text-muted-foreground">No hay secretaría asignado</p>
-                    </div>
-                    {(activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SYSTEM_ADMIN') && (
-                      <Button
-                        onClick={() => setSecretariaDialogOpen(true)}
-                        className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
-                      >
-                        <User size={18} className="mr-2" />
-                        Asignar Secretaría
-                      </Button>
-                    )}
+                    <Button
+                      onClick={() => setDirectorDialogOpen(true)}
+                      className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
+                      disabled={isLoading}
+                    >
+                      <User size={18} className="mr-2" />
+                      Asignar Director
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -471,38 +353,19 @@ export default function EditDepartamentoPage() {
         </div>
       </div>
 
-
       {/* Director Selection Modal */}
-      { activeRole === 'SYSTEM_ADMIN' && (
-        <UserSelectorDialog
-          open={directorDialogOpen}
-          onOpenChange={setDirectorDialogOpen}
-          onConfirm={handleDirectorChange}
-          currentUser={departamento?.direccionAdministrativa}
-          availableUsers={usuarios}
-          title="Seleccionar Dirección Administrativa"
-          description="Elige un usuario para asignar como Dirección Administrativa"
-          roleLabel="Dirección Actual"
-          confirmLabel="Asignar Dirección"
-          isLoading={isLoading}
-        />
-      )}
-
-      {/* Secretaria Selection Modal */}
-      {(activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SYSTEM_ADMIN') && (
-        <UserSelectorDialog
-          open={secretariaDialogOpen}
-          onOpenChange={setSecretariaDialogOpen}
-          onConfirm={handleSecretariaChange}
-          currentUser={departamento?.secretaria}
-          availableUsers={usuarios}
-          title="Seleccionar Secretaría Académica"
-          description="Elige un usuario para asignar como Secretaría Académica"
-          roleLabel="Secretaría Actual"
-          confirmLabel="Asignar Secretaría"
-          isLoading={isLoading}
-        />
-      )}
+      <UserSelectorDialog
+        open={directorDialogOpen}
+        onOpenChange={setDirectorDialogOpen}
+        onConfirm={handleDirectorChange}
+        currentUser={departamento?.direccionAdministrativa}
+        availableUsers={usuarios}
+        title="Seleccionar Director Administrativo"
+        description="Elige un usuario para asignar como Director Administrativo"
+        roleLabel="Director Actual"
+        confirmLabel="Asignar Director"
+        isLoading={isLoading}
+      />
     </div>
   )
 }

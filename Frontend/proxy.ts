@@ -4,18 +4,13 @@ import type { NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = [
   "/login",
-  "/register",
-  "/recuperar-contraseña",
+  "/recuperar-password",
 ];
 
 // Rutas que requieren un rol específico
-const ROLE_ROOTS = {
-  ADMIN: ["/admin", "/profesor", "/coordinador", "/secretaria", "/administracion"],
-  ADMINISTRATIVO: ["/administracion"],
-  PROFESOR: ["/profesor"],
-  COORDINADOR: ["/coordinador"],
-  SECRETARIO: ["/secretaria"],
-};
+const ADMIN_ROUTES = [
+  "/system_admin", "/docente", "/coordinador", "/secretaria", "/administracion"
+];
 
 
 
@@ -27,7 +22,7 @@ export async function proxy(req: NextRequest) {
 
   // Permitir rutas públicas sin autenticación
   if (PUBLIC_ROUTES.includes(pathname)) {
-    if (token && pathname === "/login") {
+    if (token) { // Si estoy autenticado redirigir a home
       return NextResponse.redirect(new URL("/", req.url));
     }
     return NextResponse.next();
@@ -56,6 +51,9 @@ export async function proxy(req: NextRequest) {
       throw new Error("Token expirado");
     }
 
+    const data = await res.json();
+    console.log("Auth me data:", data);
+    
     return NextResponse.next();
   } catch (error) {
     console.log("Auth me status:", error);

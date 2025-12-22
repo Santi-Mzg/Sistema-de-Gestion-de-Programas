@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2 } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CarreraResponseDTO } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -137,11 +137,11 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/Carreras/${carrera.id}/editar`)}
+                          onClick={() => router.push(`/carreras/${carrera.id}`)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
-                          <Edit2 size={16} className="mr-1" />
-                          Editar
+                          <Eye size={16} className="mr-1" />
+                          Ver
                         </Button>
                         <Button
                           size="sm"

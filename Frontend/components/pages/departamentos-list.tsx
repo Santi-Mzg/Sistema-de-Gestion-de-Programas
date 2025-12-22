@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2 } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { DepartamentoResponseDTO } from "@/app/api/generated/model"
+import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { useDeleteDepartamento } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRole } from "@/context/role-context"
 
 interface DepartamentosListProps {
   departamentos?: DepartamentoResponseDTO[]
@@ -16,6 +17,7 @@ interface DepartamentosListProps {
 
 
 export function DepartamentosList({ departamentos = [] }: DepartamentosListProps) {
+  const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedDepartamento, setSelectedDepartamento] = useState<DepartamentoResponseDTO | null>(null)
@@ -117,7 +119,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     Sitio Web
                 </th>
                 <th className="px-6 py-4 text-left">
-                    Acciones
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -146,6 +148,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                         "-"
                       )}
                     </td>
+
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
@@ -154,21 +157,24 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                           onClick={() => router.push(`/departamentos/${departamento.id}`)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
-                          <Edit2 size={16} className="mr-1" />
-                          Editar
+                          <Eye size={16} className="mr-1" />
+                          Ver
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(departamento)}
-                          className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          Eliminar
-                        </Button>
+                        {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(departamento)}
+                            className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
+                 
                 ))
               ) : (
                 <tr>

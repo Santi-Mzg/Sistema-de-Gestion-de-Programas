@@ -16,13 +16,13 @@ import { Label } from "@/components/ui/label"
 interface RechazDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (destino: "ADMINISTRATIVO" | "PROFESOR", justificacion: string) => void
+  onConfirm: (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => void
   isLoading?: boolean
 }
 
 export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: RechazDialogProps) {
   const [step, setStep] = useState<"destino" | "justificacion">("destino")
-  const [selectedDestino, setSelectedDestino] = useState<"ADMINISTRATIVO" | "PROFESOR">("ADMINISTRATIVO")
+  const [selectedDestino, setSelectedDestino] = useState<"ADMINISTRACION" | "DOCENTE">("ADMINISTRACION")
   const [justificacion, setJustificacion] = useState("")
 
   const handleNextStep = () => {
@@ -56,9 +56,9 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                 <input
                   type="radio"
                   name="destino"
-                  value="ADMINISTRATIVO"
-                  checked={selectedDestino === "ADMINISTRATIVO"}
-                  onChange={(e) => setSelectedDestino(e.target.value as "ADMINISTRATIVO")}
+                  value="ADMINISTRACION"
+                  checked={selectedDestino === "ADMINISTRACION"}
+                  onChange={(e) => setSelectedDestino(e.target.value as "ADMINISTRACION")}
                   className="w-4 h-4"
                 />
                 <div>
@@ -71,9 +71,9 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                 <input
                   type="radio"
                   name="destino"
-                  value="PROFESOR"
-                  checked={selectedDestino === "PROFESOR"}
-                  onChange={(e) => setSelectedDestino(e.target.value as "PROFESOR")}
+                  value="DOCENTE"
+                  checked={selectedDestino === "DOCENTE"}
+                  onChange={(e) => setSelectedDestino(e.target.value as "DOCENTE")}
                   className="w-4 h-4"
                 />
                 <div>
@@ -104,7 +104,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                 <p className="text-sm font-medium text-foreground">
                   Destinatario:{" "}
                   <span className="font-semibold">
-                    {selectedDestino === "ADMINISTRATIVO" ? "Administración" : "Profesor Responsable"}
+                    {selectedDestino === "ADMINISTRACION" ? "Administración" : "Profesor Responsable"}
                   </span>
                 </p>
               </div>
