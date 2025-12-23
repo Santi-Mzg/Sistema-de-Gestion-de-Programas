@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2 } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { MateriaResponseDTO } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -9,6 +9,7 @@ import { useDeleteMateria } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRole } from "@/context/role-context"
 
 interface MateriasListProps {
   materias?: MateriaResponseDTO[]
@@ -16,6 +17,7 @@ interface MateriasListProps {
 
 
 export function MateriasList({ materias = [] }: MateriasListProps) {
+  const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | null>(null)
@@ -66,6 +68,17 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
     }
   }
 
+    if (!activeRole) {
+      return(
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando datos de las materias...</p>
+          </div>
+        </div>
+      )
+    }
+
 
   return (
     <div className="w-full bg-background">
@@ -113,6 +126,9 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                 <th className="px-6 py-4 text-left">
                     Departamento
                 </th>
+                <th className="px-6 py-4 text-left">
+                    Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -131,21 +147,23 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/materias/${materia.id}/editar`)}
+                          onClick={() => router.push(`/materias/${materia.id}`)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
-                          <Edit2 size={16} className="mr-1" />
-                          Editar
+                          <Eye size={16} className="mr-1" />
+                          Ver
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(materia)}
-                          className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          Eliminar
-                        </Button>
+                        {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(materia)}
+                            className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -168,7 +186,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -208,6 +226,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
     </div>
   )
 }

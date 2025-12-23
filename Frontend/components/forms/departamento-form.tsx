@@ -19,23 +19,23 @@ export function DepartamentoForm() {
     sitioWeb: "",
   })
 
-    const { mutate, isPending } = useCreateDepartamento({
-        mutation: {
-          onSuccess: () => {
-            alert("Departamento creado exitosamente!");
-            // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
-          },
-          onError: (error: Error) => {
-            alert(`Error al crear: ${error.message}`);
-          },
-        }
-    });
+  const { mutate, isPending } = useCreateDepartamento({
+    mutation: {
+      onSuccess: () => {
+        alert("Departamento creado exitosamente!");
+        // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+      },
+      onError: (error: Error) => {
+        alert(`Error al crear: ${error.message}`);
+      },
+    }
+  });
 
-    // 💡 Esta es la función que se pasa al formulario
-    const handleFormSubmit = (data: DepartamentoCreateDTO) => {
-      // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-      mutate({ data }); 
-    };
+  // 💡 Esta es la función que se pasa al formulario
+  const handleFormSubmit = (data: DepartamentoCreateDTO) => {
+    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+    mutate({ data }); 
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target

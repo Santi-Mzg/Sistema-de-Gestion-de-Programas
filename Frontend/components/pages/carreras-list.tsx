@@ -9,6 +9,7 @@ import { useDeleteCarrera } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRole } from "@/context/role-context"
 
 interface CarrerasListProps {
   carreras?: CarreraResponseDTO[]
@@ -16,6 +17,7 @@ interface CarrerasListProps {
 
 
 export function CarrerasList({ carreras = [] }: CarrerasListProps) {
+  const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null)
@@ -63,6 +65,17 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos de las carreras...</p>
+        </div>
+      </div>
+    )
   }
 
 
@@ -143,15 +156,17 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                           <Eye size={16} className="mr-1" />
                           Ver
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(carrera)}
-                          className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          Eliminar
-                        </Button>
+                        {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(carrera)}
+                            className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -174,46 +189,47 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <Trash2 size={24} />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar la carrera{" "}
-              <span className="font-semibold text-foreground">"{selectedCarrera?.nombre}"</span>?
-            </DialogDescription>
-          </DialogHeader>
+      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
+                <Trash2 size={24} />
+                Confirmar Eliminación
+              </DialogTitle>
+              <DialogDescription className="text-base pt-2">
+                ¿Estás seguro de que deseas eliminar la carrera{" "}
+                <span className="font-semibold text-foreground">"{selectedCarrera?.nombre}"</span>?
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
-            <p className="text-sm text-foreground">
-              Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a la carrera.
-            </p>
-          </div>
+            <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
+              <p className="text-sm text-foreground">
+                Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a la carrera.
+              </p>
+            </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isSubmitting}
-              className="border-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteConfirm}
-              disabled={isSubmitting}
-              className="bg-destructive"
-            >
-              {isSubmitting ? "Eliminando..." : "Eliminar carrera"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isSubmitting}
+                className="border-2"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={isSubmitting}
+                className="bg-destructive"
+              >
+                {isSubmitting ? "Eliminando..." : "Eliminar carrera"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

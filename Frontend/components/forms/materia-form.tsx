@@ -17,58 +17,21 @@ import { AlertCircle } from "lucide-react"
 export function MateriaForm() {
   const { activeDepartamento } = useDept()
 
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
-    return(
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando departamento...</p>
-        </div>
-      </div>
-    )
-  }
+  const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId,
+        queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+      }
+    });
 
-  const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId);
   const areas: AreaResponseDTO[] | undefined = areasQuery.data;
-
-  if (areasQuery.isLoading) {
-      return (
-        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Cargando áreas para la materias...</p>
-            </div>
-        </div>
-      )
-  }
-
-  if (areasQuery.error) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">Error al obtener las áreas</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!areas || areas.length === 0) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertCircle className="text-yellow-600" size={24} />
-          <p className="text-yellow-700">No hay áreas registradas. El Director Administrativo debe crear áreas para poder crear materias.</p>
-        </div>
-      </div>
-    )
-  }
 
   const [formData, setFormData] = useState<MateriaCreateDTO>({
     codigo: "",
     nombre: "",
-    areaId: areas[0].id,
-    departamentoId: activeDepartamento.departamentoId,
+    areaId: areas?.[0]?.id,
+    departamentoId: activeDepartamento?.departamentoId,
   })
 
   const { mutate, isPending } = useCreateMateria({
@@ -102,30 +65,59 @@ export function MateriaForm() {
     setFormData({
       codigo: "",
       nombre: "",
-      areaId: areas[0].id,
-      departamentoId: activeDepartamento.departamentoId,
+      areaId: areas?.[0]?.id,
+      departamentoId: activeDepartamento?.departamentoId,
     })
+  }
+
+    if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (areasQuery.isLoading) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando áreas para la materias...</p>
+            </div>
+        </div>
+      )
+  }
+
+  if (areasQuery.error) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="text-red-600" size={24} />
+          <p className="text-red-700">Error al obtener las áreas</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!areas || areas.length === 0) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <AlertCircle className="text-yellow-600" size={24} />
+          <p className="text-yellow-700">No hay áreas registradas. Deben haber áreas registradas para poder crear materias.</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="codigo" className="text-sm font-semibold">
-              Código
-            </Label>
-            <Input
-              id="codigo"
-              name="codigo"
-              value={formData.codigo}
-              onChange={handleChange}
-              placeholder="Ej: MAT-101"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
               Nombre de la Materia
@@ -136,6 +128,21 @@ export function MateriaForm() {
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Ej: Cálculo Diferencial"
+              required
+              className="border-2 border-border focus:border-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="codigo" className="text-sm font-semibold">
+              Código
+            </Label>
+            <Input
+              id="codigo"
+              name="codigo"
+              value={formData.codigo}
+              onChange={handleChange}
+              placeholder="Ej: MAT-101"
               required
               className="border-2 border-border focus:border-primary"
             />

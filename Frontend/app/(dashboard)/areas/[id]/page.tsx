@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Building2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Save, Building2, AlertCircle, Layers } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,64 +13,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { AreaResponseDTO, AreaCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
 import { useGetArea, useUpdateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
+import { useRole } from "@/context/role-context"
 
 
 export default function EditAreaPage() {
+  const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
-
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
-    return(
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando departamento...</p>
-        </div>
-      </div>
-    )
-  }
-
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
 
   const areaQuery = useGetArea(Number(id));
   const area: AreaResponseDTO | undefined = areaQuery.data;
 
-    if (areaQuery.isLoading) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando datos del área...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (areaQuery.error) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">Error al obtener el área</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!area || !area.id) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertCircle className="text-yellow-600" size={24} />
-          <p className="text-yellow-700">El área solicitada no existe o no pudo ser cargada</p>
-        </div>
-      </div>
-    )
-  }
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<AreaCreateDTO>({
-        nombre: area.nombre,
-        departamentoId: activeDepartamento.departamentoId,
+        nombre: area?.nombre,
+        departamentoId: activeDepartamento?.departamentoId,
   })
 
   useEffect(() => {
@@ -78,9 +36,9 @@ export default function EditAreaPage() {
 
     setFormData({ 
         nombre: area.nombre,
-        departamentoId: activeDepartamento.departamentoId,
+        departamentoId: activeDepartamento?.departamentoId,
     })
-  }, [area])
+  }, [area, activeDepartamento])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -119,6 +77,17 @@ export default function EditAreaPage() {
     }
   }
 
+  if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos del área...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (areaQuery.isLoading) {
     return (
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
@@ -155,7 +124,7 @@ export default function EditAreaPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
+      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
         <div className="max-w-6xl mx-auto">
           <Button
             variant="ghost"
@@ -166,10 +135,9 @@ export default function EditAreaPage() {
             Volver
           </Button>
           <div className="flex items-center gap-3 mb-2">
-            <Building2 size={40} />
-            <h1 className="text-4xl font-bold text-balance">Editar Área</h1>
+            <Layers size={40} />
+            <h1 className="text-4xl font-bold text-balance">Área {area?.nombre}</h1>
           </div>
-          <p className="text-primary-foreground/90 text-lg">Modifica la información general</p>
         </div>
       </div>
 
@@ -178,18 +146,18 @@ export default function EditAreaPage() {
           {/* Main Form - 2 columns */}
           <div className="lg:col-span-2">
             <Card className="border-2 border-border shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b-2 border-border">
+              <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   <Building2 size={24} />
                   Información General
                 </CardTitle>
-                <CardDescription className="text-base">Actualiza los datos básicos del área</CardDescription>
+                <CardDescription className="text-base">Datos del área</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
-                      Nombre del Area *
+                      Nombre del Área *
                     </Label>
                     <Input
                       id="nombre"
@@ -202,25 +170,18 @@ export default function EditAreaPage() {
                     />
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t-2 border-border">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => router.back()}
-                      disabled={isLoading}
-                      className="flex-1 border-2"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isLoading || !formData.nombre}
-                      className="flex-1 bg-primary hover:bg-primary/90"
-                    >
-                      <Save size={18} className="mr-2" />
-                      {isLoading ? "Guardando..." : "Guardar Cambios"}
-                    </Button>
-                  </div>
+                  {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (   
+                    <div className="flex gap-3 pt-4 border-t-2 border-border">
+                      <Button
+                        type="submit"
+                        disabled={isLoading || !formData.nombre}
+                        className="flex-1 bg-primary hover:bg-primary/90"
+                      >
+                        <Save size={18} className="mr-2" />
+                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>

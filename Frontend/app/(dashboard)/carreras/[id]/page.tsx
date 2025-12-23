@@ -4,14 +4,14 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, User, Building2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Save, User, Building2, AlertCircle, GraduationCap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getListUsersByDepartamentoQueryKey, useGetCarrera, useListUsersByDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { useGetCarrera, useListUsersByDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -19,9 +19,9 @@ import { useRole } from "@/context/role-context"
 
 export default function EditCarreraPage() {
   const { activeRole } = useRole()
+  const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { activeDepartamento } = useDept()
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
   const [comision, setComision] = useState<UserResponseReducedDTO>()
@@ -38,8 +38,8 @@ export default function EditCarreraPage() {
 
   const { data: usuarios = [] } = useListUsersByDepartamento(Number(id), {
     query: {
-      enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA'),
-      queryKey: getListUsersByDepartamentoQueryKey(Number(id)),
+      enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION'),
+      queryKey: useListUsersByDepartamento(Number(id)).queryKey,
     },
   })
 
@@ -127,12 +127,12 @@ export default function EditCarreraPage() {
   }
 
 
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+  if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
     return(
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando carrera...</p>
+          <p className="text-yellow-700">Cargando datos de la carrera...</p>
         </div>
       </div>
     )
@@ -187,7 +187,7 @@ export default function EditCarreraPage() {
             Volver
           </Button>
           <div className="flex items-center gap-3 mb-2">
-            <Building2 size={40} />
+            <GraduationCap size={40} />
             <h1 className="text-4xl font-bold text-balance">{carrera?.nombre}</h1>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function EditCarreraPage() {
                       placeholder="Ej: Abogacía"
                       required
                       className="border-2 border-border focus:border-primary"
-                      disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA')}
+                      disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
                     />
                   </div>
 
@@ -235,7 +235,7 @@ export default function EditCarreraPage() {
                         onChange={handleChange}
                         placeholder="Ej: Plan 2025 - Versión 1"
                         className="border-2 border-border focus:border-primary"
-                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA')}
+                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
                       />
                     </div>
 
@@ -251,22 +251,13 @@ export default function EditCarreraPage() {
                         onChange={handleChange}
                         placeholder="Ej: 10 Cuat."
                         className="border-2 border-border focus:border-primary"
-                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA')}
+                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
                       />
                     </div>
                   </div>
 
-                  {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') &&
+                  {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') &&
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.back()}
-                        disabled={isLoading}
-                        className="flex-1 border-2"
-                      >
-                        Cancelar
-                      </Button>
                       <Button
                         type="submit"
                         disabled={isLoading || !formData.nombre}
@@ -333,7 +324,7 @@ export default function EditCarreraPage() {
                       <User size={48} className="mx-auto text-muted-foreground mb-3 opacity-50" />
                       <p className="text-sm text-muted-foreground">No hay comisión asignada</p>
                     </div>
-                    {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (
+                    {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
                       <Button
                         onClick={() => setDirectorDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
@@ -351,7 +342,7 @@ export default function EditCarreraPage() {
         </div>
       </div>
 
-      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && 
+      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && 
         <UserSelectorDialog
           open={directorDialogOpen}
           onOpenChange={setDirectorDialogOpen}

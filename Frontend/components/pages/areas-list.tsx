@@ -9,6 +9,7 @@ import { useDeleteArea } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRole } from "@/context/role-context"
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
@@ -16,6 +17,7 @@ interface AreasListProps {
 
 
 export function AreasList({ areas = [] }: AreasListProps) {
+  const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedArea, setSelectedArea] = useState<AreaResponseDTO | null>(null)
@@ -65,6 +67,17 @@ export function AreasList({ areas = [] }: AreasListProps) {
     }
   }
 
+  if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos de las áreas...</p>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="w-full bg-background">
@@ -103,6 +116,9 @@ export function AreasList({ areas = [] }: AreasListProps) {
                 <th className="px-6 py-4 text-left">
                     Nombre
                 </th>
+                <th className="px-6 py-4 text-left">
+                    Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -118,21 +134,23 @@ export function AreasList({ areas = [] }: AreasListProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/areas/${area.id}/editar`)}
+                          onClick={() => router.push(`/areas/${area.id}`)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
                           <Edit2 size={16} className="mr-1" />
                           Editar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(area)}
-                          className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          Eliminar
-                        </Button>
+                        {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(area)}
+                            className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                          )}
                       </div>
                     </td>
                   </tr>
@@ -155,46 +173,47 @@ export function AreasList({ areas = [] }: AreasListProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <Trash2 size={24} />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar el área{" "}
-              <span className="font-semibold text-foreground">"{selectedArea?.nombre}"</span>?
-            </DialogDescription>
-          </DialogHeader>
+      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
+                <Trash2 size={24} />
+                Confirmar Eliminación
+              </DialogTitle>
+              <DialogDescription className="text-base pt-2">
+                ¿Estás seguro de que deseas eliminar el área{" "}
+                <span className="font-semibold text-foreground">"{selectedArea?.nombre}"</span>?
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
-            <p className="text-sm text-foreground">
-              Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al área.
-            </p>
-          </div>
+            <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
+              <p className="text-sm text-foreground">
+                Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al área.
+              </p>
+            </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isSubmitting}
-              className="border-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteConfirm}
-              disabled={isSubmitting}
-              className="bg-destructive"
-            >
-              {isSubmitting ? "Eliminando..." : "Eliminar área"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isSubmitting}
+                className="border-2"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={isSubmitting}
+                className="bg-destructive"
+              >
+                {isSubmitting ? "Eliminando..." : "Eliminar área"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

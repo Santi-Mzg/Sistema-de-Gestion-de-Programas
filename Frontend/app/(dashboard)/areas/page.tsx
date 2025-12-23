@@ -11,19 +11,26 @@ import Link from "next/link";
 export default function Areas() {
     const { activeDepartamento } = useDept()
 
+    const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
+      {
+        query: {
+          enabled: !!activeDepartamento?.departamentoId,
+          queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+        }
+      }
+    );
+    const areas: AreaResponseDTO[] | undefined = areasQuery.data;
+
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando departamento...</p>
+            <p className="text-yellow-700">Cargando datos de las áreas...</p>
           </div>
         </div>
       )
     }
-
-    const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId);
-    const areas: AreaResponseDTO[] | undefined = areasQuery.data;
 
     if (areasQuery.isLoading) {
         return (

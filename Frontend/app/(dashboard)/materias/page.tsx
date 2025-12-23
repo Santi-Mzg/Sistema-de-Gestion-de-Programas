@@ -11,19 +11,27 @@ import Link from "next/link";
 export default function Materias() {
     const { activeDepartamento, isLoading } = useDept()
 
+    const materiasQuery = useListMateriasDepartamento(activeDepartamento?.departamentoId ?? 0, 
+      {
+        query: {
+          enabled: !!activeDepartamento?.departamentoId,
+          queryKey: useListMateriasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+        }
+      }
+    );
+    const materias: MateriaResponseDTO[] | undefined = materiasQuery.data;
+
+
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando departamento...</p>
+            <p className="text-yellow-700">Cargando datos de las materias...</p>
           </div>
         </div>
       )
     }
-
-    const materiasQuery = useListMateriasDepartamento(activeDepartamento?.departamentoId);
-    const materias: MateriaResponseDTO[] | undefined = materiasQuery.data;
 
     if (materiasQuery.isLoading) {
         return (

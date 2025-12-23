@@ -67,6 +67,17 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
     }
   }
 
+  if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos de los departamentos...</p>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="w-full bg-background">
@@ -194,46 +205,47 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <Trash2 size={24} />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar el departamento{" "}
-              <span className="font-semibold text-foreground">"{selectedDepartamento?.nombre}"</span>?
-            </DialogDescription>
-          </DialogHeader>
+      {activeRole === 'SYSTEM_ADMIN' && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
+                <Trash2 size={24} />
+                Confirmar Eliminación
+              </DialogTitle>
+              <DialogDescription className="text-base pt-2">
+                ¿Estás seguro de que deseas eliminar el departamento{" "}
+                <span className="font-semibold text-foreground">"{selectedDepartamento?.nombre}"</span>?
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
-            <p className="text-sm text-foreground">
-              Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al departamento.
-            </p>
-          </div>
+            <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
+              <p className="text-sm text-foreground">
+                Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al departamento.
+              </p>
+            </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isSubmitting}
-              className="border-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteConfirm}
-              disabled={isSubmitting}
-              className="bg-destructive"
-            >
-              {isSubmitting ? "Eliminando..." : "Eliminar Departamento"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isSubmitting}
+                className="border-2"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={isSubmitting}
+                className="bg-destructive"
+              >
+                {isSubmitting ? "Eliminando..." : "Eliminar Departamento"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

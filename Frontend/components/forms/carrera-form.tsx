@@ -14,22 +14,12 @@ import { useDept } from "@/context/dept-context"
 export function CarreraForm() {
   const { activeDepartamento } = useDept()
 
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
-    return(
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando departamento...</p>
-        </div>
-      </div>
-    )
-  }
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     plan: "",
     nombre: "",
     duracion: "",
-    departamentoId: activeDepartamento.departamentoId,
+    departamentoId: activeDepartamento?.departamentoId,
   })
 
   const { mutate, isPending } = useCreateCarrera({
@@ -71,6 +61,16 @@ export function CarreraForm() {
   }
 
 
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

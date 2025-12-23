@@ -14,26 +14,98 @@ import type { MateriaResponseDTO, MateriaCreateDTO, UserResponseDTO, UserRespons
 import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
+import { useRole } from "@/context/role-context"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 export default function EditMateriaPage() {
+  const { activeRole } = useRole()
+  const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { activeDepartamento } = useDept()
+  const [isLoading, setIsLoading] = useState(false)
 
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+  const materiaQuery = useGetMateria(Number(id));
+  const materia: MateriaResponseDTO | undefined = materiaQuery.data;
+  
+  const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId,
+        queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+      },
+    }
+  );
+  const areas: AreaResponseDTO[] | undefined = areasQuery.data;
+  
+  const [formData, setFormData] = useState<MateriaCreateDTO>({
+      nombre: materia?.nombre,
+      codigo: materia?.codigo,
+      areaId: areas?.find(a => a.nombre === materia?.area)?.id || areas?.[0]?.id,
+      departamentoId: activeDepartamento?.departamentoId,
+  })
+
+  useEffect(() => {
+    if(!materia) return
+    setFormData({ 
+        nombre: materia.nombre,
+        codigo: materia.codigo,
+        areaId: areas?.find(a => a.nombre === materia.area)?.id || areas?.[0]?.id,
+        departamentoId: activeDepartamento?.departamentoId,
+      })
+  }, [materia, areas, activeDepartamento])
+  
+
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+  
+  const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateMateria({
+    mutation: {
+          onSuccess: () => { alert("Éxito"); },
+          onError: (err: Error) => alert("Error: " + err.message)
+        }
+      });
+      
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      if(materia?.id) {
+        mutateDpto({
+          id: materia.id, 
+            data: formData
+        });
+        
+        alert("Materia actualizado exitosamente")
+      }
+    //   router.push("/Materias")
+  } catch (error) {
+      console.error("Error updating materia:", error)
+      alert("Error al actualizar el materia")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  
+  
+  if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
     return(
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando departamento...</p>
+          <p className="text-yellow-700">Cargando datos de la materia...</p>
         </div>
       </div>
     )
   }
-
-  const materiaQuery = useGetMateria(Number(id));
-  const materia: MateriaResponseDTO | undefined = materiaQuery.data;
 
   if (materiaQuery.isLoading) {
     return (
@@ -68,18 +140,15 @@ export default function EditMateriaPage() {
     )
   }
 
-  const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId);
-  const areas: AreaResponseDTO[] | undefined = areasQuery.data;
-
   if (areasQuery.isLoading) {
-      return (
-        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Cargando áreas para la materias...</p>
-            </div>
-        </div>
-      )
+    return (
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Cargando áreas para la materias...</p>
+          </div>
+      </div>
+    )
   }
 
   if (areasQuery.error) {
@@ -104,67 +173,11 @@ export default function EditMateriaPage() {
     )
   }
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState<MateriaCreateDTO>({
-        nombre: materia.nombre,
-        codigo: materia.codigo,
-        areaId: areas.find(a => a.nombre === materia.area)?.id || areas[0].id,
-        departamentoId: activeDepartamento.departamentoId,
-  })
-
-  useEffect(() => {
-    if(!materia) return
-    setFormData({ 
-        nombre: materia.nombre,
-        codigo: materia.codigo,
-        areaId: areas.find(a => a.nombre === materia.area)?.id || areas[0].id,
-        departamentoId: activeDepartamento.departamentoId,
-    })
-  }, [materia])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-  
-  const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateMateria({
-      mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
-      }
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      if(materia?.id) {
-        mutateDpto({
-            id: materia.id, 
-            data: formData
-        });
-        
-        alert("Materia actualizado exitosamente")
-      }
-    //   router.push("/Materias")
-    } catch (error) {
-      console.error("Error updating materia:", error)
-      alert("Error al actualizar el materia")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
+      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
         <div className="max-w-6xl mx-auto">
           <Button
             variant="ghost"
@@ -183,11 +196,11 @@ export default function EditMateriaPage() {
       </div>
 
       <div className="max-w-6xl mx-auto p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Form - 2 columns */}
-          <div className="lg:col-span-2">
+          <div>
             <Card className="border-2 border-border shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b-2 border-border">
+              <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   <Building2 size={24} />
                   Información General
@@ -225,21 +238,30 @@ export default function EditMateriaPage() {
                         className="border-2 border-border focus:border-primary"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="area" className="text-sm font-semibold">
-                        Área
+                      <Label htmlFor="areaId" className="text-sm font-semibold">
+                        Area *
                       </Label>
-                      <Input
-                        id="area"
-                        name="area"
-                        value={formData.areaId}
-                        onChange={handleChange}
-                        placeholder="Ej: Ciencias Básicas"
-                        className="border-2 border-border focus:border-primary"
-                      />
+                      <Select
+                        value={formData.areaId?.toString() ?? ""}
+                        onValueChange={(e) => setFormData((prev) => ({
+                          ...prev,
+                          areaId: Number(e),
+                        }))}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar área" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {areas.map((area) => (
+                            <SelectItem key={area.id} value={area.id!.toString()}>
+                              {area.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 

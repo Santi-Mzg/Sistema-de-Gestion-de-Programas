@@ -25,16 +25,6 @@ const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
 export function UsuarioForm() {
   const { activeDepartamento } = useDept()
   
-  if (!activeDepartamento || !activeDepartamento.departamentoId) {
-    return(
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando departamento...</p>
-        </div>
-      </div>
-    )
-  }
 
   const { 
     register, 
@@ -61,7 +51,7 @@ export function UsuarioForm() {
         apellido: formData.apellido,
         legajo: formData.legajo,
         email: formData.email,
-        departamentoId: activeDepartamento.departamentoId || undefined,
+        departamentoId: activeDepartamento?.departamentoId,
         roles: formData.roles as UserCreateDTORolesItem[],
       }
 
@@ -69,6 +59,17 @@ export function UsuarioForm() {
   };
 
   const selectedRoles = watch("roles");
+
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando departamento...</p>
+        </div>
+      </div>
+    )
+  }
 
 
   return (

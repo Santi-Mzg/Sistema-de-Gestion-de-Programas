@@ -57,7 +57,9 @@ export default function LoginPage() {
           <Link href="/">
             <div className=" text-center">
               <div className="flex items-center justify-center">
-                <h1 className="text-5xl font-bold">SyllabUNS</h1>
+                <h1 className="text-5xl font-bold italic">Sílabus-</h1>
+                <h1 className="text-5xl font-bold">UNS</h1>
+                
                 <img src="/uns_pluma_orig_bgless.png" alt="Logo UNS" className="h-18 ml-1" />
               </div>
               <p className="text-muted-foreground mt-2">Sistema de Gestión de Programas</p>
@@ -91,8 +93,8 @@ export default function LoginPage() {
                 <Input
                   id="legajo"
                   type="legajo"
-                  placeholder="12345"
                   {...register("legajo")}
+                  placeholder="Legajo"
                   disabled={isLoading}
                   className="border-2"
                   aria-invalid={errors.legajo ? "true" : "false"}

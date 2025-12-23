@@ -137,7 +137,8 @@ export function Sidebar() {
         <div className="p-4 border-b border-sidebar-border/50 shrink-0">
           <Link href="/">
             <div className="flex items-center justify-center">
-              <h1 className="text-2xl font-bold">SyllabUNS</h1>
+              <h1 className="text-2xl font-bold italic">Sílabus-</h1>
+              <h1 className="text-2xl font-bold">UNS</h1>
               <img src="/uns_pluma_v3.png" alt="Logo UNS" className="h-9 ml-1" />
             </div>
           </Link>

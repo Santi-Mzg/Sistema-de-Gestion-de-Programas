@@ -40,7 +40,7 @@ export default function EditDepartamentoPage() {
   const { data: usuarios = [] } = useListUsersByDepartamento(Number(id), {
     query: {
       enabled: activeRole === 'SYSTEM_ADMIN',
-      queryKey: getListUsersByDepartamentoQueryKey(Number(id)),
+      queryKey: useListUsersByDepartamento(Number(id)).queryKey,
     },
   })
 
@@ -163,7 +163,18 @@ export default function EditDepartamentoPage() {
     }
   }
 
-    if (departamentoQuery.isLoading) {
+    if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos del departamento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (departamentoQuery.isLoading) {
     return (
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
@@ -312,15 +323,6 @@ export default function EditDepartamentoPage() {
                   </div>
                   {activeRole === 'SYSTEM_ADMIN' && (
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.back()}
-                        disabled={isLoading}
-                        className="flex-1 border-2"
-                      >
-                        Cancelar
-                      </Button>
                       <Button
                         type="submit"
                         disabled={isLoading || !formData.nombre}

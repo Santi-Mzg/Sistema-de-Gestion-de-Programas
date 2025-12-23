@@ -11,19 +11,26 @@ import Link from "next/link";
 export default function Carreras() {
     const { activeDepartamento } = useDept()
 
+    const carrerasQuery = useListCarrerasDepartamento(activeDepartamento?.departamentoId ?? 0, 
+      {
+        query: {
+          enabled: !!activeDepartamento?.departamentoId,
+          queryKey: useListCarrerasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+        }
+      }
+    );
+    const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data;
+
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando departamento...</p>
+            <p className="text-yellow-700">Cargando datos de las carreras...</p>
           </div>
         </div>
       )
     }
-
-    const carrerasQuery = useListCarrerasDepartamento(activeDepartamento?.departamentoId);
-    const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data;
 
     if (carrerasQuery.isLoading) {
         return (
