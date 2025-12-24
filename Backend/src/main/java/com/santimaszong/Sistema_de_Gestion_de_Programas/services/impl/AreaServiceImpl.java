@@ -6,7 +6,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEnti
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.AreaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.AreaRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,13 @@ import java.util.stream.Collectors;
 @Service
 public class AreaServiceImpl implements AreaService {
 
-    private final DepartamentoRepository departamentoRepository;
+    private final DepartamentoService departamentoService;
     private final AreaRepository areaRepository;
 
     private final AreaMapper areaMapper;
 
-    public AreaServiceImpl(DepartamentoRepository departamentoRepository, AreaRepository areaRepository, AreaMapper areaMapper) {
-        this.departamentoRepository = departamentoRepository;
+    public AreaServiceImpl(DepartamentoService departamentoService, AreaRepository areaRepository, AreaMapper areaMapper) {
+        this.departamentoService = departamentoService;
         this.areaRepository = areaRepository;
         this.areaMapper = areaMapper;
     }
@@ -34,10 +34,7 @@ public class AreaServiceImpl implements AreaService {
         AreaEntity areaEntity = areaMapper.toEntity(areaDTO);
 
 
-        DepartamentoEntity departamento = departamentoRepository.findById(areaDTO.getDepartamentoId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El Departamento del area " + areaDTO.getNombre() + " con ID " + areaDTO.getDepartamentoId() + "no fue encontrado.")
-                );
+        DepartamentoEntity departamento = departamentoService.getEntityById(areaDTO.getDepartamentoId());
 
         areaEntity.setDepartamento(departamento);
 
@@ -52,6 +49,12 @@ public class AreaServiceImpl implements AreaService {
                 .orElseThrow(() -> new EntityNotFoundException("Area no existente"));;
 
         return areaMapper.toDTO(foundArea);
+    }
+
+    @Override
+    public AreaEntity getEntityById(Long id) {
+        return areaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Area no existente"));
     }
 
     @Override

@@ -1,9 +1,12 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoUpdateCargoDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
@@ -56,12 +59,22 @@ public class DepartamentoController {
         return departamentoService.listMateriasByDepartamento(id);
     }
 
-//    @GetMapping("/{id}/profesores")
-//    public List<UserResponseDTO> listProfesoresDepartamento(@PathVariable Long id) {
-//        return departamentoService.listProfesoresByDepartamento(id);
-//    }
+    @GetMapping("/{id}/carreras")
+    public List<CarreraResponseDTO> listCarrerasDepartamento(@PathVariable Long id) {
+        return departamentoService.listCarrerasByDepartamento(id);
+    }
 
-    @PatchMapping("/cambiar_secretaria/{id}")
+    @GetMapping("/{id}/areas")
+    public List<AreaResponseDTO> listAreasDepartamento(@PathVariable Long id) {
+        return departamentoService.listAreasByDepartamento(id);
+    }
+
+    @GetMapping("/{id}/users")
+    public List<UserResponseDTO> listUsersByDepartamento(@PathVariable Long id) {
+        return departamentoService.listUsersByDepartamento(id);
+    }
+
+    @PatchMapping("/{id}/cambiar_secretaria")
     public ResponseEntity<DepartamentoResponseDTO> updateSecretaria(@PathVariable Long id, @RequestBody DepartamentoUpdateCargoDTO departamento) {
         departamentoService.updateSecretaria(id, departamento);
 
@@ -69,14 +82,14 @@ public class DepartamentoController {
 
     }
 
-    @PatchMapping("/cambiar_direccion_administrativa/{id}")
+    @PatchMapping("/{id}/cambiar_direccion_administrativa")
     public ResponseEntity<DepartamentoResponseDTO> updateDireccionAdministrativa(@PathVariable Long id, @RequestBody DepartamentoUpdateCargoDTO departamento) {
         departamentoService.updateDireccionAdministrativa(id, departamento);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PatchMapping("/cambiar_administracion/{id}")
+    @PatchMapping("/{id}/cambiar_administracion")
     public ResponseEntity<DepartamentoResponseDTO> updateAdministracionDepartamento(@PathVariable Long id, @RequestBody DepartamentoCreateDTO departamento) {
         DepartamentoResponseDTO updatedDepartamento = departamentoService.updateAdministracionDepartamento(id, departamento);
 
@@ -84,7 +97,7 @@ public class DepartamentoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<DepartamentoResponseDTO> deleteDepartamento(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDepartamento(@PathVariable Long id) {
         departamentoService.deleteDepartamento(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

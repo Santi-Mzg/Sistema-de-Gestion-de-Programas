@@ -50,7 +50,7 @@ public class MateriaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MateriaResponseDTO> deleteMateria(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMateria(@PathVariable Long id) {
         materiaService.deleteMateria(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

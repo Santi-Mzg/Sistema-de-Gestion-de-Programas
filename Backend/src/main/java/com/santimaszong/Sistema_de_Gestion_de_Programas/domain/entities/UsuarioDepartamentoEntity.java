@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,5 +49,14 @@ public class UsuarioDepartamentoEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
     private Set<Rol> roles = new HashSet<>();
+
+    public boolean hasRole(Rol rol) {
+        return roles.contains(rol);
+    }
+
+    public boolean hasAnyRole(Rol... roles) {
+        return Arrays.stream(roles).anyMatch(this.roles::contains);
+    }
+
 
 }

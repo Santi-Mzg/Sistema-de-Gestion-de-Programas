@@ -8,9 +8,11 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.Progr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +25,10 @@ import java.util.stream.Collectors;
 public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
-    private final MateriaRepository materiaRepository;
-    private final UserRepository userRepository;
-    private final CarreraRepository carreraRepository;
-    private final UsuarioDepartamentoRepository udeRepo;
+    private final MateriaService materiaService;
+    private final UserService userService;
+    private final CarreraService carreraService;
+    private final UsuarioDepartamentoService udeService;
 
 
     private final ProgramaResponseMapper responseMapper;
@@ -35,19 +37,19 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     public ProgramaServiceImpl(ProgramaRepository programaRepository,
-                               MateriaRepository materiaRepository,
-                               UserRepository userRepository,
-                               CarreraRepository carreraRepository,
-                               UsuarioDepartamentoRepository udeRepo,
+                               MateriaService materiaService,
+                               UserService userService,
+                               CarreraService carreraService,
+                               UsuarioDepartamentoService udeService,
                                ProgramaResponseMapper responseMapper,
                                ProgramaCargaAdministradorMapper adminMapper,
                                ProgramaCarreraMapper programaCarreraMapper) {
 
         this.programaRepository = programaRepository;
-        this.materiaRepository = materiaRepository;
-        this.userRepository = userRepository;
-        this.carreraRepository = carreraRepository;
-        this.udeRepo = udeRepo;
+        this.materiaService = materiaService;
+        this.userService = userService;
+        this.carreraService = carreraService;
+        this.udeService = udeService;
         this.responseMapper = responseMapper;
         this.adminMapper = adminMapper;
         this.programaCarreraMapper = programaCarreraMapper;
@@ -55,28 +57,18 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     @Override
-    public ProgramaResponseDTO createPrograma(ProgramaCargaAdministrativoDTO programaDTO){
+    public ProgramaResponseDTO create(ProgramaCargaAdministrativoDTO programaDTO){
         ProgramaEntity programaEntity = adminMapper.toEntity(programaDTO);
 
-        MateriaEntity materia = materiaRepository.findById(programaDTO.getMateriaId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("La Materia con ID " + programaDTO.getMateriaId() + "no fue encontrada.")
-                );
+        MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
 
         programaEntity.setMateria(materia);
 
-        UserEntity profesorResponsable = userRepository.findById(programaDTO.getProfesorResponsableId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El profesor con ID " + programaDTO.getProfesorResponsableId() + "no fue encontrado.")
-                );
+        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
 
         Long dptoId = materia.getDepartamento().getId();
 
-        UsuarioDepartamentoEntity ude = udeRepo.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El profesor seleccionado no esta relacionado con el departamento en cuestion.")
-                );
-
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId);
         programaEntity.setProfesorResponsable(ude);
 
 //        programaEntity.setProfesorResponsable(profesorResponsable.getDepartamentos().stream()
@@ -131,8 +123,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                     if(materiaActual != null && materiaActual.getId().equals(materiaId))
                         return;
 
-                    MateriaEntity nuevaMateria = materiaRepository.findById(materiaId)
-                            .orElseThrow(() -> new EntityNotFoundException("Materia no encontrada"));
+                    MateriaEntity nuevaMateria = materiaService.getEntityById(materiaId);
 
                     existingProgram.setMateria(nuevaMateria);
                 });
@@ -143,15 +134,11 @@ public class ProgramaServiceImpl implements ProgramaService {
                     if(profesorActual != null && profesorActual.getId().equals(profesorId))
                         return;
 
-//                    UserEntity profesorNuevo = userRepository.findById(profesorId)
-//                            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
                     MateriaEntity materiaActual = existingProgram.getMateria();
                     DepartamentoEntity dpto = materiaActual.getDepartamento();
 
-                    UsuarioDepartamentoEntity udeProfesorNuevo = udeRepo.findByUsuarioIdAndDepartamentoId(profesorId, dpto.getId())
-                            .orElseThrow(() -> new EntityNotFoundException("El profesor seleccionado no esta relacionado con el departamento en cuestion."));
-
+                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, dpto.getId());
 
                     existingProgram.setProfesorResponsable(udeProfesorNuevo);
                 });
@@ -277,15 +264,49 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO getProgramaById(Long id) {
+    public ProgramaResponseDTO getById(Long id) {
         ProgramaEntity foundProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         return responseMapper.toDTO(foundProgram);
     }
 
+
     @Override
-    public List<ProgramaResponseDTO> listProgramas() {
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseDTO> getList(String authName, Long deptId, Long carreraId, Rol rolActivo){
+
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(authName, deptId);
+
+
+        List<ProgramaEntity> programs = new ArrayList<>();
+
+        if(!ude.hasRole(rolActivo)) {
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
+        if (rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
+            programs = programaRepository.findByMateriaDepartamentoId(deptId);
+        }
+
+        // 2. Si es coordinador ve los programas de la carrera
+        else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR) && carreraId != null) {
+            programs = programaRepository.findByBloqueMultipleCarreraId(carreraId);
+        }
+
+        else if (rolActivo.equals(Rol.DOCENTE) ) {
+            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoId(authName, deptId);
+        }
+
+        return programs.stream()
+                .map(responseMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseDTO> listAll() {
         List<ProgramaEntity> programs = programaRepository.findAll();
         return programs.stream()
                 .map(responseMapper::toDTO)
@@ -293,7 +314,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public void deletePrograma(Long id) {
+    public void delete(Long id) {
         programaRepository.deleteById(id);
     }
 
@@ -351,17 +372,16 @@ public class ProgramaServiceImpl implements ProgramaService {
             ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
             bloqueEntity.setPrograma(programaEntity);
 
-            CarreraEntity carrera = carreraRepository.findById(bloqueDTO.getCarreraId())
-                    .orElseThrow(() -> new EntityNotFoundException("Carrera no encontrada"));
+            CarreraEntity carrera = carreraService.getEntityById(bloqueDTO.getCarreraId());
 
             bloqueEntity.setCarrera(carrera);
 
-            List<MateriaEntity> correlativasFuertes = materiaRepository.findAllById(bloqueDTO.getCorrelativasFuertesIds());
+            List<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
             if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }
 
-            List<MateriaEntity> correlativasDebiles = materiaRepository.findAllById(bloqueDTO.getCorrelativasDebilesIds());
+            List<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
             if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }

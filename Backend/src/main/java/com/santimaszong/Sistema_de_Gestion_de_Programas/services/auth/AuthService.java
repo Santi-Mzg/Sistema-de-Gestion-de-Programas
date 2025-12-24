@@ -26,39 +26,9 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
 
     private final UserRepository userRepo;
-    private final DepartamentoRepository depaRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-
-    public void register(RegisterRequest req) {
-        if (userRepo.existsByLegajo(req.legajo())) {
-            throw new IllegalArgumentException("Usuario ya existente");
-        }
-        DepartamentoEntity departamento = depaRepository.findById(req.departamentoId())
-        .orElseThrow(
-                () -> new EntityNotFoundException("El Departamento con ID " + req.departamentoId() + " para el usuario con legajo " + req.legajo()  + "no fue encontrado.")
-        );
-
-
-
-        UserEntity user = new UserEntity();
-        user.setNombre(req.nombre());
-        user.setApellido(req.apellido());
-        user.setLegajo(req.legajo());
-        user.setPassword(passwordEncoder.encode(req.password()));
-
-        UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
-        ude.setUsuario(user);
-        ude.setDepartamento(departamento);
-        ude.setEmail(req.email());
-        ude.setRoles(req.roles());
-        user.getDepartamentos().add(ude);
-
-        userRepo.save(user);
-
-    }
 
     public UserResponseDTO login(LoginRequest req, HttpServletResponse response) {
         Authentication auth = authenticationManager.authenticate(

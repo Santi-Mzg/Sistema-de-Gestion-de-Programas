@@ -1,9 +1,10 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums;
 
 public enum Rol {
-    ADMINISTRACION,
-    DOCENTE,
-    COORDINACION_COMISION_CURRICULAR,
+    SYSTEM_ADMIN,
+    DIRECCION_ADMINISTRATIVA,
     SECRETARIA,
-    DIRECCION_ADMINISTRATIVA
+    COORDINACION_COMISION_CURRICULAR,
+    DOCENTE,
+    ADMINISTRACION
 }

@@ -29,14 +29,14 @@ public class DepartamentoEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre_departamento", nullable = false)
+    @Column(nullable = false)
     private String nombre;
 
-    @Column(name = "direccion_departamento", nullable = false)
+    @Column(nullable = false)
     private String direccion;
 
-    @Column(name = "cuerpo_departamento", nullable = false)
-    private String cuerpo;
+    @Column(nullable = false)
+    private String telefono;
 
     @Column(name = "email_departamento", nullable = false, unique = true)
     private String email;
@@ -59,6 +59,14 @@ public class DepartamentoEntity {
     public UserEntity getSecretaria() {
         return usuarios.stream()
                 .filter(ude -> ude.getRoles().contains(Rol.SECRETARIA))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public UserEntity getDireccionAdministrativa() {
+        return usuarios.stream()
+                .filter(ude -> ude.getRoles().contains(Rol.DIRECCION_ADMINISTRATIVA))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .findFirst()
                 .orElse(null);

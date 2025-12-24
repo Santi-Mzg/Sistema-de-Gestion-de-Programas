@@ -50,7 +50,7 @@ public class AreaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<AreaResponseDTO> deleteArea(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteArea(@PathVariable Long id) {
         areaService.deleteArea(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

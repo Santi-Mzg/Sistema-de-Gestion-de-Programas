@@ -13,7 +13,8 @@ public class DepartamentoCreateDTO {
 
     private String nombre;
     private String direccion;
-    private String cuerpo;
+    private String telefono;
     private String email;
     private String sitioWeb;
+    private Long dirAdminId;
 }

@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UsuarioDepartamentoDTO {
 
-    private Long id;
-    private String departamento;
+    private Long departamentoId;
+    private String departamentoNombre;
     private String email;
     private List<String> carrerasComoComision;
     private List<String> materiasComoProfesor;

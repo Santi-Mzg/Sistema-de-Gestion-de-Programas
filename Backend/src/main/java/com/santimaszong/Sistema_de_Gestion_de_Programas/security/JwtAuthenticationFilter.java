@@ -1,4 +1,4 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.security.filter;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.security;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.JwtService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.MyUserDetailsService;
@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;

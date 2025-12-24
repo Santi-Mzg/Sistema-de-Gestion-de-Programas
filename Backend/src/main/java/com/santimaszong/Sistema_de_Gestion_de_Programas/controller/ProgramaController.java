@@ -5,11 +5,14 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Prog
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +33,7 @@ public class ProgramaController {
     @PostMapping
 //    @PreAuthorize("hasRole('ADMINISTRATIVO')")
     public ResponseEntity<ProgramaResponseDTO> createPrograma(@RequestBody ProgramaCargaAdministrativoDTO program) {
-        ProgramaResponseDTO createdProgram = programaService.createPrograma(program);
+        ProgramaResponseDTO createdProgram = programaService.create(program);
 
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
     }
@@ -66,19 +69,25 @@ public class ProgramaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProgramaResponseDTO> getPrograma(@PathVariable Long id) {
-        ProgramaResponseDTO foundProgram = programaService.getProgramaById(id);
+        ProgramaResponseDTO foundProgram = programaService.getById(id);
 
         return ResponseEntity.ok(foundProgram);
     }
 
     @GetMapping
-    public List<ProgramaResponseDTO> listProgramas() {
-        return programaService.listProgramas();
+    public List<ProgramaResponseDTO> listProgramas(
+            @RequestParam Long departamentoId,
+            @RequestParam(required = false) Long carreraId,
+            Authentication auth,
+            Rol rolActivo
+    ) {
+        return programaService.getList(auth.getName(), departamentoId, carreraId, rolActivo);
     }
 
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<ProgramaResponseDTO> deletePrograma(@PathVariable Long id) {
-        programaService.deletePrograma(id);
+    public ResponseEntity<Void> deletePrograma(@PathVariable Long id) {
+        programaService.delete(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

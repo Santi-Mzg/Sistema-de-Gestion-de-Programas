@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @Log
 @RestController
@@ -22,7 +24,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreateDTO user) {
+    public ResponseEntity<?> createUser(@RequestBody UserCreateDTO user) {
         UserResponseDTO createdUser = userService.createUser(user);
 
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
@@ -34,12 +36,18 @@ public class UserController {
 
         return ResponseEntity.ok(foundUser);
     }
+    @GetMapping("/legajo/{legajo}")
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable String legajo) {
+        UserResponseDTO foundUser = userService.getUserByLegajo(legajo);
 
-//    @GetMapping
-//    public List<UserResponseDTO> listUsers() {
-//        return userService.listUsers();
-//    }
-//
+        return ResponseEntity.ok(foundUser);
+    }
+
+    @GetMapping
+    public List<UserResponseDTO> listUsers() {
+        return userService.listUsers();
+    }
+
 //    @GetMapping("/profesores")
 //    public List<UserResponseDTO> listProfesores() {
 //        return userService.listProfesores();
@@ -68,7 +76,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

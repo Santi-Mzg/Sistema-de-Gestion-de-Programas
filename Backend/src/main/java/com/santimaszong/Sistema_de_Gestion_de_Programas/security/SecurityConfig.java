@@ -1,5 +1,5 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.security.config;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.security.filter.JwtAuthenticationFilter;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.security;
+
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.JwtService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.MyUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/api/auth/reset-password",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()

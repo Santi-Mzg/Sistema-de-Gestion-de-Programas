@@ -6,8 +6,8 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEnti
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.AreaRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.MateriaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
-    private final DepartamentoRepository departamentoRepository;
-    private final AreaRepository areaRepository;
+    private final DepartamentoService departamentoService;
+    private final AreaService areaService;
 
     private final MateriaMapper materiaMapper;
 
-    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoRepository departamentoRepository, AreaRepository areaRepository, MateriaMapper materiaMapper) {
+    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoService departamentoService, AreaService areaService, MateriaMapper materiaMapper) {
         this.materiaRepository = materiaRepository;
-        this.departamentoRepository = departamentoRepository;
-        this.areaRepository = areaRepository;
+        this.departamentoService = departamentoService;
+        this.areaService = areaService;
         this.materiaMapper = materiaMapper;
     }
 
@@ -38,15 +38,9 @@ public class MateriaServiceImpl implements MateriaService {
         MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
 
 
-        DepartamentoEntity departamento = departamentoRepository.findById(materiaDTO.getDepartamentoId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El Departamento de la materia " + materiaDTO.getNombre() + " con ID " + materiaDTO.getDepartamentoId() + "no fue encontrado.")
-                );
+        DepartamentoEntity departamento = departamentoService.getEntityById(materiaDTO.getDepartamentoId());
 
-        AreaEntity area = areaRepository.findById(materiaDTO.getAreaId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El Area de la materia " + materiaDTO.getNombre() + " con ID " + materiaDTO.getAreaId() + "no fue encontrado.")
-                );
+        AreaEntity area = areaService.getEntityById(materiaDTO.getAreaId());
 
         materiaEntity.setDepartamento(departamento);
         materiaEntity.setArea(area);
@@ -65,11 +59,22 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
+    public MateriaEntity getEntityById(Long id) {
+        return materiaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Materia no existente"));
+    }
+
+    @Override
     public List<MateriaResponseDTO> listMaterias() {
         List<MateriaEntity> materias = materiaRepository.findAll();
         return materias.stream()
                 .map(materiaMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MateriaEntity> listEntities(List<Long> ids) {
+        return materiaRepository.findAllById(ids);
     }
 
     @Override

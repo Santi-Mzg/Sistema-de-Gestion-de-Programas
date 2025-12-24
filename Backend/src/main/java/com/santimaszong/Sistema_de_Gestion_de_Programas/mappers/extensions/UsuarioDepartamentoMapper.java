@@ -18,7 +18,8 @@ import org.mapstruct.Mapping;
 public interface UsuarioDepartamentoMapper extends ToDTOMapper<UsuarioDepartamentoEntity, UsuarioDepartamentoDTO> {
 
     @Override
-    @Mapping(source = "departamento.nombre", target = "departamento")
+    @Mapping(source = "departamento.id", target = "departamentoId")
+    @Mapping(source = "departamento.nombre", target = "departamentoNombre")
     @Mapping(source = "carrerasComoComision", target = "carrerasComoComision", qualifiedByName = "carrerasToString")
     @Mapping(source = "materiasComoProfesor", target = "materiasComoProfesor", qualifiedByName = "programasToString")
     UsuarioDepartamentoDTO toDTO(UsuarioDepartamentoEntity userDpto);

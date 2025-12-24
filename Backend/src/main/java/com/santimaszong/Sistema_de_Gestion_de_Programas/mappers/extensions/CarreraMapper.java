@@ -13,7 +13,8 @@ import org.mapstruct.Mapping;
         componentModel = "spring",
         uses = {
                 ProgramaCarreraMapper.class,
-                UserToStringMapper.class
+                UserToStringMapper.class,
+                UserReducedMapper.class
         }
 )
 public interface CarreraMapper extends ToEntityMapper<CarreraCreateDTO, CarreraEntity>, ToDTOMapper<CarreraEntity, CarreraResponseDTO> {
@@ -28,6 +29,6 @@ public interface CarreraMapper extends ToEntityMapper<CarreraCreateDTO, CarreraE
     @Override
     @Mapping(source = "materias", target = "materias")
     @Mapping(source = "departamento.nombre", target = "departamento")
-    @Mapping(source = "comision.usuario", target = "comision", qualifiedByName = "userToString")
+    @Mapping(source = "comision.usuario", target = "comision")
     CarreraResponseDTO toDTO(CarreraEntity entity);
 }

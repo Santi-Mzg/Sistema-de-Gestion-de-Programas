@@ -44,7 +44,7 @@ public class UserEntity implements UserDetails {
     @Column(nullable=false)
     private String password;
 
-    private boolean isAdmin;
+    private boolean isAdmin = false;
 
 
     // ============================
@@ -68,14 +68,18 @@ public class UserEntity implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return departamentos.getFirst().getRoles().stream()
-                .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.name()))
-                .toList();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        if (this.isAdmin) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
+        }
+
+        return authorities;
     }
 
     /**
      * Spring usa este "username" para autenticar.
-     * En tu sistema el username es el email.
+     * En tu sistema el username es el legajo.
      */
     @Override
     public String getUsername() {
@@ -106,11 +110,5 @@ public class UserEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-
-
-
-
-
 
 }

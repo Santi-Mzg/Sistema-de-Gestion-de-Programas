@@ -23,13 +23,6 @@ public class AuthController {
         this.authService = authService;
     }
 
-
-    @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
-        authService.register(req);
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/login")
     public ResponseEntity<UserResponseDTO> login(@RequestBody LoginRequest req, HttpServletResponse res) {
         UserResponseDTO user = authService.login(req, res);
@@ -46,6 +39,23 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletResponse res) {
         authService.logout(res);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody String email) {
+//        // 1. Generar la contraseña aleatoria
+//        String temporaryPassword = passwordGeneratorService.generateSafePassword(16);
+//
+//        // 2. Encriptarla para la DB
+//        String hashedBtn = passwordEncoder.encode(temporaryPassword);
+//
+//        // 3. Actualizar el usuario en DB
+//        usuarioService.updatePassword(email, hashedBtn);
+//
+//        // 4. Enviar la contraseña EN TEXTO PLANO por email al usuario
+//        emailService.sendPasswordReset(email, temporaryPassword);
+
+        return ResponseEntity.ok("Nueva contraseña enviada.");
     }
 
 }

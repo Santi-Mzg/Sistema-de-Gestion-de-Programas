@@ -66,6 +66,12 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
+    public CarreraEntity getEntityById(Long id) {
+        return carreraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
+    }
+
+    @Override
     public List<CarreraResponseDTO> listCarreras() {
         List<CarreraEntity> carreras = carreraRepository.findAll();
         return carreras.stream()
@@ -91,7 +97,7 @@ public class CarreraServiceImpl implements CarreraService {
     public CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carreraDTO) {
         return carreraRepository.findById(id).map(existingCarrera -> {
             Optional.ofNullable(carreraDTO.getNombre()).ifPresent(existingCarrera::setNombre);
-            Optional.ofNullable(carreraDTO.getCodigo()).ifPresent(existingCarrera::setCodigo);
+            Optional.ofNullable(carreraDTO.getPlan()).ifPresent(existingCarrera::setPlan);
             Optional.ofNullable(carreraDTO.getDuracion()).ifPresent(existingCarrera::setDuracion);
 
             CarreraEntity savedCarreraEntity = carreraRepository.save(existingCarrera);

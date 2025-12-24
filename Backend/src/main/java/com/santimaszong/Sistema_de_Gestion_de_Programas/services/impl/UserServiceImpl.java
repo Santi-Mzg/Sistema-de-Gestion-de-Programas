@@ -1,5 +1,12 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.RegisterRequest;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
@@ -11,49 +18,77 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
+    private final UsuarioDepartamentoService userDptoService;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordGeneratorService passwordGeneratorService;
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository,
+                           UsuarioDepartamentoService userDptoService,
+                           PasswordEncoder passwordEncoder,
+                           PasswordGeneratorService passwordGeneratorService,
+                           UserMapper userMapper) {
+
         this.userRepository = userRepository;
+        this.userDptoService = userDptoService;
+        this.passwordEncoder = passwordEncoder;
+        this.passwordGeneratorService = passwordGeneratorService;
         this.userMapper = userMapper;
     }
 
 
     @Override
     public UserResponseDTO createUser(UserCreateDTO userDTO){
-//        UserEntity userEntity = userMapper.toEntity(userDTO);
+        UserEntity user;
 
-//        DepartamentoEntity departamento = departamentoRepository.findById(userDTO.getDepartamentoAdministracionId())
-//                .orElseThrow(
-//                        () -> new EntityNotFoundException("El Departamento con ID " + userDTO.getDepartamentoAdministracionId() + " para el usuario " + userDTO.getNombre()  + "no fue encontrado.")
-//                );
+        if (userRepository.existsByLegajo(userDTO.getLegajo())) { // Si existe lo busco
 
-//        CarreraEntity carreraComoComision = carreraRepository.findById(userDTO.getCarreraComoComisionId())
-//                .orElseThrow(
-//                        () -> new EntityNotFoundException("La Carrera como Comisión con ID " + userDTO.getCarreraComoComisionId() + " para el usuario " + userDTO.getNombre()  + "no fue encontrado.")
-//                );
-//
-//        CarreraEntity carreraComoProfesor = carreraRepository.findById(userDTO.getCarreraComoProfesorId())
-//                .orElseThrow(
-//                        () -> new EntityNotFoundException("La Carrera como Profesor con ID " + userDTO.getCarreraComoProfesorId() + " para el usuario " + userDTO.getNombre()  + "no fue encontrado.")
-//                );
+            user = userRepository.findByLegajo(userDTO.getLegajo())
+                    .orElseThrow(() -> new EntityNotFoundException("El usuario con legajo " + userDTO.getLegajo()  + "no fue encontrado."));
 
 
+            boolean userInDpto = user.getDepartamentos().stream()
+                    .anyMatch(ude -> ude.getDepartamento().getId()
+                                    .equals(userDTO.getDepartamentoId())
+                    );
 
-//        userEntity.setDepartamentoAdministracion(departamento);
-//        userEntity.setCarreraComoComision(carreraComoComision);
-//        userEntity.setCarreraComoProfesor(carreraComoProfesor);
+            if(userInDpto) { // Si ya tiene un ude de ese departamento retorno
+                throw new IllegalArgumentException("Usuario ya registrado en el departamento indicado");
+            }
 
-//        UserEntity createdUserEntity = userRepository.save(userEntity);
+        } else { // Si no existe lo creo
 
-//        return userMapper.toDTO(createdUserEntity);
-        return null;
+            user = new UserEntity();
+            user.setNombre(userDTO.getNombre());
+            user.setApellido(userDTO.getApellido());
+            user.setLegajo(userDTO.getLegajo());
+
+            String temporaryPassword = passwordGeneratorService.generateSafePassword(12);
+            user.setPassword(passwordEncoder.encode(temporaryPassword));
+        }
+
+        // De todas maneras creo el ude acorde al departamento
+        DepartamentoEntity departamento = userDptoService.getDeptEntityById(userDTO.getDepartamentoId());
+
+        UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
+        ude.setUsuario(user);
+        ude.setDepartamento(departamento);
+        ude.setEmail(userDTO.getEmail());
+        ude.setRoles(userDTO.getRoles());
+        user.getDepartamentos().add(ude);
+
+        UserEntity savedUser = userRepository.save(user);
+
+        return userMapper.toDTO(savedUser);
+
     }
 
     @Override
@@ -64,14 +99,34 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDTO(foundUser);
     }
 
-//    @Override
-//    public List<UserResponseDTO> listUsers() {
-//        List<UserEntity> users = userRepository.findAll();
-//        return users.stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//
+    @Override
+    public UserResponseDTO getUserByLegajo(String legajo) {
+        UserEntity foundUser = userRepository.findByLegajo(legajo)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
+
+        return userMapper.toDTO(foundUser);
+    }
+
+    @Override
+    public UserEntity getEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
+    }
+
+    @Override
+    public UserEntity getEntityByLegajo(String legajo) {
+        return userRepository.findByLegajo(legajo)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
+    }
+
+    @Override
+    public List<UserResponseDTO> listUsers() {
+        List<UserEntity> users = userRepository.findAll();
+        return users.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 //    @Override
 //    public List<UserResponseDTO> listProfesores() {
 //        List<UserEntity> profesores = userRepository.findAllByRoles(Rol.PROFESOR);

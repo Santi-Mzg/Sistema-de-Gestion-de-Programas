@@ -7,16 +7,15 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Prog
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaProfesorDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 
 public interface ProgramaService {
-    ProgramaResponseDTO createPrograma(ProgramaCargaAdministrativoDTO programa);
+    ProgramaResponseDTO create(ProgramaCargaAdministrativoDTO programa);
     ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaAdministrativoDTO programa, UserEntity actor);
-
     ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programa, UserEntity actor);
     ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor);
-
-    ProgramaResponseDTO getProgramaById(Long id);
-    List<ProgramaResponseDTO> listProgramas();
-
-    void deletePrograma(Long id);
+    ProgramaResponseDTO getById(Long id);
+    List<ProgramaResponseDTO> getList(String authName, Long departamentoId, Long carreraId, Rol rolActivo);
+    List<ProgramaResponseDTO> listAll();
+    void delete(Long id);
 }

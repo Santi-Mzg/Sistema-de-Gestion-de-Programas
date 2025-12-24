@@ -15,7 +15,7 @@ import org.mapstruct.Mapping;
                 CarreraMapper.class,
                 MateriaMapper.class,
                 AreaMapper.class,
-                UserToStringMapper.class,
+                UserReducedMapper.class,
         }
 )
 public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO, DepartamentoEntity>, ToDTOMapper<DepartamentoEntity, DepartamentoResponseDTO> {
@@ -29,10 +29,8 @@ public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO
     DepartamentoEntity toEntity(DepartamentoCreateDTO dto);
 
     @Override
-    @Mapping(source = "materias", target = "materias")
-    @Mapping(source = "carreras", target = "carreras")
-    @Mapping(source = "areas", target = "areas")
-    @Mapping(source = "secretaria", target = "secretaria", qualifiedByName = "userToString")
+    @Mapping(source = "secretaria", target = "secretaria")
+    @Mapping(source = "direccionAdministrativa", target = "direccionAdministrativa")
     DepartamentoResponseDTO toDTO(DepartamentoEntity entity);
 
 

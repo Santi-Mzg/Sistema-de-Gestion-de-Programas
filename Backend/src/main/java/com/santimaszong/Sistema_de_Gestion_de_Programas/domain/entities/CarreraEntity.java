@@ -27,17 +27,14 @@ public class CarreraEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo_carrera", nullable = false, unique = true)
-    private String codigo;
-
     @Column(name = "nombre_carrera", nullable = false, unique = true)
     private String nombre;
 
     @Column(name = "duracion_carrera", nullable = false)
     private String duracion;
 
-    @Column(name = "cantidad_materias_carrera", nullable = false)
-    private int cantidadMaterias;
+    @Column(nullable = false)
+    private String plan;
 
     @OneToMany(mappedBy = "carrera", fetch = FetchType.LAZY)
     private List<ProgramaCarreraEntity> materias;
