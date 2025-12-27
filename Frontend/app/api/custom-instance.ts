@@ -1,6 +1,6 @@
 import Axios, { AxiosRequestConfig } from 'axios';
 
-export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,
@@ -9,7 +9,7 @@ export const customInstance = <T>(
   
   const promise = Axios.request<T>({
     ...config,
-    baseURL: BASE_URL,
+    baseURL: API_URL,
     cancelToken: source.token,
     withCredentials: true,
   }).then(({ data }) => data);

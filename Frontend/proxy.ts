@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from 'next/server'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+
 
 const PUBLIC_ROUTES = [
   "/login",
@@ -34,7 +36,7 @@ export async function proxy(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
       method: "GET",
       headers: {
         Cookie: `jwt=${token}`,
