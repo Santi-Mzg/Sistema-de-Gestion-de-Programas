@@ -10,7 +10,6 @@ import { DepartamentoResponseDTO, AreaCreateDTO } from "@/app/api/generated/mode
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useCreateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
-import { AlertCircle } from "lucide-react"
 
 
 export function AreaForm() {
@@ -18,7 +17,6 @@ export function AreaForm() {
 
   const [formData, setFormData] = useState<AreaCreateDTO>({
     nombre: "",
-    departamentoId: activeDepartamento?.departamentoId,
   })
 
   const { mutate, isPending } = useCreateArea({
@@ -34,7 +32,10 @@ export function AreaForm() {
 
 
   const handleFormSubmit = (data: AreaCreateDTO) => {
-    mutate({ data }); 
+    mutate({ 
+      deptId: activeDepartamento!.departamentoId!,
+      data 
+    }); 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -50,7 +51,6 @@ export function AreaForm() {
     handleFormSubmit(formData)
     setFormData({
       nombre: "",
-      departamentoId: activeDepartamento?.departamentoId,
     })
   }
 
@@ -89,7 +89,7 @@ export function AreaForm() {
               Departamento *
             </Label>
             <Select
-              value={formData.departamentoId?.toString() ?? ""}
+              value={activeDepartamento.departamentoId.toString()}
             >
               <SelectTrigger>
                 <SelectValue placeholder={activeDepartamento.departamentoNombre} />

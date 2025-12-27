@@ -7,5 +7,4 @@
 
 export interface AreaCreateDTO {
   nombre?: string;
-  departamentoId?: number;
 }

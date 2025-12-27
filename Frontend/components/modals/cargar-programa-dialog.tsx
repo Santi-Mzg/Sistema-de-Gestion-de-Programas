@@ -12,23 +12,23 @@ import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 import type { ProgramaResponseDTO } from "@/app/api/generated/model"
 
-interface CargarProgramaAnteriorDialogProps {
+interface CargarProgramaVigenteDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  programa: ProgramaResponseDTO | null
+  programa: ProgramaResponseDTO | undefined
   onConfirm: () => void
   onCancel: () => void
   isLoading?: boolean
 }
 
-export function CargarProgramaAnteriorDialog({
+export function CargarProgramaVigenteDialog({
   open,
   onOpenChange,
   programa,
   onConfirm,
   onCancel,
   isLoading = false,
-}: CargarProgramaAnteriorDialogProps) {
+}: CargarProgramaVigenteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -50,11 +50,15 @@ export function CargarProgramaAnteriorDialog({
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
             <p className="text-sm">
               <span className="font-semibold text-foreground">Materia:</span>{" "}
-              <span className="text-muted-foreground">{programa.nombreMateria}</span>
+              <span className="text-muted-foreground">{programa.materia?.nombre}</span>
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold text-foreground">Año:</span>{" "}
+              <span className="text-muted-foreground">{programa.anio}</span>
             </p>
             <p className="text-sm">
               <span className="font-semibold text-foreground">Profesor:</span>{" "}
-              <span className="text-muted-foreground">{programa.profesorResponsable}</span>
+              <span className="text-muted-foreground">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} ({programa.profesorResponsable?.legajo})</span>
             </p>
             {programa.historialEstados && programa.historialEstados.length > 0 && (
               <p className="text-sm">
@@ -67,11 +71,11 @@ export function CargarProgramaAnteriorDialog({
           </div>
         )}
 
-        <p className="text-sm text-foreground">¿Deseas cargar los datos de este programa anterior para editarlos?</p>
+        <p className="text-sm text-foreground">¿Deseas cargar los datos de este programa para editarlos?</p>
 
         <DialogFooter className="flex gap-3 sm:gap-3">
           <Button variant="outline" onClick={onCancel} disabled={isLoading} className="flex-1 bg-transparent">
-            No, crear nuevo
+            Cancelar
           </Button>
           <Button onClick={onConfirm} disabled={isLoading} className="flex-1 bg-primary hover:bg-primary/90">
             {isLoading ? "Cargando..." : "Sí, cargar programa"}

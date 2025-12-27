@@ -4,16 +4,12 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { MateriaResponseDTO } from './materiaResponseDTO';
-import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 import type { ProgramaCarreraDTO } from './programaCarreraDTO';
-import type { EstadoHistoricoResponseDTO } from './estadoHistoricoResponseDTO';
 
-export interface ProgramaResponseDTO {
-  id?: number;
+export interface ProgramaCargaDTO {
+  materiaId?: number;
   anio?: number;
-  materia?: MateriaResponseDTO;
-  profesorResponsable?: UserResponseReducedDTO;
+  profesorResponsableId?: number;
   bloqueMultiple?: ProgramaCarreraDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
@@ -27,5 +23,4 @@ export interface ProgramaResponseDTO {
   modalidadEvaluacion?: string;
   bibliografia?: string;
   estado?: string;
-  historialEstados?: EstadoHistoricoResponseDTO[];
 }

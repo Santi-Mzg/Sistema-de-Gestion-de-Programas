@@ -116,6 +116,9 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                 <th className="px-6 py-4 text-left">
                     Departamento
                 </th>
+                <th className="px-6 py-4 text-left">
+                    Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -134,7 +137,7 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/usuarios/${user.id}/editar`)}
+                          onClick={() => router.push(`/usuarios/${user.id}`)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
                           <Edit2 size={16} className="mr-1" />

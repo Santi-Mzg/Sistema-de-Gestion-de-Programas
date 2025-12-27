@@ -87,9 +87,9 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                     className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
                     onClick={() => onRowClick(programa.id!)}
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{programa.nombreMateria}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.codigoMateria}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.nombreDepartamento}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">{programa.materia?.nombre}</td>
+                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.codigo}</td>
+                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.departamento}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2`}

@@ -51,11 +51,13 @@ export function UsuarioForm() {
         apellido: formData.apellido,
         legajo: formData.legajo,
         email: formData.email,
-        departamentoId: activeDepartamento?.departamentoId,
         roles: formData.roles as UserCreateDTORolesItem[],
       }
 
-    mutate({ data: requestData });
+    mutate({ 
+      deptId: activeDepartamento!.departamentoId!,
+      data: requestData  
+    });
   };
 
   const selectedRoles = watch("roles");

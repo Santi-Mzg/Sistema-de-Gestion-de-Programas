@@ -10,6 +10,7 @@ import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaProfesorDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
 import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
 import { AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -20,6 +21,7 @@ interface SyllabusFormProps {
 
 
 export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
+  const router = useRouter();
   const programaQuery = useGetPrograma(id);
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
@@ -64,6 +66,8 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
         data,
         id: id
       });
+
+      router.push('/');
     };
 
 
@@ -126,7 +130,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             <Input
               id="departamento"
               type="text"
-              value={programa.nombreDepartamento || ""}
+              value={programa.materia?.departamento || ""}
               className="border-border focus:border-primary"
               disabled
             />
@@ -141,7 +145,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             <Input
               id="materia"
               type="text"
-              value={programa.codigoMateria + " - " + programa.nombreMateria || ""}
+              value={programa.materia?.codigo + " - " + programa.materia?.nombre || ""}
               className="border-border focus:border-primary"
               disabled
             />
@@ -154,7 +158,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             <Input
               id="profesor"
               type="text"
-              value={programa.profesorResponsable || ""}
+              value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
               className="border-border focus:border-primary"
               disabled
             />
@@ -172,6 +176,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
           {programa.bloqueMultiple?.map((block, index) => (
             <ProgramaCarreraBlock
               key={block.key}
+              materiaId={programa.materia?.id || 0}
               block={block}
               index={index}
               carreras={[]}

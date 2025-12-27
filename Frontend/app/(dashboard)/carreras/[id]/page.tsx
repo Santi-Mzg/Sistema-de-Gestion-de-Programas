@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { useGetCarrera, useListUsersByDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -33,13 +33,14 @@ export default function EditCarreraPage() {
     nombre: carrera?.nombre,
     plan: carrera?.plan,
     duracion: carrera?.duracion,
-    departamentoId: activeDepartamento?.departamentoId,
   })
+  
+  const deptId = activeDepartamento?.departamentoId || 0;
 
-  const { data: usuarios = [] } = useListUsersByDepartamento(Number(id), {
+  const { data: usuarios = [] } = useListUsersDepartamento(deptId, {
     query: {
       enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION'),
-      queryKey: useListUsersByDepartamento(Number(id)).queryKey,
+      queryKey: ['useListUsersDepartamento', deptId],
     },
   })
 
@@ -51,7 +52,6 @@ export default function EditCarreraPage() {
         nombre: carrera.nombre,
         plan: carrera.plan,
         duracion: carrera.duracion,
-        departamentoId: activeDepartamento?.departamentoId,
     })
     setComision(carrera.comision)
   }, [carrera, activeDepartamento])

@@ -27,21 +27,62 @@ export default function Programas() {
     const { activeDepartamento } = useDept()
     const { activeRole } = useRole();
     
+    const deptId = activeDepartamento?.departamentoId;
 
-    if (!activeDepartamento || !activeDepartamento.departamentoId) {
+    const programasQuery = useListProgramas(
+        deptId!,
+        {
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        },
+      {
+        query: {
+          enabled: !!deptId && !!activeRole,
+          queryKey: useListProgramas(
+            deptId!,
+            {
+              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            }
+          ).queryKey,
+        }, 
+      }
+    );
+
+    const programas: ProgramaResponseDTO[] = programasQuery.data || [];
+
+    if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
       return(
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando datos de los programas...</p>
+          </div>  
+        </div>
+      )
+    }
+
+    if (programasQuery.isLoading) {
+        return (
+            <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Cargando datos de los programas...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (programasQuery.error) {
+      return (
         <div className="p-8 max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <AlertCircle className="text-yellow-600" size={24} />
-            <p className="text-yellow-700">Seleccione un departamento para ver sus programas</p>
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener los programas</p>
           </div>
         </div>
       )
     }
-    const programas: ProgramaResponseDTO[] = useListProgramas({
-        departamentoId: activeDepartamento?.departamentoId,
-        rolActivo: activeRole || UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN
-    }).data || [];
+
+
 
     return (
       <ProgramasList programas={programas} />

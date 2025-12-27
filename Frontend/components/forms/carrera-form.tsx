@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CarreraCreateDTO } from "@/app/api/generated/model"
-import { useCreateCarrera } from "@/app/api/generated/client"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useDept } from "@/context/dept-context"
+import { useCreateCarrera } from "@/app/api/generated/client"
 
 export function CarreraForm() {
   const { activeDepartamento } = useDept()
@@ -19,7 +19,6 @@ export function CarreraForm() {
     plan: "",
     nombre: "",
     duracion: "",
-    departamentoId: activeDepartamento?.departamentoId,
   })
 
   const { mutate, isPending } = useCreateCarrera({
@@ -34,7 +33,10 @@ export function CarreraForm() {
   });
 
   const handleFormSubmit = (data: CarreraCreateDTO) => {
-    mutate({ data }); 
+    mutate({ 
+      deptId: activeDepartamento!.departamentoId!,
+      data 
+    }); 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -53,10 +55,10 @@ export function CarreraForm() {
     e.preventDefault()
     handleFormSubmit(formData)
     setFormData({
+      plan: "",
       nombre: "",
       duracion: "",
       // cantidadMaterias: undefined,
-      departamentoId: undefined,
     })
   }
 
@@ -128,7 +130,7 @@ export function CarreraForm() {
               Departamento *
             </Label>
             <Select
-              value={formData.departamentoId?.toString() ?? ""}
+              value={activeDepartamento.departamentoId.toString()}
             >
               <SelectTrigger>
                 <SelectValue placeholder={activeDepartamento.departamentoNombre} />

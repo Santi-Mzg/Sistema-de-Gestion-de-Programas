@@ -2,11 +2,11 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AreaResponseDTO, DepartamentoResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
+import { AreaResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
@@ -31,7 +31,6 @@ export function MateriaForm() {
     codigo: "",
     nombre: "",
     areaId: areas?.[0]?.id,
-    departamentoId: activeDepartamento?.departamentoId,
   })
 
   const { mutate, isPending } = useCreateMateria({
@@ -48,7 +47,10 @@ export function MateriaForm() {
 
   const handleFormSubmit = (data: MateriaCreateDTO) => {
     // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-    mutate({ data }); 
+    mutate({ 
+      deptId: activeDepartamento!.departamentoId!,
+      data 
+    }); 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -66,11 +68,10 @@ export function MateriaForm() {
       codigo: "",
       nombre: "",
       areaId: areas?.[0]?.id,
-      departamentoId: activeDepartamento?.departamentoId,
     })
   }
 
-    if (!activeDepartamento || !activeDepartamento.departamentoId) {
+  if (!activeDepartamento || !activeDepartamento.departamentoId) {
     return(
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
@@ -155,7 +156,7 @@ export function MateriaForm() {
               Departamento *
             </Label>
             <Select
-              value={formData.departamentoId?.toString() ?? ""}
+              value={activeDepartamento.departamentoId.toString()}
             >
               <SelectTrigger>
                 <SelectValue placeholder={activeDepartamento.departamentoNombre} />

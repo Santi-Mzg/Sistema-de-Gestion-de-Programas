@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, BookOpen, Eye, Trash2 } from "lucide-react"
+import { Plus, BookOpen, Eye, Trash2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SyllabusAdministrativoForm } from "../forms/programa-administracion-form"
@@ -37,10 +37,25 @@ export function AdministracionDashboard() {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   
-  const programas: ProgramaResponseDTO[] = useListProgramas({
-      departamentoId: activeDepartamento?.departamentoId,
-      rolActivo: activeRole || UsuarioDepartamentoDTORolesItem.ADMINISTRACION
-  }).data || [];
+    const programasQuery = useListProgramas(
+      activeDepartamento!.departamentoId!,
+      {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.ADMINISTRACION,
+      },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId && !!activeRole,
+        queryKey: useListProgramas(
+          activeDepartamento!.departamentoId!,
+          {
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.ADMINISTRACION,
+          }
+        ).queryKey,
+      }, 
+    }
+  );
+
+  const programas: ProgramaResponseDTO[] = programasQuery.data || [];
 
   const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_ADMINISTRACION);
@@ -51,6 +66,40 @@ export function AdministracionDashboard() {
   const handleNavigate = (id: number) => {
     router.push(`/programas/crear/${id}`);
   };
+
+
+     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
+      return(
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando datos de los programas...</p>
+          </div>  
+        </div>
+      )
+    }
+
+    if (programasQuery.isLoading) {
+        return (
+            <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Cargando datos de los programas...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (programasQuery.error) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener los programas</p>
+          </div>
+        </div>
+      )
+    }
 
   return (
     <div className="p-8 max-w-7xl mx-auto">

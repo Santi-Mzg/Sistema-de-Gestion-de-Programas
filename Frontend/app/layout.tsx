@@ -4,12 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "../styles/globals.css"
 import { Providers } from "../providers/providers"
-import { Sidebar } from "@/components/nav/sidebar"
 import { RoleProvider } from "@/context/role-context"
 import { AuthProvider } from "@/context/auth-context"
 import { DepartamentoProvider } from "@/context/dept-context"
-import { listDepartamentos } from "@/app/api/generated/server";
-import { DepartamentoResponseDTO } from "./api/generated/model"
 
 
 const _geist = Geist({ subsets: ["latin"] })

@@ -4,9 +4,9 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
+import type { ListProgramasRolActivo } from './listProgramasRolActivo';
 
 export type ListProgramasParams = {
-departamentoId?: number;
 carreraId?: number;
-rolActivo: string;
+rolActivo: ListProgramasRolActivo;
 };

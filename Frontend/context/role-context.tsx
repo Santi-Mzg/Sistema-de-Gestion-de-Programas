@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./auth-context";
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { useDept } from "./dept-context";
 
 
 interface RoleContextType {
@@ -18,29 +19,22 @@ export function RoleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
-  console.log("Current user in layout:", user);
+  const { activeDepartamento, isLoading } = useDept();
 
 
   const [activeRole, setActiveRole] = useState<UsuarioDepartamentoDTORolesItem | null>(null);
   const [availableRoles, setAvailableRoles] = useState<UsuarioDepartamentoDTORolesItem[]>([]);
   
-useEffect(() => {
-    if (!user) {
+  useEffect(() => {
+    if (!activeDepartamento) {
         if (!isLoading) {
           setActiveRole(null);
           setAvailableRoles([]);
         }
         return;
       }
-    let roles: UsuarioDepartamentoDTORolesItem[] = [];
-
-    if (user.isAdmin) {
-      roles = ["SYSTEM_ADMIN", "ADMINISTRACION", "DOCENTE", "COORDINACION_COMISION_CURRICULAR", "SECRETARIA", "DIRECCION_ADMINISTRATIVA"];
-    } else if (user.departamentos && user.departamentos.length > 0) {
-      roles = user.departamentos[0].roles as UsuarioDepartamentoDTORolesItem[];
-    }
-
+    let roles: UsuarioDepartamentoDTORolesItem[] = activeDepartamento?.roles || [];
+    
     setAvailableRoles(roles);
 
     if (roles.length > 0) {
@@ -51,7 +45,7 @@ useEffect(() => {
         if (activeRole !== roles[0]) setActiveRole(roles[0]);
       }
     }
-  }, [user, isLoading]);
+  }, [activeDepartamento, isLoading]);
 
 
   const updateRole = (role: UsuarioDepartamentoDTORolesItem) => {

@@ -9,5 +9,4 @@ export interface CarreraCreateDTO {
   plan?: string;
   nombre?: string;
   duracion?: string;
-  departamentoId?: number;
 }

@@ -10,7 +10,7 @@ export interface UsuarioDepartamentoDTO {
   departamentoId?: number;
   departamentoNombre?: string;
   email?: string;
-  carrerasComoComision?: string[];
+  carrerasComoComision?: number[];
   materiasComoProfesor?: string[];
   roles?: UsuarioDepartamentoDTORolesItem[];
 }

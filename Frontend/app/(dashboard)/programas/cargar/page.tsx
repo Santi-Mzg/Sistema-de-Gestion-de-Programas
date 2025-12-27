@@ -1,23 +1,20 @@
 "use client"
 
-import { useListCarreras, useListDepartamentos } from "@/app/api/generated/client";
-import { CarreraResponseDTO, DepartamentoResponseDTO, UserResponseDTO } from "@/app/api/generated/model";
 import { SyllabusAdministrativoForm } from "@/components/forms/programa-administracion-form";
+import { Suspense } from "react";
 
 
 export default function CrearPrograma() {
-
-  // const departamentosDisponibles: DepartamentoResponseDTO[] = (await listDepartamentos()).data;
-  const departamentosDisponibles: DepartamentoResponseDTO[] =  useListDepartamentos().data || [];
-
-
-  // const carrerasDisponibles: CarreraResponseDTO[] = (await listCarreras()).data;
-  const carrerasDisponibles: CarreraResponseDTO[] = useListCarreras().data || [];
-
-  // const profesoresDisponibles: UserResponseDTO[] = (await listProfesores()).data;
-
-  
     return (
-      <SyllabusAdministrativoForm departamentosDisponibles={departamentosDisponibles} carrerasDisponibles={carrerasDisponibles} profesoresDisponibles={[]} />
+      <Suspense fallback={
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando...</p>
+          </div>
+        </div>
+      }>
+        <SyllabusAdministrativoForm />
+      </Suspense>
     );
 }

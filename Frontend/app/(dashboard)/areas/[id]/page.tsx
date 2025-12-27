@@ -28,7 +28,6 @@ export default function EditAreaPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<AreaCreateDTO>({
         nombre: area?.nombre,
-        departamentoId: activeDepartamento?.departamentoId,
   })
 
   useEffect(() => {
@@ -36,7 +35,6 @@ export default function EditAreaPage() {
 
     setFormData({ 
         nombre: area.nombre,
-        departamentoId: activeDepartamento?.departamentoId,
     })
   }, [area, activeDepartamento])
 

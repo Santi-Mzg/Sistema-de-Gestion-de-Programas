@@ -15,17 +15,62 @@ export function CoordinadorDashboard() {
   const { activeRole } = useRole();
   const router = useRouter();
 
-  const programas: ProgramaResponseDTO[] = useListProgramas({
-    departamentoId: activeDepartamento?.departamentoId,
-    // carreraId: activeDepartamento?.carreraId,
-    rolActivo: activeRole || UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR
-  }).data || [];
+  const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
+
+  const programasQuery = useListProgramas(
+      activeDepartamento!.departamentoId!,
+      {
+        carreraId: carrerasId[0],
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR,
+      },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId && !!activeRole && carrerasId.length > 0,
+        queryKey: ['useListProgramas', activeDepartamento?.departamentoId, carrerasId, activeRole],
+      }, 
+    }
+  );
+  const programas: ProgramaResponseDTO[] = programasQuery.data || [];
+
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_PROFESOR);
 
 
   const handleNavigate = (id: number) => {
     router.push(`/programas/revisar/${id}`);
   };
+
+    if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
+      return(
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando datos de los programas...</p>
+          </div>  
+        </div>
+      )
+    }
+
+    if (programasQuery.isLoading) {
+        return (
+            <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Cargando datos de los programas...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (programasQuery.error) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener los programas</p>
+          </div>
+        </div>
+      )
+    }
   
 
   return (

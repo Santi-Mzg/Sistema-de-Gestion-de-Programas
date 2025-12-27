@@ -17,18 +17,9 @@ const DepartamentoContext = createContext<DepartamentoContextType | null>(null);
 
 export function DepartamentoProvider({ children }: { children: React.ReactNode }) {
   const { user, isLoading: isLoadingUser } = useAuth();
-  const { data: allDepartamentos } = useListDepartamentos();
   const [isLoading, setIsLoading] = useState(true);
 
   console.log("Current user in layout:", user);
-
-
-  const adminDepartamentos = useMemo(() => {
-    return (allDepartamentos || []).map(dept => ({
-      departamentoId: dept.id,
-      departamentoNombre: dept.nombre,
-    }));
-  }, [allDepartamentos]);
 
   const [activeDepartamento, setActiveDepartamento] = useState<UsuarioDepartamentoDTO | null>(null);
   const [availableDepartamentos, setAvailableDepartamentos] = useState<UsuarioDepartamentoDTO[]>([]);
@@ -42,16 +33,10 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    const departamentos: UsuarioDepartamentoDTO[] = user.isAdmin
-        ? adminDepartamentos
-        : user.departamentos ?? [];
+    const departamentos: UsuarioDepartamentoDTO[] = user.departamentos || [];
         
     setAvailableDepartamentos(departamentos);
 
-    setAvailableDepartamentos(prev => {
-      if (prev.length === departamentos.length && prev[0]?.departamentoId === departamentos[0]?.departamentoId) return prev;
-      return departamentos;
-    });
 
     if (departamentos.length === 0) return;
 
@@ -72,7 +57,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
       setActiveDepartamento(targetDept);
     }
 
-  }, [user, isLoadingUser, adminDepartamentos, activeDepartamento?.departamentoId]);
+  }, [user, isLoadingUser, activeDepartamento?.departamentoId]);
 
 
   const updateDepartamento = (departamento: UsuarioDepartamentoDTO) => {
@@ -83,7 +68,6 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
   console.log("isAdminA:", user?.isAdmin);
   console.log("admin:", user);
 
-  console.log("Admin departamentos:", adminDepartamentos);
   console.log("Available departamentos:", availableDepartamentos);
   console.log("Active departamento:", activeDepartamento);
 

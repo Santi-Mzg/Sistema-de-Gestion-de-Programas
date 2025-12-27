@@ -9,5 +9,4 @@ export interface MateriaCreateDTO {
   codigo?: string;
   nombre?: string;
   areaId?: number;
-  departamentoId?: number;
 }

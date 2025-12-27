@@ -1,13 +1,15 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { X } from "lucide-react"
+import { AlertCircle, X } from "lucide-react"
 import { CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO } from "@/app/api/generated/model"
-import { useListMateriasCarrera } from "@/app/api/generated/client"
+import { useGetCarrera, useListMateriasCarrera } from "@/app/api/generated/client"
+import React from "react"
 
 interface ProgramaCarreraBlockProps {
+  materiaId: number
   block: ProgramaCarreraDTO
   index: number
   carreras: CarreraResponseDTO[]
@@ -15,8 +17,8 @@ interface ProgramaCarreraBlockProps {
   onRemove: (index: number) => void
   isDisabled?: boolean
 }
-
-export function ProgramaCarreraBlock({
+export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
+  materiaId,
   block,
   index,
   carreras,
@@ -24,34 +26,39 @@ export function ProgramaCarreraBlock({
   onRemove,
   isDisabled
 }: ProgramaCarreraBlockProps) {
-  const [selectedCarreraId, setSelectedCarreraId] = useState<number | null>(block.carreraId || null)
-  const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
-  const selectedCarreraName = carreras.find((c) => c.id === selectedCarreraId)?.nombre || ""
-  const { 
-    data: materias 
-  } = useListMateriasCarrera(selectedCarreraId!, {
+  let selectedCarrera: CarreraResponseDTO | null = null;
+
+  if(carreras.length === 0 && block.carreraId) {
+    selectedCarrera = useGetCarrera(block.carreraId).data || null;
+  } else {
+    selectedCarrera = useMemo(
+      () => carreras.find(c => c.id === block.carreraId) || null,
+      [block.carreraId, carreras]
+    )
+  }
+
+  const materiasQuery = useListMateriasCarrera(selectedCarrera?.id ?? 0, {
     query: {
-      queryKey: ["materiasPorCarrera", selectedCarreraId],
-      enabled: !!selectedCarreraId,
+      enabled: !!selectedCarrera?.id,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      queryKey: ['useListMateriasCarrera', selectedCarrera?.id ?? 0],
     },
   })
 
+  const filteredMaterias = useMemo(() => {
+    if (!materiasQuery.data) return []
+    return materiasQuery.data.filter(m => m.id !== materiaId)
+  }, [materiasQuery.data, materiaId])
 
-  useEffect(() => {
-    if (materias) {
-          setMateriasDisponibles(materias) 
-    }
-  }, [materias])
-
-  const handleCarreraChange = (carreraId: string) => {
-    const id = Number.parseInt(carreraId)
-    setSelectedCarreraId(id)
-    onUpdate(index, {
-      ...block,
-      carreraId: id,
-    })
-  }
-
+  const handleCarreraChange = useCallback(
+    (carreraId: string) => {
+      onUpdate(index, {
+        ...block,
+        carreraId: Number(carreraId),
+      })
+    },
+    [index, block, onUpdate]
+  )
 
   const handleFieldChange = (field: keyof ProgramaCarreraDTO, value: any) => {
     onUpdate(index, {
@@ -60,31 +67,32 @@ export function ProgramaCarreraBlock({
     })
   }
 
-  const toggleCorrelativaFuerte = (materiaId: number) => {
-    const nuevosFuertes = block.correlativasFuertesIds?.includes(materiaId)
-      ? block.correlativasFuertesIds.filter((id: number) => id !== materiaId)
-      : [...(block.correlativasFuertesIds || []), materiaId]
+  const toggleCorrelativaFuerte = useCallback(
+    (id: number) => {
+      const nuevosFuertes = block.correlativasFuertesIds?.includes(id)
+        ? block.correlativasFuertesIds.filter(x => x !== id)
+        : [...(block.correlativasFuertesIds || []), id]
 
-    // Si se agrega como fuerte, remover de débiles
-    const nuevasDebiles = nuevosFuertes.includes(materiaId)
-      ? block.correlativasDebilesIds?.filter((id: number) => id !== materiaId)
-      : block.correlativasDebilesIds
+      onUpdate(index, {
+        ...block,
+        correlativasFuertesIds: nuevosFuertes,
+        correlativasDebilesIds:
+          block.correlativasDebilesIds?.filter(x => x !== id),
+      })
+    },
+    [block, index, onUpdate]
+  )
 
-    onUpdate(index, {
-      ...block,
-      correlativasFuertesIds: nuevosFuertes,
-      correlativasDebilesIds: nuevasDebiles,
-    })
-  }
 
-  const toggleCorrelativaDebil = (materiaId: number) => {
-    const nuevasDebiles = block.correlativasDebilesIds?.includes(materiaId)
-      ? block.correlativasDebilesIds.filter((id: number) => id !== materiaId)
-      : [...(block.correlativasDebilesIds || []), materiaId]
+  const toggleCorrelativaDebil = useCallback(
+    (id: number) => {
+      const nuevasDebiles = block.correlativasDebilesIds?.includes(id)
+        ? block.correlativasDebilesIds.filter((x) => x !== id)
+      : [...(block.correlativasDebilesIds || []), id]
 
     // Si se agrega como débil, remover de fuertes
-    const nuevosFuertes = nuevasDebiles.includes(materiaId)
-      ? block.correlativasFuertesIds?.filter((id: number) => id !== materiaId)
+    const nuevosFuertes = nuevasDebiles.includes(id)
+      ? block.correlativasFuertesIds?.filter((x) => x !== id)
       : block.correlativasFuertesIds
 
     onUpdate(index, {
@@ -92,13 +100,17 @@ export function ProgramaCarreraBlock({
       correlativasFuertesIds: nuevosFuertes,
       correlativasDebilesIds: nuevasDebiles,
     })
-  }
+    },
+    [block, index, onUpdate]
+  )
+  
 
+console.log('Rendered ProgramaCarreraBlock:', { index, block, selectedCarrera });
   return (
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
       <button
         onClick={() => onRemove(index)}
-        className="absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive"
+        className={!isDisabled ? "absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive" : "hidden"}
         title="Eliminar bloque"
         disabled={isDisabled}
       >
@@ -114,15 +126,14 @@ export function ProgramaCarreraBlock({
         {isDisabled ? (
           <Input
             id={`carrera-${index}`}
-            type="text"
-            value={selectedCarreraName}
-            disabled
+            value={selectedCarrera?.nombre || ""}
             className="bg-background border-border"
+            disabled
           />
         ) : (
           <select
             id={`carrera-${index}`}
-            value={selectedCarreraId || ""}
+            value={selectedCarrera?.id || ""}
             onChange={(e) => handleCarreraChange(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             required
@@ -144,8 +155,9 @@ export function ProgramaCarreraBlock({
         <Input
           id={`plan-${index}`}
           value={block.plan}
+          // value={selectedCarrera?.plan || ""}
           onChange={(e) => handleFieldChange("plan", e.target.value)}
-          placeholder="ej: Plan 2023"
+          placeholder="ej: Plan 2025 - Versión 1"
           className="border-border focus:border-primary"
           disabled={isDisabled}
         />
@@ -165,55 +177,67 @@ export function ProgramaCarreraBlock({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Fuertes
-            <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
-          </Label>
-          <div className="max-h-40 overflow-y-auto space-y-2">
-            {materiasDisponibles.map((materia) => (
-              <label
-                key={materia.id}
-                className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
-              >
-                <input
-                  type="checkbox"
-                  checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
-                  onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
-                  disabled={isDisabled || block.correlativasDebilesIds?.includes(materia.id || 0)}
-                  className="rounded border-border"
-                />
-                <span className="text-sm text-foreground">{materia.nombre}</span>
-              </label>
-            ))}
+      {materiasQuery.isLoading ? (
+          <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Cargando materias...</p>
           </div>
-        </div>
+      ) : materiasQuery.error ? (
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener las materias</p>
+          </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              Correlativas Fuertes
+              <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
+            </Label>
+            <div className="max-h-40 overflow-y-auto space-y-2">
+              {filteredMaterias?.map((materia) => (
+                <label
+                  key={materia.id}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
+                >
+                  <input
+                    type="checkbox"
+                    checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
+                    onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
+                    disabled={isDisabled || block.correlativasDebilesIds?.includes(materia.id || 0)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-sm text-foreground">{materia.nombre}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-        <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Débiles
-            <span className="text-xs text-muted-foreground">(Recomendado)</span>
-          </Label>
-          <div className="max-h-40 overflow-y-auto space-y-2">
-            {materiasDisponibles.map((materia) => (
-              <label
-                key={materia.id}
-                className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
-              >
-                <input
-                  type="checkbox"
-                  checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
-                  onChange={() => toggleCorrelativaDebil(materia.id || 0)}
-                  disabled={isDisabled || block.correlativasFuertesIds?.includes(materia.id || 0)}
-                  className="rounded border-border"
-                />
-                <span className="text-sm text-foreground">{materia.nombre}</span>
-              </label>
-            ))}
+          <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              Correlativas Débiles
+              <span className="text-xs text-muted-foreground">(Recomendado)</span>
+            </Label>
+            <div className="max-h-40 overflow-y-auto space-y-2">
+              {filteredMaterias?.map((materia) => (
+                <label
+                  key={materia.id}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
+                >
+                  <input
+                    type="checkbox"
+                    checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
+                    onChange={() => toggleCorrelativaDebil(materia.id || 0)}
+                    disabled={isDisabled || block.correlativasFuertesIds?.includes(materia.id || 0)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-sm text-foreground">{materia.nombre}</span>
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
       </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
@@ -244,4 +268,4 @@ export function ProgramaCarreraBlock({
       </div>
     </div>
   )
-}
+})

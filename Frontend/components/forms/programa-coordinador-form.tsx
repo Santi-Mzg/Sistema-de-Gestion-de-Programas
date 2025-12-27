@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +10,7 @@ import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, DepartamentoResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
 import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
+import { useRouter } from "next/navigation"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -21,6 +21,7 @@ interface SyllabusFormProps {
 
 
 export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
+  const router = useRouter();
   const programaQuery = useGetPrograma(id);
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
@@ -77,6 +78,8 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       data,
       id: id
     });
+
+    router.push(`/`);
   };
 
   
@@ -105,12 +108,12 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
   return (
     <form className="space-y-8 pb-8">
       {/* HEADER */}
-      <div className="bg-gradient-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
+      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground mb-2">Revisión de Syllabus</h1>
             <p className="text-muted-foreground">
-              {programa.nombreMateria} ({programa.codigoMateria})
+              {programa.materia?.nombre} ({programa.materia?.codigo})
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -127,22 +130,22 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Departamento</Label>
-            <Input value={programa.nombreDepartamento || ""} disabled className="bg-background" />
+            <Input value={programa.materia?.departamento || ""} disabled className="bg-background" />
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Materia</Label>
-            <Input value={`${programa.codigoMateria} - ${programa.nombreMateria}`} disabled className="bg-background" />
+            <Input value={`${programa.materia?.codigo} - ${programa.materia?.nombre}`} disabled className="bg-background" />
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Profesor Responsable</Label>
-            <Input value={programa.profesorResponsable || ""} disabled className="bg-background" />
+            <Input value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""} disabled className="bg-background"/>
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Área</Label>
-            <Input value={programa.areaMateria || ""} disabled className="bg-background" />
+            <Input value={programa.materia?.area || ""} disabled className="bg-background" />
           </div>
         </div>
       </div>
@@ -156,6 +159,7 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
             {programa.bloqueMultiple.map((block, index) => (
               <ProgramaCarreraBlock
                 key={index}
+                materiaId={programa.materia?.id || 0}
                 block={block}
                 index={index}
                 carreras={[]}

@@ -5,11 +5,11 @@
  * OpenAPI spec version: v0
  */
 import type { EstadoHistoricoResponseDTOEstado } from './estadoHistoricoResponseDTOEstado';
-import type { UserResponseDTO } from './userResponseDTO';
+import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 
 export interface EstadoHistoricoResponseDTO {
   estado?: EstadoHistoricoResponseDTOEstado;
   fecha?: string;
   justificacion?: string;
-  realizadoPor?: UserResponseDTO;
+  realizadoPor?: UserResponseReducedDTO;
 }

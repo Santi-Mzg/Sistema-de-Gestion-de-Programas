@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDepartamentoDTO } from "@/app/api/generated/model"
-import { useGetUser, useUpdateUser } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
+import { useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 
 
 export default function EditUserPage() {
@@ -32,7 +32,7 @@ export default function EditUserPage() {
 
 
   const router = useRouter()
-  const userQuery = useGetUser(Number(id));
+  const userQuery = useGetUserById(Number(id));
   const user: UserResponseDTO | undefined = userQuery.data;
   const userDpto: UsuarioDepartamentoDTO | undefined = user?.departamentos?.find(depto => depto.departamentoId === activeDepartamento?.departamentoId)
   
@@ -46,7 +46,6 @@ export default function EditUserPage() {
         legajo: user?.legajo || "",
         email: userDpto?.email || "",
         roles: userDpto?.roles || [],
-        departamentoId: activeDepartamento.departamentoId,
   })
 
 
@@ -58,7 +57,6 @@ export default function EditUserPage() {
         legajo: user?.legajo || "",
         email: userDpto?.email || "",
         roles: userDpto?.roles || [],
-        departamentoId: activeDepartamento?.departamentoId,
     })
   }, [user])
 

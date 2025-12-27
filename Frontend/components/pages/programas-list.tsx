@@ -30,25 +30,22 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
     return [...new Set(programas.map((s) => s.profesorResponsable).filter(Boolean))]
   }, [programas])
 
-  const uniqueDepartamentos = useMemo(() => {
-    return [...new Set(programas.map((s) => s.nombreDepartamento).filter(Boolean))]
-  }, [programas])
 
   // Filter and sort data
   const filteredAndSortedSyllabuses = useMemo(() => {
     const filtered = programas.filter((programa) => {
       const matchesSearch =
         !searchTerm ||
-        programa.nombreMateria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.codigoMateria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.nombreDepartamento?.toLowerCase().includes(searchTerm.toLowerCase())
+        programa.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        programa.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        programa.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesEstado = filterEstado === "todos" || programa.estado === filterEstado
       const matchesProfesor = filterProfesor === "todos" || programa.profesorResponsable === filterProfesor
-      const matchesDepartamento = filterDepartamento === "todos" || programa.nombreDepartamento === filterDepartamento
 
-      return matchesSearch && matchesEstado && matchesProfesor && matchesDepartamento
+      return matchesSearch && matchesEstado && matchesProfesor
     })
 
     filtered.sort((a, b) => {
@@ -108,9 +105,9 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
           </div>
 
           {/* Filter Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                 <Filter size={16} /> Estado
               </label>
               <select
@@ -128,7 +125,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <label className="flex text-sm font-semibold text-foreground mb-2 items-center gap-2">
                 <Filter size={16} /> Profesor
               </label>
               <select
@@ -138,26 +135,8 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
               >
                 <option value="todos">Todos los profesores</option>
                 {uniqueProfesores.map((profesor) => (
-                  <option key={profesor} value={profesor || ""}>
-                    {profesor}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                <Filter size={16} /> Departamento
-              </label>
-              <select
-                value={filterDepartamento}
-                onChange={(e) => setFilterDepartamento(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="todos">Todos los departamentos</option>
-                {uniqueDepartamentos.map((departamento) => (
-                  <option key={departamento} value={departamento || ""}>
-                    {departamento}
+                  <option key={profesor?.id} value={profesor?.id || ""}>
+                    {profesor?.apellido}, {profesor?.nombre} (Legajo: {profesor?.legajo})
                   </option>
                 ))}
               </select>
@@ -235,10 +214,10 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                     key={programa.id}
                     className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{programa.nombreMateria}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.codigoMateria}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.profesorResponsable}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.nombreDepartamento}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">{programa.materia?.nombre}</td>
+                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.codigo}</td>
+                    <td className="px-6 py-4 text-foreground/80">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.departamento}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${getEstadoColor(

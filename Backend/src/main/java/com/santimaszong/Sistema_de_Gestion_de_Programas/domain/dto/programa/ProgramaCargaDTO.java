@@ -13,6 +13,7 @@ public class ProgramaCargaAdministrativoDTO {
 
     // --- BLOQUE ÚNICO ---
     private Long materiaId;
+    private Integer anio;
     private Long profesorResponsableId;
 
     // --- BLOQUE MÚLTIPLE ---
@@ -23,6 +24,14 @@ public class ProgramaCargaAdministrativoDTO {
     private Integer cargaHorariaSemanal;
     private Integer creditos;
     private Integer cantidadSemanas;
+
+    private Integer cargaHorariaPractica;
+    private String fundamentacion;
+    private String objetivos;
+    private String programaAnalitico;
+    private String metodologia;
+    private String modalidadEvaluacion;
+    private String bibliografia;
 
     private String estado;
 }

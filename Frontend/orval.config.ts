@@ -24,22 +24,4 @@ export default defineConfig({
       schemas: './app/api/generated/model',
     },
   },
-
-  // --- SERVER (fetch puro para Server Components) ---
-  serverApi: {
-    input: `${API_URL}/v3/api-docs`,
-    output: {
-      target: './app/api/generated/server',
-      client: 'fetch',
-      httpClient: 'fetch',
-      clean: true,
-      override: {
-        mutator: {
-          path: './app/api/custom-fetch.ts',
-          name: 'customFetch',
-        },
-      },
-      schemas: './app/api/generated/model',
-    },
-  },
 });

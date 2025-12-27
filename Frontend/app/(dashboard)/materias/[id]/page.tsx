@@ -42,7 +42,6 @@ export default function EditMateriaPage() {
       nombre: materia?.nombre,
       codigo: materia?.codigo,
       areaId: areas?.find(a => a.nombre === materia?.area)?.id || areas?.[0]?.id,
-      departamentoId: activeDepartamento?.departamentoId,
   })
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export default function EditMateriaPage() {
         nombre: materia.nombre,
         codigo: materia.codigo,
         areaId: areas?.find(a => a.nombre === materia.area)?.id || areas?.[0]?.id,
-        departamentoId: activeDepartamento?.departamentoId,
       })
   }, [materia, areas, activeDepartamento])
   

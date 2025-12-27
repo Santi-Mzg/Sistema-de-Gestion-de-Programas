@@ -11,6 +11,5 @@ export interface UserCreateDTO {
   apellido?: string;
   legajo?: string;
   email?: string;
-  departamentoId?: number;
   roles?: UserCreateDTORolesItem[];
 }

@@ -9,18 +9,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO, DepartamentoResponseDTO } from "@/app/api/generated/model"
-import { useCreatePrograma, useListMateriasDepartamento } from "@/app/api/generated/client"
-import { CargarProgramaAnteriorDialog } from "../modals/cargar-programa-dialog"
+import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO, DepartamentoResponseDTO, ProgramaCargaDTO } from "@/app/api/generated/model"
+import { useCreatePrograma, useGetPrograma, useGetProgramaVigente, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useListUsersDepartamento } from "@/app/api/generated/client"
+import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
+import { useDept } from "@/context/dept-context"
+import { useRouter } from "next/navigation"
 
-interface SyllabusFormProps {
-  departamentosDisponibles: DepartamentoResponseDTO[]
-  carrerasDisponibles: CarreraResponseDTO[]
-  profesoresDisponibles: UserResponseDTO[]
-}
 
-export function SyllabusAdministrativoForm({ departamentosDisponibles, carrerasDisponibles, profesoresDisponibles }: SyllabusFormProps) {
-  const [formData, setFormData] = useState<ProgramaCargaAdministrativoDTO>({
+export function SyllabusAdministrativoForm() {
+  const router = useRouter();
+  const { activeDepartamento } = useDept()
+  const [showProgramaVigente, setShowProgramaVigente] = useState(false)
+  const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
+  const [formData, setFormData] = useState<ProgramaCargaDTO>({
     materiaId: 0,
     profesorResponsableId: 0,
     bloqueMultiple: [],
@@ -30,41 +31,50 @@ export function SyllabusAdministrativoForm({ departamentosDisponibles, carrerasD
     cantidadSemanas: 0
   })
 
-  const [departamento, setDepartamento] = useState<DepartamentoResponseDTO | null>(null)
-  const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaResponseDTO[]>([])
-  const [programaAnterior, setProgramaAnterior] = useState<ProgramaResponseDTO | null>(null)
+  const deptId = activeDepartamento?.departamentoId
 
-  const [showProgramaAnteriorDialog, setShowProgramaAnteriorDialog] = useState(false)
-  const [loadingProgramaAnterior, setLoadingProgramaAnterior] = useState(false)
-
-
-  const {
-    data: materias,
-  } = useListMateriasDepartamento(departamento?.id!, {
+  const materiasQuery = useListMateriasDepartamento(deptId ?? 0, {
     query: {
-      queryKey: ["materiasPorDepartamento", departamento?.id],
-      enabled: !!departamento,
+      enabled: !!deptId,
+      queryKey: useListMateriasDepartamento(deptId || 0).queryKey,
     },
   })
 
+  const materias: MateriaResponseDTO[] | undefined = materiasQuery.data;
+
+  const programaVigenteQuery = useGetProgramaVigente(formData.materiaId ?? 0, {
+    query: {
+      enabled: !!formData.materiaId,
+      queryKey: useGetProgramaVigente(formData.materiaId || 0).queryKey,
+    },
+  })
+
+  const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
+
+  const carrerasQuery = useListCarrerasDepartamento(deptId ?? 0, {
+    query: {
+      enabled: !!deptId,
+      queryKey: useListCarrerasDepartamento(deptId || 0).queryKey,
+    },
+  })
+
+  const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data;
+
+
+  const profesoresQuery = useListDocentesDepartamento(deptId ?? 0, {
+    query: {
+      enabled: !!deptId,
+      queryKey: useListDocentesDepartamento(deptId || 0).queryKey,
+    },
+  })
+
+  const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
+
   useEffect(() => {
-    if (materias) {
-      setMateriasDisponibles(materias)
+    if (programaVigente && formData.materiaId && !showProgramaVigente) {
+      setShowProgramaVigente(true)
     }
-  }, [materias])
-
-  // const { data: materiaDetails } = useGetMateria(formData.materiaId || 0, { // Get Programa Anterior
-  //   query: {
-  //     enabled: !!formData.materiaId,
-  //   },
-  // })
-
-
-  useEffect(() => {
-    if (programaAnterior && formData.materiaId && !showProgramaAnteriorDialog) {
-      setShowProgramaAnteriorDialog(true)
-    }
-  }, [programaAnterior, formData.materiaId, showProgramaAnteriorDialog])
+  }, [programaVigente, formData.materiaId])
 
 
 
@@ -88,20 +98,22 @@ export function SyllabusAdministrativoForm({ departamentosDisponibles, carrerasD
 
   const onSubmit = (data: any) => {
     mutate({ data });
+
+    router.push('/'); 
   };
 
-const handleLoadProgramaAnterior = async () => {
-    if (!programaAnterior) return
+const handleLoadProgramaVigente = async () => {
+    if (!programaVigente) return
 
-    setLoadingProgramaAnterior(true)
+    setLoadingProgramaVigente(true)
     try {
-      const mappedData: ProgramaCargaAdministrativoDTO = {
+      const mappedData: ProgramaCargaDTO = {
         materiaId: formData.materiaId,
-        profesorResponsableId: programaAnterior.profesorResponsable
-          ? profesoresDisponibles.find((p) => p.nombre === programaAnterior.profesorResponsable)?.id || 0
+        profesorResponsableId: programaVigente.profesorResponsable
+          ? profesores?.find((p) => p.nombre === programaVigente.profesorResponsable)?.id || 0
           : 0,
         bloqueMultiple:
-          programaAnterior.bloqueMultiple?.map((c) => ({
+          programaVigente.bloqueMultiple?.map((c) => ({
             key: `${Date.now()}_${Math.random()}`,
             carreraId: c.carreraId || 0,
             plan: c.plan || "",
@@ -111,17 +123,17 @@ const handleLoadProgramaAnterior = async () => {
             contribucion: c.contribucion || "",
             contenidosMinimos: c.contenidosMinimos || "",
           })) || [],
-        cargaHorariaTotal: programaAnterior.cargaHorariaTotal || 0,
-        cargaHorariaSemanal: programaAnterior.cargaHorariaSemanal || 0,
-        creditos: programaAnterior.creditos || 0,
-        cantidadSemanas: programaAnterior.cantidadSemanas || 0,
+        cargaHorariaTotal: programaVigente.cargaHorariaTotal || 0,
+        cargaHorariaSemanal: programaVigente.cargaHorariaSemanal || 0,
+        creditos: programaVigente.creditos || 0,
+        cantidadSemanas: programaVigente.cantidadSemanas || 0,
       }
       setFormData(mappedData)
-      setShowProgramaAnteriorDialog(false)
+      setShowProgramaVigente(false)
     } catch (error) {
       console.error("Error loading previous program:", error)
     } finally {
-      setLoadingProgramaAnterior(false)
+      setLoadingProgramaVigente(false)
     }
   }
 
@@ -185,6 +197,141 @@ const handleLoadProgramaAnterior = async () => {
   }
 
 
+    if (!activeDepartamento || !activeDepartamento.departamentoId) {
+      return(
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-yellow-700">Cargando...</p>
+          </div>
+        </div>
+      )
+    }
+  
+    if (materiasQuery.isLoading) {
+        return (
+          <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+              <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Cargando materias disponibles...</p>
+              </div>
+          </div>
+        )
+    }
+  
+    if (materiasQuery.error) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener las materias</p>
+          </div>
+        </div>
+      )
+    }
+  
+    if (!materias || materias.length === 0) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="text-yellow-600" size={24} />
+            <p className="text-yellow-700">No hay materias registradas. Deben haber materias registradas para poder crear programas.</p>
+          </div>
+        </div>
+      )
+    }
+
+    // if (programaVigenteQuery.isLoading) {
+    //     return (
+    //       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+    //           <div className="text-center">
+    //               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+    //               <p className="text-muted-foreground">Cargando programa vigente...</p>
+    //           </div>
+    //       </div>
+    //     )
+    // }
+  
+    // if (programaVigenteQuery.error) {
+    //   return (
+    //     <div className="p-8 max-w-7xl mx-auto">
+    //       <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+    //         <AlertCircle className="text-red-600" size={24} />
+    //         <p className="text-red-700">Error al obtener el programa vigente</p>
+    //       </div>
+    //     </div>
+    //   )
+    // }
+  
+
+    if (carrerasQuery.isLoading) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando carreras disponibles...</p>
+            </div>
+        </div>
+      )
+    }
+  
+    if (carrerasQuery.error) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener las carreras</p>
+          </div>
+        </div>
+      )
+    }
+  
+    if (!carreras || carreras.length === 0) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="text-yellow-600" size={24} />
+            <p className="text-yellow-700">No hay carreras registradas. Deben haber carreras registradas para poder crear programas.</p>
+          </div>
+        </div>
+      )
+    }
+
+    if (profesoresQuery.isLoading) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando profesores disponibles...</p>
+            </div>
+        </div>
+      )
+    }
+  
+    if (profesoresQuery.error) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="text-red-600" size={24} />
+            <p className="text-red-700">Error al obtener los profesores</p>
+          </div>
+        </div>
+      )
+    }
+  
+    if (!profesores || profesores.length === 0) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="text-yellow-600" size={24} />
+            <p className="text-yellow-700">No hay profesores registrados. Deben haber profesores registrados para poder crear programas.</p>
+          </div>
+        </div>
+      )
+    }
+  
+
+
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -199,17 +346,13 @@ const handleLoadProgramaAnterior = async () => {
               </Label>
               <select
                 id="departamento"
-                value={departamento?.nombre || ""}
-                onChange={(e) => setDepartamento(departamentosDisponibles.find(d => d.nombre === e.target.value) || null)}
+                value={activeDepartamento?.departamentoNombre}
                 className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               >
-                <option value="">Seleccionar Departamento...</option>
-                {departamentosDisponibles.map((departamento) => (
-                  <option key={departamento.id} value={departamento.nombre}>
-                    {departamento.nombre}
-                  </option>
-                ))}
+                <option key={activeDepartamento.departamentoId} value={activeDepartamento.departamentoId!.toString()}>
+                  {activeDepartamento?.departamentoNombre}
+                </option>
               </select>
             </div>
 
@@ -225,7 +368,7 @@ const handleLoadProgramaAnterior = async () => {
                 required
               >
                 <option value="">Seleccionar Materia...</option>
-                {materiasDisponibles.map((materia) => (
+                {materias.map((materia) => (
                   <option key={materia.id} value={materia.id}>
                     {materia.nombre} ({materia.codigo})
                   </option>
@@ -245,7 +388,7 @@ const handleLoadProgramaAnterior = async () => {
                 required
               >
                 <option value="">Seleccionar profesor...</option>
-                {profesoresDisponibles.map((profesor) => (
+                {profesores.map((profesor) => (
                   <option key={profesor.id} value={profesor.id}>
                     {profesor.nombre}
                   </option>
@@ -280,9 +423,10 @@ const handleLoadProgramaAnterior = async () => {
               {formData.bloqueMultiple?.map((block, index) => (
                 <ProgramaCarreraBlock
                   key={block.key}
+                  materiaId={formData.materiaId || 0}
                   block={block}
                   index={index}
-                  carreras={carrerasDisponibles}
+                  carreras={carreras}
                   onUpdate={handleUpdateProgramaCarrera}
                   onRemove={handleRemoveProgramaCarrera}
                   isDisabled={false}
@@ -360,7 +504,7 @@ const handleLoadProgramaAnterior = async () => {
             <Input
               id="cargaPractica"
               type="number"
-              value={programaAnterior?.cargaHorariaPractica}
+              value={formData?.cargaHorariaPractica}
               onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary"
@@ -375,7 +519,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="fundamentacion"
-              value={programaAnterior?.fundamentacion}
+              value={formData?.fundamentacion}
               onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
               placeholder="Justifica la importancia de esta Materia..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -389,7 +533,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="objetivos"
-              value={programaAnterior?.objetivos}
+              value={formData?.objetivos}
               onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
               placeholder="Define los objetivos de aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -403,7 +547,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="programa"
-              value={programaAnterior?.programaAnalitico}
+              value={formData?.programaAnalitico}
               onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
               placeholder="Detalla el contenido temático del curso..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -417,7 +561,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="metodologia"
-              value={programaAnterior?.metodologia}
+              value={formData?.metodologia}
               onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
               placeholder="Describe los métodos de enseñanza..."
               className="border-border focus:border-primary min-h-20 resize-none" 
@@ -431,7 +575,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="evaluacion"
-              value={programaAnterior?.modalidadEvaluacion}
+              value={formData?.modalidadEvaluacion}
               onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -445,7 +589,7 @@ const handleLoadProgramaAnterior = async () => {
             </Label>
             <Textarea
               id="bibliografia"
-              value={programaAnterior?.bibliografia}
+              value={formData?.bibliografia}
               onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -475,13 +619,13 @@ const handleLoadProgramaAnterior = async () => {
           </div>
       </form>
 
-      <CargarProgramaAnteriorDialog
-        open={showProgramaAnteriorDialog}
-        onOpenChange={setShowProgramaAnteriorDialog}
-        programa={programaAnterior}
-        onConfirm={handleLoadProgramaAnterior}
-        onCancel={() => setShowProgramaAnteriorDialog(false)}
-        isLoading={loadingProgramaAnterior}
+      <CargarProgramaVigenteDialog
+        open={showProgramaVigente}
+        onOpenChange={setShowProgramaVigente}
+        programa={programaVigente}
+        onConfirm={handleLoadProgramaVigente}
+        onCancel={() => setShowProgramaVigente(false)}
+        isLoading={loadingProgramaVigente}
       />
     </>
   )
