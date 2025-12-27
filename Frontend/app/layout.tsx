@@ -7,6 +7,7 @@ import { Providers } from "../providers/providers"
 import { RoleProvider } from "@/context/role-context"
 import { AuthProvider } from "@/context/auth-context"
 import { DepartamentoProvider } from "@/context/dept-context"
+import { Toaster } from "@/components/ui/toaster"
 
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -52,6 +53,7 @@ export default function RootLayout({
               <DepartamentoProvider >
                 <RoleProvider >
                   {children}
+                  <Toaster />
                 </RoleProvider>
               </DepartamentoProvider>
             </AuthProvider>

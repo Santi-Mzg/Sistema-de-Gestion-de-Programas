@@ -11,6 +11,7 @@ import { ProgramaResponseDTO, ProgramaCargaProfesorDTO, UserResponseDTO, Carrera
 import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
 import { AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -37,39 +38,60 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
       estado: EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
   })
 
-    const { mutate, isPending } = useProfesorCarga({
-      mutation: {
-        onSuccess: () => alert("Programa cargado exitosamente!"),
-        onError: (error: Error) => alert(`Error: ${error.message}`),
+  const { mutate, isPending } = useProfesorCarga({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          title: "✓ Éxito",
+          description: "Información cargada exitosamente",
+          variant: "success",
+        })      
+        setFormData({
+          cargaHorariaPractica: 0,
+          fundamentacion: "",
+          objetivos: "",
+          programaAnalitico: "",
+          metodologia: "",
+          modalidadEvaluacion: "",
+          bibliografia: "",
+        })
+
+        router.push('/'); 
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error instanceof Error ? error.message : "Error desconocido",
+          variant: "destructive",
+        })
+      },      
+    }
+  });
+
+
+  useEffect(() => {
+      if (programa) {
+          setFormData({
+              cargaHorariaPractica: programa.cargaHorariaPractica || 0,
+              fundamentacion: programa.fundamentacion || "",
+              objetivos: programa.objetivos || "",
+              programaAnalitico: programa.programaAnalitico || "",
+              metodologia: programa.metodologia || "",
+              modalidadEvaluacion: programa.modalidadEvaluacion || "",
+              bibliografia: programa.bibliografia || "",
+              estado: programa.estado || EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
+          });
       }
+  }, [programa]); // Se ejecuta cuando 'programa' pasa de undefined a tener datos.
+
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault() 
+    mutate({
+      data: formData,
+      id: id
     });
-
-
-    useEffect(() => {
-        if (programa) {
-            setFormData({
-                cargaHorariaPractica: programa.cargaHorariaPractica || 0,
-                fundamentacion: programa.fundamentacion || "",
-                objetivos: programa.objetivos || "",
-                programaAnalitico: programa.programaAnalitico || "",
-                metodologia: programa.metodologia || "",
-                modalidadEvaluacion: programa.modalidadEvaluacion || "",
-                bibliografia: programa.bibliografia || "",
-                estado: programa.estado || EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
-            });
-        }
-    }, [programa]); // Se ejecuta cuando 'programa' pasa de undefined a tener datos.
-
-  
-    const onSubmit = (data: any) => {
-      mutate({
-        data,
-        id: id
-      });
-
-      router.push('/');
-    };
-
+  }
 
   const handleSingleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -78,10 +100,6 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault() 
-    onSubmit(formData)
-  }
 
   if (programaQuery.isLoading) {
     return (

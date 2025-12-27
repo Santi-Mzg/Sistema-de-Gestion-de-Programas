@@ -14,6 +14,7 @@ import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, U
 import { useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
+import { toast } from "@/hooks/use-toast"
 
 
 export default function EditDepartamentoPage() {
@@ -97,8 +98,20 @@ export default function EditDepartamentoPage() {
 
   const { mutate: mutateDireccion, isPending: isPendingDireccion } = useUpdateDireccionAdministrativa({
       mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => {
+            toast({
+              title: "✓ Éxito",
+              description: `Dirección Administrativa actualizada exitosamente`,
+              variant: "success",
+            })
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            }) 
+          }
       }
   });
 
@@ -108,21 +121,16 @@ export default function EditDepartamentoPage() {
     setIsLoading(true)
 
     try {
-    
       mutateDireccion({
         id: departamento.id, 
         data: { 
             usuarioId: newDirector.id 
         }
       });
-
-
       setDireccionAdministrativa(newDirector)
 
-      alert(`Director actualizado: ${newDirector.apellido} ${newDirector.nombre}`)
     } catch (error) {
       console.error("Error updating director:", error)
-      alert("Error al actualizar el director")
     } finally {
       setIsLoading(false)
     }
@@ -130,8 +138,20 @@ export default function EditDepartamentoPage() {
 
   const { mutate: mutateSecretaria, isPending: isPendingSecretaria } = useUpdateSecretaria({
       mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => {
+            toast({
+              title: "✓ Éxito",
+              description: `Secretaría Académica actualizada exitosamente`,
+              variant: "success",
+            })
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            }) 
+          }
       }
   });
 
@@ -142,21 +162,15 @@ export default function EditDepartamentoPage() {
     setIsLoading(true)
 
     try {
-    
       mutateSecretaria({
         id: departamento.id, 
         data: { 
             usuarioId: newSecretaria.id 
         }
       });
-
-
       setSecretaria(newSecretaria)
-
-      alert(`Secretaría actualizada: ${newSecretaria.apellido} ${newSecretaria.nombre}`)
     } catch (error) {
       console.error("Error updating director:", error)
-      alert("Error al actualizar el director")
     } finally {
       setIsLoading(false)
     }

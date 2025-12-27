@@ -14,6 +14,7 @@ import { useCreatePrograma, useGetPrograma, useGetProgramaVigente, useListCarrer
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 
 export function SyllabusAdministrativoForm() {
@@ -81,7 +82,11 @@ export function SyllabusAdministrativoForm() {
   const { mutate, isPending } = useCreatePrograma({
     mutation: {
       onSuccess: () => {
-        alert("Programa creado exitosamente!");
+        toast({
+          title: "✓ Éxito",
+          description: "Programa cargado exitosamente",
+          variant: "success",
+        })        
         setFormData({
           materiaId: 0,
           profesorResponsableId: 0,
@@ -91,18 +96,27 @@ export function SyllabusAdministrativoForm() {
           creditos: 0,
           cantidadSemanas: 0,
         })
+
+        router.push('/'); 
       },
-      onError: (error: Error) => alert(`Error: ${error.message}`),
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error instanceof Error ? error.message : "Error desconocido",
+          variant: "destructive",
+        })
+      },
     }
   });
 
-  const onSubmit = (data: any) => {
-    mutate({ data });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
 
-    router.push('/'); 
-  };
+    mutate({ data: formData });
+  }
 
-const handleLoadProgramaVigente = async () => {
+
+  const handleLoadProgramaVigente = async () => {
     if (!programaVigente) return
 
     setLoadingProgramaVigente(true)
@@ -177,23 +191,6 @@ const handleLoadProgramaVigente = async () => {
       ...prev,
       [field]: value,
     }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validaciones básicas
-    if (!formData.materiaId || !formData.profesorResponsableId) {
-      alert("Por favor completa los campos obligatorios del bloque único")
-      return
-    }
-
-    if (formData.bloqueMultiple?.length === 0) {
-      alert("Por favor agrega al menos una carrera")
-      return
-    }
-
-    onSubmit(formData)
   }
 
 

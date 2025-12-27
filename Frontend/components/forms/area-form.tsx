@@ -6,14 +6,16 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DepartamentoResponseDTO, AreaCreateDTO } from "@/app/api/generated/model"
+import { AreaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useCreateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
+import { useToast } from "@/hooks/use-toast"
 
 
 export function AreaForm() {
   const { activeDepartamento } = useDept()
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState<AreaCreateDTO>({
     nombre: "",
@@ -22,21 +24,32 @@ export function AreaForm() {
   const { mutate, isPending } = useCreateArea({
       mutation: {
         onSuccess: () => {
-          alert("Area creada exitosamente!");
+          toast({
+            title: "✓ Éxito",
+            description: "Área creada exitosamente",
+            variant: "success",
+          })
+          setFormData({
+            nombre: "",
+          })
         },
         onError: (error: Error) => {
-          alert(`Error al crear: ${error.message}`);
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
         },
       }
   });
 
-
-  const handleFormSubmit = (data: AreaCreateDTO) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
     mutate({ 
       deptId: activeDepartamento!.departamentoId!,
-      data 
+      data: formData 
     }); 
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -44,14 +57,6 @@ export function AreaForm() {
       ...prev,
       [name]: name === "departamentoId" ? (value ? Number.parseInt(value) : undefined) : value,
     }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleFormSubmit(formData)
-    setFormData({
-      nombre: "",
-    })
   }
 
   if (!activeDepartamento || !activeDepartamento.departamentoId) {

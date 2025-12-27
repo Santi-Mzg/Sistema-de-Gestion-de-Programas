@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { AlertCircle } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 
 
@@ -36,22 +37,34 @@ export function MateriaForm() {
   const { mutate, isPending } = useCreateMateria({
       mutation: {
         onSuccess: () => {
-          alert("Materia creado exitosamente!");
-          // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+          toast({
+            title: "✓ Éxito",
+            description: "Materia creada exitosamente",
+            variant: "success",
+          })
+          setFormData({
+            codigo: "",
+            nombre: "",
+            areaId: areas?.[0]?.id,
+          })
         },
         onError: (error: Error) => {
-          alert(`Error al crear: ${error.message}`);
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
         },
       }
   });
-
-  const handleFormSubmit = (data: MateriaCreateDTO) => {
-    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
     mutate({ 
       deptId: activeDepartamento!.departamentoId!,
-      data 
+      data: formData
     }); 
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -60,17 +73,7 @@ export function MateriaForm() {
       [name]: name === "departamentoId" ? (value ? Number.parseInt(value) : undefined) : value,
     }))
   }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleFormSubmit(formData)
-    setFormData({
-      codigo: "",
-      nombre: "",
-      areaId: areas?.[0]?.id,
-    })
-  }
-
+  
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
     return(
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">

@@ -11,6 +11,7 @@ import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, C
 import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -34,8 +35,22 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
 
   const { mutate, isPending } = useActualizarEstado({
     mutation: {
-      onSuccess: () => alert("Programa calificado exitosamente!"),
-      onError: (error: Error) => alert(`Error: ${error.message}`),
+      onSuccess: (data, variables) => {
+        toast({
+          title: "✓ Éxito",
+          description: `Programa ${variables.data.accion === EstadoUpdateDTOAccion.APROBAR ? "aprobado" : "rechazado"} exitosamente`,
+          variant: "success",
+        })      
+
+        router.push('/'); 
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error instanceof Error ? error.message : "Error desconocido",
+          variant: "destructive",
+        })
+      },    
     }
   });
 
@@ -73,23 +88,16 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
     )
   }
 
-  const onSubmit = (data: EstadoUpdateDTO) => {
-    mutate({
-      data,
-      id: id
-    });
-
-    router.push(`/`);
-  };
-
-  
   const handleAceptar = () => {
     const data: EstadoUpdateDTO = {
       accion: EstadoUpdateDTOAccion.APROBAR,
       destinoRechazo: undefined,
       justificacion: undefined,
     }
-    onSubmit(data)
+    mutate({
+      data,
+      id: id
+    });
   }
 
   const handleRechazarConfirm = (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => {
@@ -102,7 +110,10 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       justificacion,
     }
     setRechazDialogOpen(false)
-    onSubmit(data)
+    mutate({
+      data,
+      id: id
+    });
   }
 
   return (

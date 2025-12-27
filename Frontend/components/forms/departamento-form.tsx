@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DepartamentoCreateDTO } from "@/app/api/generated/model"
 import { useCreateDepartamento } from "@/app/api/generated/client"
+import { toast } from "@/hooks/use-toast"
 
 
 export function DepartamentoForm() {
@@ -21,21 +22,34 @@ export function DepartamentoForm() {
 
   const { mutate, isPending } = useCreateDepartamento({
     mutation: {
-      onSuccess: () => {
-        alert("Departamento creado exitosamente!");
-        // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
-      },
-      onError: (error: Error) => {
-        alert(`Error al crear: ${error.message}`);
-      },
+        onSuccess: () => {
+          toast({
+            title: "✓ Éxito",
+            description: "Departamento creado exitosamente",
+            variant: "success",
+          })
+          setFormData({
+            nombre: "",
+            direccion: "",
+            telefono: "",
+            email: "",
+            sitioWeb: "",
+          })
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
+        },
     }
   });
 
-  // 💡 Esta es la función que se pasa al formulario
-  const handleFormSubmit = (data: DepartamentoCreateDTO) => {
-    // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
-    mutate({ data }); 
-  };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    mutate({ data: formData });
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -43,18 +57,6 @@ export function DepartamentoForm() {
       ...prev,
       [name]: value,
     }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleFormSubmit(formData)
-    setFormData({
-      nombre: "",
-      direccion: "",
-      telefono: "",
-      email: "",
-      sitioWeb: "",
-    })
   }
 
   return (

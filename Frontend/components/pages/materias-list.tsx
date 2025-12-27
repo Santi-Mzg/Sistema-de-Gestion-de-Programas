@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
+import { toast } from "@/hooks/use-toast"
 
 interface MateriasListProps {
   materias?: MateriaResponseDTO[]
@@ -46,8 +47,20 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
 
   const { mutate, isPending } = useDeleteMateria({
     mutation: {
-      onSuccess: () => { alert("Éxito"); },
-      onError: (err: Error) => alert("Error: " + err.message)
+        onSuccess: () => {
+          toast({
+            title: "✓ Éxito",
+            description: "Materia eliminada exitosamente",
+            variant: "success",
+          })
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
+        },
     }
   });
 

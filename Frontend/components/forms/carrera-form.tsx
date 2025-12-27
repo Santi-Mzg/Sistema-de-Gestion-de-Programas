@@ -10,6 +10,7 @@ import { CarreraCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useDept } from "@/context/dept-context"
 import { useCreateCarrera } from "@/app/api/generated/client"
+import { toast } from "@/hooks/use-toast"
 
 export function CarreraForm() {
   const { activeDepartamento } = useDept()
@@ -24,20 +25,36 @@ export function CarreraForm() {
   const { mutate, isPending } = useCreateCarrera({
       mutation: {
         onSuccess: () => {
-          alert("Carrera creada exitosamente!");
+          toast({
+            title: "✓ Éxito",
+            description: "Carrera creada exitosamente",
+            variant: "success",
+          })
+          setFormData({
+            plan: "",
+            nombre: "",
+            duracion: "",
+            // cantidadMaterias: undefined,
+          })
         },
         onError: (error: Error) => {
-          alert(`Error al crear: ${error.message}`);
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
         },
       }
   });
 
-  const handleFormSubmit = (data: CarreraCreateDTO) => {
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
     mutate({ 
       deptId: activeDepartamento!.departamentoId!,
-      data 
+      data: formData 
     }); 
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -49,17 +66,6 @@ export function CarreraForm() {
           : undefined
         : value,
     }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleFormSubmit(formData)
-    setFormData({
-      plan: "",
-      nombre: "",
-      duracion: "",
-      // cantidadMaterias: undefined,
-    })
   }
 
 

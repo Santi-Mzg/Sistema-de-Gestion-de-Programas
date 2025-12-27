@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useRouter } from "next/navigation"
 import { useDept } from "@/context/dept-context"
 import Link from "next/link"
+import { toast } from "@/hooks/use-toast"
 
 interface UsuariosListProps {
   usuarios?: UserResponseDTO[]
@@ -47,8 +48,20 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
 
   const { mutate, isPending } = useDeleteUser({
     mutation: {
-      onSuccess: () => { alert("Éxito"); },
-      onError: (err: Error) => alert("Error: " + err.message)
+        onSuccess: () => {
+          toast({
+            title: "✓ Éxito",
+            description: "Usuario eliminado exitosamente",
+            variant: "success",
+          })
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
+        },
     }
   });
 

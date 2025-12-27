@@ -15,6 +15,7 @@ import { useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateCom
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
+import { toast } from "@/hooks/use-toast"
 
 
 export default function EditCarreraPage() {
@@ -95,8 +96,20 @@ export default function EditCarreraPage() {
 
     const { mutate, isPending } = useUpdateComision({
         mutation: {
-            onSuccess: () => { alert("Éxito"); },
-            onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => {
+            toast({
+              title: "✓ Éxito",
+              description: `Coordinación de la Comisión Curricular actualizada exitosamente`,
+              variant: "success",
+            })
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            }) 
+          }
         }
     });
 
@@ -105,8 +118,7 @@ export default function EditCarreraPage() {
 
     setIsLoading(true)
 
-    try {
-    
+    try {    
       mutate({
         id: carrera.id, 
         data: { 
@@ -114,13 +126,9 @@ export default function EditCarreraPage() {
         }
       });
 
-
       setComision(newComision)
-
-      alert(`Comisión actualizada: ${newComision.apellido} ${newComision.nombre}`)
     } catch (error) {
       console.error("Error updating comision:", error)
-      alert("Error al actualizar el comision")
     } finally {
       setIsLoading(false)
     }

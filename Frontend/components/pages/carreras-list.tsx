@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
+import { toast } from "@/hooks/use-toast"
 
 interface CarrerasListProps {
   carreras?: CarreraResponseDTO[]
@@ -45,8 +46,20 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
 
   const { mutate, isPending } = useDeleteCarrera({
     mutation: {
-      onSuccess: () => { alert("Éxito"); },
-      onError: (err: Error) => alert("Error: " + err.message)
+        onSuccess: () => {
+          toast({
+            title: "✓ Éxito",
+            description: "Carrera eliminada exitosamente",
+            variant: "success",
+          })
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
+        },
     }
   });
 

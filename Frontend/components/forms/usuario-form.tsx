@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CreateUserFormData, createUserSchema } from "@/lib/schemas"
 import { useDept } from "@/context/dept-context"
+import { toast } from "@/hooks/use-toast"
 
 
 const ROLES_PERMITIDOS = [
@@ -40,9 +41,20 @@ export function UsuarioForm() {
 
   const { mutate, isPending } = useCreateUser({
     mutation: {
-      onSuccess: () => { alert("Éxito"); reset(); },
-      onError: (err: Error) => alert("Error: " + err.message)
-    }
+      onSuccess: () => { 
+        toast({
+          title: "✓ Éxito",
+          description: "Información cargada exitosamente",
+          variant: "success",
+        })    
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error instanceof Error ? error.message : "Error desconocido",
+          variant: "destructive",
+        })
+      },      }
   });
 
   const onSubmit = (formData: CreateUserFormData) => {

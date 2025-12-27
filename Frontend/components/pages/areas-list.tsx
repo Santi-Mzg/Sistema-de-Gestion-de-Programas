@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
+import { toast } from "@/hooks/use-toast"
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
@@ -45,8 +46,20 @@ export function AreasList({ areas = [] }: AreasListProps) {
 
   const { mutate, isPending } = useDeleteArea({
     mutation: {
-      onSuccess: () => { alert("Éxito"); },
-      onError: (err: Error) => alert("Error: " + err.message)
+        onSuccess: () => {
+          toast({
+            title: "✓ Éxito",
+            description: "Área eliminada exitosamente",
+            variant: "success",
+          })
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "✗ Error",
+            description: error instanceof Error ? error.message : "Error desconocido",
+            variant: "destructive",
+          })
+        },
     }
   });
 
