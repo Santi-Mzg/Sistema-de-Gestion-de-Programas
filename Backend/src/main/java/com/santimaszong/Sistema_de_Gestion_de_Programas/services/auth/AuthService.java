@@ -44,9 +44,9 @@ public class AuthService {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-//                .secure(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(true)
+//                .secure(false)
+                .sameSite("None")
                 .path("/")
                 .maxAge(24 * 60 * 60)
                 .build();
@@ -70,9 +70,9 @@ public class AuthService {
     public void logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt", null)
                 .httpOnly(true)
-//                .secure(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(true)
+//                .secure(false)
+                .sameSite("None")
                 .path("/")
                 .maxAge(0)
                 .build();

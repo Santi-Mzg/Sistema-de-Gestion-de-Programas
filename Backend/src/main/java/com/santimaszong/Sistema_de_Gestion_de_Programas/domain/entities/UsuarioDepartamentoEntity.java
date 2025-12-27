@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="usuarios-departamentos")
+@Table(name="usuarios_departamentos")
 public class UsuarioDepartamentoEntity {
 
     @Id
@@ -30,7 +30,7 @@ public class UsuarioDepartamentoEntity {
     @JoinColumn(name = "departamento_id")
     private DepartamentoEntity departamento;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
 

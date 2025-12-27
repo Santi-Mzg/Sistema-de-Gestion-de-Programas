@@ -12,7 +12,7 @@ import java.util.List;
 
 @Log
 @RestController
-@RequestMapping("/api/materias")
+@RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class MateriaController {
 
@@ -23,33 +23,33 @@ public class MateriaController {
     }
 
 
-    @PostMapping
-    public ResponseEntity<MateriaResponseDTO> createMateria(@RequestBody MateriaCreateDTO program) {
-        MateriaResponseDTO createdMateria = materiaService.createMateria(program);
+    @PostMapping("/departamentos/{deptId}/materias")
+    public ResponseEntity<MateriaResponseDTO> createMateria(@PathVariable Long deptId, @RequestBody MateriaCreateDTO materia) {
+        MateriaResponseDTO createdMateria = materiaService.createMateria(deptId, materia);
 
         return new ResponseEntity<>(createdMateria, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/materias/{id}")
     public ResponseEntity<MateriaResponseDTO> getMateria(@PathVariable Long id) {
         MateriaResponseDTO foundMateria = materiaService.getMateriaById(id);
 
         return ResponseEntity.ok(foundMateria);
     }
 
-    @GetMapping
-    public List<MateriaResponseDTO> listMaterias() {
-        return materiaService.listMaterias();
+    @GetMapping("/departamentos/{deptId}/materias")
+    public List<MateriaResponseDTO> listMateriasDepartamento(@PathVariable Long deptId) {
+        return materiaService.listMateriasDepartamento(deptId);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/materias/{id}")
     public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO program) {
         MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);
 
         return new ResponseEntity<>(updatedMateria, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/materias/{id}")
     public ResponseEntity<Void> deleteMateria(@PathVariable Long id) {
         materiaService.deleteMateria(id);
 

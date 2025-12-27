@@ -12,7 +12,7 @@ import java.util.List;
 
 @Log
 @RestController
-@RequestMapping("/api/areas")
+@RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class AreaController {
 
@@ -22,34 +22,33 @@ public class AreaController {
         this.areaService = areaService;
     }
 
+    @PostMapping("/departamentos/{deptId}/areas")
+    public ResponseEntity<AreaResponseDTO> createArea(@PathVariable Long deptId, @RequestBody AreaCreateDTO area) {
+        AreaResponseDTO createArea = areaService.createArea(deptId, area);
 
-    @PostMapping
-    public ResponseEntity<AreaResponseDTO> createArea(@RequestBody AreaCreateDTO program) {
-        AreaResponseDTO createdArea = areaService.createArea(program);
-
-        return new ResponseEntity<>(createdArea, HttpStatus.CREATED);
+        return new ResponseEntity<>(createArea, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/areas/{id}")
     public ResponseEntity<AreaResponseDTO> getArea(@PathVariable Long id) {
         AreaResponseDTO foundArea = areaService.getAreaById(id);
 
         return ResponseEntity.ok(foundArea);
     }
 
-    @GetMapping
-    public List<AreaResponseDTO> listAreas() {
-        return areaService.listAreas();
+    @GetMapping("/departamentos/{deptId}/areas")
+    public List<AreaResponseDTO> listAreasDepartamento(@PathVariable Long deptId) {
+        return areaService.listAreasDepartamento(deptId);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/areas/{id}")
     public ResponseEntity<AreaResponseDTO> updateArea(@PathVariable Long id, @RequestBody AreaCreateDTO program) {
         AreaResponseDTO updatedArea = areaService.updateArea(id, program);
 
         return new ResponseEntity<>(updatedArea, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/areas/{id}")
     public ResponseEntity<Void> deleteArea(@PathVariable Long id) {
         areaService.deleteArea(id);
 

@@ -13,18 +13,16 @@ import org.mapstruct.Mapping;
         uses = {
                 ProgramaCarreraMapper.class,
                 EstadoHistoricoResponseMapper.class,
-                UserToStringMapper.class
+                UserReducedMapper.class,
+                MateriaMapper.class
         }
 )
 public interface ProgramaResponseMapper extends ToDTOMapper<ProgramaEntity, ProgramaResponseDTO> {
 
 
     @Override
-    @Mapping(source = "materia.departamento.nombre", target = "nombreDepartamento")
-    @Mapping(source = "materia.nombre", target = "nombreMateria")
-    @Mapping(source = "materia.codigo", target = "codigoMateria")
-    @Mapping(source = "materia.area.nombre", target = "areaMateria")
-    @Mapping(source = "profesorResponsable.usuario", target = "profesorResponsable", qualifiedByName = "userToString")
+    @Mapping(source = "materia", target = "materia")
+    @Mapping(source = "profesorResponsable.usuario", target = "profesorResponsable")
     @Mapping(source = "bloqueMultiple", target = "bloqueMultiple")
     @Mapping(source = "historialEstados", target = "historialEstados")
     @Mapping(source = "estadoActual", target = "estado")

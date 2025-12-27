@@ -3,12 +3,18 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.util.seeder;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
+import java.util.Set;
 
 
 @Component
@@ -19,6 +25,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final MateriaRepository materiaRepository;
     private final ProgramaRepository programaRepository;
     private final UserRepository userRepository;
+    private final UsuarioDepartamentoRepository udeRepository;
     private final PasswordEncoder passwordEncoder;
 
 
@@ -28,6 +35,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                           MateriaRepository materiaRepository,
                           ProgramaRepository programaRepository,
                           UserRepository userRepository,
+                          UsuarioDepartamentoRepository udeRepository,
                           PasswordEncoder passwordEncoder) {
 
         this.departamentoRepository = departamentoRepository;
@@ -35,16 +43,17 @@ public class DatabaseSeeder implements CommandLineRunner {
         this.materiaRepository = materiaRepository;
         this.programaRepository = programaRepository;
         this.userRepository = userRepository;
+        this.udeRepository = udeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
-        if(userRepository.findAll().isEmpty()){
-            seedAdminUser();
-        }
         if(departamentoRepository.findAll().isEmpty()){
             seedDepartamentosCarrerasMaterias();
+        }
+        if(userRepository.findAll().isEmpty()){
+            seedAdminUser();
         }
     }
 
@@ -56,6 +65,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         admin.setLegajo("00000");
         admin.setPassword(passwordEncoder.encode("admin"));
         admin.setAdmin(true);
+
+        List<DepartamentoEntity> depts = departamentoRepository.findAll();
+        depts.forEach(dept -> {
+            crearUDE(admin, dept);
+        });
+
+
+
         userRepository.save(admin);
     }
 
@@ -308,5 +325,25 @@ public class DatabaseSeeder implements CommandLineRunner {
         dpto.setTelefono(tel);
         dpto.setEmail(email);
         return departamentoRepository.save(dpto);
+    }
+
+    private void crearUDE(UserEntity user, DepartamentoEntity dept) {
+        Set<Rol> roles = Set.of(
+                Rol.ADMINISTRACION,
+                Rol.DOCENTE,
+                Rol.COORDINACION_COMISION_CURRICULAR,
+                Rol.SECRETARIA,
+                Rol.DIRECCION_ADMINISTRATIVA
+        );
+
+        UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
+        ude.setUsuario(user);
+        ude.setDepartamento(dept);
+        ude.setEmail("");
+        ude.setRoles(roles);
+        udeRepository.save(ude);
+        user.getDepartamentos().add(ude);
+
+
     }
 }

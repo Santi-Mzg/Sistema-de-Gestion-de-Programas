@@ -17,7 +17,7 @@ public class UsuarioDepartamentoDTO {
     private Long departamentoId;
     private String departamentoNombre;
     private String email;
-    private List<String> carrerasComoComision;
+    private List<Long> carrerasComoComision;
     private List<String> materiasComoProfesor;
     private Set<Rol> roles;
 }

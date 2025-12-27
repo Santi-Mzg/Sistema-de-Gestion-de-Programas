@@ -17,24 +17,24 @@ import java.util.stream.Collectors;
 @Service
 public class AreaServiceImpl implements AreaService {
 
-    private final DepartamentoService departamentoService;
     private final AreaRepository areaRepository;
+    private final DepartamentoService departamentoService;
 
     private final AreaMapper areaMapper;
 
     public AreaServiceImpl(DepartamentoService departamentoService, AreaRepository areaRepository, AreaMapper areaMapper) {
-        this.departamentoService = departamentoService;
         this.areaRepository = areaRepository;
+        this.departamentoService = departamentoService;
         this.areaMapper = areaMapper;
     }
 
 
     @Override
-    public AreaResponseDTO createArea(AreaCreateDTO areaDTO){
+    public AreaResponseDTO createArea(Long deptId, AreaCreateDTO areaDTO){
         AreaEntity areaEntity = areaMapper.toEntity(areaDTO);
 
 
-        DepartamentoEntity departamento = departamentoService.getEntityById(areaDTO.getDepartamentoId());
+        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
 
         areaEntity.setDepartamento(departamento);
 
@@ -64,6 +64,17 @@ public class AreaServiceImpl implements AreaService {
                 .map(areaMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<AreaResponseDTO> listAreasDepartamento(Long id) {
+        DepartamentoEntity departamento = departamentoService.getEntityById(id);
+
+        List<AreaEntity> areas = departamento.getAreas();
+
+        return areas.stream()
+                .map(areaMapper::toDTO)
+                .collect(Collectors.toList());
+    };
 
     @Override
     public AreaResponseDTO updateArea(Long id, AreaCreateDTO areaDTO) {

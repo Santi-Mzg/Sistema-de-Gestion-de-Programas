@@ -16,5 +16,4 @@ public class DepartamentoCreateDTO {
     private String telefono;
     private String email;
     private String sitioWeb;
-    private Long dirAdminId;
 }

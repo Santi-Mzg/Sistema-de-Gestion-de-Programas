@@ -11,7 +11,6 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,24 +25,16 @@ import java.util.stream.Collectors;
 public class DepartamentoServiceImpl implements DepartamentoService {
 
     private final DepartamentoRepository departamentoRepository;
-    private final UserService userService;
     private final UsuarioDepartamentoService userDptoService;
 
     private final DepartamentoMapper departamentoMapper;
-    private final MateriaMapper materiaMapper;
-    private final CarreraMapper carreraMapper;
-    private final AreaMapper areaMapper;
     private final UserMapper userMapper;
 
 
-    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UserService userService, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper, MateriaMapper materiaMapper, CarreraMapper carreraMapper, AreaMapper areaMapper, UserMapper userMapper) {
+    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper, UserMapper userMapper) {
         this.departamentoRepository = departamentoRepository;
-        this.userService = userService;
         this.userDptoService = userDptoService;
         this.departamentoMapper = departamentoMapper;
-        this.carreraMapper = carreraMapper;
-        this.materiaMapper = materiaMapper;
-        this.areaMapper = areaMapper;
         this.userMapper = userMapper;
     }
 
@@ -78,63 +69,6 @@ public class DepartamentoServiceImpl implements DepartamentoService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<MateriaResponseDTO> listMateriasByDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Departamento no encontrado"));
-
-        List<MateriaEntity> materias = departamento.getMaterias();
-
-        return materias.stream()
-                .map(materiaMapper::toDTO)
-                .collect(Collectors.toList());
-    };
-
-    @Override
-    public List<CarreraResponseDTO> listCarrerasByDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Departamento no encontrado"));
-
-        List<CarreraEntity> carreras = departamento.getCarreras();
-
-        return carreras.stream()
-                .map(carreraMapper::toDTO)
-                .collect(Collectors.toList());
-    };
-
-    @Override
-    public List<AreaResponseDTO> listAreasByDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Departamento no encontrado"));
-
-        List<AreaEntity> areas = departamento.getAreas();
-
-        return areas.stream()
-                .map(areaMapper::toDTO)
-                .collect(Collectors.toList());
-    };
-
-    public List<UserResponseDTO> listUsersByDepartamento(Long departamentoId) {
-        return userDptoService.findByDepartamentoId(departamentoId)
-                .stream()
-                .map(UsuarioDepartamentoEntity::getUsuario)
-                .map(userMapper::toDTO)
-                .toList();
-    }
-
-//    @Override
-//    public List<UserResponseDTO> listProfesoresByDepartamento(Long id) {
-//        DepartamentoEntity departamento = departamentoRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("Departamento no encontrado"));
-//
-//        List<UserEntity> profesores = departamento.get;
-//
-//        return materias.stream()
-//                .map(materiaMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-
-
 
     @Override
     public DepartamentoResponseDTO updateDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
@@ -166,16 +100,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             throw new IllegalArgumentException("Debe enviar un secretariaId");
         }
 
-        UserEntity nuevaSecretaria = userService.getEntityById(nuevaSecretariaId);
-
         dpto.getUsuarios().forEach(ude -> { // Elimina secretario anterior
             ude.getRoles().remove(Rol.SECRETARIA);
         });
 
-        UsuarioDepartamentoEntity udeNuevoSecretario = dpto.getUsuarios().stream()
-                .filter(ude -> ude.getUsuario().getId().equals(nuevaSecretariaId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no relacionado al departamento"));
+        UsuarioDepartamentoEntity udeNuevoSecretario = userDptoService.findByUsuarioIdAndDepartamentoId(nuevaSecretariaId, id);
 
         udeNuevoSecretario.getRoles().add(Rol.SECRETARIA);
 
@@ -195,16 +124,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             throw new IllegalArgumentException("Debe enviar un direccionAdministrativaId");
         }
 
-        UserEntity nuevaDireccion = userService.getEntityById(nuevaDireccionId);
-
         dpto.getUsuarios().forEach(ude -> { // Elimina direccion anterior
             ude.getRoles().remove(Rol.DIRECCION_ADMINISTRATIVA);
         });
 
-        UsuarioDepartamentoEntity udeNuevaDireccion = dpto.getUsuarios().stream()
-                .filter(ude -> ude.getUsuario().getId().equals(nuevaDireccionId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no relacionado al departamento"));
+        UsuarioDepartamentoEntity udeNuevaDireccion = userDptoService.findByUsuarioIdAndDepartamentoId(nuevaDireccionId, id);
 
         udeNuevaDireccion.getRoles().add(Rol.DIRECCION_ADMINISTRATIVA);
 

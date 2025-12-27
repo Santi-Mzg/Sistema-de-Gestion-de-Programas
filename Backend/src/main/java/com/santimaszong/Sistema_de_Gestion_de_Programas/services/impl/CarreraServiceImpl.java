@@ -13,6 +13,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.Departament
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UsuarioDepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +28,15 @@ import java.util.stream.Stream;
 public class CarreraServiceImpl implements CarreraService {
 
     private final CarreraRepository carreraRepository;
-    private final DepartamentoRepository departamentoRepository;
+    private final DepartamentoService departamentoService;
     private final UserRepository userRepository;
     private final CarreraMapper carreraMapper;
     private final MateriaMapper materiaMapper;
 
 
-    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoRepository departamentoRepository, UserRepository userRepository, CarreraMapper carreraMapper, MateriaMapper materiaMapper) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoService departamentoService, UserRepository userRepository, CarreraMapper carreraMapper, MateriaMapper materiaMapper) {
         this.carreraRepository = carreraRepository;
-        this.departamentoRepository = departamentoRepository;
+        this.departamentoService = departamentoService;
         this.userRepository = userRepository;
         this.carreraMapper = carreraMapper;
         this.materiaMapper = materiaMapper;
@@ -43,13 +44,10 @@ public class CarreraServiceImpl implements CarreraService {
 
 
     @Override
-    public CarreraResponseDTO createCarrera(CarreraCreateDTO carreraDTO){
+    public CarreraResponseDTO createCarrera(Long deptId, CarreraCreateDTO carreraDTO){
         CarreraEntity carreraEntity = carreraMapper.toEntity(carreraDTO);
 
-        DepartamentoEntity departamento = departamentoRepository.findById(carreraDTO.getDepartamentoId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("El Departamento de la carrera " + carreraDTO.getNombre() + " con ID " + carreraDTO.getDepartamentoId() + "no fue encontrado.")
-                );
+        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
 
         carreraEntity.setDepartamento(departamento);
         CarreraEntity createdCarreraEntity = carreraRepository.save(carreraEntity);
@@ -78,6 +76,17 @@ public class CarreraServiceImpl implements CarreraService {
                 .map(carreraMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<CarreraResponseDTO> listCarrerasDepartamento(Long id) {
+        DepartamentoEntity departamento = departamentoService.getEntityById(id);
+
+        List<CarreraEntity> carreras = departamento.getCarreras();
+
+        return carreras.stream()
+                .map(carreraMapper::toDTO)
+                .collect(Collectors.toList());
+    };
 
     @Override
     public List<MateriaResponseDTO> listMateriasByCarrera(@PathVariable Long id) {
@@ -130,7 +139,7 @@ public class CarreraServiceImpl implements CarreraService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no relacionado al departamento"));
 
         UsuarioDepartamentoEntity udeViejaComision = carrera.getComision();
-        if (udeViejaComision.getCarrerasComoComision().size() == 0){
+        if (udeViejaComision != null && udeViejaComision.getCarrerasComoComision().isEmpty()){
             udeViejaComision.getRoles().remove(Rol.COORDINACION_COMISION_CURRICULAR); // Saca rol a comision vieja si no tiene mas carreras como comision
         }
 

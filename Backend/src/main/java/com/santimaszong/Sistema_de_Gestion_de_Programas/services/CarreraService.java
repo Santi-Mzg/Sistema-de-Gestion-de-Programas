@@ -10,11 +10,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 
 public interface CarreraService {
-    CarreraResponseDTO createCarrera(CarreraCreateDTO carrera);
+    CarreraResponseDTO createCarrera(Long deptId, CarreraCreateDTO carrera);
     CarreraResponseDTO getCarreraById(Long id);
     CarreraEntity getEntityById(Long id);
     List<CarreraResponseDTO> listCarreras();
-    List<MateriaResponseDTO> listMateriasByCarrera(@PathVariable Long id);
+    List<CarreraResponseDTO> listCarrerasDepartamento(Long deptId);
+    List<MateriaResponseDTO> listMateriasByCarrera(Long id);
     CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carrera);
     void updateComision(Long id, CarreraUpdateComisionDTO carreraDTO);
     void deleteCarrera(Long id);

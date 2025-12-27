@@ -1,12 +1,8 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.departamento.DepartamentoUpdateCargoDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
@@ -54,25 +50,14 @@ public class DepartamentoController {
         return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}/materias")
-    public List<MateriaResponseDTO> listMateriasDepartamento(@PathVariable Long id) {
-        return departamentoService.listMateriasByDepartamento(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDepartamento(@PathVariable Long id) {
+        departamentoService.deleteDepartamento(id);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/{id}/carreras")
-    public List<CarreraResponseDTO> listCarrerasDepartamento(@PathVariable Long id) {
-        return departamentoService.listCarrerasByDepartamento(id);
-    }
 
-    @GetMapping("/{id}/areas")
-    public List<AreaResponseDTO> listAreasDepartamento(@PathVariable Long id) {
-        return departamentoService.listAreasByDepartamento(id);
-    }
-
-    @GetMapping("/{id}/users")
-    public List<UserResponseDTO> listUsersByDepartamento(@PathVariable Long id) {
-        return departamentoService.listUsersByDepartamento(id);
-    }
 
     @PatchMapping("/{id}/cambiar_secretaria")
     public ResponseEntity<DepartamentoResponseDTO> updateSecretaria(@PathVariable Long id, @RequestBody DepartamentoUpdateCargoDTO departamento) {
@@ -96,10 +81,5 @@ public class DepartamentoController {
         return new ResponseEntity<>(updatedDepartamento, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDepartamento(@PathVariable Long id) {
-        departamentoService.deleteDepartamento(id);
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 }

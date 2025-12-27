@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class AreaCreateDTO {
 
     private String nombre;
-    private Long departamentoId;
 }

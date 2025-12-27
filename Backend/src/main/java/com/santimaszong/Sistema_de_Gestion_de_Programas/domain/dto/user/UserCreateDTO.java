@@ -17,6 +17,5 @@ public class UserCreateDTO {
     private String legajo;
 
     private String email;
-    private Long departamentoId;
     private Set<Rol> roles;
 }

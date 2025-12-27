@@ -19,6 +19,8 @@ public class ProgramaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer anio;
+
     // --- BLOQUE ÚNICO ---
     @ManyToOne
     @JoinColumn(name = "materia_id")
@@ -46,26 +48,25 @@ public class ProgramaEntity {
     private String modalidadEvaluacion;
     private String bibliografia;
 
+    @Enumerated(EnumType.STRING)
+    private EstadoPrograma estadoActual;
+
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("fecha ASC")
     private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
 
 
-
-    public EstadoPrograma getEstadoActual() {
-        if (historialEstados.isEmpty()) return EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
-        return historialEstados.get(historialEstados.size() - 1).getEstado();
-    }
-
     public void registrarNuevoEstado(EstadoPrograma estado, UserEntity actor, String justificacion){
-        EstadoHistoricoEntity nuevoEstado = new EstadoHistoricoEntity();
-        nuevoEstado.setPrograma(this);
-        nuevoEstado.setEstado(estado);
-        nuevoEstado.setRealizadoPor(actor);
-        nuevoEstado.setJustificacion(justificacion);
-        nuevoEstado.setFecha(LocalDateTime.now());
+        EstadoHistoricoEntity nuevoEstadoHistorico = new EstadoHistoricoEntity();
+        nuevoEstadoHistorico.setPrograma(this);
+        nuevoEstadoHistorico.setEstado(estado);
+        nuevoEstadoHistorico.setRealizadoPor(actor);
+        nuevoEstadoHistorico.setJustificacion(justificacion);
+        nuevoEstadoHistorico.setFecha(LocalDateTime.now());
 
-        historialEstados.add(nuevoEstado);
+        historialEstados.add(nuevoEstadoHistorico);
+
+        this.setEstadoActual(estado);
     }
 
 }

@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProgramaCargaAdministrativoDTO {
+public class ProgramaCargaDTO {
 
     // --- BLOQUE ÚNICO ---
     private Long materiaId;
@@ -22,10 +22,10 @@ public class ProgramaCargaAdministrativoDTO {
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
     private Integer cargaHorariaSemanal;
+    private Integer cargaHorariaPractica;
     private Integer creditos;
     private Integer cantidadSemanas;
 
-    private Integer cargaHorariaPractica;
     private String fundamentacion;
     private String objetivos;
     private String programaAnalitico;

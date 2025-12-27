@@ -12,4 +12,6 @@ public interface UsuarioDepartamentoService {
     UsuarioDepartamentoEntity findByUsuarioLegajoAndDepartamentoId(String legajo, Long deptId);
     UsuarioDepartamentoEntity save(UsuarioDepartamentoEntity entity);
     DepartamentoEntity getDeptEntityById(Long deptId);
+    UserEntity getUserEntityById(Long userId);
+
 }

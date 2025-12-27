@@ -8,16 +8,17 @@ import java.util.List;
 
 
 public interface UserService {
-    UserResponseDTO createUser(UserCreateDTO user);
+    UserResponseDTO createUser(Long deptId, UserCreateDTO user);
     UserResponseDTO getUserById(Long id);
     UserResponseDTO getUserByLegajo(String legajo);
     UserEntity getEntityById(Long id);
     UserEntity getEntityByLegajo(String legajo);
     List<UserResponseDTO> listUsers();
-//    List<UserResponseDTO> listProfesores();
-//    List<UserResponseDTO> listAdministrativos();
-//    List<UserResponseDTO> listSecretarios();
-//    List<UserResponseDTO> listCoordinadores();
+    List<UserResponseDTO> listUsersDepartamento(Long id, UserEntity auth);
+    List<UserResponseDTO> listDocentesDepartamento(Long deptId, UserEntity auth);
+    List<UserResponseDTO> listAdministrativosDepartamento(Long deptId, UserEntity auth);
+    List<UserResponseDTO> listSecretariosDepartamento(Long deptId, UserEntity auth);
+    List<UserResponseDTO> listCoordinadoresDepartamento(Long deptId, UserEntity auth);
     UserResponseDTO updateUser(Long id, UserCreateDTO user);
     void deleteUser(Long id);
 }

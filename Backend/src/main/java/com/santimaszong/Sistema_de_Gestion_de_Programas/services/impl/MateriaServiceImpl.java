@@ -34,11 +34,11 @@ public class MateriaServiceImpl implements MateriaService {
 
 
     @Override
-    public MateriaResponseDTO createMateria(MateriaCreateDTO materiaDTO){
+    public MateriaResponseDTO createMateria(Long deptId, MateriaCreateDTO materiaDTO){
         MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
 
 
-        DepartamentoEntity departamento = departamentoService.getEntityById(materiaDTO.getDepartamentoId());
+        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
 
         AreaEntity area = areaService.getEntityById(materiaDTO.getAreaId());
 
@@ -71,6 +71,17 @@ public class MateriaServiceImpl implements MateriaService {
                 .map(materiaMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<MateriaResponseDTO> listMateriasDepartamento(Long deptId) {
+        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
+
+        List<MateriaEntity> materias = departamento.getMaterias();
+
+        return materias.stream()
+                .map(materiaMapper::toDTO)
+                .collect(Collectors.toList());
+    };
 
     @Override
     public List<MateriaEntity> listEntities(List<Long> ids) {

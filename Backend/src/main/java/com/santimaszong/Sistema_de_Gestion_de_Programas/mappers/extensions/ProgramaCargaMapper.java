@@ -1,14 +1,14 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions;
 
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaAdministrativoDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.ToEntityMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface ProgramaCargaAdministradorMapper extends ToEntityMapper<ProgramaCargaAdministrativoDTO, ProgramaEntity> {
+public interface ProgramaCargaMapper extends ToEntityMapper<ProgramaCargaDTO, ProgramaEntity> {
 
     @Override
     @Mapping(target = "id", ignore = true)
@@ -23,6 +23,6 @@ public interface ProgramaCargaAdministradorMapper extends ToEntityMapper<Program
     @Mapping(target = "modalidadEvaluacion", ignore = true)
     @Mapping(target = "bibliografia", ignore = true)
     @Mapping(target = "historialEstados", ignore = true)
-    ProgramaEntity toEntity(ProgramaCargaAdministrativoDTO dto);
+    ProgramaEntity toEntity(ProgramaCargaDTO dto);
 
 }

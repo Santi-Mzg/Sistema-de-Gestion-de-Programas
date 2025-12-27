@@ -1,5 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseReducedDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,11 +15,9 @@ public class ProgramaResponseDTO {
     private Long id;
 
     // --- BLOQUE ÚNICO ---
-    private String nombreDepartamento;
-    private String nombreMateria;
-    private String codigoMateria;
-    private String areaMateria;
-    private String profesorResponsable;
+    private Integer anio;
+    private MateriaResponseDTO materia;
+    private UserResponseReducedDTO profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
     private List<ProgramaCarreraDTO> bloqueMultiple;

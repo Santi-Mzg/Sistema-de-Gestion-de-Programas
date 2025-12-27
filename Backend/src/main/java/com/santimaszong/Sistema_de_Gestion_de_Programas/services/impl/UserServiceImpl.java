@@ -1,9 +1,8 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.RegisterRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserResponseDTO createUser(UserCreateDTO userDTO){
+    public UserResponseDTO createUser(Long deptId, UserCreateDTO userDTO){
         UserEntity user;
 
         if (userRepository.existsByLegajo(userDTO.getLegajo())) { // Si existe lo busco
@@ -57,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
             boolean userInDpto = user.getDepartamentos().stream()
                     .anyMatch(ude -> ude.getDepartamento().getId()
-                                    .equals(userDTO.getDepartamentoId())
+                                    .equals(deptId)
                     );
 
             if(userInDpto) { // Si ya tiene un ude de ese departamento retorno
@@ -76,7 +75,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // De todas maneras creo el ude acorde al departamento
-        DepartamentoEntity departamento = userDptoService.getDeptEntityById(userDTO.getDepartamentoId());
+        DepartamentoEntity departamento = userDptoService.getDeptEntityById(deptId);
 
         UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
         ude.setUsuario(user);
@@ -127,42 +126,89 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<UserResponseDTO> listProfesores() {
-//        List<UserEntity> profesores = userRepository.findAllByRoles(Rol.PROFESOR);
-//
-//        return profesores.stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<UserResponseDTO> listAdministrativos() {
-//        List<UserEntity> administrativos = userRepository.findAllByRoles(Rol.ADMINISTRATIVO);
-//
-//        return administrativos.stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<UserResponseDTO> listCoordinadores() {
-//        List<UserEntity> coordinadores = userRepository.findAllByRoles(Rol.COORDINACION_COMISION_CURRICULAR);
-//
-//        return coordinadores.stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<UserResponseDTO> listSecretarios() {
-//        List<UserEntity> secretarios = userRepository.findAllByRoles(Rol.SECRETARIA);
-//
-//        return secretarios.stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
+    @Override
+    public List<UserResponseDTO> listUsersDepartamento(Long deptId, UserEntity auth) {
+        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+                .stream()
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .map(userMapper::toDTO)
+                .toList());
 
+        if(!auth.isAdmin()) {
+            return userList.stream().filter(usuario -> !usuario.isAdmin())
+                    .toList();
+        }
+
+        return userList;
+    }
+
+    @Override
+    public List<UserResponseDTO> listDocentesDepartamento(Long deptId, UserEntity auth) {
+        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+                .stream()
+                .filter(ude -> ude.hasRole(Rol.DOCENTE))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .map(userMapper::toDTO)
+                .toList());
+
+        if(!auth.isAdmin()) {
+            return userList.stream().filter(usuario -> !usuario.isAdmin())
+                    .toList();
+        }
+
+        return userList;
+    }
+
+    @Override
+    public List<UserResponseDTO> listAdministrativosDepartamento(Long deptId, UserEntity auth) {
+        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+                .stream()
+                .filter(ude -> ude.hasRole(Rol.ADMINISTRACION))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .map(userMapper::toDTO)
+                .toList());
+
+        if(!auth.isAdmin()) {
+            return userList.stream().filter(usuario -> !usuario.isAdmin())
+                    .toList();
+        }
+
+        return userList;
+    }
+
+    @Override
+    public List<UserResponseDTO> listSecretariosDepartamento(Long deptId, UserEntity auth) {
+        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+                .stream()
+                .filter(ude -> ude.hasRole(Rol.SECRETARIA))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .map(userMapper::toDTO)
+                .toList());
+
+        if(!auth.isAdmin()) {
+            return userList.stream().filter(usuario -> !usuario.isAdmin())
+                    .toList();
+        }
+
+        return userList;
+    }
+
+    @Override
+    public List<UserResponseDTO> listCoordinadoresDepartamento(Long deptId, UserEntity auth) {
+        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+                .stream()
+                .filter(ude -> ude.hasRole(Rol.COORDINACION_COMISION_CURRICULAR))
+                .map(UsuarioDepartamentoEntity::getUsuario)
+                .map(userMapper::toDTO)
+                .toList());
+
+        if(!auth.isAdmin()) {
+            return userList.stream().filter(usuario -> !usuario.isAdmin())
+                    .toList();
+        }
+
+        return userList;
+    }
 
     @Override
     public UserResponseDTO updateUser(Long id, UserCreateDTO userDTO) {

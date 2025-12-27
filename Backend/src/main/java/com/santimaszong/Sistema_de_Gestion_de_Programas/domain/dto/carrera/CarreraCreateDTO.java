@@ -11,5 +11,4 @@ public class CarreraCreateDTO {
     private String plan;
     private String nombre;
     private String duracion;
-    private Long departamentoId;
 }

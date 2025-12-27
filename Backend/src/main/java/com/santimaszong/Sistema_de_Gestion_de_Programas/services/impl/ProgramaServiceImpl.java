@@ -4,13 +4,14 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaAdministradorMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     private final ProgramaResponseMapper responseMapper;
-    private final ProgramaCargaAdministradorMapper adminMapper;
+    private final ProgramaCargaMapper programaMapper;
     private final ProgramaCarreraMapper programaCarreraMapper;
 
 
@@ -42,7 +43,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                CarreraService carreraService,
                                UsuarioDepartamentoService udeService,
                                ProgramaResponseMapper responseMapper,
-                               ProgramaCargaAdministradorMapper adminMapper,
+                               ProgramaCargaMapper programaMapper,
                                ProgramaCarreraMapper programaCarreraMapper) {
 
         this.programaRepository = programaRepository;
@@ -51,31 +52,33 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.carreraService = carreraService;
         this.udeService = udeService;
         this.responseMapper = responseMapper;
-        this.adminMapper = adminMapper;
+        this.programaMapper = programaMapper;
         this.programaCarreraMapper = programaCarreraMapper;
     }
 
 
     @Override
-    public ProgramaResponseDTO create(ProgramaCargaAdministrativoDTO programaDTO){
-        ProgramaEntity programaEntity = adminMapper.toEntity(programaDTO);
+    public ProgramaResponseDTO create(ProgramaCargaDTO programaDTO, UserEntity actor){
+        ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
 
         MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
+
+        Long dptoId = materia.getDepartamento().getId();
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), dptoId);
+        if(!udeActor.hasRole(Rol.ADMINISTRACION)){
+            throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
+        }
 
         programaEntity.setMateria(materia);
 
         UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
+        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId);
+        if(!udeProfesor.hasRole(Rol.DOCENTE)){
+            throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
+        }
 
-        Long dptoId = materia.getDepartamento().getId();
 
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId);
-        programaEntity.setProfesorResponsable(ude);
-
-//        programaEntity.setProfesorResponsable(profesorResponsable.getDepartamentos().stream()
-//                .filter(ude -> ude.getDepartamento().getId().equals(dptoId))
-//                .findFirst()
-//                .orElseThrow(() -> new EntityNotFoundException("Departamento relacionoado no encontrado"))
-//        );
+        programaEntity.setProfesorResponsable(udeProfesor);
 
 
         List<ProgramaCarreraDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
@@ -83,8 +86,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
 
-
-        EstadoPrograma nuevoEstado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
+        EstadoPrograma estado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
 
         boolean completoAdministracion =
                 programaEntity.getCargaHorariaTotal() != null &&
@@ -96,20 +98,27 @@ public class ProgramaServiceImpl implements ProgramaService {
                         programaEntity.getBloqueMultiple() != null;
 
         if (completoAdministracion) {
-            nuevoEstado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
+            estado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
         }
 
-        programaEntity.registrarNuevoEstado(nuevoEstado, profesorResponsable, null); // MOCKEADO EL ACTOR
+        programaEntity.registrarNuevoEstado(estado, profesorResponsable, null);
 
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
-
         return responseMapper.toDTO(createdProgramaEntity);
     }
 
     @Override
-    public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaAdministrativoDTO programaDTO, UserEntity actor) {
+    public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+
+        Long dptoId = existingProgram.getMateria().getDepartamento().getId();
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), dptoId);
+
+        if(!udeActor.hasRole(Rol.ADMINISTRACION)) {
+            throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
+        }
+
 
         if (!existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION)
                 && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_ADMINISTRACION)) {
@@ -121,7 +130,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                 .ifPresent(materiaId -> {
                     MateriaEntity materiaActual = existingProgram.getMateria();
                     if(materiaActual != null && materiaActual.getId().equals(materiaId))
-                        return;
+                        return; // Si es el mismo no lo cambia
 
                     MateriaEntity nuevaMateria = materiaService.getEntityById(materiaId);
 
@@ -132,13 +141,13 @@ public class ProgramaServiceImpl implements ProgramaService {
                 .ifPresent(profesorId -> {
                     UserEntity profesorActual = existingProgram.getProfesorResponsable().getUsuario();
                     if(profesorActual != null && profesorActual.getId().equals(profesorId))
-                        return;
+                        return; // Si es el mismo no lo cambia
 
+                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, dptoId);
 
-                    MateriaEntity materiaActual = existingProgram.getMateria();
-                    DepartamentoEntity dpto = materiaActual.getDepartamento();
-
-                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, dpto.getId());
+                    if(!udeProfesorNuevo.hasRole(Rol.DOCENTE)){
+                        throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
+                    }
 
                     existingProgram.setProfesorResponsable(udeProfesorNuevo);
                 });
@@ -184,14 +193,20 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
     @Override
-    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaProfesorDTO programaDTO, UserEntity actor) {
+    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+
+        Long deptId = existingProgram.getMateria().getDepartamento().getId();
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
+        if(!udeActor.hasRole(Rol.DOCENTE)) {
+            throw new IllegalStateException("El usuario no tiene rol DOCENTE");
+        }
 
         if (!existingProgram.getEstadoActual().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
                 && !existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)
                 && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_PROFESOR)) {
-            throw new IllegalStateException("El profesor no puede cargar datos en el estado actual.");
+            throw new IllegalStateException("El profesor no puede cargar datos en el estado actua;l.");
         }
 
 
@@ -244,6 +259,13 @@ public class ProgramaServiceImpl implements ProgramaService {
         ProgramaEntity programa = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
+        Long dptoId = programa.getMateria().getDepartamento().getId();
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), dptoId);
+
+        if(!udeActor.hasAnyRole(Rol.SECRETARIA, Rol.COORDINACION_COMISION_CURRICULAR)) {
+            throw new IllegalStateException("El usuario no tiene rol SECRETARIO ni COORDINADOR");
+        }
+
         switch (estadoUpdateDTO.getAccion()) {
 
             case APROBAR:
@@ -271,22 +293,38 @@ public class ProgramaServiceImpl implements ProgramaService {
         return responseMapper.toDTO(foundProgram);
     }
 
+    @Override
+    public ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId) {
+        ProgramaEntity foundProgram = programaRepository.findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
+                    materiaId,
+                    EstadoPrograma.APROBADO_POR_SECRETARIA
+                ).orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+
+        return responseMapper.toDTO(foundProgram);
+    }
+
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getList(String authName, Long deptId, Long carreraId, Rol rolActivo){
+    public List<ProgramaResponseDTO> getList(Authentication auth, Long deptId, Long carreraId, Rol rolActivo) {
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
 
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(authName, deptId);
+
+        if (!isAdmin){ // Si no es admin checkea roles en dept
+            UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
+
+            if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
+                throw new AccessDeniedException("No autorizado");
+            }
+        }
 
 
         List<ProgramaEntity> programs = new ArrayList<>();
 
-        if(!ude.hasRole(rolActivo)) {
-            throw new AccessDeniedException("No autorizado");
-        }
 
         // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
-        if (rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
+        if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
             programs = programaRepository.findByMateriaDepartamentoId(deptId);
         }
 
@@ -294,15 +332,16 @@ public class ProgramaServiceImpl implements ProgramaService {
         else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR) && carreraId != null) {
             programs = programaRepository.findByBloqueMultipleCarreraId(carreraId);
         }
-
+        // 3. Si es profesor ve los programas que tiene asignados
         else if (rolActivo.equals(Rol.DOCENTE) ) {
-            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoId(authName, deptId);
+            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoId(auth.getName(), deptId);
         }
 
         return programs.stream()
                 .map(responseMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     @Transactional(readOnly = true)

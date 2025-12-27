@@ -15,7 +15,7 @@ public interface MateriasToStringMapper {
     default List<Long> materiasToString(List<MateriaEntity> materias) {
         if (materias == null) return null;
         return materias.stream()
-                .map(m -> m.getId())
+                .map(MateriaEntity::getId)
                 .toList();
     }
 
