@@ -66,12 +66,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         admin.setPassword(passwordEncoder.encode("admin"));
         admin.setAdmin(true);
 
+        userRepository.save(admin);
+
         List<DepartamentoEntity> depts = departamentoRepository.findAll();
         depts.forEach(dept -> {
             crearUDE(admin, dept);
         });
-
-
 
         userRepository.save(admin);
     }
@@ -343,7 +343,5 @@ public class DatabaseSeeder implements CommandLineRunner {
         ude.setRoles(roles);
         udeRepository.save(ude);
         user.getDepartamentos().add(ude);
-
-
     }
 }
