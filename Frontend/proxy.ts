@@ -40,9 +40,8 @@ export async function proxy(req: NextRequest) {
       method: "GET",
       headers: {
         Cookie: `jwt=${token}`,
-        'Content-Type': 'application/json'
+        "Accept": "application/json",
       },   
-      credentials: "include",
       cache: "no-store"
     });
 
