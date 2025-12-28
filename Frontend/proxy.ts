@@ -19,10 +19,11 @@ const ADMIN_ROUTES = [
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-
   let token = req.cookies.get('jwt')?.value;
 
-  // Permitir rutas públicas sin autenticación
+  console.log("Token in middleware:", req.cookies.get('jwt'));
+
+  // Rutas públicas
   if (PUBLIC_ROUTES.includes(pathname)) {
     if (token) { // Si estoy autenticado redirigir a home
       return NextResponse.redirect(new URL("/", req.url));
@@ -39,26 +40,18 @@ export async function proxy(req: NextRequest) {
     const res = await fetch(`${API_URL}/api/auth/me`, {
       method: "GET",
       headers: {
+        Authorization: `Bearer ${token}`,
         Cookie: `jwt=${token}`,
-        "Accept": "application/json",
       },   
       cache: "no-store"
     });
 
     console.log("Auth me status:", res.status);
 
-    if (!res.ok) {
-      // Si el backend dice 401 o 403, el token expiró o es inválido
-      throw new Error("Token expirado");
-    }
+    if (!res.ok) throw new Error("Token inválido");
 
-    const data = await res.json();
-    console.log("Auth me data:", data);
-    
     return NextResponse.next();
   } catch (error) {
-    console.log("Auth me status:", error);
-
     const response = NextResponse.redirect(new URL("/login", req.url));
     response.cookies.delete("jwt"); 
     return response;

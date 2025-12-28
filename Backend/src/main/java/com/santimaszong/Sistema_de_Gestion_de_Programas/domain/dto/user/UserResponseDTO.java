@@ -23,4 +23,6 @@ public class UserResponseDTO {
 
     private List<UsuarioDepartamentoDTO> departamentos;
 
+    private String token;
+
 }

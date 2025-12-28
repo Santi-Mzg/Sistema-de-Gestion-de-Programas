@@ -44,7 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 🔐 LOGIN
   const login = async (data: LoginRequest) => {
     const user = await loginMutation.mutateAsync({ data });
-
+    
+    document.cookie = `jwt=${user.token}; path=/; max-age=86400; Secure; SameSite=Lax`;
+    
     if (user) setUser(user);
   };
 

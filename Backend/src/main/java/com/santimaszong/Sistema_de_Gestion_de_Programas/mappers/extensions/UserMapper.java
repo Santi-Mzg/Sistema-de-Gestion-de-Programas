@@ -24,6 +24,7 @@ public interface UserMapper extends ToEntityMapper<UserCreateDTO, UserEntity>, T
 
     @Override
     @Mapping(source = "departamentos", target = "departamentos")
+    @Mapping(target = "token", ignore = true)
     UserResponseDTO toDTO(UserEntity user);
 
 }

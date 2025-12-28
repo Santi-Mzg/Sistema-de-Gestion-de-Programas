@@ -14,4 +14,5 @@ export interface UserResponseDTO {
   departamentos?: UsuarioDepartamentoDTO[];
   admin?: boolean;
   isAdmin?: boolean;
+  token?: string;
 }

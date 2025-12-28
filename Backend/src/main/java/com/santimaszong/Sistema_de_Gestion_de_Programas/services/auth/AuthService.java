@@ -56,7 +56,11 @@ public class AuthService {
         UserEntity user = userRepo.findByLegajo(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
 
-        return userMapper.toDTO(user);
+        UserResponseDTO userResp = userMapper.toDTO(user);
+
+        userResp.setToken(token);
+
+        return userResp;
     }
 
     public UserResponseDTO me(Authentication authentication) {
