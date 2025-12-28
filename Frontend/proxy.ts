@@ -19,9 +19,9 @@ const ADMIN_ROUTES = [
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  let token = req.cookies.get('jwt')?.value;
+  let token = req.cookies.get('jwtNext')?.value;
 
-  console.log("Token in middleware:", req.cookies.get('jwt'));
+  console.log("Token in middleware:", token);
 
   // Rutas públicas
   if (PUBLIC_ROUTES.includes(pathname)) {
@@ -48,12 +48,15 @@ export async function proxy(req: NextRequest) {
 
     console.log("Auth me status:", res.status);
 
-    if (!res.ok) throw new Error("Token inválido");
+    if (!res.ok) {
+      NextResponse.redirect(new URL("/login", req.url))
+    };
 
     return NextResponse.next();
   } catch (error) {
     const response = NextResponse.redirect(new URL("/login", req.url));
     response.cookies.delete("jwt"); 
+    response.cookies.delete("jwtNext"); 
     return response;
   }
 }

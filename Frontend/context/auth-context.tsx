@@ -3,6 +3,7 @@
 import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import { LoginRequest, UserResponseDTO } from "@/app/api/generated/model";
 import { useLogin, useLogout, useMe } from "@/app/api/generated/client";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: UserResponseDTO | null;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
   const authMeQuery = useMe();
@@ -45,17 +47,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (data: LoginRequest) => {
     const user = await loginMutation.mutateAsync({ data });
     
-    document.cookie = `jwt=${user.token}; path=/; max-age=86400; Secure; SameSite=Lax`;
+    document.cookie = `jwtNext=${user.token}; path=/; max-age=86400; Secure; SameSite=Lax`;
     
     if (user) setUser(user);
   };
 
   // 🔓 LOGOUT
   const logout = async () => {
+try {
     await logoutMutation.mutateAsync();
+  } catch (error) {
+    console.error("Error calling backend logout", error);
+  } finally {
+    document.cookie = "jwtNext=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax; Secure";
+
     setUser(null);
-    // router.push("/login");
+    
     window.location.href = "/login";
+  }
   };
 
   return (
