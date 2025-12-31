@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { CreateUserFormData, createUserSchema } from "@/lib/schemas"
 import { useDept } from "@/context/dept-context"
 import { toast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 
 const ROLES_PERMITIDOS = [
@@ -24,8 +25,8 @@ const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
 
 
 export function UsuarioForm() {
+  const router = useRouter();
   const { activeDepartamento } = useDept()
-  
 
   const { 
     register, 
@@ -47,6 +48,8 @@ export function UsuarioForm() {
           description: "Información cargada exitosamente",
           variant: "success",
         })    
+
+        router.push('/usuarios'); 
       },
       onError: (error: Error) => {
         toast({

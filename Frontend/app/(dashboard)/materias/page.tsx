@@ -9,7 +9,7 @@ import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function Materias() {
-    const { activeDepartamento, isLoading } = useDept()
+    const { activeDepartamento } = useDept()
 
     const materiasQuery = useListMateriasDepartamento(activeDepartamento?.departamentoId ?? 0, 
       {

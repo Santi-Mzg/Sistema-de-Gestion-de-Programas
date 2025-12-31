@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -102,17 +102,26 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
-        <div className="space-y-6 mb-8">
+        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
           {/* Search Bar */}
-          <div className="relative">
+          <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
-              placeholder="Buscar por nombre..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
+          {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && 
+            <Button size="lg"
+                    variant="outline"
+                    onClick={() => router.push(`/departamentos/crear`)}
+                    className="border-2 hover:bg-primary hover:text-primary-foreground">
+              <Plus size={16} className="mr-1" />
+              Crear Nuevo
+            </Button>
+          }
         </div>
 
         {/* Results Count */}

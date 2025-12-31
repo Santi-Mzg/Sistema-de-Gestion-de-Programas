@@ -35,7 +35,7 @@ export function DepartamentoSelectorDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" />
+            <Building2 className="h-6 w-6 text-primary" />
             Seleccionar Departamento
           </DialogTitle>
           <DialogDescription>Elige el departamento para continuar trabajando</DialogDescription>

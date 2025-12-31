@@ -105,7 +105,6 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
   )
   
 
-console.log('Rendered ProgramaCarreraBlock:', { index, block, selectedCarrera });
   return (
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
       <button

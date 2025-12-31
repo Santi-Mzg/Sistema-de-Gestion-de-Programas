@@ -10,6 +10,7 @@ export default defineConfig({
     output: {
       target: './app/api/generated/client.ts',
       client: 'react-query',
+      schemas: './app/api/generated/model',
       override: {
         mutator: {
           path: './app/api/custom-instance.ts',
@@ -21,7 +22,6 @@ export default defineConfig({
           useSuspenseQuery: true,
         },
       },
-      schemas: './app/api/generated/model',
     },
   },
 });

@@ -1,6 +1,6 @@
 "use client"
 
-import { useListCarrerasDepartamento } from "@/app/api/generated/client";
+import { getListCarrerasDepartamentoQueryKey, useListCarrerasDepartamento } from "@/app/api/generated/client";
 import { CarreraResponseDTO } from "@/app/api/generated/model";
 import { CarrerasList } from "@/components/pages/carreras-list";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ export default function Carreras() {
       {
         query: {
           enabled: !!activeDepartamento?.departamentoId,
-          queryKey: useListCarrerasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+          staleTime: 1000 * 60 * 5,
+          queryKey: getListCarrerasDepartamentoQueryKey()
         }
       }
     );

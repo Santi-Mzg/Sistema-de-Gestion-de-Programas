@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDepartamentoDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context"
-import { useGetUserById, useUpdateUser } from "@/app/api/generated/client"
+import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 
 
 export default function EditUserPage() {
@@ -32,7 +32,13 @@ export default function EditUserPage() {
 
 
   const router = useRouter()
-  const userQuery = useGetUserById(Number(id));
+  const userQuery = useGetUserById(Number(id),
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getGetUserByIdQueryKey()
+      }
+    });
   const user: UserResponseDTO | undefined = userQuery.data;
   const userDpto: UsuarioDepartamentoDTO | undefined = user?.departamentos?.find(depto => depto.departamentoId === activeDepartamento?.departamentoId)
   

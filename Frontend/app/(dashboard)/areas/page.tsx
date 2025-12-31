@@ -1,12 +1,10 @@
 "use client"
 
-import { useListAreasDepartamento } from "@/app/api/generated/client";
+import { getListAreasDepartamentoQueryKey, useListAreasDepartamento } from "@/app/api/generated/client";
 import { AreaResponseDTO } from "@/app/api/generated/model";
 import { AreasList } from "@/components/pages/areas-list";
-import { Button } from "@/components/ui/button";
 import { useDept } from "@/context/dept-context";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
 
 export default function Areas() {
     const { activeDepartamento } = useDept()
@@ -15,7 +13,8 @@ export default function Areas() {
       {
         query: {
           enabled: !!activeDepartamento?.departamentoId,
-          queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+          staleTime: 1000 * 60 * 5,
+          queryKey: getListAreasDepartamentoQueryKey()
         }
       }
     );

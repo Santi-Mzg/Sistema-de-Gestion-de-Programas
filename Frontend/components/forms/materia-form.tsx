@@ -8,21 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AreaResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
+import { getListAreasDepartamentoQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { AlertCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 
 
 export function MateriaForm() {
+  const router = useRouter();
   const { activeDepartamento } = useDept()
 
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId,
-        queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListAreasDepartamentoQueryKey()
       }
     });
 
@@ -47,6 +50,9 @@ export function MateriaForm() {
             nombre: "",
             areaId: areas?.[0]?.id,
           })
+
+          router.push('/materias'); 
+
         },
         onError: (error: Error) => {
           toast({

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { getGetCarreraQueryKey, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -27,7 +27,14 @@ export default function EditCarreraPage() {
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
   const [comision, setComision] = useState<UserResponseReducedDTO>()
 
-  const carreraQuery = useGetCarrera(Number(id));
+  const carreraQuery = useGetCarrera(Number(id),
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getGetCarreraQueryKey()
+      }
+    }
+  );
   const carrera: CarreraResponseDTO | undefined = carreraQuery.data;
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({

@@ -7,7 +7,7 @@ import { useDept } from "@/context/dept-context";
 import { AlertCircle } from "lucide-react";
 
 export default function Usuarios() {
-    const { activeDepartamento, isLoading } = useDept()
+    const { activeDepartamento} = useDept()
     
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(

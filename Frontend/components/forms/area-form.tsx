@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCreateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 
 export function AreaForm() {
+  const router = useRouter();
   const { activeDepartamento } = useDept()
   const { toast } = useToast()
 
@@ -32,6 +34,8 @@ export function AreaForm() {
           setFormData({
             nombre: "",
           })
+
+          router.push('/areas'); 
         },
         onError: (error: Error) => {
           toast({

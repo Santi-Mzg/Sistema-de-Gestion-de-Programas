@@ -1,6 +1,6 @@
 "use client";
 
-import { useListDepartamentos } from "@/app/api/generated/client";
+import { getListDepartamentosQueryKey, useListDepartamentos } from "@/app/api/generated/client";
 import { DepartamentoResponseDTO } from "@/app/api/generated/model";
 import { DepartamentosList } from "@/components/pages/departamentos-list"
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,14 @@ import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function Departamentos() {
-  const departamentosQuery = useListDepartamentos();
+  const departamentosQuery = useListDepartamentos(
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListDepartamentosQueryKey()
+      }
+    }
+  );
   const departamentos: DepartamentoResponseDTO[] | undefined = departamentosQuery.data;
 
   if (departamentosQuery.isLoading) {

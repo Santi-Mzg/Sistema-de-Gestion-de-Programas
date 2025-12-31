@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ChevronUp, ChevronDown} from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Eye, Pencil} from "lucide-react"
 import { ProgramaResponseDTO } from "@/app/api/generated/model"
 
 interface ProgramasListProps {
@@ -77,6 +77,9 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
+                {/* <th className="px-6 py-4 text-left">
+                  Acciones
+                </th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -97,6 +100,19 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                         {programa.estado}
                       </span>
                     </td>
+                     {/* <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onRowClick(programa.id!)}
+                          className="border-2 hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <Pencil size={16} className="mr-1" />
+                          Completar
+                        </Button>
+                      </div>
+                    </td> */}
                   </tr>
                 ))
               ) : (

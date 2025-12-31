@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ProgramaResponseDTO } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { Button } from "../ui/button"
+import { useRouter } from "next/navigation"
+import { useRole } from "@/context/role-context"
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
@@ -13,6 +16,8 @@ type SortField = "nombreMateria" | "codigoMateria" | "estado" | "profesorRespons
 type SortOrder = "asc" | "desc"
 
 export function ProgramasList({ programas = [] }: ProgramasListProps) {
+  const { activeRole } = useRole()
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState<SortField>("nombreMateria")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
@@ -94,15 +99,28 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         {/* Search and Filters Section */}
         <div className="space-y-6 mb-8">
           {/* Search Bar */}
-          <div className="relative">
+        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
+          {/* Search Bar */}
+          <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
-              placeholder="Buscar por nombre, código, profesor o departamento..."
+              placeholder="Buscar por nombre, código, profesor o estado..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
+          {activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN &&
+            <Button size="lg"
+                    variant="outline"
+                    onClick={() => router.push(`/programas/cargar`)}
+                    className="border-2 hover:bg-primary hover:text-primary-foreground">
+              <Plus size={16} className="mr-1" />
+              Crear Nuevo
+            </Button>
+          }
+        </div>
 
           {/* Filter Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

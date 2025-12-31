@@ -12,7 +12,7 @@ export interface UserResponseDTO {
   apellido?: string;
   legajo?: string;
   departamentos?: UsuarioDepartamentoDTO[];
+  token?: string;
   admin?: boolean;
   isAdmin?: boolean;
-  token?: string;
 }

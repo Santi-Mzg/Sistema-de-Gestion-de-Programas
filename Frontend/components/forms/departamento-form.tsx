@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label"
 import { DepartamentoCreateDTO } from "@/app/api/generated/model"
 import { useCreateDepartamento } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 
 export function DepartamentoForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
     nombre: "",
     direccion: "",
@@ -35,6 +37,8 @@ export function DepartamentoForm() {
             email: "",
             sitioWeb: "",
           })
+
+          router.push('/departamentos'); 
         },
         onError: (error: Error) => {
           toast({

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
+import { getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
@@ -40,7 +40,8 @@ export default function EditDepartamentoPage() {
   const { data: usuarios = [] } = useListUsersDepartamento(Number(id), {
     query: {
       enabled: activeRole === 'SYSTEM_ADMIN',
-      queryKey: useListUsersDepartamento(Number(id)).queryKey,
+      staleTime: 1000 * 60 * 5,
+      queryKey: getListUsersDepartamentoQueryKey()
     },
   })
 

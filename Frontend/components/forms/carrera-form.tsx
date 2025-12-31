@@ -11,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useDept } from "@/context/dept-context"
 import { useCreateCarrera } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export function CarreraForm() {
+  const router = useRouter();
   const { activeDepartamento } = useDept()
-
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     plan: "",
@@ -36,6 +37,8 @@ export function CarreraForm() {
             duracion: "",
             // cantidadMaterias: undefined,
           })
+
+          router.push('/carreras'); 
         },
         onError: (error: Error) => {
           toast({

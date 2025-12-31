@@ -10,7 +10,7 @@ import { AlertCircle, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraBlock } from "./programa-carrera-block"
 import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO, DepartamentoResponseDTO, ProgramaCargaDTO } from "@/app/api/generated/model"
-import { useCreatePrograma, useGetPrograma, useGetProgramaVigente, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useListUsersDepartamento } from "@/app/api/generated/client"
+import { getGetProgramaVigenteQueryKey, getListCarrerasDepartamentoQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getProgramaVigente, useCreatePrograma, useGetPrograma, useGetProgramaVigente, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useListUsersDepartamento } from "@/app/api/generated/client"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
@@ -37,7 +37,8 @@ export function SyllabusAdministrativoForm() {
   const materiasQuery = useListMateriasDepartamento(deptId ?? 0, {
     query: {
       enabled: !!deptId,
-      queryKey: useListMateriasDepartamento(deptId || 0).queryKey,
+      staleTime: 1000 * 60 * 5,
+      queryKey: getListMateriasDepartamentoQueryKey(),
     },
   })
 
@@ -46,7 +47,8 @@ export function SyllabusAdministrativoForm() {
   const programaVigenteQuery = useGetProgramaVigente(formData.materiaId ?? 0, {
     query: {
       enabled: !!formData.materiaId,
-      queryKey: useGetProgramaVigente(formData.materiaId || 0).queryKey,
+      staleTime: 1000 * 60 * 5,
+      queryKey: getGetProgramaVigenteQueryKey(),
     },
   })
 
@@ -55,7 +57,8 @@ export function SyllabusAdministrativoForm() {
   const carrerasQuery = useListCarrerasDepartamento(deptId ?? 0, {
     query: {
       enabled: !!deptId,
-      queryKey: useListCarrerasDepartamento(deptId || 0).queryKey,
+      staleTime: 1000 * 60 * 5,
+      queryKey: getListCarrerasDepartamentoQueryKey()
     },
   })
 
@@ -65,7 +68,8 @@ export function SyllabusAdministrativoForm() {
   const profesoresQuery = useListDocentesDepartamento(deptId ?? 0, {
     query: {
       enabled: !!deptId,
-      queryKey: useListDocentesDepartamento(deptId || 0).queryKey,
+      staleTime: 1000 * 60 * 5,    
+      queryKey: getListDocentesDepartamentoQueryKey(),
     },
   })
 

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { AreaResponseDTO, AreaCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { useGetArea, useUpdateArea } from "@/app/api/generated/client"
+import { getGetAreaQueryKey, useGetArea, useUpdateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 
@@ -22,7 +22,14 @@ export default function EditAreaPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
 
-  const areaQuery = useGetArea(Number(id));
+  const areaQuery = useGetArea(Number(id),
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getGetAreaQueryKey()
+      }
+    }
+  );
   const area: AreaResponseDTO | undefined = areaQuery.data;
 
   const [isLoading, setIsLoading] = useState(false)

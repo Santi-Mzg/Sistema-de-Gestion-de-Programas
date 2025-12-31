@@ -10,11 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertCircle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { loginSchema, type LoginFormData } from "@/lib/schemas"
-import { LoginRequest } from "@/app/api/generated/model"
-import { useAuth } from "@/context/auth-context"
+import { useLoginFlow } from "@/hooks/use-login"
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login } = useLoginFlow()
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,12 +29,10 @@ export default function LoginPage() {
   const onSubmit = async (formData: LoginFormData) => {
     setIsLoading(true)
     try {
-      const requestData: LoginRequest = {
+      await login({
         legajo: formData.legajo,
         password: formData.password,
-      }
-
-      await login(requestData)
+      })
 
       router.push("/")
     } catch (error: any) {

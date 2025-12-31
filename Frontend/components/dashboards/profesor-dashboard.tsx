@@ -128,10 +128,11 @@ export function ProfesorDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Mis Cursos</CardTitle>
+          <CardTitle>Pendientes</CardTitle>
+          <CardDescription></CardDescription>
         </CardHeader>
         <CardContent>
-          <ProgramasListReduced programas={programasVigentes} onRowClick={handleNavigate} />
+          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
         </CardContent>
       </Card>
 
@@ -146,11 +147,10 @@ export function ProfesorDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pendientes</CardTitle>
-          <CardDescription></CardDescription>
+          <CardTitle>Mis Cursos</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
+          <ProgramasListReduced programas={programasVigentes} onRowClick={handleNavigate} />
         </CardContent>
       </Card>
 
