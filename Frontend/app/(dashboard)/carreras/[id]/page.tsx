@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getGetCarreraQueryKey, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { getGetCarreraQueryKey, getListUsersDepartamentoQueryKey, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -25,13 +25,13 @@ export default function EditCarreraPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
-  const [comision, setComision] = useState<UserResponseReducedDTO>()
+  const [comision, setComision] = useState<UserResponseReducedDTO | undefined>()
 
   const carreraQuery = useGetCarrera(Number(id),
     {
       query: {
         staleTime: 1000 * 60 * 5,
-        queryKey: getGetCarreraQueryKey()
+        queryKey: getGetCarreraQueryKey(Number(id))
       }
     }
   );
@@ -39,16 +39,17 @@ export default function EditCarreraPage() {
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     nombre: carrera?.nombre,
-    plan: carrera?.plan,
     duracion: carrera?.duracion,
+    planAnio: carrera?.planes?.[0].anio,
+    planVersion: carrera?.planes?.[0].version,
   })
   
   const deptId = activeDepartamento?.departamentoId || 0;
 
-  const { data: usuarios = [] } = useListUsersDepartamento(deptId, {
+  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useListUsersDepartamento(deptId, {
     query: {
       enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION'),
-      queryKey: ['useListUsersDepartamento', deptId],
+      queryKey: getListUsersDepartamentoQueryKey(deptId)
     },
   })
 
@@ -58,9 +59,11 @@ export default function EditCarreraPage() {
 
     setFormData({ 
         nombre: carrera.nombre,
-        plan: carrera.plan,
         duracion: carrera.duracion,
+        planAnio: carrera?.planes?.[0].anio,
+        planVersion: carrera?.planes?.[0].version,
     })
+
     setComision(carrera.comision)
   }, [carrera, activeDepartamento])
 
@@ -238,6 +241,22 @@ export default function EditCarreraPage() {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="duracion" className="text-sm font-semibold">
+                      Duración
+                    </Label>
+                    <Input
+                      id="duracion"
+                      name="duracion"
+                      type="text"
+                      value={formData.duracion}
+                      onChange={handleChange}
+                      placeholder="Ej: 10 Cuat."
+                      className="border-2 border-border focus:border-primary"
+                      disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
+                    />
+                  </div>     
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="plan" className="text-sm font-semibold">
@@ -246,7 +265,7 @@ export default function EditCarreraPage() {
                       <Input
                         id="plan"
                         name="plan"
-                        value={formData.plan}
+                        value={formData.planAnio}
                         onChange={handleChange}
                         placeholder="Ej: Plan 2025 - Versión 1"
                         className="border-2 border-border focus:border-primary"
@@ -255,16 +274,15 @@ export default function EditCarreraPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="duracion" className="text-sm font-semibold">
-                        Email
+                      <Label htmlFor="plan" className="text-sm font-semibold">
+                        Version
                       </Label>
                       <Input
-                        id="duracion"
-                        name="duracion"
-                        type="text"
-                        value={formData.duracion}
+                        id="plan"
+                        name="plan"
+                        value={formData.planAnio}
                         onChange={handleChange}
-                        placeholder="Ej: 10 Cuat."
+                        placeholder="Ej: Plan 2025 - Versión 1"
                         className="border-2 border-border focus:border-primary"
                         disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
                       />
@@ -298,7 +316,7 @@ export default function EditCarreraPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {carrera?.comision ? (
+                {comision ? (
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
@@ -313,10 +331,10 @@ export default function EditCarreraPage() {
                         </Avatar> */}
                         <div>
                           <p className="font-bold text-lg text-foreground">
-                            {carrera?.comision.apellido} {carrera?.comision.nombre}
+                            {comision.apellido} {comision.nombre}
                           </p>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Legajo: {carrera?.comision.legajo}
+                            Legajo: {comision.legajo}
                           </p>
                         </div>
                       </div>
@@ -368,7 +386,7 @@ export default function EditCarreraPage() {
           description="Elige un usuario para asignar como Coordinador/a de la Comisión Curricular"
           roleLabel="Comisión Actual"
           confirmLabel="Asignar Comisión"
-          isLoading={isLoading}
+          isLoading={isLoading || isPending || isLoadingUsuarios}
         />
       }
     </div>

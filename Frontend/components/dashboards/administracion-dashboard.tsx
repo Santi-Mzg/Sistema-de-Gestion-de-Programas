@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { CarreraResponseDTO, EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { useRole } from "@/context/role-context"
 import { useDept } from "@/context/dept-context"
-import { useListProgramas } from "@/app/api/generated/client"
+import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client"
 
 
 export function AdministracionDashboard() {
@@ -40,17 +40,18 @@ export function AdministracionDashboard() {
     const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.ADMINISTRACION,
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
-        queryKey: useListProgramas(
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListProgramasQueryKey(
           activeDepartamento!.departamentoId!,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.ADMINISTRACION,
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
-        ).queryKey,
+        ),
       }, 
     }
   );

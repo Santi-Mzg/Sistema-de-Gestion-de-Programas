@@ -18,7 +18,8 @@ export function CarreraForm() {
   const { activeDepartamento } = useDept()
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
-    plan: "",
+    planAnio: "",
+    planVersion: 1,
     nombre: "",
     duracion: "",
   })
@@ -32,7 +33,8 @@ export function CarreraForm() {
             variant: "success",
           })
           setFormData({
-            plan: "",
+            planAnio: "",
+            planVersion: 1,
             nombre: "",
             duracion: "",
             // cantidadMaterias: undefined,
@@ -109,7 +111,7 @@ export function CarreraForm() {
             <Input
               id="plan"
               name="plan"
-              value={formData.plan}
+              value={formData.planAnio}
               onChange={handleChange}
               placeholder="Ej: Plan 2025 - Versión 1"
               required

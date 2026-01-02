@@ -4,68 +4,49 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, X } from "lucide-react"
-import { CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO } from "@/app/api/generated/model"
-import { useGetCarrera, useListMateriasCarrera } from "@/app/api/generated/client"
+import { CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO } from "@/app/api/generated/model"
+import { getListMateriasCarreraPlanQueryKey, useListMateriasCarreraPlan } from "@/app/api/generated/client"
 import React from "react"
 
 interface ProgramaCarreraBlockProps {
   materiaId: number
-  block: ProgramaCarreraDTO
+  block: ProgramaCarreraCreateDTO
   index: number
   carreras: CarreraResponseDTO[]
-  onUpdate: (index: number, block: ProgramaCarreraDTO) => void
+  onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
   onRemove: (index: number) => void
-  isDisabled?: boolean
 }
-export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
+export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlock({
   materiaId,
   block,
   index,
   carreras,
   onUpdate,
   onRemove,
-  isDisabled
 }: ProgramaCarreraBlockProps) {
-  let selectedCarrera: CarreraResponseDTO | null = null;
+  const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null);
 
-  if(carreras.length === 0 && block.carreraId) {
-    selectedCarrera = useGetCarrera(block.carreraId).data || null;
-  } else {
-    selectedCarrera = useMemo(
-      () => carreras.find(c => c.id === block.carreraId) || null,
-      [block.carreraId, carreras]
-    )
-  }
-
-  const materiasQuery = useListMateriasCarrera(selectedCarrera?.id ?? 0, {
+  const materiasQuery = useListMateriasCarreraPlan(selectedCarrera?.id ?? 0, {
     query: {
       enabled: !!selectedCarrera?.id,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      queryKey: ['useListMateriasCarrera', selectedCarrera?.id ?? 0],
+      queryKey: getListMateriasCarreraPlanQueryKey(selectedCarrera?.id ?? 0),
     },
   })
 
   const filteredMaterias = useMemo(() => {
     if (!materiasQuery.data) return []
-    return materiasQuery.data.filter(m => m.id !== materiaId)
+    return materiasQuery.data.filter((m: MateriaResponseDTO) => m.id !== materiaId)
   }, [materiasQuery.data, materiaId])
 
-  const handleCarreraChange = useCallback(
-    (carreraId: string) => {
-      onUpdate(index, {
-        ...block,
-        carreraId: Number(carreraId),
-      })
-    },
-    [index, block, onUpdate]
-  )
-
-  const handleFieldChange = (field: keyof ProgramaCarreraDTO, value: any) => {
+  const handleFieldChange = (field: keyof ProgramaCarreraCreateDTO, value: any) => {
     onUpdate(index, {
       ...block,
       [field]: value,
     })
   }
+
+  console.log("Planes:" + JSON.stringify(selectedCarrera?.planes))
 
   const toggleCorrelativaFuerte = useCallback(
     (id: number) => {
@@ -73,11 +54,14 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
         ? block.correlativasFuertesIds.filter(x => x !== id)
         : [...(block.correlativasFuertesIds || []), id]
 
+      const nuevasDebiles = nuevosFuertes.includes(id)
+      ? block.correlativasDebilesIds?.filter((x) => x !== id)
+      : block.correlativasDebilesIds
+      
       onUpdate(index, {
         ...block,
         correlativasFuertesIds: nuevosFuertes,
-        correlativasDebilesIds:
-          block.correlativasDebilesIds?.filter(x => x !== id),
+        correlativasDebilesIds: nuevasDebiles
       })
     },
     [block, index, onUpdate]
@@ -109,71 +93,68 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
       <button
         onClick={() => onRemove(index)}
-        className={!isDisabled ? "absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive" : "hidden"}
+        className={"absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive"}
         title="Eliminar bloque"
-        disabled={isDisabled}
       >
         <X size={20} />
       </button>
 
-      <div className="text-sm font-semibold text-primary">Programa Carrera #{index + 1}</div>
-
-      <div className="space-y-2">
-        <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
-          Carrera *
-        </Label>
-        {isDisabled ? (
-          <Input
-            id={`carrera-${index}`}
-            value={selectedCarrera?.nombre || ""}
-            className="bg-background border-border"
-            disabled
-          />
-        ) : (
+      <div className="text-lg font-semibold text-primary">#{index + 1}</div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 items-end">            
+        <div className="space-y-2">
+          <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
+            Carrera *
+          </Label>
           <select
             id={`carrera-${index}`}
-            value={selectedCarrera?.id || ""}
-            onChange={(e) => handleCarreraChange(e.target.value)}
+            value={String(selectedCarrera?.id ?? "")}
+            onChange={(e) => setSelectedCarrera(carreras.find(c => c.id === Number(e.target.value)) ?? null)}
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             required
           >
             <option value="">Seleccionar carrera...</option>
             {carreras.map((carrera) => (
-              <option key={carrera.id} value={carrera.id}>
+              <option key={carrera.id} value={String(carrera.id)}>
                 {carrera.nombre}
               </option>
             ))}
           </select>
-        )}
-      </div>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor={`plan-${index}`} className="text-sm font-semibold text-foreground">
-          Plan
-        </Label>
-        <Input
-          id={`plan-${index}`}
-          value={block.plan}
-          // value={selectedCarrera?.plan || ""}
-          onChange={(e) => handleFieldChange("plan", e.target.value)}
-          placeholder="ej: Plan 2025 - Versión 1"
-          className="border-border focus:border-primary"
-          disabled={isDisabled}
-        />
-      </div>
+              <div className="space-y-2">
+          <Label htmlFor={`plan-${index}`} className="text-sm font-semibold text-foreground">
+            Plan *
+          </Label>
+          <select
+            id={`plan-${index}`}
+            value={block.carreraPlanId}
+            onChange={(e) => handleFieldChange("carreraPlanId", e.target.value)}
+            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          >
+            <option value="">Seleccionar plan...</option>
+            {selectedCarrera?.planes?.map((plan) => (
+              <option key={plan.id} value={plan.id}>
+                {"Plan "+plan.anio +" - Versión "+plan.version}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
-          Ubicación en Plan
-        </Label>
-        <Input
-          id={`ubicacion-${index}`}
-          value={block.ubicacionEnPlan}
-          onChange={(e) => handleFieldChange("ubicacionEnPlan", e.target.value)}
-          placeholder="ej: Segundo semestre"
-          className="border-border focus:border-primary"
-          disabled={isDisabled}
-        />
+        <div className="space-y-2">
+          <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
+            Ubicación en Plan *
+          </Label>
+          <Input
+            id={`ubicacion-${index}`}
+            value={block.ubicacionEnPlan}
+            onChange={(e) => handleFieldChange("ubicacionEnPlan", e.target.value)}
+            placeholder="ej: Segundo semestre"
+            className="border-border focus:border-primary"
+            required
+          />
+        </div>
       </div>
 
       {materiasQuery.isLoading ? (
@@ -187,14 +168,14 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
             <p className="text-red-700">Error al obtener las materias</p>
           </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
               Correlativas Fuertes
               <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
             </Label>
             <div className="max-h-40 overflow-y-auto space-y-2">
-              {filteredMaterias?.map((materia) => (
+              {filteredMaterias?.map((materia: MateriaResponseDTO) => (
                 <label
                   key={materia.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
@@ -203,7 +184,7 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
                     type="checkbox"
                     checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
                     onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
-                    disabled={isDisabled || block.correlativasDebilesIds?.includes(materia.id || 0)}
+                    disabled={block.correlativasDebilesIds?.includes(materia.id || 0)}
                     className="rounded border-border"
                   />
                   <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -218,7 +199,7 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
               <span className="text-xs text-muted-foreground">(Recomendado)</span>
             </Label>
             <div className="max-h-40 overflow-y-auto space-y-2">
-              {filteredMaterias?.map((materia) => (
+              {filteredMaterias?.map((materia: MateriaResponseDTO) => (
                 <label
                   key={materia.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
@@ -227,7 +208,7 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
                     type="checkbox"
                     checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
                     onChange={() => toggleCorrelativaDebil(materia.id || 0)}
-                    disabled={isDisabled || block.correlativasFuertesIds?.includes(materia.id || 0)}
+                    disabled={block.correlativasFuertesIds?.includes(materia.id || 0)}
                     className="rounded border-border"
                   />
                   <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -240,7 +221,7 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
 
       <div className="space-y-2">
         <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
-          Contribución
+          Contribución *
         </Label>
         <Textarea
           id={`contribucion-${index}`}
@@ -248,13 +229,13 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
           onChange={(e) => handleFieldChange("contribucion", e.target.value)}
           placeholder="Describe la contribución de esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
-          disabled={isDisabled}
+          required
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
-          Contenidos Mínimos
+          Contenidos Mínimos *
         </Label>
         <Textarea
           id={`contenidos-${index}`}
@@ -262,7 +243,7 @@ export const ProgramaCarreraBlock = React.memo(function ProgramaCarreraBlock({
           onChange={(e) => handleFieldChange("contenidosMinimos", e.target.value)}
           placeholder="Lista los contenidos mínimos requeridos..."
           className="border-border focus:border-primary min-h-16 resize-none"
-          disabled={isDisabled}
+          required
         />
       </div>
     </div>

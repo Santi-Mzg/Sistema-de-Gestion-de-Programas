@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { MateriaResponseDTO, MateriaCreateDTO, UserResponseDTO, UserResponseReducedDTO, AreaResponseDTO } from "@/app/api/generated/model"
-import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey } from "@/app/api/generated/client"
+import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -29,7 +29,7 @@ export default function EditMateriaPage() {
     {
       query: {
         staleTime: 1000 * 60 * 5,
-        queryKey: getGetMateriaQueryKey()
+        queryKey: getGetMateriaQueryKey(Number(id))
       }
     });
   const materia: MateriaResponseDTO | undefined = materiaQuery.data;
@@ -38,7 +38,8 @@ export default function EditMateriaPage() {
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId,
-        queryKey: useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
       },
     }
   );

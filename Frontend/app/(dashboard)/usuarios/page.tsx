@@ -1,6 +1,6 @@
 "use client"
 
-import { useListUsersDepartamento } from "@/app/api/generated/client";
+import { getListUsersDepartamentoQueryKey, useListUsersDepartamento } from "@/app/api/generated/client";
 import { UserResponseDTO } from "@/app/api/generated/model";
 import { UsuariosList } from "@/components/pages/usuarios-list";
 import { useDept } from "@/context/dept-context";
@@ -21,7 +21,14 @@ export default function Usuarios() {
     }
 
 
-    const usuariosQuery = useListUsersDepartamento(activeDepartamento?.departamentoId);
+    const usuariosQuery = useListUsersDepartamento(activeDepartamento?.departamentoId ?? 0,
+        {
+          query: {
+            enabled: !!activeDepartamento?.departamentoId,
+            queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
+          }
+        }
+    );
     const usuarios: UserResponseDTO[] | undefined = usuariosQuery.data;
 
     if (usuariosQuery.isLoading) {

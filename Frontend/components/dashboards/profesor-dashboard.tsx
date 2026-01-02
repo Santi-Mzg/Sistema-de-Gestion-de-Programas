@@ -3,7 +3,7 @@
 import { BookOpen, BarChart3, Clock, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
-import { useListProgramas } from "@/app/api/generated/client";
+import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
 import { EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
@@ -17,17 +17,18 @@ export function ProfesorDashboard() {
   const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.DOCENTE,
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
-        queryKey: useListProgramas(
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListProgramasQueryKey(
           activeDepartamento!.departamentoId!,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.DOCENTE,
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
-        ).queryKey,
+        ),
       }, 
     }
   );

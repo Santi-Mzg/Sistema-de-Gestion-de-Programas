@@ -1,4 +1,3 @@
-import { ProgramaCargaProfesorDTO, ProgramaResponseDTO } from "@/app/api/generated/model";
 import { SyllabusProfesorForm } from "@/components/forms/programa-profesor-form";
 
 

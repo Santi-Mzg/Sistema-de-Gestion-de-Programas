@@ -5,10 +5,9 @@
  * OpenAPI spec version: v0
  */
 
-export interface ProgramaCarreraDTO {
+export interface ProgramaCarreraCreateDTO {
   key?: string;
-  carreraId?: number;
-  plan?: string;
+  carreraPlanId?: number;
   ubicacionEnPlan?: string;
   correlativasFuertesIds?: number[];
   correlativasDebilesIds?: number[];

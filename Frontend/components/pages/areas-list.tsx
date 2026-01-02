@@ -113,8 +113,8 @@ export function AreasList({ areas = [] }: AreasListProps) {
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN &&
+          {(activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/areas/crear`)}

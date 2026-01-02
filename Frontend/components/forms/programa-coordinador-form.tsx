@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
-import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, DepartamentoResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
 import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
+import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -89,29 +89,29 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
   }
 
   const handleAceptar = () => {
-    const data: EstadoUpdateDTO = {
+    setFormEstadoData({
       accion: EstadoUpdateDTOAccion.APROBAR,
       destinoRechazo: undefined,
       justificacion: undefined,
-    }
+    })
     mutate({
-      data,
+      data: formEstadoData,
       id: id
     });
   }
 
   const handleRechazarConfirm = (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => {
-    const data: EstadoUpdateDTO = {
+    setFormEstadoData({
       accion: EstadoUpdateDTOAccion.RECHAZAR,
       destinoRechazo:
         destino === "ADMINISTRACION"
           ? EstadoUpdateDTODestinoRechazo.ADMINISTRACION
           : EstadoUpdateDTODestinoRechazo.DOCENTE,
       justificacion,
-    }
+    })
     setRechazDialogOpen(false)
     mutate({
-      data,
+      data: formEstadoData,
       id: id
     });
   }
@@ -122,7 +122,7 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Revisión de Syllabus</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Revisión de Programa Académico</h1>
             <p className="text-muted-foreground">
               {programa.materia?.nombre} ({programa.materia?.codigo})
             </p>
@@ -135,48 +135,103 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       </div>
 
       {/* BLOQUE ÚNICO */}
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
         <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Departamento</Label>
-            <Input value={programa.materia?.departamento || ""} disabled className="bg-background" />
+            <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
+              Departamento
+            </Label>
+            <Input
+              id="departamento"
+              type="text"
+              value={programa.materia?.departamento || ""}
+              className="bg-background"
+              readOnly
+            />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Materia</Label>
-            <Input value={`${programa.materia?.codigo} - ${programa.materia?.nombre}`} disabled className="bg-background" />
+            <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
+              Año
+            </Label>
+            <Input
+              id="anio"
+              name="anio"
+              value={programa.anio}
+              className="bg-background"
+              readOnly
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+          <div className="space-y-2">
+            <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
+              Materia
+            </Label>
+            <Input
+              id="materia"
+              type="text"
+              value={programa.materia?.nombre}
+              className="bg-background"
+              readOnly
+            />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Profesor Responsable</Label>
-            <Input value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""} disabled className="bg-background"/>
+            <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
+              Código
+            </Label>
+            <Input
+              id="codigo"
+              type="text"
+              value={programa.materia?.codigo}
+              className="bg-background"
+              readOnly
+            />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Área</Label>
-            <Input value={programa.materia?.area || ""} disabled className="bg-background" />
+            <Label htmlFor="area" className="text-sm font-semibold text-foreground">
+              Área
+            </Label>
+            <Input
+              id="area"
+              type="text"
+              value={programa.materia?.area}
+              className="bg-background"
+              readOnly
+            />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
+            Profesor Responsable
+          </Label>
+          <Input
+            id="profesor"
+            type="text"
+            value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+            className="bg-background"
+            readOnly
+          />
         </div>
       </div>
 
       {/* BLOQUE MÚLTIPLE */}
       {programa.bloqueMultiple && programa.bloqueMultiple.length > 0 && (
-        <div className="border-l-4 border-accent pl-6 py-4 bg-accent/5 rounded-r-lg">
+        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
           <h2 className="text-lg font-bold text-accent mb-6">Información por Carrera</h2>
 
-          <div className="space-y-6">
+        <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
             {programa.bloqueMultiple.map((block, index) => (
-              <ProgramaCarreraBlock
+              <ProgramaCarreraBlockView
                 key={index}
-                materiaId={programa.materia?.id || 0}
                 block={block}
                 index={index}
-                carreras={[]}
-                onUpdate={() => {}}
-                onRemove={() => {}}
-                isDisabled={true}
               />
             ))}
           </div>
@@ -184,79 +239,73 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       )}
 
       {/* CONFIGURACIÓN GENERAL */}
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Configuración General</h2>
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+        <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
 
         {/* Carga Horaria */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
-            <Input value={programa.cargaHorariaTotal || ""} disabled className="bg-background" />
+            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
+            <Input value={programa.cantidadSemanas || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
-            <Input value={programa.cargaHorariaSemanal || ""} disabled className="bg-background" />
+            <Input value={programa.cargaHorariaSemanal || ""} readOnly className="bg-background" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
+            <Input value={programa.cargaHorariaTotal || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Créditos</Label>
-            <Input value={programa.creditos || ""} disabled className="bg-background" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
-            <Input value={programa.cantidadSemanas || ""} disabled className="bg-background" />
+            <Input value={programa.creditos || ""} readOnly className="bg-background" />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Carga Horaria Práctica</Label>
-          <Input value={programa.cargaHorariaPractica || ""} disabled className="bg-background" />
+          <Input value={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
         </div>
       </div>
 
       {/* CONTENIDO ACADÉMICO */}
-      <div className="space-y-6">
-        <h2 className="text-lg font-bold text-primary pl-6 border-l-4 border-primary">Contenido Académico</h2>
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+        <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
-            <Textarea value={programa.fundamentacion || ""} disabled className="bg-background min-h-24" />
-          </div>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
+          <Textarea value={programa.fundamentacion || ""} readOnly className="bg-background min-h-24" />
+        </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Objetivos</Label>
-            <Textarea value={programa.objetivos || ""} disabled className="bg-background min-h-24" />
-          </div>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground">Objetivos</Label>
+          <Textarea value={programa.objetivos || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Programa Analítico</Label>
-          <Textarea value={programa.programaAnalitico || ""} disabled className="bg-background min-h-32" />
+          <Textarea value={programa.programaAnalitico || ""} readOnly className="bg-background min-h-32" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Metodología</Label>
-            <Textarea value={programa.metodologia || ""} disabled className="bg-background min-h-24" />
-          </div>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground">Metodología</Label>
+          <Textarea value={programa.metodologia || ""} readOnly className="bg-background min-h-24" />
+        </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
-            <Textarea value={programa.modalidadEvaluacion || ""} disabled className="bg-background min-h-24" />
-          </div>
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
+          <Textarea value={programa.modalidadEvaluacion || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Bibliografía</Label>
-          <Textarea value={programa.bibliografia || ""} disabled className="bg-background min-h-24" />
+          <Textarea value={programa.bibliografia || ""} readOnly className="bg-background min-h-32" />
         </div>
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="flex gap-3 pt-6 border-t border-border sticky bottom-0 bg-background z-10 p-4 rounded-t-lg">
-        <Button type="button" onClick={onCancel} variant="outline" className="flex-1 bg-transparent">
-          Atrás
-        </Button>
+      <div className="flex gap-3 pt-6 border-t border-border bg-background z-10 p-4 rounded-t-lg">
+
         <Button
           type="button"
           onClick={handleAceptar}
@@ -272,6 +321,9 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
           className="flex-1 bg-red-600 hover:bg-red-700 text-white"
         >
           ✕ Rechazar
+        </Button>
+        <Button type="button" onClick={onCancel} variant="outline" className="flex-1 bg-transparent">
+          Atrás
         </Button>
       </div>
 

@@ -3,9 +3,7 @@
 import { getListDepartamentosQueryKey, useListDepartamentos } from "@/app/api/generated/client";
 import { DepartamentoResponseDTO } from "@/app/api/generated/model";
 import { DepartamentosList } from "@/components/pages/departamentos-list"
-import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
 
 export default function Departamentos() {
   const departamentosQuery = useListDepartamentos(

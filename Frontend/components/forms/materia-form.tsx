@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { act, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,11 +13,14 @@ import { useDept } from "@/context/dept-context"
 import { AlertCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useRole } from "@/context/role-context"
 
 
 
 export function MateriaForm() {
   const router = useRouter();
+  const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
 
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
@@ -25,7 +28,7 @@ export function MateriaForm() {
       query: {
         enabled: !!activeDepartamento?.departamentoId,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListAreasDepartamentoQueryKey()
+        queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
       }
     });
 
@@ -119,6 +122,11 @@ export function MateriaForm() {
         <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <AlertCircle className="text-yellow-600" size={24} />
           <p className="text-yellow-700">No hay áreas registradas. Deben haber áreas registradas para poder crear materias.</p>
+          {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') &&
+            <Link href="/areas/crear">
+              <Button>Crear Área</Button>
+            </Link>
+          }
         </div>
       </div>
     )

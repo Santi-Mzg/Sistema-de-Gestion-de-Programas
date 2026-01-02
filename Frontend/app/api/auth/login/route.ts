@@ -14,9 +14,9 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const data = await res.json();
+  const token = await res.json();
 
-  (await cookies()).set("jwt", data.token, {
+  (await cookies()).set("jwt", token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

@@ -6,7 +6,7 @@
  */
 import type { MateriaResponseDTO } from './materiaResponseDTO';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
-import type { ProgramaCarreraDTO } from './programaCarreraDTO';
+import type { ProgramaCarreraResponseDTO } from './programaCarreraResponseDTO';
 import type { EstadoHistoricoResponseDTO } from './estadoHistoricoResponseDTO';
 
 export interface ProgramaResponseDTO {
@@ -14,7 +14,7 @@ export interface ProgramaResponseDTO {
   anio?: number;
   materia?: MateriaResponseDTO;
   profesorResponsable?: UserResponseReducedDTO;
-  bloqueMultiple?: ProgramaCarreraDTO[];
+  bloqueMultiple?: ProgramaCarreraResponseDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
   cargaHorariaPractica?: number;

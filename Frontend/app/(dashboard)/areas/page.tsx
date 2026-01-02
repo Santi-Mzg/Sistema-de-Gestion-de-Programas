@@ -14,7 +14,7 @@ export default function Areas() {
         query: {
           enabled: !!activeDepartamento?.departamentoId,
           staleTime: 1000 * 60 * 5,
-          queryKey: getListAreasDepartamentoQueryKey()
+          queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
         }
       }
     );

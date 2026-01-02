@@ -103,7 +103,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const meQuery = useMe({
     query: {

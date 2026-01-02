@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
+import { getGetDepartamentoQueryKey, getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
@@ -21,14 +21,19 @@ export default function EditDepartamentoPage() {
   const { activeRole } = useRole()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const departamentoQuery = useGetDepartamento(Number(id));
+  const departamentoQuery = useGetDepartamento(Number(id),
+      {
+        query: {
+          queryKey: getGetDepartamentoQueryKey(Number(id))
+        }
+      });
   const departamento: DepartamentoResponseDTO | undefined = departamentoQuery.data;
 
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
-  const [direccionAdministrativa, setDireccionAdministrativa] = useState<UserResponseReducedDTO>()
+  const [direccionAdministrativa, setDireccionAdministrativa] = useState<UserResponseReducedDTO | undefined>()
   const [secretariaDialogOpen, setSecretariaDialogOpen] = useState(false)
-  const [secretaria, setSecretaria] = useState<UserResponseReducedDTO>()
+  const [secretaria, setSecretaria] = useState<UserResponseReducedDTO | undefined>()
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
         nombre: departamento?.nombre,
         direccion: departamento?.direccion,
@@ -37,11 +42,11 @@ export default function EditDepartamentoPage() {
         sitioWeb: departamento?.sitioWeb,
   })
 
-  const { data: usuarios = [] } = useListUsersDepartamento(Number(id), {
+  const { data: usuarios = [], isLoading: isLoadingUsers } = useListUsersDepartamento(Number(id), {
     query: {
-      enabled: activeRole === 'SYSTEM_ADMIN',
+      enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA'),
       staleTime: 1000 * 60 * 5,
-      queryKey: getListUsersDepartamentoQueryKey()
+      queryKey: getListUsersDepartamentoQueryKey(Number(id))
     },
   })
 
@@ -362,7 +367,7 @@ export default function EditDepartamentoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {departamento?.direccionAdministrativa ? (
+                {direccionAdministrativa ? (
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
@@ -377,10 +382,10 @@ export default function EditDepartamentoPage() {
                         </Avatar> */}
                         <div>
                           <p className="font-bold text-lg text-foreground">
-                            {departamento?.direccionAdministrativa.apellido} {departamento?.direccionAdministrativa.nombre}
+                            {direccionAdministrativa.apellido} {direccionAdministrativa.nombre}
                           </p>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Legajo: {departamento.direccionAdministrativa.legajo}
+                            Legajo: {direccionAdministrativa.legajo}
                           </p>
                         </div>
                       </div>
@@ -428,7 +433,7 @@ export default function EditDepartamentoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {departamento?.secretaria ? (
+                {secretaria ? (
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
@@ -443,10 +448,10 @@ export default function EditDepartamentoPage() {
                         </Avatar> */}
                         <div>
                           <p className="font-bold text-lg text-foreground">
-                            {departamento?.secretaria.apellido} {departamento?.secretaria.nombre}
+                            {secretaria.apellido} {secretaria.nombre}
                           </p>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Legajo: {departamento.secretaria.legajo}
+                            Legajo: {secretaria.legajo}
                           </p>
                         </div>
                       </div>
@@ -500,7 +505,7 @@ export default function EditDepartamentoPage() {
           description="Elige un usuario para asignar como Dirección Administrativa"
           roleLabel="Dirección Actual"
           confirmLabel="Asignar Dirección"
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingUsers}
         />
       )}
 
@@ -516,7 +521,7 @@ export default function EditDepartamentoPage() {
           description="Elige un usuario para asignar como Secretaría Académica"
           roleLabel="Secretaría Actual"
           confirmLabel="Asignar Secretaría"
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingUsers}
         />
       )}
     </div>

@@ -36,7 +36,7 @@ export default function EditUserPage() {
     {
       query: {
         staleTime: 1000 * 60 * 5,
-        queryKey: getGetUserByIdQueryKey()
+        queryKey: getGetUserByIdQueryKey(Number(id))
       }
     });
   const user: UserResponseDTO | undefined = userQuery.data;

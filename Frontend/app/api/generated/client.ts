@@ -1629,70 +1629,13 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
-export const logout = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<void>(
-      {url: `/api/auth/logout`, method: 'POST', signal
-    },
-      );
-    }
-  
-
-
-export const getLogoutMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
-
-const mutationKey = ['logout'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
-          
-
-          return  logout()
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
-    
-    export type LogoutMutationError = unknown
-
-    export const useLogout = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof logout>>,
-        TError,
-        void,
-        TContext
-      > => {
-
-      const mutationOptions = getLogoutMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
 export const login = (
     loginRequest: LoginRequest,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<UserResponseDTO>(
+      return customInstance<string>(
       {url: `/api/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginRequest, signal
@@ -3481,14 +3424,14 @@ export function useListProgramasSuspense<TData = Awaited<ReturnType<typeof listP
 
 
 
-export const listMateriasCarrera = (
-    id: number,
+export const listCarreras = (
+    
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<MateriaResponseDTO[]>(
-      {url: `/api/carreras/${id}/materias`, method: 'GET', signal
+      return customInstance<CarreraResponseDTO[]>(
+      {url: `/api/carreras`, method: 'GET', signal
     },
       );
     }
@@ -3496,42 +3439,42 @@ export const listMateriasCarrera = (
 
 
 
-export const getListMateriasCarreraQueryKey = (id?: number,) => {
+export const getListCarrerasQueryKey = () => {
     return [
-    `/api/carreras/${id}/materias`
+    `/api/carreras`
     ] as const;
     }
 
     
-export const getListMateriasCarreraQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasCarrera>>, TError = unknown>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData>, }
+export const getListCarrerasQueryOptions = <TData = Awaited<ReturnType<typeof listCarreras>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasCarreraQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasCarrera>>> = ({ signal }) => listMateriasCarrera(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarreras>>> = ({ signal }) => listCarreras(signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export type ListMateriasCarreraQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasCarrera>>>
-export type ListMateriasCarreraQueryError = unknown
+export type ListCarrerasQueryResult = NonNullable<Awaited<ReturnType<typeof listCarreras>>>
+export type ListCarrerasQueryError = unknown
 
 
 
-export function useListMateriasCarrera<TData = Awaited<ReturnType<typeof listMateriasCarrera>>, TError = unknown>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData>, }
+export function useListCarreras<TData = Awaited<ReturnType<typeof listCarreras>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListMateriasCarreraQueryOptions(id,options)
+  const queryOptions = getListCarrerasQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -3543,35 +3486,138 @@ export function useListMateriasCarrera<TData = Awaited<ReturnType<typeof listMat
 
 
 
-export const getListMateriasCarreraSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasCarrera>>, TError = unknown>(id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData>, }
+export const getListCarrerasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listCarreras>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasCarreraQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasCarrera>>> = ({ signal }) => listMateriasCarrera(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarreras>>> = ({ signal }) => listCarreras(signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export type ListMateriasCarreraSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasCarrera>>>
-export type ListMateriasCarreraSuspenseQueryError = unknown
+export type ListCarrerasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listCarreras>>>
+export type ListCarrerasSuspenseQueryError = unknown
 
 
 
-export function useListMateriasCarreraSuspense<TData = Awaited<ReturnType<typeof listMateriasCarrera>>, TError = unknown>(
- id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarrera>>, TError, TData>, }
+export function useListCarrerasSuspense<TData = Awaited<ReturnType<typeof listCarreras>>, TError = unknown>(
+  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarreras>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListMateriasCarreraSuspenseQueryOptions(id,options)
+  const queryOptions = getListCarrerasSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listMateriasCarreraPlan = (
+    carreraId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<MateriaResponseDTO[]>(
+      {url: `/api/carreras/${carreraId}/materias`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getListMateriasCarreraPlanQueryKey = (carreraId?: number,) => {
+    return [
+    `/api/carreras/${carreraId}/materias`
+    ] as const;
+    }
+
+    
+export const getListMateriasCarreraPlanQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError = unknown>(carreraId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasCarreraPlanQueryKey(carreraId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasCarreraPlan>>> = ({ signal }) => listMateriasCarreraPlan(carreraId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(carreraId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMateriasCarreraPlanQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasCarreraPlan>>>
+export type ListMateriasCarreraPlanQueryError = unknown
+
+
+
+export function useListMateriasCarreraPlan<TData = Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError = unknown>(
+ carreraId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMateriasCarreraPlanQueryOptions(carreraId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListMateriasCarreraPlanSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError = unknown>(carreraId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasCarreraPlanQueryKey(carreraId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasCarreraPlan>>> = ({ signal }) => listMateriasCarreraPlan(carreraId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMateriasCarreraPlanSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasCarreraPlan>>>
+export type ListMateriasCarreraPlanSuspenseQueryError = unknown
+
+
+
+export function useListMateriasCarreraPlanSuspense<TData = Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError = unknown>(
+ carreraId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasCarreraPlan>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMateriasCarreraPlanSuspenseQueryOptions(carreraId,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

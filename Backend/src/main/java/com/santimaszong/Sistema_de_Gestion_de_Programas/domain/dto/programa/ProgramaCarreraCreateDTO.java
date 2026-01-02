@@ -13,8 +13,7 @@ public class ProgramaCarreraDTO {
 
     // --- BLOQUE MÚLTIPLE ---
     private String key;
-    private Long carreraId;
-    private String plan;
+    private Long carreraPlanId;
     private String ubicacionEnPlan;
     private List<Long> correlativasFuertesIds;
     private List<Long> correlativasDebilesIds;

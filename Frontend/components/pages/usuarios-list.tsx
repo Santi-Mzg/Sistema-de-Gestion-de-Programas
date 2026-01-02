@@ -106,10 +106,10 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
               activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
               activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN &&
+              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/usuarios/crear`)}

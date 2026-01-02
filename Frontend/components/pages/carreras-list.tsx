@@ -12,12 +12,14 @@ import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 
+
 interface CarrerasListProps {
   carreras?: CarreraResponseDTO[]
 }
 
 
 export function CarrerasList({ carreras = [] }: CarrerasListProps) {
+
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -113,10 +115,10 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
               activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
               activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN &&
+              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/carreras/crear`)}
@@ -142,16 +144,10 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                     Nombre
                 </th>
                 <th className="px-6 py-4 text-left">
-                    Plan
-                </th>
-                <th className="px-6 py-4 text-left">
                     Duración
                 </th>
                 <th className="px-6 py-4 text-left">
                     Cantidad de Materias
-                </th>
-                <th className="px-6 py-4 text-left">
-                    Departamento
                 </th>
                 <th className="px-6 py-4 text-left">
                     Acciones
@@ -166,10 +162,9 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                     className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{carrera.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{carrera.plan}</td>
                     <td className="px-6 py-4 text-foreground/80">{carrera.duracion}</td>
                     <td className="px-6 py-4 text-foreground/80">{carrera.cantidadMaterias}</td>
-                    <td className="px-6 py-4 text-foreground/80">{carrera.departamento}</td>
+
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
@@ -181,7 +176,10 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                           <Eye size={16} className="mr-1" />
                           Ver
                         </Button>
-                        {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) && (
                           <Button
                             size="sm"
                             variant="outline"

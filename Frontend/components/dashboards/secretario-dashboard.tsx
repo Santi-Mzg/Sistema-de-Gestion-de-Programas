@@ -3,7 +3,7 @@
 import { FileText, Clock, Archive, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
-import { useListProgramas } from "@/app/api/generated/client";
+import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
@@ -17,17 +17,18 @@ export function SecretarioDashboard() {
     const programasQuery = useListProgramas(
         activeDepartamento!.departamentoId!,
         {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.SECRETARIA,
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
       {
         query: {
           enabled: !!activeDepartamento?.departamentoId && !!activeRole,
-          queryKey: useListProgramas(
+          staleTime: 1000 * 60 * 5,
+          queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.SECRETARIA,
+              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
             }
-          ).queryKey,
+          ),
         }, 
       }
     );

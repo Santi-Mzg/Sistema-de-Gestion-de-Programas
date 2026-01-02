@@ -1,6 +1,6 @@
 "use client"
 
-import { useListMateriasDepartamento } from "@/app/api/generated/client";
+import { getListMateriasDepartamentoQueryKey, useListMateriasDepartamento } from "@/app/api/generated/client";
 import { MateriaResponseDTO } from "@/app/api/generated/model";
 import { MateriasList } from "@/components/pages/materias-list";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function Materias() {
       {
         query: {
           enabled: !!activeDepartamento?.departamentoId,
-          queryKey: useListMateriasDepartamento(activeDepartamento?.departamentoId ?? 0).queryKey
+          queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
         }
       }
     );

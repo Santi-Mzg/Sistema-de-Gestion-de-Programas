@@ -4,10 +4,11 @@ import { Users, CheckCircle2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
-import { useListProgramas } from "@/app/api/generated/client";
+import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
+import { useAuth } from "@/context/auth-context";
 
 
 export function CoordinadorDashboard() {
@@ -15,19 +16,26 @@ export function CoordinadorDashboard() {
   const { activeRole } = useRole();
   const router = useRouter();
 
-  const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
+  // const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
 
   const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
       {
-        carreraId: carrerasId[0],
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem || UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR,
+        // carreraId: carrerasId[0],
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
     {
       query: {
-        enabled: !!activeDepartamento?.departamentoId && !!activeRole && carrerasId.length > 0,
-        queryKey: ['useListProgramas', activeDepartamento?.departamentoId, carrerasId, activeRole],
-      }, 
+        enabled: !!activeDepartamento?.departamentoId && !!activeRole,
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListProgramasQueryKey(
+            activeDepartamento!.departamentoId!,
+            {
+              // carreraId: carrerasId[0],
+              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            }
+        )
+      } 
     }
   );
   const programas: ProgramaResponseDTO[] = programasQuery.data || [];

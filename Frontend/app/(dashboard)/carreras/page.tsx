@@ -16,7 +16,7 @@ export default function Carreras() {
         query: {
           enabled: !!activeDepartamento?.departamentoId,
           staleTime: 1000 * 60 * 5,
-          queryKey: getListCarrerasDepartamentoQueryKey()
+          queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
         }
       }
     );

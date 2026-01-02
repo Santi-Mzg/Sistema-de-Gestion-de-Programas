@@ -26,7 +26,7 @@ export default function EditAreaPage() {
     {
       query: {
         staleTime: 1000 * 60 * 5,
-        queryKey: getGetAreaQueryKey()
+        queryKey: getGetAreaQueryKey(Number(id))
       }
     }
   );

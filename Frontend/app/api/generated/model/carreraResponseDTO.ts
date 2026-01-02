@@ -4,16 +4,14 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ProgramaCarreraDTO } from './programaCarreraDTO';
+import type { CarreraPlanResponseDTO } from './carreraPlanResponseDTO';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 
 export interface CarreraResponseDTO {
   id?: number;
-  plan?: string;
   nombre?: string;
   duracion?: string;
   cantidadMaterias?: number;
-  materias?: ProgramaCarreraDTO[];
+  planes?: CarreraPlanResponseDTO[];
   comision?: UserResponseReducedDTO;
-  departamento?: string;
 }

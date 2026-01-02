@@ -5,9 +5,8 @@
  * OpenAPI spec version: v0
  */
 
-export interface CarreraCreateDTO {
-  nombre?: string;
-  duracion?: string;
-  planAnio?: string;
-  planVersion?: number;
+export interface CarreraPlanResponseDTO {
+  id?: number;
+  anio?: string;
+  version?: number;
 }

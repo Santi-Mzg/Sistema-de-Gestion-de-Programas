@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, Plus } from "lucide-react"
+import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
 import Link from "next/link"
-import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaAdministrativoDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraDTO, DepartamentoResponseDTO, ProgramaCargaDTO } from "@/app/api/generated/model"
-import { getGetProgramaVigenteQueryKey, getListCarrerasDepartamentoQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getProgramaVigente, useCreatePrograma, useGetPrograma, useGetProgramaVigente, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useListUsersDepartamento } from "@/app/api/generated/client"
+import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
+import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO } from "@/app/api/generated/model"
+import { getGetProgramaVigenteQueryKey, getListCarrerasDepartamentoQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, useCreatePrograma, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento } from "@/app/api/generated/client"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
@@ -22,7 +22,9 @@ export function SyllabusAdministrativoForm() {
   const { activeDepartamento } = useDept()
   const [showProgramaVigente, setShowProgramaVigente] = useState(false)
   const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
+  const actualYear = new Date().getFullYear()
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
+    anio: actualYear,
     materiaId: 0,
     profesorResponsableId: 0,
     bloqueMultiple: [],
@@ -38,7 +40,7 @@ export function SyllabusAdministrativoForm() {
     query: {
       enabled: !!deptId,
       staleTime: 1000 * 60 * 5,
-      queryKey: getListMateriasDepartamentoQueryKey(),
+      queryKey: getListMateriasDepartamentoQueryKey(deptId),
     },
   })
 
@@ -48,17 +50,16 @@ export function SyllabusAdministrativoForm() {
     query: {
       enabled: !!formData.materiaId,
       staleTime: 1000 * 60 * 5,
-      queryKey: getGetProgramaVigenteQueryKey(),
+      queryKey: getGetProgramaVigenteQueryKey(formData.materiaId),
     },
   })
 
   const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
 
-  const carrerasQuery = useListCarrerasDepartamento(deptId ?? 0, {
+  const carrerasQuery = useListCarreras({
     query: {
-      enabled: !!deptId,
       staleTime: 1000 * 60 * 5,
-      queryKey: getListCarrerasDepartamentoQueryKey()
+      queryKey: getListCarrerasQueryKey()
     },
   })
 
@@ -69,7 +70,7 @@ export function SyllabusAdministrativoForm() {
     query: {
       enabled: !!deptId,
       staleTime: 1000 * 60 * 5,    
-      queryKey: getListDocentesDepartamentoQueryKey(),
+      queryKey: getListDocentesDepartamentoQueryKey(deptId),
     },
   })
 
@@ -81,7 +82,7 @@ export function SyllabusAdministrativoForm() {
     }
   }, [programaVigente, formData.materiaId])
 
-
+  const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
 
   const { mutate, isPending } = useCreatePrograma({
     mutation: {
@@ -92,6 +93,7 @@ export function SyllabusAdministrativoForm() {
           variant: "success",
         })        
         setFormData({
+          anio: actualYear,
           materiaId: 0,
           profesorResponsableId: 0,
           bloqueMultiple: [],
@@ -124,8 +126,10 @@ export function SyllabusAdministrativoForm() {
     if (!programaVigente) return
 
     setLoadingProgramaVigente(true)
+    setSelectedMateria(programaVigente.materia)
     try {
       const mappedData: ProgramaCargaDTO = {
+        anio: actualYear,
         materiaId: formData.materiaId,
         profesorResponsableId: programaVigente.profesorResponsable
           ? profesores?.find((p) => p.nombre === programaVigente.profesorResponsable)?.id || 0
@@ -133,11 +137,10 @@ export function SyllabusAdministrativoForm() {
         bloqueMultiple:
           programaVigente.bloqueMultiple?.map((c) => ({
             key: `${Date.now()}_${Math.random()}`,
-            carreraId: c.carreraId || 0,
-            plan: c.plan || "",
+            carreraPlanId: c.plan?.id || 0,
             ubicacionEnPlan: c.ubicacionEnPlan || "",
-            correlativasFuertesIds: c.correlativasFuertesIds || [],
-            correlativasDebilesIds: c.correlativasDebilesIds || [],
+            correlativasFuertesIds: c.correlativasFuertes?.map((cf) => cf.id).filter((id): id is number => id !== undefined) || [],
+            correlativasDebilesIds: c.correlativasDebiles?.map((cd) => cd.id).filter((id): id is number => id !== undefined) || [],
             contribucion: c.contribucion || "",
             contenidosMinimos: c.contenidosMinimos || "",
           })) || [],
@@ -157,10 +160,9 @@ export function SyllabusAdministrativoForm() {
 
 
   const handleAddProgramaCarrera = () => {
-    const newBlock: ProgramaCarreraDTO = {
+    const newBlock: ProgramaCarreraCreateDTO = {
       key: Date.now().toString(),
-      carreraId: 0,
-      plan: "",
+      carreraPlanId: 0,
       ubicacionEnPlan: "",
       correlativasFuertesIds: [],
       correlativasDebilesIds: [],
@@ -174,7 +176,7 @@ export function SyllabusAdministrativoForm() {
     }));
   }
 
-  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraDTO) => {
+  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
     setFormData((prev) => ({
       ...prev,
       bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
@@ -234,9 +236,12 @@ export function SyllabusAdministrativoForm() {
     if (!materias || materias.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg ">
             <AlertCircle className="text-yellow-600" size={24} />
             <p className="text-yellow-700">No hay materias registradas. Deben haber materias registradas para poder crear programas.</p>
+            <Link href="/materias/crear">
+              <Button>Crear Materia</Button>
+            </Link>
           </div>
         </div>
       )
@@ -336,27 +341,55 @@ export function SyllabusAdministrativoForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* BLOQUE ÚNICO */}
-        <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Bloque Único</h2>
+      {/* HEADER */}
+      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Carga de Programa Académico</h1>
+            <p className="text-muted-foreground">
+              {selectedMateria && selectedMateria.nombre +" ("+selectedMateria.codigo+")"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+            <CheckCircle2 className="text-primary" size={20} />
+            <span className="font-semibold text-primary">En proceso de carga</span>
+          </div>
+        </div>
+      </div>
 
-          <div className="space-y-4">
+        {/* BLOQUE ÚNICO */}
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
+          <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+
+          <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
                 Departamento *
               </Label>
-              <select
+              <Input
                 id="departamento"
+                name="departamento"
                 value={activeDepartamento?.departamentoNombre}
-                className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="border-border focus:border-primary bg-background text-lg font-medium"
                 required
-              >
-                <option key={activeDepartamento.departamentoId} value={activeDepartamento.departamentoId!.toString()}>
-                  {activeDepartamento?.departamentoNombre}
-                </option>
-              </select>
+              />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
+                Año *
+              </Label>
+              <Input
+                id="anio"
+                name="anio"
+                value={formData.anio || actualYear}
+                className="border-border focus:border-primary bg-background"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">            
             <div className="space-y-2">
               <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
                 Materia *
@@ -364,45 +397,74 @@ export function SyllabusAdministrativoForm() {
               <select
                 id="materia"
                 value={formData.materiaId || ""}
-                onChange={(e) => handleSingleFieldChange("materiaId", Number.parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => {
+                  handleSingleFieldChange("materiaId", Number.parseInt(e.target.value))
+                  setSelectedMateria(materias.find(m => m.id === Number(e.target.value)) ?? undefined)
+                }}
+                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 required
               >
                 <option value="">Seleccionar Materia...</option>
                 {materias.map((materia) => (
                   <option key={materia.id} value={materia.id}>
-                    {materia.nombre} ({materia.codigo})
+                    {materia.nombre}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-                Profesor Responsable *
+              <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
+                Código *
               </Label>
-              <select
-                id="profesor"
-                value={formData.profesorResponsableId || ""}
-                onChange={(e) => handleSingleFieldChange("profesorResponsableId", Number.parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-              >
-                <option value="">Seleccionar profesor...</option>
-                {profesores.map((profesor) => (
-                  <option key={profesor.id} value={profesor.id}>
-                    {profesor.nombre}
-                  </option>
-                ))}
-              </select>
+              <Input
+                id="codigo"
+                type="text"
+                value={selectedMateria?.codigo ?? ""}
+                className="border-border focus:border-primary bg-background"
+                readOnly
+              />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="area" className="text-sm font-semibold text-foreground">
+                Área *
+              </Label>
+              <Input
+                id="area"
+                type="text"
+                value={selectedMateria?.area ?? ""}
+                className="border-border focus:border-primary bg-background"
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-6">
+            <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
+              Profesor Responsable *
+            </Label>
+            <select
+              id="profesor"
+              value={formData.profesorResponsableId || ""}
+              onChange={(e) => handleSingleFieldChange("profesorResponsableId", Number.parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              required
+            >
+              <option value="">Seleccionar profesor...</option>
+              {profesores.map((profesor) => (
+                <option key={profesor.id} value={profesor.id}>
+                  {profesor.nombre}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         {/* BLOQUE MÚLTIPLE */}
-        <div className="border-l-4 border-accent pl-6 py-4 bg-accent/5 rounded-r-lg">
+        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-accent">Bloques por Carrera</h2>
+            <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
             <Button
               type="button"
               onClick={handleAddProgramaCarrera}
@@ -420,9 +482,9 @@ export function SyllabusAdministrativoForm() {
               <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className={formData.bloqueMultiple && formData.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
               {formData.bloqueMultiple?.map((block, index) => (
-                <ProgramaCarreraBlock
+                <ProgramaCarreraCreateBlock
                   key={block.key}
                   materiaId={formData.materiaId || 0}
                   block={block}
@@ -430,7 +492,6 @@ export function SyllabusAdministrativoForm() {
                   carreras={carreras}
                   onUpdate={handleUpdateProgramaCarrera}
                   onRemove={handleRemoveProgramaCarrera}
-                  isDisabled={false}
                 />
               ))}
             </div>
@@ -438,53 +499,14 @@ export function SyllabusAdministrativoForm() {
         </div>
 
         {/* CONFIGURACIÓN GENERAL */}
-        <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-          <h2 className="text-lg font-bold text-primary">Configuración General</h2>
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
 
           {/* Carga Horaria */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Total
-              </Label>
-              <Input
-                id="cargaTotal"
-                type="number"
-                value={formData.cargaHorariaTotal}
-                onChange={(e) => handleSingleFieldChange("cargaHorariaTotal", Number.parseInt(e.target.value))}
-                placeholder="ej: 128"
-                className="border-border focus:border-primary bg-background"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Semanal
-              </Label>
-              <Input
-                id="cargaSemanal"
-                type="number"
-                value={formData.cargaHorariaSemanal}
-                onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
-                placeholder="ej: 8"
-                className="border-border focus:border-primary bg-background"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="creditos" className="text-sm font-semibold text-foreground">
-                Créditos
-              </Label>
-              <Input
-                id="creditos"
-                type="number"
-                value={formData.creditos}
-                onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
-                placeholder="ej: 4"
-                className="border-border focus:border-primary bg-background"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
-                Cantidad de Semanas
+                Cantidad de Semanas *
               </Label>
               <Input
                 id="semanas"
@@ -492,7 +514,50 @@ export function SyllabusAdministrativoForm() {
                 value={formData.cantidadSemanas}
                 onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
                 placeholder="ej: 16"
-                className="border-border focus:border-primary bg-background"
+                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
+                Carga Horaria Semanal *
+              </Label>
+              <Input
+                id="cargaSemanal"
+                type="number"
+                value={formData.cargaHorariaSemanal}
+                onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
+                placeholder="ej: 8"
+                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                required
+             />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
+                Carga Horaria Total *
+              </Label>
+              <Input
+                id="cargaTotal"
+                type="number"
+                value={formData.cargaHorariaTotal}
+                onChange={(e) => handleSingleFieldChange("cargaHorariaTotal", Number.parseInt(e.target.value))}
+                placeholder="ej: 128"
+                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="creditos" className="text-sm font-semibold text-foreground">
+                Créditos *
+              </Label>
+              <Input
+                id="creditos"
+                type="number"
+                value={formData.creditos}
+                onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
+                placeholder="ej: 4"
+                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                required
               />
             </div>
           </div>
@@ -508,12 +573,14 @@ export function SyllabusAdministrativoForm() {
               value={formData?.cargaHorariaPractica}
               onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
-              className="border-border focus:border-primary"
+              className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               disabled
             />
           </div>
+        </div>
 
-          {/* Campos de texto largo */}
+        {/* Campos de texto largo */}
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
           <div className="space-y-2">
             <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
               Fundamentación
@@ -606,17 +673,16 @@ export function SyllabusAdministrativoForm() {
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
-              {isPending ? "Creando..." : "Crear Programa"}
+              {isPending ? "Cargando..." : "Cargar Programa"}
             </Button>
-            <Link href="/programas">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
-              >
-                Cancelar
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              // onClick={onCancel}
+              variant="outline"
+              className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
+            >
+              Cancelar
+            </Button>
           </div>
       </form>
 

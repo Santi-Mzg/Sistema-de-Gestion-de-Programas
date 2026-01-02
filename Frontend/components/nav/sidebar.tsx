@@ -35,6 +35,7 @@ export function Sidebar() {
 
   const menuConfig = {
     SYSTEM_ADMIN: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}`},
       { label: "Programas", href: "/programas" },
       { label: "Departamentos", href: "/departamentos" },
@@ -44,6 +45,7 @@ export function Sidebar() {
       { label: "Usuarios", href: "/usuarios" },
     ],
     DIRECCION_ADMINISTRATIVA: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", href: "/programas" },
       { label: "Areas", href: "/areas" },
@@ -52,6 +54,7 @@ export function Sidebar() {
       { label: "Usuarios", href: "/usuarios" },
     ],
     SECRETARIA: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", href: "/programas" },
       { label: "Areas", href: "/areas" },
@@ -60,6 +63,7 @@ export function Sidebar() {
       { label: "Usuarios", href: "/usuarios" },
     ],
     ADMINISTRACION: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", href: "/programas" },
       { label: "Carreras", href: "/carreras" },
@@ -67,10 +71,12 @@ export function Sidebar() {
       { label: "Materias", href: "/materias" },
     ],
     COORDINACION_COMISION_CURRICULAR: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", href: "/programas" },
     ],
     DOCENTE: [
+      { label: "Inicio", href: "/" },
       { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", href: "/programas" },
     ],

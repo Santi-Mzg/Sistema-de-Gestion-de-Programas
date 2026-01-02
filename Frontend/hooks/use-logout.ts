@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getMeQueryKey, useLogout } from "@/app/api/generated/client";
+import { getMeQueryKey } from "@/app/api/generated/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useLogoutFlow() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const logoutMutation = useLogout();
 
   const logout = async () => {
     try {
@@ -25,6 +24,6 @@ export function useLogoutFlow() {
 
   return {
     logout,
-    isLoading: logoutMutation.isPending,
+    isLoading: false,
   };
 }

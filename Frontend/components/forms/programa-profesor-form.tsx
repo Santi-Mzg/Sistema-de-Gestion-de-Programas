@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ProgramaCarreraBlock } from "./programa-carrera-block"
-import { ProgramaResponseDTO, ProgramaCargaProfesorDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
 import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
+import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
 
 interface SyllabusFormProps {
   // programa: ProgramaResponseDTO
@@ -27,7 +27,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
   console.log("Programa cargado en el formulario:", programa);
-  const [formData, setFormData] = useState<ProgramaCargaProfesorDTO>({
+  const [formData, setFormData] = useState<ProgramaCargaDTO>({
       cargaHorariaPractica: 0,
       fundamentacion: "",
       objetivos: "",
@@ -136,143 +136,154 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* BLOQUE ÚNICO */}
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
-        <h2 className="text-lg font-bold text-primary mb-6">Bloque Único</h2>
+      {/* HEADER */}
+      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Carga de datos de Programa Académico</h1>
+            <p className="text-muted-foreground">
+              {programa.materia?.nombre} ({programa.materia?.codigo})
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+            <CheckCircle2 className="text-primary" size={20} />
+            <span className="font-semibold text-primary">Por completar</span>
+          </div>
+        </div>
+      </div>
 
-        <div className="space-y-4">
+      {/* BLOQUE ÚNICO */}
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
+        <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+
+        <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
-              Departamento *
+              Departamento
             </Label>
             <Input
               id="departamento"
               type="text"
               value={programa.materia?.departamento || ""}
               className="border-border focus:border-primary"
-              disabled
+              readOnly
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
+              Año
+            </Label>
+            <Input
+              id="anio"
+              name="anio"
+              value={programa.anio}
+              className="border-border focus:border-primary"
+              readOnly
             />
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
           <div className="space-y-2">
             <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
-              Materia *
+              Materia
             </Label>
             <Input
               id="materia"
               type="text"
-              value={programa.materia?.codigo + " - " + programa.materia?.nombre || ""}
+              value={programa.materia?.nombre}
               className="border-border focus:border-primary"
-              disabled
+              readOnly
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-              Profesor Responsable *
+            <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
+              Código
             </Label>
             <Input
-              id="profesor"
+              id="codigo"
               type="text"
-              value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+              value={programa.materia?.codigo}
               className="border-border focus:border-primary"
-              disabled
+              readOnly
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="area" className="text-sm font-semibold text-foreground">
+              Área
+            </Label>
+            <Input
+              id="area"
+              type="text"
+              value={programa.materia?.area}
+              className="border-border focus:border-primary"
+              readOnly
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
+            Profesor Responsable
+          </Label>
+          <Input
+            id="profesor"
+            type="text"
+            value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+            className="border-border focus:border-primary"
+            readOnly
+          />
         </div>
       </div>
 
       {/* BLOQUE MÚLTIPLE */}
-      <div className="border-l-4 border-accent pl-6 py-4 bg-accent/5 rounded-r-lg">
+      <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-accent">Bloques por Carrera</h2>
+          <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
         </div>
 
-        <div className="space-y-6">
+        <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
           {programa.bloqueMultiple?.map((block, index) => (
-            <ProgramaCarreraBlock
-              key={block.key}
-              materiaId={programa.materia?.id || 0}
+            <ProgramaCarreraBlockView
+              key={index}
               block={block}
               index={index}
-              carreras={[]}
-              onUpdate={() => {}}
-              onRemove={() => {}}
-              isDisabled={true}
             />
           ))}
         </div>
       </div>
 
       {/* CONFIGURACIÓN GENERAL */}
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Configuración General</h2>
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+        <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
 
         {/* Carga Horaria */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
-              Carga Horaria Total
-            </Label>
-            <Input
-              id="cargaTotal"
-              type="number"
-              value={programa.cargaHorariaTotal}
-              placeholder="ej: 128"
-              className="border-border focus:border-primary"
-              disabled
-            />
+            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
+            <Input value={programa.cantidadSemanas || ""} readOnly className="border-border focus:border-primary" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
-              Carga Horaria Semanal
-            </Label>
-            <Input
-              id="cargaSemanal"
-              type="number"
-              value={programa.cargaHorariaSemanal}
-              onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
-              placeholder="ej: 8"
-              className="border-border focus:border-primary"
-              disabled
-            />
+            <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
+            <Input value={programa.cargaHorariaSemanal || ""} readOnly className="border-border focus:border-primary" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="creditos" className="text-sm font-semibold text-foreground">
-              Créditos
-            </Label>
-            <Input
-              id="creditos"
-              type="number"
-              value={programa.creditos}
-              onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
-              placeholder="ej: 4"
-              className="border-border focus:border-primary bg-background"
-              disabled
-            />
+            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
+            <Input value={programa.cargaHorariaTotal || ""} readOnly className="border-border focus:border-primary" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
-              Cantidad de Semanas
-            </Label>
-            <Input
-              id="semanas"
-              type="number"
-              value={programa.cantidadSemanas}
-              onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
-              placeholder="ej: 16"
-              className="border-border focus:border-primary bg-background"
-              disabled
-            />
+            <Label className="text-sm font-semibold text-foreground">Créditos</Label>
+            <Input value={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
           </div>
         </div>
 
         {/* Carga Práctica */}
         <div className="space-y-2">
           <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-            Carga Horaria Práctica
+            Carga Horaria Práctica *
           </Label>
           <Input
             id="cargaPractica"
@@ -280,94 +291,102 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             value={formData.cargaHorariaPractica}
             onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
             placeholder="ej: 64"
-            className="border-border focus:border-primary bg-background"
+            className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>
+      </div>
 
         {/* Campos de texto largo */}
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+        <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
+
         <div className="space-y-2">
           <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
-            Fundamentación
+            Fundamentación *
           </Label>
           <Textarea
             id="fundamentacion"
             value={formData.fundamentacion}
             onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
             placeholder="Justifica la importancia de esta Materia..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-24 resize-none bg-background"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
-            Objetivos
+            Objetivos *
           </Label>
           <Textarea
             id="objetivos"
             value={formData.objetivos}
             onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
             placeholder="Define los objetivos de aprendizaje..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-24 resize-none bg-background"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
-            Programa Analítico
+            Programa Analítico *
           </Label>
           <Textarea
             id="programa"
             value={formData.programaAnalitico}
             onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
             placeholder="Detalla el contenido temático del curso..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-32 resize-none bg-background"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
-            Metodología
+            Metodología *
           </Label>
           <Textarea
             id="metodologia"
             value={formData.metodologia}
             onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
             placeholder="Describe los métodos de enseñanza..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-24 resize-none bg-background"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
-            Modalidad de Evaluación
+            Modalidad de Evaluación *
           </Label>
           <Textarea
             id="evaluacion"
             value={formData.modalidadEvaluacion}
             onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
             placeholder="Especifica cómo se evaluará el aprendizaje..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-24 resize-none bg-background"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-            Bibliografía
+            Bibliografía *
           </Label>
           <Textarea
             id="bibliografia"
             value={formData.bibliografia}
             onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
             placeholder="Referencias bibliográficas recomendadas..."
-            className="border-border focus:border-primary min-h-20 resize-none bg-background"
+            className="border-border focus:border-primary min-h-32 resize-none bg-background"
           />
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-4 border-t border-border">
-        <Button type="submit" className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium">
-          Cargar Programa
+        <Button 
+          type="submit" 
+          disabled={isPending}
+          className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
+        >
+          {isPending ? "Creando..." : "Cargar Datos"}
         </Button>
         <Button
           type="button"
