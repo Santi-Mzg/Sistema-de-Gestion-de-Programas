@@ -3,14 +3,14 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
-import { useCreateUser } from "@/app/api/generated/client"
+import { getListUsersDepartamentoQueryKey, useCreateUser } from "@/app/api/generated/client"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CreateUserFormData, createUserSchema } from "@/lib/schemas"
 import { useDept } from "@/context/dept-context"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-
+import { useQueryClient } from "@tanstack/react-query";
 
 const ROLES_PERMITIDOS = [
   UserCreateDTORolesItem.ADMINISTRACION,
@@ -27,6 +27,7 @@ const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
 export function UsuarioForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
+  const queryClient = useQueryClient(); 
 
   const { 
     register, 
@@ -48,6 +49,10 @@ export function UsuarioForm() {
           description: "Información cargada exitosamente",
           variant: "success",
         })    
+
+        queryClient.invalidateQueries({
+          queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
+        });
 
         router.push('/usuarios'); 
       },
@@ -169,7 +174,7 @@ export function UsuarioForm() {
 
       <div className="flex gap-2">
         <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
-          {isPending ? "Cargando..." : "Crear"}
+          {isPending ? "Creando..." : "Crear"}
         </Button>
       </div>
     </form>

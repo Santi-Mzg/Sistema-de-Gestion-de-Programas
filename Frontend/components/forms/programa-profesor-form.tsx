@@ -6,27 +6,41 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado } from "@/app/api/generated/model"
-import { useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { getGetProgramaQueryKey, getListProgramasQueryKey, useActualizarEstado, useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
+import { AlertCircle, CheckCircle2, Cross } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
+import { RechazoDialog } from "../modals/rechazo-dialog"
+import { useDept } from "@/context/dept-context"
+import { useRole } from "@/context/role-context"
+import { RejectionInfoCard } from "../rejection-info-card"
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SyllabusFormProps {
-  // programa: ProgramaResponseDTO
-  // onSubmit: (data: ProgramaCargaProfesorDTO) => void
   id: number,
-  onCancel?: () => void
 }
 
 
-export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
+export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
+  const { activeDepartamento } = useDept();
+  const { activeRole } = useRole();
   const router = useRouter();
-  const programaQuery = useGetPrograma(id);
+  const queryClient = useQueryClient();
+  const programaQuery = useGetPrograma(id,
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getGetProgramaQueryKey(id)
+      }
+    }
+  );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
+
+  const ultimoEstado = programa?.historialEstados?.at(-1);
+  const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;
   
-  console.log("Programa cargado en el formulario:", programa);
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
       cargaHorariaPractica: 0,
       fundamentacion: "",
@@ -38,7 +52,14 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
       estado: EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
   })
 
-  const { mutate, isPending } = useProfesorCarga({
+  const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
+  const [formEstadoData, setFormEstadoData] = useState<EstadoUpdateDTO>({
+      accion: undefined,
+      destinoRechazo: undefined,
+      justificacion: "",
+  })
+
+  const { mutate: mutateProfesor, isPending: isPendingProfesor } = useProfesorCarga({
     mutation: {
       onSuccess: () => {
         toast({
@@ -56,6 +77,13 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
           bibliografia: "",
         })
 
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
         router.push('/'); 
       },
       onError: (error: Error) => {
@@ -68,6 +96,34 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
     }
   });
 
+
+  const { mutate: mutateEstado, isPending: isPendingEstado } = useActualizarEstado({
+    mutation: {
+      onSuccess: (data, variables) => {
+        toast({
+          title: "✓ Éxito",
+          description: `Programa rechazado exitosamente`,
+          variant: "success",
+        })      
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        router.push('/'); 
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error instanceof Error ? error.message : "Error desconocido",
+          variant: "destructive",
+        })
+      },    
+    }
+  });
 
   useEffect(() => {
       if (programa) {
@@ -87,7 +143,24 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault() 
-    mutate({
+
+    if (
+      formData.cargaHorariaPractica && formData.cargaHorariaTotal &&
+      (
+        formData.cargaHorariaPractica <= 0 ||
+        formData.cargaHorariaPractica >= formData.cargaHorariaTotal
+      )
+     ) {
+      toast({
+        title: "Error",
+        description:
+          "La carga horaria práctica debe estar entre 0 y la carga horaria total",
+        variant: "destructive",
+      })
+      return
+    }
+
+    mutateProfesor({
       data: formData,
       id: id
     });
@@ -100,6 +173,23 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
     }))
   }
 
+
+  const handleRechazarConfirm = (justificacion: string) => {
+    setFormEstadoData({
+      accion: EstadoUpdateDTOAccion.RECHAZAR,
+      destinoRechazo: EstadoUpdateDTODestinoRechazo.ADMINISTRACION,
+      justificacion,
+    })
+    setRechazDialogOpen(false)
+    mutateEstado({
+      deptId: activeDepartamento?.departamentoId ?? 0,
+      id: id,
+      data: formEstadoData,
+      params: {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      }
+    });
+  }
 
   if (programaQuery.isLoading) {
     return (
@@ -145,12 +235,29 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
               {programa.materia?.nombre} ({programa.materia?.codigo})
             </p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
-            <CheckCircle2 className="text-primary" size={20} />
-            <span className="font-semibold text-primary">Por completar</span>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+            esRechazado 
+              ? "bg-red-100 border border-amber-200" 
+              : "bg-primary/10"
+            }`}>            
+            {esRechazado ? (
+                <>
+                  <AlertCircle className="text-amber-600" size={20} />
+                  <span className="font-semibold text-amber-700">Requiere Correcciones</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="text-primary" size={20} />
+                  <span className="font-semibold text-primary">Por completar</span>
+                </>
+              )}
           </div>
         </div>
       </div>
+
+      {esRechazado && (
+        <RejectionInfoCard estadoHistorico={ultimoEstado} />
+      )}
 
       {/* BLOQUE ÚNICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
@@ -291,7 +398,10 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             value={formData.cargaHorariaPractica}
             onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
             placeholder="ej: 64"
+            min={0}
+            max={formData.cargaHorariaTotal}
             className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            required
           />
         </div>
       </div>
@@ -310,6 +420,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
             placeholder="Justifica la importancia de esta Materia..."
             className="border-border focus:border-primary min-h-24 resize-none bg-background"
+            required
           />
         </div>
 
@@ -323,6 +434,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
             placeholder="Define los objetivos de aprendizaje..."
             className="border-border focus:border-primary min-h-24 resize-none bg-background"
+            required
           />
         </div>
 
@@ -336,6 +448,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
             placeholder="Detalla el contenido temático del curso..."
             className="border-border focus:border-primary min-h-32 resize-none bg-background"
+            required
           />
         </div>
 
@@ -349,6 +462,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
             placeholder="Describe los métodos de enseñanza..."
             className="border-border focus:border-primary min-h-24 resize-none bg-background"
+            required
           />
         </div>
 
@@ -362,6 +476,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
             placeholder="Especifica cómo se evaluará el aprendizaje..."
             className="border-border focus:border-primary min-h-24 resize-none bg-background"
+            required
           />
         </div>
 
@@ -375,6 +490,7 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
             onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
             placeholder="Referencias bibliográficas recomendadas..."
             className="border-border focus:border-primary min-h-32 resize-none bg-background"
+            required
           />
         </div>
       </div>
@@ -383,20 +499,38 @@ export function SyllabusProfesorForm({ id, onCancel }: SyllabusFormProps) {
       <div className="flex gap-3 pt-4 border-t border-border">
         <Button 
           type="submit" 
-          disabled={isPending}
+          disabled={isPendingProfesor}
           className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
         >
-          {isPending ? "Creando..." : "Cargar Datos"}
+          {isPendingProfesor ? "Cargando..." : "Cargar Datos"}
         </Button>
+        {programa?.estado !== EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR &&
+          <Button
+            type="button"
+            onClick={() => setRechazDialogOpen(true)}
+            disabled={isPendingProfesor}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+          >
+            ✕ Rechazar
+          </Button>
+        }
         <Button
           type="button"
-          onClick={onCancel}
+          onClick={() => router.push('/')}
           variant="outline"
           className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
         >
           Cancelar
         </Button>
       </div>
+
+      {/* RECHAZO DIALOG */}
+      <RechazoDialog
+        open={rechazDialogOpen}
+        onOpenChange={setRechazDialogOpen}
+        onConfirm={handleRechazarConfirm}
+        isLoading={isPendingEstado}
+      />
     </form>
   )
 }

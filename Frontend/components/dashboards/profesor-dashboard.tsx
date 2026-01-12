@@ -43,7 +43,7 @@ export function ProfesorDashboard() {
   const router = useRouter();
 
   const handleNavigate = (id: number) => {
-    router.push(`/programas/completar/${id}`);
+    router.push(`/programas/completar/docente_responsable/${id}`);
   };
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
@@ -127,7 +127,7 @@ export function ProfesorDashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle>Pendientes</CardTitle>
           <CardDescription></CardDescription>
@@ -137,7 +137,7 @@ export function ProfesorDashboard() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle>Rechazados</CardTitle>
         </CardHeader>
@@ -146,7 +146,7 @@ export function ProfesorDashboard() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle>Mis Cursos</CardTitle>
         </CardHeader>

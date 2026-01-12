@@ -6,10 +6,13 @@
  */
 import type { EstadoHistoricoResponseDTOEstado } from './estadoHistoricoResponseDTOEstado';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
+import type { EstadoHistoricoResponseDTOActorRol } from './estadoHistoricoResponseDTOActorRol';
 
 export interface EstadoHistoricoResponseDTO {
   estado?: EstadoHistoricoResponseDTOEstado;
   fecha?: string;
   justificacion?: string;
-  realizadoPor?: UserResponseReducedDTO;
+  actor?: UserResponseReducedDTO;
+  departamentoName?: string;
+  actorRol?: EstadoHistoricoResponseDTOActorRol;
 }

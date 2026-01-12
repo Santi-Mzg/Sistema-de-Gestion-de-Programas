@@ -1,21 +1,37 @@
-import { ProgramaResponseDTO } from "@/app/api/generated/model";
+"use client"
+
 import { SyllabusCoordinadorForm } from "@/components/forms/programa-coordinador-form";
-import { SyllabusProfesorForm } from "@/components/forms/programa-profesor-form";
+import { useRole } from "@/context/role-context";
+import { AlertCircle } from "lucide-react";
+import { useParams } from "next/navigation";
+
+  
+
+export default function CompletarPrograma() {
+  const { activeRole } = useRole()
+  const { id } = useParams<{ id: string }>()
 
 
-interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}   
+  if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
-export default async function CompletarPrograma( {params}: PageProps ) {
-  const {id} = await params;
-  const programaId = Number(id);
-
-  if (isNaN(programaId)) {
-      // Manejar IDs inválidos
-      return <div>ID de programa inválido.</div>;
+  if(!(activeRole === "SYSTEM_ADMIN" || activeRole === "SECRETARIA" || activeRole === "COORDINACION_COMISION_CURRICULAR")) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="text-red-600" size={24} />
+          <p className="text-red-700">No tienes permisos para revisar programas</p>
+        </div>
+      </div>
+    )
   }
   // const programa: ProgramaResponseDTO = useGetPrograma(Number(id)).data!;
 
@@ -44,6 +60,6 @@ export default async function CompletarPrograma( {params}: PageProps ) {
 
 
     return (
-      <SyllabusCoordinadorForm id={programaId} />
+      <SyllabusCoordinadorForm id={Number(id)} />
     );
 }

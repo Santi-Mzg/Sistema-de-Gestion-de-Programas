@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { MateriaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -216,7 +216,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <Trash2 size={24} />
+              <AlertCircle size={24} />
               Confirmar Eliminación
             </DialogTitle>
             <DialogDescription className="text-base pt-2">

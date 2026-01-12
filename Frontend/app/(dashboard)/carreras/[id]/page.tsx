@@ -4,29 +4,38 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, User, Building2, AlertCircle, GraduationCap } from "lucide-react"
+import { ArrowLeft, Save, User, Building2, AlertCircle, GraduationCap, FileText, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getGetCarreraQueryKey, getListUsersDepartamentoQueryKey, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO, CarreraPlanCreateDTO } from "@/app/api/generated/model"
+import { getGetCarreraQueryKey, getListUsersDepartamentoQueryKey, useCreateCarreraPlan, useDeleteCarreraPlan, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
-
+import { useQueryClient } from "@tanstack/react-query"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function EditCarreraPage() {
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
   const [comision, setComision] = useState<UserResponseReducedDTO | undefined>()
+  const [showNewPlanForm, setShowNewPlanForm] = useState(false)
+  const [deletePlanId, setDeletePlanId] = useState<number | null>(null)
+  const [newPlanData, setNewPlanData] = useState<CarreraPlanCreateDTO>({
+    anio: "",
+    version: 1,
+  })
 
+  const havePermissions = !(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')
+  
   const carreraQuery = useGetCarrera(Number(id),
     {
       query: {
@@ -60,8 +69,6 @@ export default function EditCarreraPage() {
     setFormData({ 
         nombre: carrera.nombre,
         duracion: carrera.duracion,
-        planAnio: carrera?.planes?.[0].anio,
-        planVersion: carrera?.planes?.[0].version,
     })
 
     setComision(carrera.comision)
@@ -144,6 +151,73 @@ export default function EditCarreraPage() {
     }
   }
 
+    const { mutate: createPlan, isPending: isCreatingPlan } = useCreateCarreraPlan({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          title: "✓ Éxito",
+          description: "Plan creado exitosamente",
+          variant: "success",
+        })
+        setNewPlanData({ anio: "", version: 1 })
+        setShowNewPlanForm(false)
+        queryClient.invalidateQueries({ queryKey: getGetCarreraQueryKey(Number(id)) })
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error.message || "Error al crear el plan",
+          variant: "destructive",
+        })
+      },
+    },
+  })
+
+  const { mutate: deletePlan, isPending: isDeletingPlan } = useDeleteCarreraPlan({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          title: "✓ Éxito",
+          description: "Plan eliminado exitosamente",
+          variant: "success",
+        })
+        setDeletePlanId(null)
+        queryClient.invalidateQueries({ queryKey: getGetCarreraQueryKey(Number(id)) })
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: error.message || "Error al eliminar el plan",
+          variant: "destructive",
+        })
+      },
+    },
+  })
+
+  const handleNewPlanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setNewPlanData((prev) => ({
+      ...prev,
+      [name]: name === "version" ? Number(value) : value,
+    }))
+  }
+
+  const handleCreatePlan = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!carrera?.id) return
+    createPlan({
+      id: carrera.id,
+      data: newPlanData,
+    })
+  }
+
+  const handleDeletePlan = () => {
+    if (!carrera?.id || !deletePlanId) return
+    deletePlan({
+      id: deletePlanId,
+    })
+  }
+
 
   if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
     return(
@@ -215,7 +289,7 @@ export default function EditCarreraPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Form - 2 columns */}
           <div className="lg:col-span-2">
-            <Card className="border-2 border-border shadow-xl">
+            <Card className="mb-6 border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   <Building2 size={24} />
@@ -237,7 +311,7 @@ export default function EditCarreraPage() {
                       placeholder="Ej: Abogacía"
                       required
                       className="border-2 border-border focus:border-primary"
-                      disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
+                      readOnly={!havePermissions}
                     />
                   </div>
 
@@ -253,41 +327,9 @@ export default function EditCarreraPage() {
                       onChange={handleChange}
                       placeholder="Ej: 10 Cuat."
                       className="border-2 border-border focus:border-primary"
-                      disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
+                      readOnly={!havePermissions}
                     />
                   </div>     
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="plan" className="text-sm font-semibold">
-                        Plan
-                      </Label>
-                      <Input
-                        id="plan"
-                        name="plan"
-                        value={formData.planAnio}
-                        onChange={handleChange}
-                        placeholder="Ej: Plan 2025 - Versión 1"
-                        className="border-2 border-border focus:border-primary"
-                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="plan" className="text-sm font-semibold">
-                        Version
-                      </Label>
-                      <Input
-                        id="plan"
-                        name="plan"
-                        value={formData.planAnio}
-                        onChange={handleChange}
-                        placeholder="Ej: Plan 2025 - Versión 1"
-                        className="border-2 border-border focus:border-primary"
-                        disabled={(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')}
-                      />
-                    </div>
-                  </div>
 
                   {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') &&
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
@@ -297,11 +339,134 @@ export default function EditCarreraPage() {
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                        {isLoading ? "Guardando..." : "Guardar Datos"}
                       </Button>
                     </div>
                   }
                 </form>
+              </CardContent>
+            </Card>
+          <Card className="mb-6 border-2 border-border shadow-xl">
+              <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl text-primary flex items-center gap-2">
+                      <FileText size={16} />
+                      Planes de la Carrera
+                    </CardTitle>
+                    {/* <CardDescription className="text-base">Gestión de planes de la carrera</CardDescription> */}
+                  </div>
+                  {havePermissions && !showNewPlanForm && (
+                    <Button
+                      onClick={() => setShowNewPlanForm(true)}
+                      size="sm"
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      <Plus size={16} className="mr-1" />
+                      Nuevo Plan
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {showNewPlanForm && (
+                  <div className="border-2 border-primary/30 rounded-lg p-4 bg-primary/5">
+                    <h3 className="text-lg font-semibold mb-4 text-primary">Crear Nuevo Plan</h3>
+                    <form onSubmit={handleCreatePlan} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="anio" className="text-sm font-semibold">
+                            Año del Plan *
+                          </Label>
+                          <Input
+                            id="anio"
+                            name="anio"
+                            value={newPlanData.anio}
+                            onChange={handleNewPlanChange}
+                            placeholder="Ej: 2026"
+                            required
+                            className="border-2 border-border focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="version" className="text-sm font-semibold">
+                            Versión *
+                          </Label>
+                          <Input
+                            id="version"
+                            name="version"
+                            type="number"
+                            value={newPlanData.version}
+                            onChange={handleNewPlanChange}
+                            placeholder="Ej: 1"
+                            required
+                            min="1"
+                            className="border-2 border-border focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button
+                          type="submit"
+                          disabled={isCreatingPlan || !newPlanData.anio}
+                          className="flex-1 bg-primary hover:bg-primary/90"
+                        >
+                          {isCreatingPlan ? "Creando..." : "Crear Plan"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setShowNewPlanForm(false)
+                            setNewPlanData({ anio: "", version: 1 })
+                          }}
+                          className="flex-1"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {carrera.planes && carrera.planes.length > 0 ? (
+                    carrera.planes.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className="flex items-center justify-between p-4 border-2 border-border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/10 p-2 rounded-lg">
+                            <FileText size={20} className="text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              Plan {plan.anio} - Versión {plan.version}
+                            </p>
+                          </div>
+                        </div>
+                        {havePermissions && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setDeletePlanId(plan.id!)}
+                            className="hover:bg-destructive/90"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                      <FileText size={48} className="mx-auto mb-2 opacity-30" />
+                      <p>No hay planes de estudio registrados</p>
+                      {havePermissions && <p className="text-sm mt-1">Crea el primer plan usando el botón superior</p>}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -375,7 +540,7 @@ export default function EditCarreraPage() {
         </div>
       </div>
 
-      {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && 
+      {havePermissions && 
         <UserSelectorDialog
           open={directorDialogOpen}
           onOpenChange={setDirectorDialogOpen}
@@ -389,6 +554,41 @@ export default function EditCarreraPage() {
           isLoading={isLoading || isPending || isLoadingUsuarios}
         />
       }
+
+      {havePermissions && (
+      <Dialog open={!!deletePlanId} onOpenChange={(open: any) => !open && setDeletePlanId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle /> Confirmar Eliminación
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              ¿Estás seguro de que deseas eliminar este plan? 
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
+            <p className="text-sm text-foreground">
+              <strong>Advertencia: </strong>
+              Esta acción puede eliminar programas que estén vinculados únicamente a este plan.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeletePlanId(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              disabled={isDeletingPlan}
+              onClick={() => deletePlan({ id: deletePlanId! })}
+            >
+              {isDeletingPlan ? "Eliminando..." : "Eliminar Plan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
     </div>
   )
 }

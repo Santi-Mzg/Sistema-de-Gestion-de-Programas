@@ -22,9 +22,12 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ActualizarEstadoParams,
   AreaCreateDTO,
   AreaResponseDTO,
   CarreraCreateDTO,
+  CarreraPlanCreateDTO,
+  CarreraPlanResponseDTO,
   CarreraResponseDTO,
   CarreraUpdateComisionDTO,
   DepartamentoCreateDTO,
@@ -32,6 +35,7 @@ import type {
   DepartamentoUpdateCargoDTO,
   EstadoUpdateDTO,
   ListProgramasParams,
+  Login200,
   LoginRequest,
   MateriaCreateDTO,
   MateriaResponseDTO,
@@ -1570,6 +1574,122 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const createCarreraPlan = (
+    id: number,
+    carreraPlanCreateDTO: CarreraPlanCreateDTO,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<CarreraPlanResponseDTO>(
+      {url: `/api/carreras/${id}/planes`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: carreraPlanCreateDTO, signal
+    },
+      );
+    }
+  
+
+
+export const getCreateCarreraPlanMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCarreraPlan>>, TError,{id: number;data: CarreraPlanCreateDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createCarreraPlan>>, TError,{id: number;data: CarreraPlanCreateDTO}, TContext> => {
+
+const mutationKey = ['createCarreraPlan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCarreraPlan>>, {id: number;data: CarreraPlanCreateDTO}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createCarreraPlan(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCarreraPlanMutationResult = NonNullable<Awaited<ReturnType<typeof createCarreraPlan>>>
+    export type CreateCarreraPlanMutationBody = CarreraPlanCreateDTO
+    export type CreateCarreraPlanMutationError = unknown
+
+    export const useCreateCarreraPlan = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCarreraPlan>>, TError,{id: number;data: CarreraPlanCreateDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCarreraPlan>>,
+        TError,
+        {id: number;data: CarreraPlanCreateDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateCarreraPlanMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const deleteCarreraPlan = (
+    id: number,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/carreras/${id}/planes`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteCarreraPlanMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCarreraPlan>>, TError,{id: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCarreraPlan>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCarreraPlan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCarreraPlan>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCarreraPlan(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCarreraPlanMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCarreraPlan>>>
+    
+    export type DeleteCarreraPlanMutationError = unknown
+
+    export const useDeleteCarreraPlan = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCarreraPlan>>, TError,{id: number}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCarreraPlan>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteCarreraPlanMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const resetPassword = (
     resetPasswordBody: string,
  signal?: AbortSignal
@@ -1635,7 +1755,7 @@ export const login = (
 ) => {
       
       
-      return customInstance<string>(
+      return customInstance<Login200>(
       {url: `/api/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginRequest, signal
@@ -1743,65 +1863,6 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getProfesorCargaMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
-export const actualizarEstado = (
-    id: number,
-    estadoUpdateDTO: EstadoUpdateDTO,
- ) => {
-      
-      
-      return customInstance<ProgramaResponseDTO>(
-      {url: `/api/programas/${id}/estado`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: estadoUpdateDTO
-    },
-      );
-    }
-  
-
-
-export const getActualizarEstadoMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{id: number;data: EstadoUpdateDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{id: number;data: EstadoUpdateDTO}, TContext> => {
-
-const mutationKey = ['actualizarEstado'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof actualizarEstado>>, {id: number;data: EstadoUpdateDTO}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  actualizarEstado(id,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ActualizarEstadoMutationResult = NonNullable<Awaited<ReturnType<typeof actualizarEstado>>>
-    export type ActualizarEstadoMutationBody = EstadoUpdateDTO
-    export type ActualizarEstadoMutationError = unknown
-
-    export const useActualizarEstado = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{id: number;data: EstadoUpdateDTO}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof actualizarEstado>>,
-        TError,
-        {id: number;data: EstadoUpdateDTO},
-        TContext
-      > => {
-
-      const mutationOptions = getActualizarEstadoMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -2256,6 +2317,68 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getUpdateAdministracionDepartamentoMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const actualizarEstado = (
+    deptId: number,
+    id: number,
+    estadoUpdateDTO: EstadoUpdateDTO,
+    params: ActualizarEstadoParams,
+ ) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas/${id}/estado`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: estadoUpdateDTO,
+        params
+    },
+      );
+    }
+  
+
+
+export const getActualizarEstadoMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{deptId: number;id: number;data: EstadoUpdateDTO;params: ActualizarEstadoParams}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{deptId: number;id: number;data: EstadoUpdateDTO;params: ActualizarEstadoParams}, TContext> => {
+
+const mutationKey = ['actualizarEstado'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof actualizarEstado>>, {deptId: number;id: number;data: EstadoUpdateDTO;params: ActualizarEstadoParams}> = (props) => {
+          const {deptId,id,data,params} = props ?? {};
+
+          return  actualizarEstado(deptId,id,data,params,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActualizarEstadoMutationResult = NonNullable<Awaited<ReturnType<typeof actualizarEstado>>>
+    export type ActualizarEstadoMutationBody = EstadoUpdateDTO
+    export type ActualizarEstadoMutationError = unknown
+
+    export const useActualizarEstado = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof actualizarEstado>>, TError,{deptId: number;id: number;data: EstadoUpdateDTO;params: ActualizarEstadoParams}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof actualizarEstado>>,
+        TError,
+        {deptId: number;id: number;data: EstadoUpdateDTO;params: ActualizarEstadoParams},
+        TContext
+      > => {
+
+      const mutationOptions = getActualizarEstadoMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

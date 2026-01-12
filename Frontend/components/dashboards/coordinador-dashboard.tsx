@@ -2,26 +2,22 @@
 
 import { Users, CheckCircle2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProgramasListReduced } from "../pages/programas-list-reduced"
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
-import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
-import { useAuth } from "@/context/auth-context";
+import { ProgramasListReducedCoord } from "../pages/programas-list-reduced-coordinador";
 
 
 export function CoordinadorDashboard() {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
-  const router = useRouter();
 
   // const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
 
   const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
       {
-        // carreraId: carrerasId[0],
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
     {
@@ -31,7 +27,6 @@ export function CoordinadorDashboard() {
         queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             {
-              // carreraId: carrerasId[0],
               rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
             }
         )
@@ -41,11 +36,6 @@ export function CoordinadorDashboard() {
   const programas: ProgramaResponseDTO[] = programasQuery.data || [];
 
   const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_PROFESOR);
-
-
-  const handleNavigate = (id: number) => {
-    router.push(`/programas/revisar/${id}`);
-  };
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
       return(
@@ -123,19 +113,19 @@ export function CoordinadorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">4</div>
+            <div className="text-3xl font-bold text-orange-600">{programasPendientes.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Esperando revisión</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Programas en Revisión</CardTitle>
-          <CardDescription>Programas que requieren tu aprobación</CardDescription>
+          <CardTitle>Programas Pendientes</CardTitle>
+          <CardDescription>Programas que requieren ser revisados</CardDescription>
         </CardHeader>
         <CardContent>
-          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
+          <ProgramasListReducedCoord programas={programasPendientes} />
         </CardContent>
       </Card>
     </div>

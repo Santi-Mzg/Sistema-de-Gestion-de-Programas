@@ -5,9 +5,12 @@
  * OpenAPI spec version: v0
  */
 
+export * from './actualizarEstadoParams';
+export * from './actualizarEstadoRolActivo';
 export * from './areaCreateDTO';
 export * from './areaResponseDTO';
 export * from './carreraCreateDTO';
+export * from './carreraPlanCreateDTO';
 export * from './carreraPlanResponseDTO';
 export * from './carreraResponseDTO';
 export * from './carreraUpdateComisionDTO';
@@ -15,12 +18,14 @@ export * from './departamentoCreateDTO';
 export * from './departamentoResponseDTO';
 export * from './departamentoUpdateCargoDTO';
 export * from './estadoHistoricoResponseDTO';
+export * from './estadoHistoricoResponseDTOActorRol';
 export * from './estadoHistoricoResponseDTOEstado';
 export * from './estadoUpdateDTO';
 export * from './estadoUpdateDTOAccion';
 export * from './estadoUpdateDTODestinoRechazo';
 export * from './listProgramasParams';
 export * from './listProgramasRolActivo';
+export * from './login200';
 export * from './loginRequest';
 export * from './materiaCreateDTO';
 export * from './materiaResponseDTO';
@@ -29,6 +34,7 @@ export * from './programaCargaDTO';
 export * from './programaCarreraCreateDTO';
 export * from './programaCarreraResponseDTO';
 export * from './programaResponseDTO';
+export * from './programaResponseDTOEstado';
 export * from './resetPassword200';
 export * from './userCreateDTO';
 export * from './userCreateDTORolesItem';

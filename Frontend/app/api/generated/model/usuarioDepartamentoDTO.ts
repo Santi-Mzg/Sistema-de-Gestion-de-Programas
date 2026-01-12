@@ -11,4 +11,5 @@ export interface UsuarioDepartamentoDTO {
   departamentoNombre?: string;
   email?: string;
   roles?: UsuarioDepartamentoDTORolesItem[];
+  carrerasComoComision?: string[];
 }

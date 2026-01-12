@@ -22,6 +22,8 @@ export default function EditAreaPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
 
+  const havePermissions = (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA');
+
   const areaQuery = useGetArea(Number(id),
     {
       query: {
@@ -172,10 +174,11 @@ export default function EditAreaPage() {
                       placeholder="Ej: Area de Agronomía"
                       required
                       className="border-2 border-border focus:border-primary"
+                      readOnly={!havePermissions}
                     />
                   </div>
 
-                  {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (   
+                  {havePermissions && (   
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
                       <Button
                         type="submit"

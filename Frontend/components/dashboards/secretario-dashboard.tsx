@@ -129,10 +129,10 @@ export function SecretarioDashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Programas en Revisión</CardTitle>
-          <CardDescription>Programas que requieren tu aprobación</CardDescription>
+          <CardTitle>Programas Pendientes</CardTitle>
+          <CardDescription>Programas que requieren ser revisados</CardDescription>
         </CardHeader>
         <CardContent>
           <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />

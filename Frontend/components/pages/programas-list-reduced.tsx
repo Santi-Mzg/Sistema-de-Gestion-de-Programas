@@ -1,19 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { act, useState } from "react"
 import { Search, ChevronUp, ChevronDown, Eye, Pencil} from "lucide-react"
 import { ProgramaResponseDTO } from "@/app/api/generated/model"
+import { Button } from "../ui/button";
+import { useRole } from "@/context/role-context";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],
   onRowClick: (programaId: number) => void;
 }
 
-type SortField = "nombreMateria" | "codigoMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
+type SortField = "materia" | "estado" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasListProps) {
-  const [sortField, setSortField] = useState<SortField>("nombreMateria")
+  const { activeRole } = useRole();
+  const [sortField, setSortField] = useState<SortField>("materia")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   const handleSort = (field: SortField) => {
@@ -39,21 +42,11 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
               <tr>
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("nombreMateria")}
+                    onClick={() => handleSort("materia")}
                     className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
                   >
                     Materia
-                    {sortField === "nombreMateria" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort("codigoMateria")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Código
-                    {sortField === "codigoMateria" &&
+                    {sortField === "materia" &&
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
@@ -77,9 +70,9 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                {/* <th className="px-6 py-4 text-left">
+                <th className="px-6 py-4 text-left">
                   Acciones
-                </th> */}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -87,12 +80,18 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                 programas.map((programa) => (
                   <tr
                     key={programa.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="transition-colors border-b border-border last:border-b-0"
                     onClick={() => onRowClick(programa.id!)}
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{programa.materia?.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.codigo}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.departamento}</td>
+                    <td className="px-6 py-4 align-middle">
+                      <div className="font-medium text-foreground">{programa.materia?.nombre}</div>
+                      <div className="text-xs text-muted-foreground">{programa.materia?.codigo}</div>
+                    </td>
+                    <td className="px-6 py-4 align-middle">
+                      <span className="text-sm font-medium text-foreground/80">
+                        {programa.materia?.departamento || "N/A"}
+                      </span>
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2`}
@@ -100,7 +99,7 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                         {programa.estado}
                       </span>
                     </td>
-                     {/* <td className="px-6 py-4">
+                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"
@@ -108,11 +107,20 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                           onClick={() => onRowClick(programa.id!)}
                           className="border-2 hover:bg-primary hover:text-primary-foreground"
                         >
-                          <Pencil size={16} className="mr-1" />
-                          Completar
+                          {activeRole === "SECRETARIA" ? (
+                            <>
+                              <Eye size={16} className="mr-1" />
+                              Revisar
+                            </>
+                          ) : (
+                            <>
+                              <Pencil size={16} className="mr-1" />
+                              Completar
+                            </>
+                          )}
                         </Button>
                       </div>
-                    </td> */}
+                    </td>
                   </tr>
                 ))
               ) : (

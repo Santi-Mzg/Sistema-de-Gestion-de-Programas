@@ -141,7 +141,7 @@ export default function EditUserPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
+      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
         <div className="max-w-6xl mx-auto">
           <Button
             variant="ghost"
@@ -164,7 +164,7 @@ export default function EditUserPage() {
           {/* Main Form - 2 columns */}
           <div className="lg:col-span-2">
             <Card className="border-2 border-border shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b-2 border-border">
+              <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   <Building2 size={24} />
                   Información General

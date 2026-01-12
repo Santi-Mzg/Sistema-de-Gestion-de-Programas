@@ -7,6 +7,7 @@
 import type { MateriaResponseDTO } from './materiaResponseDTO';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 import type { ProgramaCarreraResponseDTO } from './programaCarreraResponseDTO';
+import type { ProgramaResponseDTOEstado } from './programaResponseDTOEstado';
 import type { EstadoHistoricoResponseDTO } from './estadoHistoricoResponseDTO';
 
 export interface ProgramaResponseDTO {
@@ -26,6 +27,6 @@ export interface ProgramaResponseDTO {
   metodologia?: string;
   modalidadEvaluacion?: string;
   bibliografia?: string;
-  estado?: string;
+  estado?: ProgramaResponseDTOEstado;
   historialEstados?: EstadoHistoricoResponseDTO[];
 }

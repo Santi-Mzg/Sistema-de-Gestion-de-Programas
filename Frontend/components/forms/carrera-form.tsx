@@ -9,13 +9,15 @@ import { Label } from "@/components/ui/label"
 import { CarreraCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useDept } from "@/context/dept-context"
-import { useCreateCarrera } from "@/app/api/generated/client"
+import { getListCarrerasDepartamentoQueryKey, useCreateCarrera } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query";
 
 export function CarreraForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     planAnio: "",
@@ -39,6 +41,10 @@ export function CarreraForm() {
             duracion: "",
             // cantidadMaterias: undefined,
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+          });
 
           router.push('/carreras'); 
         },
@@ -157,7 +163,7 @@ export function CarreraForm() {
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
-            {isPending ? "Cargando..." : "Crear"}
+            {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>
       </div>

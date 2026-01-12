@@ -12,17 +12,20 @@ import {
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { useRole } from "@/context/role-context"
+import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 
 interface RechazDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => void
+  onConfirm: (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => void
   isLoading?: boolean
 }
 
 export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: RechazDialogProps) {
+  const { activeRole } = useRole()
   const [step, setStep] = useState<"destino" | "justificacion">("destino")
-  const [selectedDestino, setSelectedDestino] = useState<"ADMINISTRACION" | "DOCENTE">("ADMINISTRACION")
+  const [selectedDestino, setSelectedDestino] = useState<UsuarioDepartamentoDTORolesItem>("ADMINISTRACION")
   const [justificacion, setJustificacion] = useState("")
 
   const handleNextStep = () => {
@@ -58,7 +61,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                   name="destino"
                   value="ADMINISTRACION"
                   checked={selectedDestino === "ADMINISTRACION"}
-                  onChange={(e) => setSelectedDestino(e.target.value as "ADMINISTRACION")}
+                  onChange={(e) => setSelectedDestino(e.target.value as UsuarioDepartamentoDTORolesItem)}
                   className="w-4 h-4"
                 />
                 <div>
@@ -66,21 +69,22 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                   <p className="text-sm text-muted-foreground">Enviar para revisión administrativa</p>
                 </div>
               </label>
-
-              <label className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5 transition">
-                <input
-                  type="radio"
-                  name="destino"
-                  value="DOCENTE"
-                  checked={selectedDestino === "DOCENTE"}
-                  onChange={(e) => setSelectedDestino(e.target.value as "DOCENTE")}
-                  className="w-4 h-4"
-                />
-                <div>
-                  <p className="font-semibold text-foreground">Profesor Responsable</p>
-                  <p className="text-sm text-muted-foreground">Devolver al profesor para correcciones</p>
-                </div>
-              </label>
+              {!(activeRole === "DOCENTE") && 
+                <label className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5 transition">
+                  <input
+                    type="radio"
+                    name="destino"
+                    value="DOCENTE"
+                    checked={selectedDestino === "DOCENTE"}
+                    onChange={(e) => setSelectedDestino(e.target.value as UsuarioDepartamentoDTORolesItem)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <p className="font-semibold text-foreground">Profesor Responsable</p>
+                    <p className="text-sm text-muted-foreground">Devolver al profesor para correcciones</p>
+                  </div>
+                </label>
+              }
             </div>
 
             <DialogFooter className="gap-3">

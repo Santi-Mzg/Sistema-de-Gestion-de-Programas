@@ -6,24 +6,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
-import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo } from "@/app/api/generated/model"
-import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma } from "@/app/api/generated/client"
+import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
+import { useDept } from "@/context/dept-context"
+import { useRole } from "@/context/role-context"
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SyllabusFormProps {
-  // programa: ProgramaResponseDTO
-  // onSubmit: (data: ProgramaCargaProfesorDTO) => void
   id: number,
-  onCancel?: () => void
 }
 
 
-export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
+export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
+  const { activeDepartamento } = useDept()
+  const { activeRole } = useRole()
   const router = useRouter();
-  const programaQuery = useGetPrograma(id);
+  const queryClient = useQueryClient(); 
+  const programaQuery = useGetPrograma(id,
+    {
+      query: {
+        staleTime: 1000 * 60 * 5,
+        queryKey: getGetProgramaQueryKey(id)
+      }
+    }
+  );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
@@ -41,6 +51,13 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
           description: `Programa ${variables.data.accion === EstadoUpdateDTOAccion.APROBAR ? "aprobado" : "rechazado"} exitosamente`,
           variant: "success",
         })      
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
 
         router.push('/'); 
       },
@@ -95,24 +112,30 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
       justificacion: undefined,
     })
     mutate({
+      deptId: activeDepartamento?.departamentoId ?? 0,
+      id: id,
       data: formEstadoData,
-      id: id
+      params: {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      }
     });
   }
 
-  const handleRechazarConfirm = (destino: "ADMINISTRACION" | "DOCENTE", justificacion: string) => {
+  const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
     setFormEstadoData({
       accion: EstadoUpdateDTOAccion.RECHAZAR,
-      destinoRechazo:
-        destino === "ADMINISTRACION"
-          ? EstadoUpdateDTODestinoRechazo.ADMINISTRACION
-          : EstadoUpdateDTODestinoRechazo.DOCENTE,
-      justificacion,
+      destinoRechazo: destino,
+      justificacion: justificacion,
     })
     setRechazDialogOpen(false)
+    console.log("RECHAZO "+JSON.stringify(formEstadoData))
     mutate({
+      deptId: activeDepartamento?.departamentoId ?? 0,
+      id: id,
       data: formEstadoData,
-      id: id
+      params: {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      }
     });
   }
 
@@ -322,7 +345,12 @@ export function SyllabusCoordinadorForm({ id, onCancel }: SyllabusFormProps) {
         >
           ✕ Rechazar
         </Button>
-        <Button type="button" onClick={onCancel} variant="outline" className="flex-1 bg-transparent">
+        <Button 
+          type="button" 
+          onClick={() => router.push('/')}
+          variant="outline" 
+          className="flex-1 bg-transparent"
+        >
           Atrás
         </Button>
       </div>

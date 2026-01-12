@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DepartamentoCreateDTO } from "@/app/api/generated/model"
-import { useCreateDepartamento } from "@/app/api/generated/client"
+import { getListDepartamentosQueryKey, useCreateDepartamento } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export function DepartamentoForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<DepartamentoCreateDTO>({
     nombre: "",
     direccion: "",
@@ -37,6 +39,10 @@ export function DepartamentoForm() {
             email: "",
             sitioWeb: "",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListDepartamentosQueryKey()
+          });
 
           router.push('/departamentos'); 
         },
@@ -142,7 +148,7 @@ export function DepartamentoForm() {
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
-            {isPending ? "Cargando..." : "Crear"}
+            {isPending ? "Creando..." : "Crear"}
           </Button>
       </div>
       </div>

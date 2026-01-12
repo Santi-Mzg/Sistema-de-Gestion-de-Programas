@@ -26,3 +26,51 @@ export const recoverPasswordSchema = z.object({
 })
 
 export type RecoverPasswordFormData = z.infer<typeof recoverPasswordSchema>
+
+
+
+const programaCarreraSchema = z.object({
+  key: z.string(),
+  carreraPlanId: z.coerce.number().min(1, "Debe seleccionar una carrera"),
+  ubicacionEnPlan: z.string().min(1, "La ubicación es requerida"),
+  correlativasFuertesIds: z.array(z.number()),
+  correlativasDebilesIds: z.array(z.number()),
+  contribucion: z.string().optional(),
+  contenidosMinimos: z.string().optional(),
+})
+
+export const syllabusSchema = z.object({
+  anio: z.coerce.number().min(2000).max(2100),
+  materiaId: z.coerce.number().min(1, "Debe seleccionar una materia"),
+  profesorResponsableId: z.coerce.number().min(1, "Debe seleccionar un profesor"),
+  bloqueMultiple: z.array(programaCarreraSchema).min(1, "Debe agregar al menos una carrera"),
+  
+  cantidadSemanas: z.coerce.number().min(1, "Mínimo 1 semana"),
+  cargaHorariaSemanal: z.coerce.number().min(1, "Mínimo 1 hora"),
+  cargaHorariaTotal: z.coerce.number().min(1, "Carga total requerida"),
+  cargaHorariaPractica: z.coerce.number().min(0, "No puede ser negativa").default(0),
+  
+  creditos: z.coerce.number().min(0),
+  fundamentacion: z.string().optional(),
+  objetivos: z.string().optional(),
+  programaAnalitico: z.string().optional(),
+  metodologia: z.string().optional(),
+  modalidadEvaluacion: z.string().optional(),
+  bibliografia: z.string().optional(),
+})
+.refine(
+  (data) => data.cantidadSemanas * data.cargaHorariaSemanal === data.cargaHorariaTotal,
+  {
+    message: "El total debe ser igual a (Semanas × Carga Semanal)",
+    path: ["cargaHorariaTotal"], // El error se mostrará en este campo
+  }
+)
+.refine(
+  (data) => data.cargaHorariaPractica <= data.cargaHorariaTotal,
+  {
+    message: "La carga práctica no puede ser mayor a la carga total",
+    path: ["cargaPractica"],
+  }
+);
+
+export type SyllabusFormValues = z.infer<typeof syllabusSchema>

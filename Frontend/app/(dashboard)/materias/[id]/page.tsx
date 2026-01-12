@@ -25,6 +25,8 @@ export default function EditMateriaPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
+  const havePermissions = !(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')
+
   const materiaQuery = useGetMateria(Number(id),
     {
       query: {
@@ -226,6 +228,7 @@ export default function EditMateriaPage() {
                       placeholder="Ej: Análisis Matemático I"
                       required
                       className="border-2 border-border focus:border-primary"
+                      readOnly={!havePermissions}
                     />
                   </div>
 
@@ -241,6 +244,7 @@ export default function EditMateriaPage() {
                         onChange={handleChange}
                         placeholder="Ej: 12345"
                         className="border-2 border-border focus:border-primary"
+                        readOnly={!havePermissions}
                       />
                     </div>
 
@@ -248,47 +252,58 @@ export default function EditMateriaPage() {
                       <Label htmlFor="areaId" className="text-sm font-semibold">
                         Area *
                       </Label>
-                      <Select
-                        value={formData.areaId?.toString() ?? ""}
-                        onValueChange={(e) => setFormData((prev) => ({
-                          ...prev,
-                          areaId: Number(e),
-                        }))}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar área" />
-                        </SelectTrigger>
-                        <SelectContent>
+                      {havePermissions ? 
+                        <select
+                          id="area"
+                          value={formData.areaId?.toString() ?? ""}
+                          onChange={(e) => setFormData((prev) => ({
+                            ...prev,
+                            areaId: Number(e.target.value),
+                          }))}
+                          className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          required
+                        >
+                          <option value="">Seleccionar Área...</option>
                           {areas.map((area) => (
-                            <SelectItem key={area.id} value={area.id!.toString()}>
+                            <option key={area.id} value={area.id}>
                               {area.nombre}
-                            </SelectItem>
+                            </option>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </select>
+                        :
+                        <Input
+                          id="materia"
+                          type="text"
+                          value={materia.area}
+                          className="border-border focus:border-primary"
+                          readOnly
+                          />
+                      }
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t-2 border-border">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => router.back()}
-                      disabled={isLoading}
-                      className="flex-1 border-2"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isLoading || !formData.nombre}
-                      className="flex-1 bg-primary hover:bg-primary/90"
-                    >
-                      <Save size={18} className="mr-2" />
-                      {isLoading ? "Guardando..." : "Guardar Cambios"}
-                    </Button>
-                  </div>
+
+                  {havePermissions && 
+                    <div className="flex gap-3 pt-4 border-t-2 border-border">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.back()}
+                        disabled={isLoading}
+                        className="flex-1 border-2"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading || !formData.nombre}
+                        className="flex-1 bg-primary hover:bg-primary/90"
+                      >
+                        <Save size={18} className="mr-2" />
+                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                      </Button>
+                    </div>
+                  }
                 </form>
               </CardContent>
             </Card>

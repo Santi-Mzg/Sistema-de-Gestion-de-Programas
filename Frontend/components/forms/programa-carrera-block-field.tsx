@@ -26,6 +26,18 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 }: ProgramaCarreraBlockProps) {
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null);
 
+  useEffect(() => {
+    if (block.carreraPlanId && carreras.length > 0) {
+      const carreraEncontrada = carreras.find(c => 
+        c.planes?.some(p => p.id === block.carreraPlanId)
+      );
+      
+      if (carreraEncontrada) {
+        setSelectedCarrera(carreraEncontrada);
+      }
+    }
+  }, [block.carreraPlanId, carreras]);
+
   const materiasQuery = useListMateriasCarreraPlan(selectedCarrera?.id ?? 0, {
     query: {
       enabled: !!selectedCarrera?.id,
@@ -92,6 +104,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
   return (
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
       <button
+        type="button"
         onClick={() => onRemove(index)}
         className={"absolute top-3 right-3 p-1 hover:bg-destructive/10 rounded text-destructive"}
         title="Eliminar bloque"
@@ -108,30 +121,35 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           </Label>
           <select
             id={`carrera-${index}`}
-            value={String(selectedCarrera?.id ?? "")}
-            onChange={(e) => setSelectedCarrera(carreras.find(c => c.id === Number(e.target.value)) ?? null)}
+            value={selectedCarrera?.id ?? ""}
+            onChange={(e) => {
+              const carrera = carreras.find(c => c.id === Number(e.target.value)) ?? null;
+              setSelectedCarrera(carrera);
+              handleFieldChange("carreraPlanId", 0);
+            }}            
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             required
           >
             <option value="">Seleccionar carrera...</option>
             {carreras.map((carrera) => (
-              <option key={carrera.id} value={String(carrera.id)}>
+              <option key={carrera.id} value={carrera.id}>
                 {carrera.nombre}
               </option>
             ))}
           </select>
         </div>
 
-              <div className="space-y-2">
+        <div className="space-y-2">
           <Label htmlFor={`plan-${index}`} className="text-sm font-semibold text-foreground">
             Plan *
           </Label>
           <select
             id={`plan-${index}`}
-            value={block.carreraPlanId}
-            onChange={(e) => handleFieldChange("carreraPlanId", e.target.value)}
+            value={block.carreraPlanId?.toString() ?? ""}
+            onChange={(e) => handleFieldChange("carreraPlanId", Number(e.target.value))}
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             required
+            disabled={!selectedCarrera}
           >
             <option value="">Seleccionar plan...</option>
             {selectedCarrera?.planes?.map((plan) => (
@@ -172,7 +190,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
               Correlativas Fuertes
-              <span className="text-xs text-muted-foreground">(Requiere aprobar)</span>
             </Label>
             <div className="max-h-40 overflow-y-auto space-y-2">
               {filteredMaterias?.map((materia: MateriaResponseDTO) => (
@@ -196,7 +213,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
               Correlativas Débiles
-              <span className="text-xs text-muted-foreground">(Recomendado)</span>
             </Label>
             <div className="max-h-40 overflow-y-auto space-y-2">
               {filteredMaterias?.map((materia: MateriaResponseDTO) => (

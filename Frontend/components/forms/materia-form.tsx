@@ -8,20 +8,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AreaResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { getListAreasDepartamentoQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
+import { getListAreasDepartamentoQueryKey, getListMateriasCarreraPlanQueryKey, getListMateriasDepartamentoQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { AlertCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
-
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export function MateriaForm() {
   const router = useRouter();
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
+  const queryClient = useQueryClient();
 
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
     {
@@ -53,6 +54,10 @@ export function MateriaForm() {
             nombre: "",
             areaId: areas?.[0]?.id,
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+          });
 
           router.push('/materias'); 
 
@@ -214,7 +219,7 @@ export function MateriaForm() {
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
-            {isPending ? "Cargando..." : "Crear"}
+            {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>
       </div>

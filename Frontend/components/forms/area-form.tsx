@@ -8,16 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AreaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { useCreateArea } from "@/app/api/generated/client"
+import { getListAreasDepartamentoQueryKey, useCreateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-
+import { useQueryClient } from "@tanstack/react-query";
 
 export function AreaForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const { toast } = useToast()
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<AreaCreateDTO>({
     nombre: "",
@@ -34,6 +35,10 @@ export function AreaForm() {
           setFormData({
             nombre: "",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+          });
 
           router.push('/areas'); 
         },
@@ -115,7 +120,7 @@ export function AreaForm() {
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
-            {isPending ? "Cargando..." : "Crear"}
+            {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>
       </div>

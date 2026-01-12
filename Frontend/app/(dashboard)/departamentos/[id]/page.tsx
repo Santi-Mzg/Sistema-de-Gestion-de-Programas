@@ -24,6 +24,7 @@ export default function EditDepartamentoPage() {
   const departamentoQuery = useGetDepartamento(Number(id),
       {
         query: {
+          staleTime: 1000 * 60 * 5,
           queryKey: getGetDepartamentoQueryKey(Number(id))
         }
       });
@@ -273,7 +274,7 @@ export default function EditDepartamentoPage() {
                       placeholder="Ej: Departamento de Agronomía"
                       required
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
+                      readOnly={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
 
@@ -289,7 +290,7 @@ export default function EditDepartamentoPage() {
                         onChange={handleChange}
                         placeholder="Ej: (0291) 459-5101"
                         className="border-2 border-border focus:border-primary"
-                        disabled={activeRole !== 'SYSTEM_ADMIN'}
+                        readOnly={activeRole !== 'SYSTEM_ADMIN'}
                       />
                     </div>
 
@@ -305,7 +306,7 @@ export default function EditDepartamentoPage() {
                         onChange={handleChange}
                         placeholder="Ej: agronomia@uns.edu.ar"
                         className="border-2 border-border focus:border-primary"
-                        disabled={activeRole !== 'SYSTEM_ADMIN'}
+                        readOnly={activeRole !== 'SYSTEM_ADMIN'}
                       />
                     </div>
                   </div>
@@ -321,7 +322,7 @@ export default function EditDepartamentoPage() {
                       onChange={handleChange}
                       placeholder="Ej: San Andrés 800"
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
+                      readOnly={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
 
@@ -337,7 +338,7 @@ export default function EditDepartamentoPage() {
                       onChange={handleChange}
                       placeholder="Ej: https://www.uns.edu.ar/agronomia"
                       className="border-2 border-border focus:border-primary"
-                      disabled={activeRole !== 'SYSTEM_ADMIN'}
+                      readOnly={activeRole !== 'SYSTEM_ADMIN'}
                     />
                   </div>
                   {activeRole === 'SYSTEM_ADMIN' && (
