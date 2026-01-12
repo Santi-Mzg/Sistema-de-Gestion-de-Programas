@@ -1,24 +1,19 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.RegisterRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginRequest;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -30,7 +25,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
 
-    public UserResponseDTO login(LoginRequest req, HttpServletResponse response) {
+    public String login(LoginRequest req, HttpServletResponse response) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         req.legajo(),
@@ -42,45 +37,21 @@ public class AuthService {
 
         String token = jwtService.generateToken(userDetails.getUsername());
 
-        ResponseCookie cookie = ResponseCookie.from("jwt", token)
-                .httpOnly(true)
-                .secure(true)
-//                .secure(false)
-                .sameSite("None")
-                .path("/")
-                .maxAge(24 * 60 * 60)
-                .build();
+//        UserEntity user = userRepo.findByLegajoWithDepartamentosAndRoles(userDetails.getUsername())
+//                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
+//
+//        UserResponseDTO userResp = userMapper.toDTO(user);
+//
+//        userResp.setToken(token);
 
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-        UserEntity user = userRepo.findByLegajo(userDetails.getUsername())
-                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
-
-        UserResponseDTO userResp = userMapper.toDTO(user);
-
-        userResp.setToken(token);
-
-        return userResp;
+        return token;
     }
 
     public UserResponseDTO me(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        UserEntity user = userRepo.findByLegajo(userDetails.getUsername())
+        UserEntity user = userRepo.findByLegajoWithDepartamentos(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
 
         return userMapper.toDTO(user);
-    }
-
-    public void logout(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("jwt", null)
-                .httpOnly(true)
-                .secure(true)
-//                .secure(false)
-                .sameSite("None")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

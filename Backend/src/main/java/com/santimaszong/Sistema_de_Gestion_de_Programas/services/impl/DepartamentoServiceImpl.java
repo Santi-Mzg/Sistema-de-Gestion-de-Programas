@@ -26,20 +26,18 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
     private final DepartamentoRepository departamentoRepository;
     private final UsuarioDepartamentoService userDptoService;
-
     private final DepartamentoMapper departamentoMapper;
-    private final UserMapper userMapper;
 
 
-    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper, UserMapper userMapper) {
+    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper) {
         this.departamentoRepository = departamentoRepository;
         this.userDptoService = userDptoService;
         this.departamentoMapper = departamentoMapper;
-        this.userMapper = userMapper;
     }
 
 
     @Override
+    @Transactional
     public DepartamentoResponseDTO createDepartamento(DepartamentoCreateDTO departamentoDTO) {
         DepartamentoEntity existingDepartamento = departamentoMapper.toEntity(departamentoDTO);
         DepartamentoEntity createdDepartamentoEntity = departamentoRepository.save(existingDepartamento);
@@ -48,6 +46,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartamentoResponseDTO getDepartamentoById(Long id) {
         DepartamentoEntity foundDepartamento = departamentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
@@ -56,12 +55,35 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartamentoEntity getEntityById(Long id) {
         return departamentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public DepartamentoEntity findEntityWithAreasById(Long id) {
+        return departamentoRepository.findWithAreasById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DepartamentoEntity findEntityWithCarrerasById(Long id) {
+            return departamentoRepository.findWithCarrerasById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DepartamentoEntity findEntityWithMateriasById(Long id) {
+        return departamentoRepository.findWithMateriasById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<DepartamentoResponseDTO> listDepartamentos() {
         List<DepartamentoEntity> departamentos = departamentoRepository.findAll();
         return departamentos.stream()
@@ -69,8 +91,15 @@ public class DepartamentoServiceImpl implements DepartamentoService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<DepartamentoEntity> listEntities() {
+        return departamentoRepository.findAll();
+    }
+
 
     @Override
+    @Transactional
     public DepartamentoResponseDTO updateDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
 
         return departamentoRepository.findById(id).map(existingDepartamento -> {
@@ -137,6 +166,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
+    @Transactional
     public DepartamentoResponseDTO updateAdministracionDepartamento(Long id, DepartamentoCreateDTO departamentoDTO) {
             return null;
 //        return departamentoRepository.findById(id).map(existingDepartamento -> {
@@ -157,6 +187,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
+    @Transactional
     public void deleteDepartamento(Long id) {
         departamentoRepository.deleteById(id);
     }

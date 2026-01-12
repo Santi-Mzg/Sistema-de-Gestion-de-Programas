@@ -13,7 +13,7 @@ public interface ProgramaService {
     ProgramaResponseDTO create(ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaDTO programa, UserEntity actor);
-    ProgramaResponseDTO actualizarEstado(Long id, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor);
+    ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo);
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
     List<ProgramaResponseDTO> getList(Authentication auth, Long deptId, Long carreraId, Rol rolActivo);

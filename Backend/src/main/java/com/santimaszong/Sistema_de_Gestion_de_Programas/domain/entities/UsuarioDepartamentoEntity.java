@@ -6,10 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Entity
@@ -40,8 +37,10 @@ public class UsuarioDepartamentoEntity {
     @OneToMany(mappedBy = "profesorResponsable")
     private List<ProgramaEntity> materiasComoProfesor;
 
+    @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "usuario_departamento_roles",
             joinColumns = @JoinColumn(name = "usuario_departamento_id")

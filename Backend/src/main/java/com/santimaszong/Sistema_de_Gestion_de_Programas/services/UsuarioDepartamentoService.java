@@ -13,5 +13,5 @@ public interface UsuarioDepartamentoService {
     UsuarioDepartamentoEntity save(UsuarioDepartamentoEntity entity);
     DepartamentoEntity getDeptEntityById(Long deptId);
     UserEntity getUserEntityById(Long userId);
-
+    List<UsuarioDepartamentoEntity> findFullByDepartamentoId(Long deptId);
 }

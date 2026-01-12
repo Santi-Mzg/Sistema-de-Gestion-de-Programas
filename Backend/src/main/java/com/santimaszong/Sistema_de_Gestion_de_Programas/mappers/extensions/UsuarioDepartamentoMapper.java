@@ -11,7 +11,6 @@ import org.mapstruct.Mapping;
 @Mapper(
         componentModel = "spring",
         uses = {
-                MateriasToStringMapper.class,
                 CarreraToStringMapper.class
         }
 )
@@ -20,8 +19,9 @@ public interface UsuarioDepartamentoMapper extends ToDTOMapper<UsuarioDepartamen
     @Override
     @Mapping(source = "departamento.id", target = "departamentoId")
     @Mapping(source = "departamento.nombre", target = "departamentoNombre")
+    @Mapping(source = "email", target = "email")
+    @Mapping(source = "roles", target = "roles")
     @Mapping(source = "carrerasComoComision", target = "carrerasComoComision", qualifiedByName = "carrerasToString")
-    @Mapping(source = "materiasComoProfesor", target = "materiasComoProfesor", qualifiedByName = "programasToString")
     UsuarioDepartamentoDTO toDTO(UsuarioDepartamentoEntity userDpto);
 
 }

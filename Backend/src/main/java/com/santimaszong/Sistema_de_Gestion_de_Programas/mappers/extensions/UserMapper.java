@@ -20,11 +20,15 @@ public interface UserMapper extends ToEntityMapper<UserCreateDTO, UserEntity>, T
 
     @Override
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "admin", ignore = true)
+    @Mapping(target = "accionesRealizadas", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "departamentos", ignore = true)
+    @Mapping(target = "password", ignore = true)
     UserEntity toEntity(UserCreateDTO dto);
 
     @Override
     @Mapping(source = "departamentos", target = "departamentos")
-    @Mapping(target = "token", ignore = true)
     UserResponseDTO toDTO(UserEntity user);
 
 }

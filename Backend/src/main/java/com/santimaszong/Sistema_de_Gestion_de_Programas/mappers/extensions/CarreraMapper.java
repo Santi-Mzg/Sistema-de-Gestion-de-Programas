@@ -14,7 +14,8 @@ import org.mapstruct.Mapping;
         uses = {
                 ProgramaCarreraMapper.class,
                 UserToStringMapper.class,
-                UserReducedMapper.class
+                UserReducedMapper.class,
+                CarreraPlanMapper.class
         }
 )
 public interface CarreraMapper extends ToEntityMapper<CarreraCreateDTO, CarreraEntity>, ToDTOMapper<CarreraEntity, CarreraResponseDTO> {
@@ -23,12 +24,11 @@ public interface CarreraMapper extends ToEntityMapper<CarreraCreateDTO, CarreraE
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "departamento", ignore = true)
     @Mapping(target = "comision", ignore = true)
-    @Mapping(target = "materias", ignore = true)
+    @Mapping(target = "planes", ignore = true)
     CarreraEntity toEntity(CarreraCreateDTO dto);
 
     @Override
-    @Mapping(source = "materias", target = "materias")
-    @Mapping(source = "departamento.nombre", target = "departamento")
+    @Mapping(source = "planes", target = "planes")
     @Mapping(source = "comision.usuario", target = "comision")
     CarreraResponseDTO toDTO(CarreraEntity entity);
 }

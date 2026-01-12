@@ -10,6 +10,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoSer
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class AreaServiceImpl implements AreaService {
 
 
     @Override
+    @Transactional
     public AreaResponseDTO createArea(Long deptId, AreaCreateDTO areaDTO){
         AreaEntity areaEntity = areaMapper.toEntity(areaDTO);
 
@@ -44,6 +46,7 @@ public class AreaServiceImpl implements AreaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AreaResponseDTO getAreaById(Long id) {
         AreaEntity foundArea = areaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Area no existente"));;
@@ -52,12 +55,14 @@ public class AreaServiceImpl implements AreaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AreaEntity getEntityById(Long id) {
         return areaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Area no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AreaResponseDTO> listAreas() {
         List<AreaEntity> materias = areaRepository.findAll();
         return materias.stream()
@@ -66,17 +71,18 @@ public class AreaServiceImpl implements AreaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AreaResponseDTO> listAreasDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoService.getEntityById(id);
+        DepartamentoEntity departamento = departamentoService.findEntityWithAreasById(id);
 
-        List<AreaEntity> areas = departamento.getAreas();
-
-        return areas.stream()
+        return departamento.getAreas()
+                .stream()
                 .map(areaMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     };
 
     @Override
+    @Transactional
     public AreaResponseDTO updateArea(Long id, AreaCreateDTO areaDTO) {
         if(!areaRepository.existsById(id)) {
             throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
@@ -89,6 +95,7 @@ public class AreaServiceImpl implements AreaService {
     }
 
     @Override
+    @Transactional
     public void deleteArea(Long id) {
         areaRepository.deleteById(id);
     }

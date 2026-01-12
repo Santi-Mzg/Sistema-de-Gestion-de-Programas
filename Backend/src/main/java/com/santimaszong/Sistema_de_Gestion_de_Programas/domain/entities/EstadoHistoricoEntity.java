@@ -4,18 +4,8 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import java.time.LocalDateTime;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -31,7 +21,8 @@ public class EstadoHistoricoEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "programa_id", nullable = false)
+    @JoinColumn(name = "programa_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private ProgramaEntity programa;
 
     @Enumerated(EnumType.STRING)
@@ -39,11 +30,15 @@ public class EstadoHistoricoEntity {
 
     private LocalDateTime fecha;
 
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT")
     private String justificacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "realizado_por_id", nullable = false)
     private UserEntity realizadoPor;
+
+    private Rol actorRol;
+
+    private String departamentoName;
 
 }

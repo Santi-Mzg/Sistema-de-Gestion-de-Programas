@@ -7,11 +7,14 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Departam
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.MateriaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,19 +24,22 @@ public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
     private final DepartamentoService departamentoService;
+    private final CarreraService carreraService;
     private final AreaService areaService;
 
     private final MateriaMapper materiaMapper;
 
-    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoService departamentoService, AreaService areaService, MateriaMapper materiaMapper) {
+    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoService departamentoService, CarreraService carreraService, AreaService areaService, MateriaMapper materiaMapper) {
         this.materiaRepository = materiaRepository;
         this.departamentoService = departamentoService;
+        this.carreraService = carreraService;
         this.areaService = areaService;
         this.materiaMapper = materiaMapper;
     }
 
 
     @Override
+    @Transactional
     public MateriaResponseDTO createMateria(Long deptId, MateriaCreateDTO materiaDTO){
         MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
 
@@ -51,6 +57,7 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MateriaResponseDTO getMateriaById(Long id) {
         MateriaEntity foundMateria = materiaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Materia no existente"));;
@@ -59,12 +66,14 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MateriaEntity getEntityById(Long id) {
         return materiaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Materia no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MateriaResponseDTO> listMaterias() {
         List<MateriaEntity> materias = materiaRepository.findAll();
         return materias.stream()
@@ -73,22 +82,35 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MateriaResponseDTO> listMateriasDepartamento(Long deptId) {
-        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
+        DepartamentoEntity departamento = departamentoService.findEntityWithMateriasById(deptId);
 
-        List<MateriaEntity> materias = departamento.getMaterias();
-
-        return materias.stream()
+        return departamento.getMaterias()
+                .stream()
                 .map(materiaMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     };
 
     @Override
+    @Transactional(readOnly = true)
+    public List<MateriaResponseDTO> listMateriasCarreraPlan(Long carreraId) {
+        List<MateriaEntity> materias = carreraService.listMateriasCarreraPlan(carreraId);
+
+        return materias
+                .stream()
+                .map(materiaMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<MateriaEntity> listEntities(List<Long> ids) {
         return materiaRepository.findAllById(ids);
     }
 
     @Override
+    @Transactional
     public MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materiaDTO) {
         if(!materiaRepository.existsById(id)) {
             throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
@@ -101,6 +123,7 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     @Override
+    @Transactional
     public void deleteMateria(Long id) {
         materiaRepository.deleteById(id);
     }

@@ -13,6 +13,7 @@ public interface MateriaService {
     List<MateriaEntity> listEntities(List<Long> ids);
     List<MateriaResponseDTO> listMaterias();
     List<MateriaResponseDTO> listMateriasDepartamento(Long deptId);
+    List<MateriaResponseDTO> listMateriasCarreraPlan(Long carreraId);
     MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materia);
     void deleteMateria(Long id);
 }

@@ -18,9 +18,14 @@ public interface DepartamentoService {
     DepartamentoResponseDTO getDepartamentoById(Long id);
     DepartamentoEntity getEntityById(Long id);
     List<DepartamentoResponseDTO> listDepartamentos();
+    List<DepartamentoEntity> listEntities();
     DepartamentoResponseDTO updateDepartamento(Long id, DepartamentoCreateDTO user);
     void updateSecretaria(Long id, DepartamentoUpdateCargoDTO departamentoDTO);
     void updateDireccionAdministrativa(Long id, DepartamentoUpdateCargoDTO departamentoDTO);
     DepartamentoResponseDTO updateAdministracionDepartamento(Long id, DepartamentoCreateDTO departamentoDTO);
     void deleteDepartamento(Long id);
+
+    DepartamentoEntity findEntityWithAreasById(Long id);
+    DepartamentoEntity findEntityWithCarrerasById(Long id);
+    DepartamentoEntity findEntityWithMateriasById(Long id);
 }

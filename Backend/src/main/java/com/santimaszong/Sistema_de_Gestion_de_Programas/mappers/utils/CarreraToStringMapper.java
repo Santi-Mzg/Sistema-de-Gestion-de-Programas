@@ -11,10 +11,10 @@ public interface CarreraToStringMapper {
 
 
     @Named("carrerasToString")
-    default List<Long> carrerasToString(List<CarreraEntity> carreras) {
+    default List<String> carrerasToString(List<CarreraEntity> carreras) {
         if (carreras == null) return null;
         return carreras.stream()
-                .map(CarreraEntity::getId)
+                .map(CarreraEntity::getNombre)
                 .toList();
     }
 }

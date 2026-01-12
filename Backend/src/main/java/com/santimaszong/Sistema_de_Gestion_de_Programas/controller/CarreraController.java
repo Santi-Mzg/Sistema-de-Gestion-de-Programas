@@ -1,8 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraUpdateComisionDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import lombok.extern.java.Log;
@@ -40,14 +38,14 @@ public class CarreraController {
         return ResponseEntity.ok(foundCarrera);
     }
 
+    @GetMapping("/carreras")
+    public List<CarreraResponseDTO> listCarreras() {
+        return carreraService.listCarreras();
+    }
+
     @GetMapping("/departamentos/{deptId}/carreras")
     public List<CarreraResponseDTO> listCarrerasDepartamento(@PathVariable Long deptId) {
         return carreraService.listCarrerasDepartamento(deptId);
-    }
-
-    @GetMapping("/carreras/{id}/materias")
-    public List<MateriaResponseDTO> listMateriasCarrera(@PathVariable Long id) {
-        return carreraService.listMateriasByCarrera(id);
     }
 
     @PatchMapping("/carreras/{id}")
@@ -67,6 +65,22 @@ public class CarreraController {
     @DeleteMapping("/carreras/{id}")
     public ResponseEntity<Void> deleteCarrera(@PathVariable Long id) {
         carreraService.deleteCarrera(id);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    @PostMapping("/carreras/{id}/planes")
+    public ResponseEntity<CarreraPlanResponseDTO> createCarreraPlan(@PathVariable Long id, @RequestBody CarreraPlanCreateDTO plan) {
+        CarreraPlanResponseDTO createdPlan = carreraService.createCarreraPlan(id, plan);
+
+        return new ResponseEntity<>(createdPlan, HttpStatus.CREATED);
+    }
+
+
+    @DeleteMapping("/carreras/{id}/planes")
+    public ResponseEntity<Void> deleteCarreraPlan(@PathVariable Long id) {
+        carreraService.deleteCarreraPlan(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

@@ -7,7 +7,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartam
 import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
@@ -45,12 +45,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public UserResponseDTO createUser(Long deptId, UserCreateDTO userDTO){
         UserEntity user;
 
         if (userRepository.existsByLegajo(userDTO.getLegajo())) { // Si existe lo busco
 
-            user = userRepository.findByLegajo(userDTO.getLegajo())
+            user = userRepository.findByLegajoWithDepartamentos(userDTO.getLegajo())
                     .orElseThrow(() -> new EntityNotFoundException("El usuario con legajo " + userDTO.getLegajo()  + "no fue encontrado."));
 
 
@@ -91,6 +92,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
         UserEntity foundUser = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
@@ -99,26 +101,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserByLegajo(String legajo) {
-        UserEntity foundUser = userRepository.findByLegajo(legajo)
+        UserEntity foundUser = userRepository.findByLegajoWithDepartamentos(legajo)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
 
         return userMapper.toDTO(foundUser);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getEntityById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getEntityByLegajo(String legajo) {
         return userRepository.findByLegajo(legajo)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listUsers() {
         List<UserEntity> users = userRepository.findAll();
         return users.stream()
@@ -127,12 +133,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listUsersDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
-                .stream()
-                .map(UsuarioDepartamentoEntity::getUsuario)
-                .map(userMapper::toDTO)
-                .toList());
+        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
+                        .stream()
+                        .map(UsuarioDepartamentoEntity::getUsuario)
+                        .map(userMapper::toDTO)
+                        .toList();
 
         if(!auth.isAdmin()) {
             return userList.stream().filter(usuario -> !usuario.isAdmin())
@@ -143,13 +150,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listDocentesDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
                 .stream()
                 .filter(ude -> ude.hasRole(Rol.DOCENTE))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .map(userMapper::toDTO)
-                .toList());
+                .toList();
 
         if(!auth.isAdmin()) {
             return userList.stream().filter(usuario -> !usuario.isAdmin())
@@ -160,13 +168,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listAdministrativosDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
                 .stream()
                 .filter(ude -> ude.hasRole(Rol.ADMINISTRACION))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .map(userMapper::toDTO)
-                .toList());
+                .toList();
 
         if(!auth.isAdmin()) {
             return userList.stream().filter(usuario -> !usuario.isAdmin())
@@ -177,13 +186,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listSecretariosDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
                 .stream()
                 .filter(ude -> ude.hasRole(Rol.SECRETARIA))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .map(userMapper::toDTO)
-                .toList());
+                .toList();
 
         if(!auth.isAdmin()) {
             return userList.stream().filter(usuario -> !usuario.isAdmin())
@@ -194,13 +204,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> listCoordinadoresDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = new java.util.ArrayList<>(userDptoService.findByDepartamentoId(deptId)
+        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
                 .stream()
                 .filter(ude -> ude.hasRole(Rol.COORDINACION_COMISION_CURRICULAR))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .map(userMapper::toDTO)
-                .toList());
+                .toList();
 
         if(!auth.isAdmin()) {
             return userList.stream().filter(usuario -> !usuario.isAdmin())
@@ -211,6 +222,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDTO updateUser(Long id, UserCreateDTO userDTO) {
         if(!userRepository.existsById(id)) {
             throw new EntityNotFoundException("El usuario con ID " + id + " no fue encontrado.");
@@ -223,6 +235,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }

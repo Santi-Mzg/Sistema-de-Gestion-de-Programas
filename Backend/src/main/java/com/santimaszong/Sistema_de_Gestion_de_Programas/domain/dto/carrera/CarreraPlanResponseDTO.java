@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CarreraCreateDTO {
-    private String nombre;
-    private String duracion;
-    private String planAnio;
-    private Integer planVersion;
+public class CarreraPlanResponseDTO {
+    private Long id;
+    private String anio;
+    private Integer version;
 }

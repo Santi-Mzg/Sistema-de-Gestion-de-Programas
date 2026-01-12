@@ -42,6 +42,11 @@ public class MateriaController {
         return materiaService.listMateriasDepartamento(deptId);
     }
 
+    @GetMapping("/carreras/{carreraId}/materias")
+    public List<MateriaResponseDTO> listMateriasCarreraPlan(@PathVariable Long carreraId) {
+        return materiaService.listMateriasCarreraPlan(carreraId);
+    }
+
     @PutMapping("/materias/{id}")
     public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO program) {
         MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);

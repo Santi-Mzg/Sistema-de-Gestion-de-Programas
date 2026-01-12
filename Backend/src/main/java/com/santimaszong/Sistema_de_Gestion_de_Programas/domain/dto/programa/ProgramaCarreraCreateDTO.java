@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProgramaCarreraDTO {
+public class ProgramaCarreraCreateDTO {
 
     // --- BLOQUE MÚLTIPLE ---
     private String key;

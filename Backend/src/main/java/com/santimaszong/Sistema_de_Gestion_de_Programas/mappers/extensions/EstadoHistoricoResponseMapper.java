@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 @Mapper(
         componentModel = "spring",
         uses = {
-            UserMapper.class
+            UserReducedMapper.class
         }
 )
 public interface EstadoHistoricoResponseMapper extends ToDTOMapper<EstadoHistoricoEntity, EstadoHistoricoResponseDTO> {
@@ -19,7 +19,9 @@ public interface EstadoHistoricoResponseMapper extends ToDTOMapper<EstadoHistori
     @Mapping(source = "estado", target = "estado")
     @Mapping(source = "fecha", target = "fecha")
     @Mapping(source = "justificacion", target = "justificacion")
-    @Mapping(source = "realizadoPor", target = "realizadoPor")
+    @Mapping(source = "realizadoPor", target = "actor")
+    @Mapping(source = "actorRol", target = "actorRol")
+    @Mapping(source = "departamentoName", target = "departamentoName")
     EstadoHistoricoResponseDTO toDTO(EstadoHistoricoEntity entity);
 
 }

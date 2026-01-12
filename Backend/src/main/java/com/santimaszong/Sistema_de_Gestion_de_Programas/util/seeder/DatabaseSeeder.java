@@ -1,9 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.util.seeder;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +19,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final DepartamentoRepository departamentoRepository;
     private final CarreraRepository carreraRepository;
+    private final CarreraPlanRepository planRepository;
     private final MateriaRepository materiaRepository;
     private final ProgramaRepository programaRepository;
     private final UserRepository userRepository;
@@ -32,6 +30,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     public DatabaseSeeder(DepartamentoRepository departamentoRepository,
                           CarreraRepository carreraRepository,
+                          CarreraPlanRepository planRepository,
                           MateriaRepository materiaRepository,
                           ProgramaRepository programaRepository,
                           UserRepository userRepository,
@@ -40,6 +39,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         this.departamentoRepository = departamentoRepository;
         this.carreraRepository = carreraRepository;
+        this.planRepository = planRepository;
         this.materiaRepository = materiaRepository;
         this.programaRepository = programaRepository;
         this.userRepository = userRepository;
@@ -73,7 +73,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             crearUDE(admin, dept);
         });
 
-        userRepository.save(admin);
     }
 
     private void seedDepartamentosCarrerasMaterias() {
@@ -205,96 +204,96 @@ public class DatabaseSeeder implements CommandLineRunner {
         ///////////////////////////////////     C A R R E R A S      ///////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        crearCarrera("Ingeniería Agronómica", "10 Cuat.", "Plan 2026 - Versión 1", agronomia);
-        crearCarrera("Tecnicatura Superior Agraria en Suelos y Aguas", "5 Cuat.", "Plan 2026 - Versión 1", agronomia);
-        crearCarrera("Tecnicatura Universitaria Apícola", "6 Cuat.", "Plan 2008 - Versión 1", agronomia);
-        crearCarrera("Tecnicatura Universitaria en Parques y Jardines", "6 Cuat.", "Plan 2018 - Versión 2", agronomia);
+        crearCarrera("Ingeniería Agronómica", "10 Cuat.", "2026",1, agronomia);
+        crearCarrera("Tecnicatura Superior Agraria en Suelos y Aguas", "5 Cuat.", "2026",1, agronomia);
+        crearCarrera("Tecnicatura Universitaria Apícola", "6 Cuat.", "2008",1, agronomia);
+        crearCarrera("Tecnicatura Universitaria en Parques y Jardines", "6 Cuat.", "2018",2, agronomia);
 
-        crearCarrera("Bioquímica", "11 Cuat.", "Plan 2025 - Versión 1", biologia);
-        crearCarrera("Farmacia", "10 Cuat.", "Plan 2025 - Versión 1", biologia);
-        crearCarrera("Licenciatura en Ciencias Biológicas", "10 Cuat.", "Plan 2014 - Versión 2", biologia);
-        crearCarrera("Profesorado en Ciencias Biológicas", "8 Cuat.", "Plan 2020 - Versión 1", biologia);
+        crearCarrera("Bioquímica", "11 Cuat.", "2025",1, biologia);
+        crearCarrera("Farmacia", "10 Cuat.", "2025",1, biologia);
+        crearCarrera("Licenciatura en Ciencias Biológicas", "10 Cuat.", "2014",2, biologia);
+        crearCarrera("Profesorado en Ciencias Biológicas", "8 Cuat.", "2020",1, biologia);
 
-        crearCarrera("Contador Público", "10 Cuat.", "Plan 2016 - Versión 3", cienciasAdministracion);
-        crearCarrera("Licenciatura en Administración", "10 Cuat.", "Plan 2016 - Versión 2", cienciasAdministracion);
-        crearCarrera("Licenciatura en Gestión Universitaria", "10 Cuat.", "Plan 2018 - Versión 1", cienciasAdministracion);
-        crearCarrera("Profesorado en Educación Secundaria en Ciencias de la Administración", "8 Cuat.", "Plan 2022 - Versión 1", cienciasAdministracion);
-        crearCarrera("Profesorado en Educación Secundaria y Superior en Ciencias de la Administración", "10 Cuat.", "Plan 2022 - Versión 1", cienciasAdministracion);
-        crearCarrera("Tecnicatura Superior en Administración y Gestión de Recursos para Instituciones Universitarias", "6 Cuat.", "Plan 2011 - Versión 1", cienciasAdministracion);
+        crearCarrera("Contador Público", "10 Cuat.", "2016",3, cienciasAdministracion);
+        crearCarrera("Licenciatura en Administración", "10 Cuat.", "2016",2, cienciasAdministracion);
+        crearCarrera("Licenciatura en Gestión Universitaria", "10 Cuat.", "2018",1, cienciasAdministracion);
+        crearCarrera("Profesorado en Educación Secundaria en Ciencias de la Administración", "8 Cuat.", "2022",1, cienciasAdministracion);
+        crearCarrera("Profesorado en Educación Secundaria y Superior en Ciencias de la Administración", "10 Cuat.", "2022",1, cienciasAdministracion);
+        crearCarrera("Tecnicatura Superior en Administración y Gestión de Recursos para Instituciones Universitarias", "6 Cuat.", "2011",1, cienciasAdministracion);
 
-        crearCarrera("Licenciatura en Ciencias de la Educación", "10 Cuat.", "Plan 2014 - Versión 1", cienciasEducacion);
-        crearCarrera("Profesorado de Educación Inicial", "8 Cuat.", "Plan 2009 - Versión 1", cienciasEducacion);
-        crearCarrera("Profesorado de Educación Primaria", "8 Cuat.", "Plan 2009 - Versión 1", cienciasEducacion);
+        crearCarrera("Licenciatura en Ciencias de la Educación", "10 Cuat.", "2014",1, cienciasEducacion);
+        crearCarrera("Profesorado de Educación Inicial", "8 Cuat.", "2009",1, cienciasEducacion);
+        crearCarrera("Profesorado de Educación Primaria", "8 Cuat.", "2009",1, cienciasEducacion);
 
-        crearCarrera("Licenciatura en Enfermería", "10 Cuat.", "Plan 2024 - Versión 1", cienciasSalud);
-        crearCarrera("Licenciatura en Obstetricia", "-", "Plan 2024 - Versión 1", cienciasSalud);
-        crearCarrera("Medicina", "12 Cuat.", "Plan 2023 - Versión 1", cienciasSalud);
-        crearCarrera("Tecnicatura Universitaria en Acompañamiento Terapéutico", "6 Cuat.", "Plan 2021 - Versión 1", cienciasSalud);
+        crearCarrera("Licenciatura en Enfermería", "10 Cuat.", "2024",1, cienciasSalud);
+        crearCarrera("Licenciatura en Obstetricia", "-", "2024",1, cienciasSalud);
+        crearCarrera("Medicina", "12 Cuat.", "2023",1, cienciasSalud);
+        crearCarrera("Tecnicatura Universitaria en Acompañamiento Terapéutico", "6 Cuat.", "2021",1, cienciasSalud);
 
-        crearCarrera("Ingeniería en Computación", "10 Cuat.", "Plan 2013 - Versión 1", cienciasComputacion);
-        crearCarrera("Ingeniería en Sistemas de Información", "10 Cuat.", "Plan 2012 - Versión 1", cienciasComputacion);
-        crearCarrera("Licenciatura en Ciencias de la Computación", "10 Cuat.", "Plan 2012 - Versión 1", cienciasComputacion);
-        crearCarrera("Tecnicatura Universitaria en Programación Web y Móvil", "5 Cuat.", "Plan 2023 - Versión 1", cienciasComputacion);
+        crearCarrera("Ingeniería en Computación", "10 Cuat.", "2013",1, cienciasComputacion);
+        crearCarrera("Ingeniería en Sistemas de Información", "10 Cuat.", "2012",1, cienciasComputacion);
+        crearCarrera("Licenciatura en Ciencias de la Computación", "10 Cuat.", "2012",1, cienciasComputacion);
+        crearCarrera("Tecnicatura Universitaria en Programación Web y Móvil", "5 Cuat.", "2023",1, cienciasComputacion);
 
-        crearCarrera("Abogacía", "10 Cuat.", "Plan 2020 - Versión 2", derecho);
-        crearCarrera("Licenciatura en Seguridad Pública", "4 Cuat.", "Plan 2018 - Versión 1", derecho);
-        crearCarrera("Licenciatura en Seguridad Pública - A Distancia", "4 Cuat.", "Plan 2024 - Versión 1", derecho);
+        crearCarrera("Abogacía", "10 Cuat.", "2020",2, derecho);
+        crearCarrera("Licenciatura en Seguridad Pública", "4 Cuat.", "2018",1, derecho);
+        crearCarrera("Licenciatura en Seguridad Pública - A Distancia", "4 Cuat.", "2024",1, derecho);
 
-        crearCarrera("Licenciatura en Economía", "9 Cuat.", "Plan 2025 - Versión 1", economia);
-        crearCarrera("Profesorado en Economía", "10 Cuat.", "Plan 2020 - Versión 1", economia);
-        crearCarrera("Profesorado en Economía para la Enseñanza Secundaria", "8 Cuat.", "Plan 2020 - Versión 1", economia);
-        crearCarrera("Tecnicatura Universitaria en Deporte", "6 Cuat.", "Plan 2023 - Versión 1", economia);
-        crearCarrera("Tecnicatura Universitaria en Economía y Gestión de Empresas Alimentarias", "6 Cuat.", "Plan 2020 - Versión 1", economia);
+        crearCarrera("Licenciatura en Economía", "9 Cuat.", "2025",1, economia);
+        crearCarrera("Profesorado en Economía", "10 Cuat.", "2020",1, economia);
+        crearCarrera("Profesorado en Economía para la Enseñanza Secundaria", "8 Cuat.", "2020",1, economia);
+        crearCarrera("Tecnicatura Universitaria en Deporte", "6 Cuat.", "2023",1, economia);
+        crearCarrera("Tecnicatura Universitaria en Economía y Gestión de Empresas Alimentarias", "6 Cuat.", "2020",1, economia);
 
-        crearCarrera("Licenciatura en Física", "10 Cuat.", "Plan 2024 - Versión 2", fisica);
-        crearCarrera("Licenciatura en Geofísica", "10 Cuat.", "Plan 2024 - Versión 2", fisica);
-        crearCarrera("Licenciatura en Óptica y Contactología", "8 Cuat.", "Plan 2019 - Versión 1", fisica);
-        crearCarrera("Profesorado en Física", "8 Cuat.", "Plan 2024 - Versión 2", fisica);
-        crearCarrera("Tecnicatura Universitaria en Óptica", "6 Cuat.", "Plan 2018 - Versión 1", fisica);
+        crearCarrera("Licenciatura en Física", "10 Cuat.", "2024",2, fisica);
+        crearCarrera("Licenciatura en Geofísica", "10 Cuat.", "2024",2, fisica);
+        crearCarrera("Licenciatura en Óptica y Contactología", "8 Cuat.", "2019",1, fisica);
+        crearCarrera("Profesorado en Física", "8 Cuat.", "2024",2, fisica);
+        crearCarrera("Tecnicatura Universitaria en Óptica", "6 Cuat.", "2018",1, fisica);
 
-        crearCarrera("Arquitectura", "10 Cuat.", "Plan 2016 - Versión 2",geografiaTurismo);
-        crearCarrera("Licenciatura en Geografía", "10 Cuat.", "Plan 2025 - Versión 1", geografiaTurismo);
-        crearCarrera("Licenciatura en Oceanografía", "10 Cuat.", "Plan 2019 - Versión 1", geografiaTurismo);
-        crearCarrera("Licenciatura en Turismo", "9 Cuat.", "Plan 2025 - Versión 1", geografiaTurismo);
-        crearCarrera("Profesorado en Geografía", "9 Cuat.", "Plan 2010 - Versión 1", geografiaTurismo);
-        crearCarrera("Profesorado Universitario en Geografía", "10 Cuat.", "Plan 2025 - Versión 1",geografiaTurismo);
-        crearCarrera("Tecnicatura Universitaria en Cartografía, Teledetección y Sistemas de Información Geográfica", "6 Cuat.", "Plan 2011 - Versión 2",geografiaTurismo);
-        crearCarrera("Tecnicatura Universitaria en Oceanografía", "6 Cuat.", "Plan 2024 - Versión 1",geografiaTurismo);
+        crearCarrera("Arquitectura", "10 Cuat.", "2016",2,geografiaTurismo);
+        crearCarrera("Licenciatura en Geografía", "10 Cuat.", "2025",1, geografiaTurismo);
+        crearCarrera("Licenciatura en Oceanografía", "10 Cuat.", "2019",1, geografiaTurismo);
+        crearCarrera("Licenciatura en Turismo", "9 Cuat.", "2025",1, geografiaTurismo);
+        crearCarrera("Profesorado en Geografía", "9 Cuat.", "2010",1, geografiaTurismo);
+        crearCarrera("Profesorado Universitario en Geografía", "10 Cuat.", "2025",1,geografiaTurismo);
+        crearCarrera("Tecnicatura Universitaria en Cartografía, Teledetección y Sistemas de Información Geográfica", "6 Cuat.", "2011",2,geografiaTurismo);
+        crearCarrera("Tecnicatura Universitaria en Oceanografía", "6 Cuat.", "2024",1,geografiaTurismo);
 
-        crearCarrera("Licenciatura en Ciencias Geológicas", "10 Cuat.","Plan 2023 - Versión 1", geologia);
-        crearCarrera("Profesorado en Geociencias", "8 Cuat.", "Plan 2020 - Versión 1",geologia);
-        crearCarrera("Tecnicatura Universitaria en Medio Ambiente", "6 Cuat.","Plan 2015 - Versión 1", geologia);
+        crearCarrera("Licenciatura en Ciencias Geológicas", "10 Cuat.","2023",1, geologia);
+        crearCarrera("Profesorado en Geociencias", "8 Cuat.", "2020",1,geologia);
+        crearCarrera("Tecnicatura Universitaria en Medio Ambiente", "6 Cuat.","2015",1, geologia);
 
-        crearCarrera("Licenciatura en Filosofía", "10 Cuat.","Plan 2006 - Versión 2", humanidades);
-        crearCarrera("Licenciatura en Historia", "10 Cuat.","Plan 2002 - Versión 2", humanidades);
-        crearCarrera("Licenciatura en Letras", "10 Cuat.","Plan 2006 - Versión 2", humanidades);
-        crearCarrera("Profesorado en Filosofía", "10 Cuat.","Plan 2006 - Versión 3", humanidades);
-        crearCarrera("Profesorado en Historia", "10 Cuat.","Plan 2002 - Versión 3", humanidades);
-        crearCarrera("Profesorado en Letras", "10 Cuat.","Plan 2006 - Versión 3", humanidades);
+        crearCarrera("Licenciatura en Filosofía", "10 Cuat.","2006",2, humanidades);
+        crearCarrera("Licenciatura en Historia", "10 Cuat.","2002",2, humanidades);
+        crearCarrera("Licenciatura en Letras", "10 Cuat.","2006",2, humanidades);
+        crearCarrera("Profesorado en Filosofía", "10 Cuat.","2006",3, humanidades);
+        crearCarrera("Profesorado en Historia", "10 Cuat.","2002",3, humanidades);
+        crearCarrera("Profesorado en Letras", "10 Cuat.","2006",3, humanidades);
 
-        crearCarrera("Agrimensura", "10 Cuat.","Plan 2011 - Versión 1", ingenieria);
-        crearCarrera("Ingeniería Civil", "10 Cuat.", "Plan 2025 - Versión 1", ingenieria);
-        crearCarrera("Ingeniería Industrial", "10 Cuat.", "Plan 2026 - Versión 1", ingenieria);
-        crearCarrera("Ingeniería Mecánica", "10 Cuat.", "Plan 2025 - Versión 1", ingenieria);
+        crearCarrera("Agrimensura", "10 Cuat.","2011",1, ingenieria);
+        crearCarrera("Ingeniería Civil", "10 Cuat.", "2025",1, ingenieria);
+        crearCarrera("Ingeniería Industrial", "10 Cuat.", "2026",1, ingenieria);
+        crearCarrera("Ingeniería Mecánica", "10 Cuat.", "2025",1, ingenieria);
 
-        crearCarrera("Ingeniería Electricista", "10 Cuat.", "Plan 2025 - Versión 1", ingenieriaElectrica);
-        crearCarrera("Ingeniería Electrónica", "10 Cuat.", "Plan 2025 - Versión 1", ingenieriaElectrica);
-        crearCarrera("Ingeniería en Telecomunicaciones", "10 Cuat.", "Plan 2023 - Versión 1", ingenieriaElectrica);
-        crearCarrera("Tecnicatura Universitaria en Sistemas Electrónicos Industriales Inteligentes", "6 Cuat.", "Plan 2024 - Versión 1", ingenieriaElectrica);
+        crearCarrera("Ingeniería Electricista", "10 Cuat.", "2025",1, ingenieriaElectrica);
+        crearCarrera("Ingeniería Electrónica", "10 Cuat.", "2025",1, ingenieriaElectrica);
+        crearCarrera("Ingeniería en Telecomunicaciones", "10 Cuat.", "2023",1, ingenieriaElectrica);
+        crearCarrera("Tecnicatura Universitaria en Sistemas Electrónicos Industriales Inteligentes", "6 Cuat.", "2024",1, ingenieriaElectrica);
 
-        crearCarrera("Ingeniería en Alimentos", "10 Cuat.", "Plan 2025 - Versión 1", ingenieriaQuimica);
-        crearCarrera("Ingeniería Química", "10 Cuat.", "Plan 2024 - Versión 1", ingenieriaQuimica);
-        crearCarrera("Tecnicatura Universitaria en Operaciones Industriales", "6 Cuat.", "Plan 2026 - Versión 1", ingenieriaQuimica);
-        crearCarrera("Tecnicatura Universitaria en Petróleo y Gas", "6 Cuat.", "Plan 2025 - Versión 1", ingenieriaQuimica);
+        crearCarrera("Ingeniería en Alimentos", "10 Cuat.", "2025",1, ingenieriaQuimica);
+        crearCarrera("Ingeniería Química", "10 Cuat.", "2024",1, ingenieriaQuimica);
+        crearCarrera("Tecnicatura Universitaria en Operaciones Industriales", "6 Cuat.", "2026",1, ingenieriaQuimica);
+        crearCarrera("Tecnicatura Universitaria en Petróleo y Gas", "6 Cuat.", "2025",1, ingenieriaQuimica);
 
-        crearCarrera("Licenciatura en Matemática", "10 Cuat.", "Plan 2023 - Versión 1", matematica);
-        crearCarrera("Licenciatura en Matemática Aplicada", "10 Cuat.", "Plan 2023 - Versión 1", matematica);
-        crearCarrera("Profesorado en Matemática", "8 Cuat.", "Plan 2023 - Versión 1", matematica);
+        crearCarrera("Licenciatura en Matemática", "10 Cuat.", "2023",1, matematica);
+        crearCarrera("Licenciatura en Matemática Aplicada", "10 Cuat.", "2023",1, matematica);
+        crearCarrera("Profesorado en Matemática", "8 Cuat.", "2023",1, matematica);
 
-        crearCarrera("Licenciatura en Ciencias Ambientales", "10 Cuat.", "Plan 2015 - Versión 1", quimica);
-        crearCarrera("Licenciatura en Química", "10 Cuat.", "Plan 2023 - Versión 1", quimica);
-        crearCarrera("Profesorado en Química", "10 Cuat.", "Plan 2005 - Versión 3", quimica);
-        crearCarrera("Profesorado en Química de la Enseñanza Media", "8 Cuat.", "Plan 2009 - Versión 2", quimica);
+        crearCarrera("Licenciatura en Ciencias Ambientales", "10 Cuat.", "2015",1, quimica);
+        crearCarrera("Licenciatura en Química", "10 Cuat.", "2023",1, quimica);
+        crearCarrera("Profesorado en Química", "10 Cuat.", "2005",3, quimica);
+        crearCarrera("Profesorado en Química de la Enseñanza Media", "8 Cuat.", "2009",2, quimica);
     }
 
 
@@ -302,15 +301,21 @@ public class DatabaseSeeder implements CommandLineRunner {
     private void crearCarrera(
             String nombre,
             String duracion,
-            String plan,
+            String planAnio,
+            Integer planVersion,
             DepartamentoEntity departamento
     ) {
         CarreraEntity carrera = new CarreraEntity();
         carrera.setNombre(nombre);
         carrera.setDuracion(duracion);
-        carrera.setPlan(plan);
         carrera.setDepartamento(departamento);
         carreraRepository.save(carrera);
+
+        CarreraPlanEntity plan = new CarreraPlanEntity();
+        plan.setAnio(planAnio);
+        plan.setVersion(planVersion);
+        plan.setCarrera(carrera);
+        planRepository.save(plan);
     }
 
     private DepartamentoEntity crearDepartamento(
@@ -333,7 +338,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 Rol.DOCENTE,
                 Rol.COORDINACION_COMISION_CURRICULAR,
                 Rol.SECRETARIA,
-                Rol.DIRECCION_ADMINISTRATIVA
+                Rol.DIRECCION_ADMINISTRATIVA,
+                Rol.SYSTEM_ADMIN
         );
 
         UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
@@ -342,6 +348,5 @@ public class DatabaseSeeder implements CommandLineRunner {
         ude.setEmail("");
         ude.setRoles(roles);
         udeRepository.save(ude);
-        user.getDepartamentos().add(ude);
     }
 }

@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,13 +13,22 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="programas")
+@Table(
+    name="programas",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_materia_anio",
+            columnNames = {"materia_id", "anio"}
+        )
+    }
+)
 public class ProgramaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Integer anio;
 
     // --- BLOQUE ÚNICO ---
@@ -30,8 +40,9 @@ public class ProgramaEntity {
     @JoinColumn(name = "profesor_responsable_id")
     private UsuarioDepartamentoEntity profesorResponsable;
 
+
     // --- BLOQUE MÚLTIPLE ---
-    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProgramaCarreraEntity> bloqueMultiple = new ArrayList<>();
 
     // --- BLOQUE ÚNICO ---
@@ -41,26 +52,43 @@ public class ProgramaEntity {
     private Integer creditos;
     private Integer cantidadSemanas;
 
+    @Column(columnDefinition = "TEXT")
     private String fundamentacion;
+
+    @Column(columnDefinition = "TEXT")
     private String objetivos;
+
+    @Column(columnDefinition = "TEXT")
     private String programaAnalitico;
+
+    @Column(columnDefinition = "TEXT")
     private String metodologia;
+
+    @Column(columnDefinition = "TEXT")
     private String modalidadEvaluacion;
+
+    @Column(columnDefinition = "TEXT")
     private String bibliografia;
 
     @Enumerated(EnumType.STRING)
     private EstadoPrograma estadoActual;
 
-    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("fecha ASC")
     private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
 
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
 
-    public void registrarNuevoEstado(EstadoPrograma estado, UserEntity actor, String justificacion){
+
+
+    public void registrarNuevoEstado(EstadoPrograma estado, UserEntity actor, Rol actorRol, String deptName, String justificacion){
         EstadoHistoricoEntity nuevoEstadoHistorico = new EstadoHistoricoEntity();
         nuevoEstadoHistorico.setPrograma(this);
         nuevoEstadoHistorico.setEstado(estado);
         nuevoEstadoHistorico.setRealizadoPor(actor);
+        nuevoEstadoHistorico.setActorRol(actorRol);
+        nuevoEstadoHistorico.setDepartamentoName(deptName);
         nuevoEstadoHistorico.setJustificacion(justificacion);
         nuevoEstadoHistorico.setFecha(LocalDateTime.now());
 

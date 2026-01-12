@@ -9,6 +9,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserReposit
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -58,5 +59,11 @@ public class UsuarioDepartamentoServiceImpl implements UsuarioDepartamentoServic
         return userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
     }
+
+    @Override
+    public List<UsuarioDepartamentoEntity> findFullByDepartamentoId(Long deptId) {
+        return udeRepo.findFullByDepartamentoId(deptId);
+    }
+
 
 }

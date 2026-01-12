@@ -1,61 +1,85 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraCreateDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraUpdateComisionDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.CarreraMapper;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.CarreraPlanMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraPlanRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UsuarioDepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class CarreraServiceImpl implements CarreraService {
 
     private final CarreraRepository carreraRepository;
+    private final CarreraPlanRepository planRepository;
     private final DepartamentoService departamentoService;
     private final UserRepository userRepository;
     private final CarreraMapper carreraMapper;
-    private final MateriaMapper materiaMapper;
+    private final CarreraPlanMapper planMapper;
 
-
-    public CarreraServiceImpl(CarreraRepository carreraRepository, DepartamentoService departamentoService, UserRepository userRepository, CarreraMapper carreraMapper, MateriaMapper materiaMapper) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository,
+                              CarreraPlanRepository planRepository,
+                              DepartamentoService departamentoService,
+                              UserRepository userRepository,
+                              CarreraMapper carreraMapper,
+                              CarreraPlanMapper planMapper) {
         this.carreraRepository = carreraRepository;
+        this.planRepository = planRepository;
         this.departamentoService = departamentoService;
         this.userRepository = userRepository;
         this.carreraMapper = carreraMapper;
-        this.materiaMapper = materiaMapper;
+        this.planMapper = planMapper;
     }
 
 
     @Override
+    @Transactional
     public CarreraResponseDTO createCarrera(Long deptId, CarreraCreateDTO carreraDTO){
         CarreraEntity carreraEntity = carreraMapper.toEntity(carreraDTO);
 
         DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
-
         carreraEntity.setDepartamento(departamento);
+
         CarreraEntity createdCarreraEntity = carreraRepository.save(carreraEntity);
+
+        CarreraPlanEntity plan = new CarreraPlanEntity();
+        plan.setAnio(carreraDTO.getPlanAnio());
+        plan.setVersion(carreraDTO.getPlanVersion());
+        plan.setCarrera(carreraEntity);
+
+        planRepository.save(plan);
 
         return carreraMapper.toDTO(createdCarreraEntity);
     }
 
     @Override
+    @Transactional
+    public CarreraPlanResponseDTO createCarreraPlan(Long carreraId, CarreraPlanCreateDTO planDTO){
+        CarreraPlanEntity planEntity = planMapper.toEntity(planDTO);
+
+        CarreraEntity carrera = carreraRepository.findById(carreraId)
+                .orElseThrow(() -> new EntityNotFoundException("Carrera no encontrada"));
+
+        planEntity.setCarrera(carrera);
+
+        CarreraPlanEntity createdPlanEntity = planRepository.save(planEntity);
+
+        return planMapper.toDTO(createdPlanEntity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CarreraResponseDTO getCarreraById(Long id) {
         CarreraEntity foundCarrera = carreraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
@@ -64,12 +88,21 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
-    public CarreraEntity getEntityById(Long id) {
+    @Transactional(readOnly = true)
+    public CarreraEntity getCarreraEntityById(Long id) {
         return carreraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public CarreraPlanEntity getPlanEntityById(Long id) {
+        return planRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Plan no existente"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<CarreraResponseDTO> listCarreras() {
         List<CarreraEntity> carreras = carreraRepository.findAll();
         return carreras.stream()
@@ -78,35 +111,37 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CarreraResponseDTO> listCarrerasDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoService.getEntityById(id);
+        DepartamentoEntity departamento = departamentoService.findEntityWithCarrerasById(id);
 
-        List<CarreraEntity> carreras = departamento.getCarreras();
-
-        return carreras.stream()
+        return departamento.getCarreras()
+                .stream()
                 .map(carreraMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     };
 
     @Override
-    public List<MateriaResponseDTO> listMateriasByCarrera(@PathVariable Long id) {
-        CarreraEntity carrera = carreraRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Carrera no encontrada"));
+    @Transactional(readOnly = true)
+    public List<MateriaEntity> listMateriasCarreraPlan(Long id) {
+        return planRepository.findMateriasByCarreraPlanId(id);
+    }
 
-        Stream<MateriaEntity> materias = carrera.getMaterias().stream()
-                .map(ProgramaCarreraEntity::getPrograma)
-                .map(ProgramaEntity::getMateria);
+    @Override
+    @Transactional(readOnly = true)
+    public CarreraResponseDTO findEntityWithPlanesById(Long id) {
+        CarreraEntity carrera = carreraRepository.findWithPlanesById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Carrera no existente"));
 
-        return materias.map(materiaMapper::toDTO)
-                .collect(Collectors.toList());
+        return carreraMapper.toDTO(carrera);
     }
 
 
     @Override
+    @Transactional
     public CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carreraDTO) {
         return carreraRepository.findById(id).map(existingCarrera -> {
             Optional.ofNullable(carreraDTO.getNombre()).ifPresent(existingCarrera::setNombre);
-            Optional.ofNullable(carreraDTO.getPlan()).ifPresent(existingCarrera::setPlan);
             Optional.ofNullable(carreraDTO.getDuracion()).ifPresent(existingCarrera::setDuracion);
 
             CarreraEntity savedCarreraEntity = carreraRepository.save(existingCarrera);
@@ -151,7 +186,14 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
+    @Transactional
     public void deleteCarrera(Long id) {
         carreraRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCarreraPlan(Long id) {
+        planRepository.deleteById(id);
     }
 }

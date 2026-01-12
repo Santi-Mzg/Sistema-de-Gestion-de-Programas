@@ -21,13 +21,13 @@ public class ProgramaCarreraEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programa_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private ProgramaEntity programa;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carrera_id")
-    private CarreraEntity carrera;
+    @JoinColumn(name = "carrera_plan_id")
+    private CarreraPlanEntity carreraPlan;
 
-    private String plan;
     private String ubicacionEnPlan;
 
     @ManyToMany
@@ -36,6 +36,7 @@ public class ProgramaCarreraEntity {
             joinColumns = @JoinColumn(name = "programa_carrera_id"),
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private List<MateriaEntity> correlativasFuertes = new ArrayList<>();
 
 
@@ -45,9 +46,13 @@ public class ProgramaCarreraEntity {
             joinColumns = @JoinColumn(name = "programa_carrera_id"),
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private List<MateriaEntity> correlativasDebiles = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
     private String contribucion;
+
+    @Column(columnDefinition = "TEXT")
     private String contenidosMinimos;
 
 }

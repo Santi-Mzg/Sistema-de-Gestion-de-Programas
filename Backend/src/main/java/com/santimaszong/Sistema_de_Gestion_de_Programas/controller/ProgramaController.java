@@ -6,9 +6,9 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.Prog
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
 import lombok.extern.java.Log;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +22,11 @@ import java.util.List;
 public class ProgramaController {
 
     private final ProgramaService programaService;
+    private final PdfGeneratorService pdfService;
 
-    public ProgramaController(ProgramaService programaService) {
+    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService) {
         this.programaService = programaService;
+        this.pdfService = pdfService;
     }
 
     @PostMapping("/programas")
@@ -53,13 +55,14 @@ public class ProgramaController {
         return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO, actor));
     }
 
-    @PatchMapping("/programas/{id}/estado")
-    public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long id,
+    @PatchMapping("/departamentos/{deptId}/programas/{id}/estado")
+    public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long deptId,
+                                                                @PathVariable Long id,
                                                                 @RequestBody EstadoUpdateDTO estadoUpdateDTO,
-                                                                @AuthenticationPrincipal UserEntity actor) {
-        ProgramaResponseDTO result = programaService.actualizarEstado(id, estadoUpdateDTO, actor);
+                                                                @RequestParam Rol rolActivo,
+                                                                Authentication auth) {
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(programaService.actualizarEstado(auth, deptId, id, estadoUpdateDTO, rolActivo));
     }
 
 
@@ -98,12 +101,16 @@ public class ProgramaController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-//    @GetMapping("/programas/{id}/historial")
-//    public List<ProgramaHistorialDTO> getHistorial(@PathVariable Long id) {
-//        return programaService.findByProgramaIdOrderByFechaAsc(id)
-//                .stream()
-//                .map(ProgramaHistorialDTO::from)
-//                .toList();
-//    }
+    @GetMapping("programas/{id}/pdf")
+    public ResponseEntity<byte[]> descargarPrograma(@PathVariable Long id) {
+        byte[] pdf = pdfService.generarPdf(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("programa.pdf").build());
+
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+    }
+
 
 }

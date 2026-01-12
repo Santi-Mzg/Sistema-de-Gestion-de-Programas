@@ -51,10 +51,10 @@ public class UserEntity implements UserDetails {
     // RELACIONES
     // ============================
 
-    @OneToMany(mappedBy = "realizadoPor")
+    @OneToMany(mappedBy = "realizadoPor", fetch = FetchType.LAZY)
     private List<EstadoHistoricoEntity> accionesRealizadas = new ArrayList<>();
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UsuarioDepartamentoEntity> departamentos = new ArrayList<>();
 
 

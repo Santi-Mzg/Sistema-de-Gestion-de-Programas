@@ -2,16 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,11 +24,8 @@ public class CarreraEntity {
     @Column(name = "duracion_carrera", nullable = false)
     private String duracion;
 
-    @Column(nullable = false)
-    private String plan;
-
-    @OneToMany(mappedBy = "carrera", fetch = FetchType.LAZY)
-    private List<ProgramaCarreraEntity> materias;
+    @OneToMany(mappedBy = "carrera", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CarreraPlanEntity> planes;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "departamento_id")

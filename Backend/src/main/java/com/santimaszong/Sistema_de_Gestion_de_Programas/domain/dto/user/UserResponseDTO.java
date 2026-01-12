@@ -22,7 +22,4 @@ public class UserResponseDTO {
     private boolean isAdmin;
 
     private List<UsuarioDepartamentoDTO> departamentos;
-
-    private String token;
-
 }

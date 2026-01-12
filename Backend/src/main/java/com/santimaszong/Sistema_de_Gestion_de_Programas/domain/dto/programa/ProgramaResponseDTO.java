@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseReducedDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class ProgramaResponseDTO {
     private UserResponseReducedDTO profesorResponsable;
 
     // --- BLOQUE MÚLTIPLE ---
-    private List<ProgramaCarreraDTO> bloqueMultiple;
+    private List<ProgramaCarreraResponseDTO> bloqueMultiple;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
@@ -36,7 +37,7 @@ public class ProgramaResponseDTO {
     private String modalidadEvaluacion;
     private String bibliografia;
 
-    private String estado;
+    private EstadoPrograma estado;
     private List<EstadoHistoricoResponseDTO> historialEstados;
 }
 
