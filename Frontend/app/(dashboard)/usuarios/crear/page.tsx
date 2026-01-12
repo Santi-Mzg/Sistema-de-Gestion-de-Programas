@@ -1,3 +1,5 @@
+"use client"
+
 import { UsuarioForm } from "@/components/forms/usuario-form";
 import { useRole } from "@/context/role-context";
 import { AlertCircle } from "lucide-react";

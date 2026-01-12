@@ -53,11 +53,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   })
 
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
-  const [formEstadoData, setFormEstadoData] = useState<EstadoUpdateDTO>({
-      accion: undefined,
-      destinoRechazo: undefined,
-      justificacion: "",
-  })
 
   const { mutate: mutateProfesor, isPending: isPendingProfesor } = useProfesorCarga({
     mutation: {
@@ -175,16 +170,16 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
 
   const handleRechazarConfirm = (justificacion: string) => {
-    setFormEstadoData({
+    const data = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
       destinoRechazo: EstadoUpdateDTODestinoRechazo.ADMINISTRACION,
       justificacion,
-    })
+    }
     setRechazDialogOpen(false)
     mutateEstado({
       deptId: activeDepartamento?.departamentoId ?? 0,
       id: id,
-      data: formEstadoData,
+      data: data,
       params: {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       }

@@ -37,11 +37,6 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
-  const [formEstadoData, setFormEstadoData] = useState<EstadoUpdateDTO>({
-      accion: undefined,
-      destinoRechazo: undefined,
-      justificacion: "",
-  })
 
   const { mutate, isPending } = useActualizarEstado({
     mutation: {
@@ -106,15 +101,16 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
   }
 
   const handleAceptar = () => {
-    setFormEstadoData({
+    const data = {
       accion: EstadoUpdateDTOAccion.APROBAR,
       destinoRechazo: undefined,
       justificacion: undefined,
-    })
+    }
+
     mutate({
       deptId: activeDepartamento?.departamentoId ?? 0,
       id: id,
-      data: formEstadoData,
+      data: data,
       params: {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       }
@@ -122,17 +118,18 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
   }
 
   const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
-    setFormEstadoData({
+    const data = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
       destinoRechazo: destino,
       justificacion: justificacion,
-    })
+    }
+
     setRechazDialogOpen(false)
-    console.log("RECHAZO "+JSON.stringify(formEstadoData))
+
     mutate({
       deptId: activeDepartamento?.departamentoId ?? 0,
       id: id,
-      data: formEstadoData,
+      data: data,
       params: {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       }
