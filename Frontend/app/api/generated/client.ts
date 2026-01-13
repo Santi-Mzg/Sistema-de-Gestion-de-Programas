@@ -2922,6 +2922,109 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const generarPDF = (
+    id: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<string>(
+      {url: `/api/programas/${id}/pdf`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGenerarPDFQueryKey = (id?: number,) => {
+    return [
+    `/api/programas/${id}/pdf`
+    ] as const;
+    }
+
+    
+export const getGenerarPDFQueryOptions = <TData = Awaited<ReturnType<typeof generarPDF>>, TError = unknown>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGenerarPDFQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof generarPDF>>> = ({ signal }) => generarPDF(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GenerarPDFQueryResult = NonNullable<Awaited<ReturnType<typeof generarPDF>>>
+export type GenerarPDFQueryError = unknown
+
+
+
+export function useGenerarPDF<TData = Awaited<ReturnType<typeof generarPDF>>, TError = unknown>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGenerarPDFQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGenerarPDFSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof generarPDF>>, TError = unknown>(id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGenerarPDFQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof generarPDF>>> = ({ signal }) => generarPDF(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GenerarPDFSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof generarPDF>>>
+export type GenerarPDFSuspenseQueryError = unknown
+
+
+
+export function useGenerarPDFSuspense<TData = Awaited<ReturnType<typeof generarPDF>>, TError = unknown>(
+ id: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof generarPDF>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGenerarPDFSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const getProgramaVigente = (
     materiaId: number,
  signal?: AbortSignal

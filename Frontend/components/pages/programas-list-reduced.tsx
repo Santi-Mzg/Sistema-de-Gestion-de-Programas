@@ -99,7 +99,7 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                         {programa.estado}
                       </span>
                     </td>
-                     <td className="px-6 py-4">
+                    <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"

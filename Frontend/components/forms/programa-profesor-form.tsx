@@ -15,7 +15,7 @@ import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
-import { RejectionInfoCard } from "../rejection-info-card"
+import { RejectionInfoCard } from "../ui/rejection-info-card"
 import { useQueryClient } from "@tanstack/react-query";
 
 interface SyllabusFormProps {

@@ -14,7 +14,7 @@ import { getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDeparta
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
-import { RejectionInfoCard } from "../rejection-info-card"
+import { RejectionInfoCard } from "../ui/rejection-info-card"
 import { useQueryClient } from "@tanstack/react-query";
 import { useRole } from "@/context/role-context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"

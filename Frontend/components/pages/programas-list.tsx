@@ -1,17 +1,20 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Plus } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Plus, Pencil, Eye, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
+import { getGenerarPDFQueryKey, useGenerarPDF } from "@/app/api/generated/client"
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
 }
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type SortField = "nombreMateria" | "codigoMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
@@ -86,6 +89,24 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
       default:
         return "bg-gray-100 text-gray-800 border-gray-300"
     }
+  }
+
+  const handleGenerarPDF = (programaId?: number) => {
+    if (!programaId) return;
+
+    window.open(
+      `${BACKEND_URL}/api/programas/${programaId}/pdf`,
+      "_blank"
+    );
+      // const carreraQuery = useGenerarPDF(programaId,
+      //   {
+      //     query: {
+      //       staleTime: 1000 * 60 * 5,
+      //       queryKey: getGenerarPDFQueryKey(programaId)
+      //     }
+      //   }
+      // );
+      // const carrera: CarreraResponseDTO | undefined = carreraQuery.data;
   }
 
   return (
@@ -224,6 +245,9 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
+                <th className="px-6 py-4 text-left">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -245,6 +269,34 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                       >
                         {programa.estado}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/programas/${programa.id}`)}
+                          className="border-2 hover:bg-primary hover:text-primary-foreground"
+                        >
+                            <>
+                              <Eye size={16} className="mr-1" />
+                              Ver
+                            </>
+                        </Button>
+                        {(activeRole === "SECRETARIA" || activeRole === "DIRECCION_ADMINISTRATIVA" || activeRole === "SYSTEM_ADMIN") && programa.estado === "APROBADO_POR_SECRETARIA" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleGenerarPDF(programa.id)}
+                            className="border-2 hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <>
+                              <FileText size={16} className="mr-1" />
+                              PDF
+                            </>
+                          </Button>
+                          )}
+                      </div>
                     </td>
                   </tr>
                 ))
