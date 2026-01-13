@@ -617,7 +617,7 @@ export function SyllabusCreationForm() {
               id="fundamentacion"
               value={formData?.fundamentacion}
               onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
-              placeholder="Justifica la importancia de esta Materia..."
+              placeholder="Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -631,7 +631,7 @@ export function SyllabusCreationForm() {
               id="objetivos"
               value={formData?.objetivos}
               onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
-              placeholder="Define los objetivos de aprendizaje..."
+              placeholder="Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico"
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -645,7 +645,7 @@ export function SyllabusCreationForm() {
               id="programa"
               value={formData?.programaAnalitico}
               onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
-              placeholder="Detalla el contenido temático del curso..."
+              placeholder="Indique la nómina de unidades temáticas y su desarrollo."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -659,7 +659,10 @@ export function SyllabusCreationForm() {
               id="metodologia"
               value={formData?.metodologia}
               onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
-              placeholder="Describe los métodos de enseñanza..."
+              placeholder="Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de
+                  prácticas de gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o
+                  visitas, trabajos de campo, etc.*
+                  "
               className="border-border focus:border-primary min-h-20 resize-none" 
               disabled
             />
