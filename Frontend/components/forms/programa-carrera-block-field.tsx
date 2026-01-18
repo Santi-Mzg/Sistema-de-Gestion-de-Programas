@@ -3,10 +3,25 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, X } from "lucide-react"
+import { AlertCircle, Check, ChevronsUpDown, X } from "lucide-react"
 import { CarreraResponseDTO, MateriaResponseDTO, ProgramaCarreraCreateDTO } from "@/app/api/generated/model"
 import { getListMateriasCarreraPlanQueryKey, useListMateriasCarreraPlan } from "@/app/api/generated/client"
 import React from "react"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Button } from "../ui/button"
+import { cn } from "@/lib/utils"
 
 interface ProgramaCarreraBlockProps {
   materiaId: number
@@ -25,7 +40,8 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
   onRemove,
 }: ProgramaCarreraBlockProps) {
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null);
-
+  const [open, setOpen] = useState(false);
+  
   useEffect(() => {
     if (block.carreraPlanId && carreras.length > 0) {
       const carreraEncontrada = carreras.find(c => 
@@ -114,29 +130,54 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 
       <div className="text-lg font-semibold text-primary">#{index + 1}</div>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 items-end">            
-        <div className="space-y-2">
-          <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
-            Carrera *
-          </Label>
-          <select
-            id={`carrera-${index}`}
-            value={selectedCarrera?.id ?? ""}
-            onChange={(e) => {
-              const carrera = carreras.find(c => c.id === Number(e.target.value)) ?? null;
-              setSelectedCarrera(carrera);
-              handleFieldChange("carreraPlanId", 0);
-            }}            
-            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            required
-          >
-            <option value="">Seleccionar carrera...</option>
-            {carreras.map((carrera) => (
-              <option key={carrera.id} value={carrera.id}>
-                {carrera.nombre}
-              </option>
-            ))}
-          </select>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+        {/* BUSCADOR DE CARRERA */}
+        <div className="flex flex-col space-y-2">
+          <Label className="text-sm font-semibold">Carrera *</Label>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between font-normal border-border"
+              >
+                {selectedCarrera 
+                  ? selectedCarrera.nombre 
+                  : "Seleccionar carrera..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+              <Command>
+                <CommandInput placeholder="Buscar..." />
+                <CommandList className="pointer-events-auto">
+                  <CommandEmpty>No se encontró la carrera.</CommandEmpty>
+                  <CommandGroup>
+                    {carreras.map((carrera) => (
+                      <CommandItem
+                        key={carrera.id}
+                        value={carrera.nombre} // El buscador filtra por este valor
+                        onSelect={() => {
+                          setSelectedCarrera(carrera)
+                          handleFieldChange("carreraPlanId", 0)
+                          setOpen(false)
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedCarrera?.id === carrera.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {carrera.nombre}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="space-y-2">

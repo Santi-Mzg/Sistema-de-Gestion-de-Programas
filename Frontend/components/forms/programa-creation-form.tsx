@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2, FileText, Plus } from "lucide-react"
+import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
 import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
@@ -19,9 +19,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRole } from "@/context/role-context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import LoadingOverlay from "../ui/loading-overlay"
-import { set } from "zod"
 import { ProgramaAnioExistenteDialog } from "../modals/programa-anio-existente-dialog"
-
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 export function SyllabusCreationForm() {
   const router = useRouter();
@@ -30,6 +42,9 @@ export function SyllabusCreationForm() {
   const queryClient = useQueryClient();
   const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
   const actualYear = new Date().getFullYear()
+
+  const [openMateriaSelector, setOpenMateriaSelector] = useState(false);
+  const [openProfesorSelector, setOpenProfesorSelector] = useState(false);
 
   const [showProgramaAnioExistente, setShowProgramaAnioExistente] = useState(false)
   const [loadingProgramaAnioExistente, setLoadingProgramaAnioExistente] = useState(false);
@@ -88,7 +103,8 @@ export function SyllabusCreationForm() {
   const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
 
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
-
+  const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined)
+  
   useEffect(() => {
     const total =
       (formData.cantidadSemanas || 0) *
@@ -593,27 +609,52 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">            
-            <div className="space-y-2">
-              <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
-                Materia *
-              </Label>
-              <select
-                id="materia"
-                value={formData.materiaId || ""}
-                onChange={(e) => {
-                  handleSingleFieldChange("materiaId", Number.parseInt(e.target.value))
-                  setSelectedMateria(materias.find(m => m.id === Number(e.target.value)) ?? undefined)
-                }}
-                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                required
-              >
-                <option value="">Seleccionar Materia...</option>
-                {materias.map((materia) => (
-                  <option key={materia.id} value={materia.id}>
-                    {materia.nombre}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-col space-y-2">
+              <Label className="text-sm font-semibold">Carrera *</Label>
+              <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openMateriaSelector}
+                    className="w-full justify-between font-normal border-border"
+                  >
+                    {selectedMateria 
+                      ? selectedMateria.nombre
+                      : "Seleccionar materia..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+                  <Command>
+                    <CommandInput placeholder="Buscar..." />
+                    <CommandList className="pointer-events-auto">
+                      <CommandEmpty>No se encontró la materia.</CommandEmpty>
+                      <CommandGroup>
+                        {materias.map((materia) => (
+                          <CommandItem
+                            key={materia.id}
+                            value={materia.nombre}
+                            onSelect={() => {
+                              setSelectedMateria(materia)
+                              handleSingleFieldChange("materiaId", materia.id)
+                              setOpenMateriaSelector(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedMateria?.id === materia.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {materia.nombre}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -645,24 +686,52 @@ export function SyllabusCreationForm() {
             </div>
           </div>
 
-          <div className="space-y-2 pt-6">
-            <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-              Profesor Responsable *
-            </Label>
-            <select
-              id="profesor"
-              value={formData.profesorResponsableId || ""}
-              onChange={(e) => handleSingleFieldChange("profesorResponsableId", Number.parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            >
-              <option value="">Seleccionar profesor...</option>
-              {profesores.map((profesor) => (
-                <option key={profesor.id} value={profesor.id}>
-                  {profesor.nombre}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col space-y-2">
+            <Label className="text-sm font-semibold">Profesor Responsable *</Label>
+            <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openProfesorSelector}
+                  className="w-full justify-between font-normal border-border"
+                >
+                  {selectedProfesor 
+                    ? selectedProfesor.nombre
+                    : "Seleccionar profesor..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+                <Command>
+                  <CommandInput placeholder="Buscar..." />
+                  <CommandList className="pointer-events-auto">
+                    <CommandEmpty>No se encontró la materia.</CommandEmpty>
+                    <CommandGroup>
+                      {profesores.map((profesor) => (
+                        <CommandItem
+                          key={profesor.id}
+                          value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
+                          onSelect={() => {
+                            setSelectedProfesor(profesor)
+                            handleSingleFieldChange("profesorId", profesor.id)
+                            setOpenProfesorSelector(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedProfesor?.id === profesor.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {profesor.apellido}, {profesor.nombre} (Legajo: {profesor.legajo})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
