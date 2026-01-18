@@ -8,7 +8,6 @@ import type { ProgramaCarreraCreateDTO } from './programaCarreraCreateDTO';
 
 export interface ProgramaCargaDTO {
   materiaId?: number;
-  anio?: number;
   profesorResponsableId?: number;
   bloqueMultiple?: ProgramaCarreraCreateDTO[];
   cargaHorariaTotal?: number;
@@ -22,5 +21,4 @@ export interface ProgramaCargaDTO {
   metodologia?: string;
   modalidadEvaluacion?: string;
   bibliografia?: string;
-  estado?: string;
 }

@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
@@ -8,6 +9,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Data
 @Entity
@@ -31,6 +33,7 @@ public class EstadoHistoricoEntity {
     private LocalDateTime fecha;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String justificacion;
 
     @ManyToOne(fetch = FetchType.LAZY)

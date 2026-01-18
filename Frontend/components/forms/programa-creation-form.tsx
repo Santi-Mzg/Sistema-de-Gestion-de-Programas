@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
+import { AlertCircle, CheckCircle2, FileText, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
 import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useCreatePrograma, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento } from "@/app/api/generated/client"
+import { getGetDraftQueryKey, getGetProgramaMateriaAnioQueryKey, getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useCreatePrograma, useDeleteDraft, useGetDraft, useGetProgramaMateriaAnio, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
@@ -18,18 +18,34 @@ import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query";
 import { useRole } from "@/context/role-context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import LoadingOverlay from "../ui/loading-overlay"
+import { set } from "zod"
+import { ProgramaAnioExistenteDialog } from "../modals/programa-anio-existente-dialog"
+
 
 export function SyllabusCreationForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const queryClient = useQueryClient();
-  const [showProgramaVigente, setShowProgramaVigente] = useState(false)
-  const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
   const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
   const actualYear = new Date().getFullYear()
+
+  const [showProgramaAnioExistente, setShowProgramaAnioExistente] = useState(false)
+  const [loadingProgramaAnioExistente, setLoadingProgramaAnioExistente] = useState(false);
+
+  const [showDraft, setShowDraft] = useState(false)
+  const [loadDraft, setLoadDraft] = useState(false);
+  const [loadingDraft, setLoadingDraft] = useState(false);
+
+  const [showProgramaVigente, setShowProgramaVigente] = useState(false)
+  const [loadProgramaVigente, setLoadProgramaVigente] = useState(false);
+  const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
+
+  const [isDirty, setIsDirty] = useState(false);
+  const [showCreationWarning, setShowCreationWarning] = useState(false);
+
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    anio: actualYear,
     materiaId: 0,
     profesorResponsableId: 0,
     bloqueMultiple: [],
@@ -51,16 +67,6 @@ export function SyllabusCreationForm() {
 
   const materias: MateriaResponseDTO[] | undefined = materiasQuery.data;
 
-  const programaVigenteQuery = useGetProgramaVigente(formData.materiaId ?? 0, {
-    query: {
-      enabled: !!formData.materiaId,
-      staleTime: 1000 * 60 * 5,
-      queryKey: getGetProgramaVigenteQueryKey(formData.materiaId),
-    },
-  })
-
-  const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
-
   const carrerasQuery = useListCarreras({
     query: {
       staleTime: 1000 * 60 * 5,
@@ -81,14 +87,7 @@ export function SyllabusCreationForm() {
 
   const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
 
-  useEffect(() => {
-    if (programaVigente && formData.materiaId && !showProgramaVigente) {
-      setShowProgramaVigente(true)
-    }
-  }, [programaVigente, formData.materiaId])
-
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
-
 
   useEffect(() => {
     const total =
@@ -99,18 +98,25 @@ export function SyllabusCreationForm() {
       ...prev,
       cargaHorariaTotal: total,
     }))
+    console.log(formData.cargaHorariaTotal)
+    console.log(total)
+
   }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
+
+  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate, isPending } = useCreatePrograma({
     mutation: {
-      onSuccess: () => {
+      onSuccess: async () => {
+
         toast({
           title: "✓ Éxito",
           description: "Programa cargado exitosamente",
           variant: "success",
-        })        
+        })    
+
         setFormData({
-          anio: actualYear,
           materiaId: 0,
           profesorResponsableId: 0,
           bloqueMultiple: [],
@@ -128,6 +134,14 @@ export function SyllabusCreationForm() {
         });
 
         router.push('/'); 
+
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
       },
       onError: (error: Error) => {
         toast({
@@ -168,8 +182,107 @@ export function SyllabusCreationForm() {
       return
     }
 
-    mutate({ data: formData });
+    if (programaAnioExistente) {
+      setShowCreationWarning(true);
+    } else {
+      mutate({ data: formData });
+    }
   }
+
+  useEffect(() => {
+    if (formData.materiaId){
+      setShowDraft(false);
+      setLoadDraft(false);
+      setShowProgramaVigente(false);
+      setShowCreationWarning(false);
+      setLoadProgramaVigente(false);
+    }   
+  }, [formData.materiaId]); 
+
+  const programaAnioExistenteQuery = useGetProgramaMateriaAnio(formData.materiaId ?? 0, {
+    query: {
+      enabled: !!formData.materiaId, 
+      staleTime: Infinity, 
+      retry: false,
+      queryKey: getGetProgramaMateriaAnioQueryKey(formData.materiaId)
+    }
+  });
+
+  useEffect(() => {
+    if (programaAnioExistenteQuery.data) {
+      setShowProgramaAnioExistente(true);
+    }
+  }, [programaAnioExistenteQuery.data]);
+
+  const programaAnioExistente: ProgramaResponseDTO | undefined = programaAnioExistenteQuery.data;
+
+
+  const draftQuery = useGetDraft(
+    activeDepartamento?.departamentoId ?? 0,
+    formData.materiaId ?? 0,
+    {
+      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+    },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId && !!formData.materiaId && loadDraft,
+        staleTime: Infinity,
+        retry: false, 
+        queryKey: getGetDraftQueryKey(
+          activeDepartamento!.departamentoId!,
+          formData.materiaId!,
+          {
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        )
+      }
+    }
+  );
+
+  useEffect(() => {
+    if (draftQuery.data?.payloadJson)       
+        setShowDraft(true);
+  }, [draftQuery.data]); 
+
+
+  const handleLoadDraft = () => {
+    if (!draftQuery.data?.payloadJson) return
+
+    setLoadingDraft(true)
+    try {
+      const draftData = JSON.parse(draftQuery.data.payloadJson)
+      setFormData(draftData)
+      setShowDraft(false)
+
+      toast({
+        title: "Borrador recuperado",
+        description: "Se restauró un borrador exitosamente",
+        variant: "info",
+      });
+    } catch (error) {
+      console.error("Error loading draft:", error)
+    } finally {
+      setLoadingDraft(false)
+    }
+  }
+
+  const programaVigenteQuery = useGetProgramaVigente(formData.materiaId ?? 0, {
+    query: {
+      enabled: !!formData.materiaId && loadProgramaVigente,
+      staleTime: Infinity,
+      retry: false,
+      queryKey: getGetProgramaVigenteQueryKey(formData.materiaId),
+    },
+  });
+
+  useEffect(() => {
+    if (programaVigenteQuery.data){
+      setShowProgramaVigente(true);
+    }
+  }, [programaVigenteQuery.data]);
+
+
+  const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
 
 
   const handleLoadProgramaVigente = async () => {
@@ -179,12 +292,11 @@ export function SyllabusCreationForm() {
     setSelectedMateria(programaVigente.materia)
     try {
       const mappedData: ProgramaCargaDTO = {
-        anio: actualYear,
         materiaId: formData.materiaId,
         profesorResponsableId: programaVigente.profesorResponsable?.id || 0,
         bloqueMultiple:
-          programaVigente.bloqueMultiple?.map((c) => ({
-            key: `${Date.now()}_${Math.random()}`,
+          programaVigente.bloqueMultiple?.map((c, idx) => ({
+            key: `${Date.now()}-${idx}-${Math.random()}`,
             carreraPlanId: c.plan?.id || 0,
             ubicacionEnPlan: c.ubicacionEnPlan || "",
             correlativasFuertesIds: c.correlativasFuertes?.map((cf) => cf.id).filter((id): id is number => id !== undefined) || [],
@@ -198,6 +310,7 @@ export function SyllabusCreationForm() {
         cantidadSemanas: programaVigente.cantidadSemanas || 0,
       }
       setFormData(mappedData)
+      setLoadProgramaVigente(false)
       setShowProgramaVigente(false)
     } catch (error) {
       console.error("Error loading previous program:", error)
@@ -205,6 +318,46 @@ export function SyllabusCreationForm() {
       setLoadingProgramaVigente(false)
     }
   }
+
+
+
+
+  const guardarBorrador = useCallback(() => {
+
+    mutateSaveDraft({
+      deptId: activeDepartamento!.departamentoId!,
+      materiaId: formData.materiaId!,
+      params: {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      },
+      data: {
+        payloadJson: JSON.stringify(formData),
+      },
+    });
+
+    setIsDirty(false);
+
+    toast({
+      description: "✓ Guardado",
+      variant: "draft",
+    })    
+  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
+
+  const debouncedSave = useCallback(() => {
+    const handler = setTimeout(() => {
+      guardarBorrador();
+    }, 2000); // 2 segundos
+
+    return () => clearTimeout(handler);
+  }, [guardarBorrador]);
+
+  useEffect(() => {
+      if (!isDirty) return;
+
+      const cancel = debouncedSave();
+
+      return cancel;
+  }, [isDirty, debouncedSave]);
 
 
   const handleAddProgramaCarrera = () => {
@@ -222,6 +375,7 @@ export function SyllabusCreationForm() {
         ...prev,
         bloqueMultiple: [newBlock, ...(prev.bloqueMultiple || [])]
     }));
+    setIsDirty(true);
   }
 
   const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
@@ -229,6 +383,7 @@ export function SyllabusCreationForm() {
       ...prev,
       bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
     }))
+    setIsDirty(true);
   }
 
 
@@ -241,13 +396,20 @@ export function SyllabusCreationForm() {
       ...prev,
       bloqueMultiple: updatedBlocks,
     }))
+    setIsDirty(true);
   }
+  console.log("showDraft", showDraft);
+  console.log("showProgramaVigente", showProgramaVigente);
+  console.log("loadingProgramaVigente", loadingProgramaVigente);
 
   const handleSingleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
+    
+    if(field !== "materiaId")
+      setIsDirty(true);
   }
 
 
@@ -365,7 +527,15 @@ export function SyllabusCreationForm() {
       )
     }
   
-
+    if (programaVigenteQuery.isLoading) {
+      return (
+        <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+            <div className="text-center relative">
+                <LoadingOverlay isLoading={programaVigenteQuery.isLoading} message="Comprobando si hay un programa anterior..." size="md" variant="overlay" />
+            </div>
+        </div>
+      )
+    }
 
   return (
     <>
@@ -379,9 +549,11 @@ export function SyllabusCreationForm() {
               {selectedMateria && selectedMateria.nombre +" ("+selectedMateria.codigo+")"}
             </p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
-            <CheckCircle2 className="text-primary" size={20} />
-            <span className="font-semibold text-primary">En proceso de carga</span>
+          <div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+              <CheckCircle2 className="text-primary" size={20} />
+              <span className="font-semibold text-primary">En proceso de carga</span>
+            </div>
           </div>
         </div>
       </div>
@@ -400,6 +572,7 @@ export function SyllabusCreationForm() {
                 name="departamento"
                 value={activeDepartamento?.departamentoNombre}
                 className="border-border focus:border-primary bg-background text-lg font-medium"
+                readOnly
                 required
               />
             </div>
@@ -411,8 +584,9 @@ export function SyllabusCreationForm() {
               <Input
                 id="anio"
                 name="anio"
-                value={formData.anio || actualYear}
+                value={actualYear}
                 className="border-border focus:border-primary bg-background"
+                readOnly
                 required
               />
             </div>
@@ -449,9 +623,10 @@ export function SyllabusCreationForm() {
               <Input
                 id="codigo"
                 type="text"
-                value={selectedMateria?.codigo ?? ""}
+                defaultValue={selectedMateria?.codigo ?? ""}
                 className="border-border focus:border-primary bg-background"
                 readOnly
+                required
               />
             </div>
 
@@ -462,9 +637,10 @@ export function SyllabusCreationForm() {
               <Input
                 id="area"
                 type="text"
-                value={selectedMateria?.area ?? ""}
+                defaultValue={selectedMateria?.area ?? ""}
                 className="border-border focus:border-primary bg-background"
                 readOnly
+                required
               />
             </div>
           </div>
@@ -602,7 +778,7 @@ export function SyllabusCreationForm() {
               onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              disabled
+              readOnly
             />
           </div>
         </div>
@@ -616,10 +792,9 @@ export function SyllabusCreationForm() {
             <Textarea
               id="fundamentacion"
               value={formData?.fundamentacion}
-              onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
               placeholder="Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento."
               className="border-border focus:border-primary min-h-20 resize-none"
-              disabled
+              readOnly
             />
           </div>
 
@@ -630,10 +805,9 @@ export function SyllabusCreationForm() {
             <Textarea
               id="objetivos"
               value={formData?.objetivos}
-              onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
               placeholder="Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico"
               className="border-border focus:border-primary min-h-20 resize-none"
-              disabled
+              readOnly
             />
           </div>
 
@@ -644,10 +818,9 @@ export function SyllabusCreationForm() {
             <Textarea
               id="programa"
               value={formData?.programaAnalitico}
-              onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
               placeholder="Indique la nómina de unidades temáticas y su desarrollo."
               className="border-border focus:border-primary min-h-20 resize-none"
-              disabled
+              readOnly
             />
           </div>
 
@@ -658,13 +831,12 @@ export function SyllabusCreationForm() {
             <Textarea
               id="metodologia"
               value={formData?.metodologia}
-              onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
               placeholder="Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de
                   prácticas de gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o
                   visitas, trabajos de campo, etc.*
                   "
               className="border-border focus:border-primary min-h-20 resize-none" 
-              disabled
+              readOnly
             />
           </div>
 
@@ -675,10 +847,9 @@ export function SyllabusCreationForm() {
             <Textarea
               id="evaluacion"
               value={formData?.modalidadEvaluacion}
-              onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
-              disabled
+              readOnly
             />
           </div>
 
@@ -689,10 +860,9 @@ export function SyllabusCreationForm() {
             <Textarea
               id="bibliografia"
               value={formData?.bibliografia}
-              onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
-              disabled
+              readOnly
             />
           </div>
         </div>
@@ -708,7 +878,7 @@ export function SyllabusCreationForm() {
             </Button>
             <Button
               type="button"
-              // onClick={onCancel}
+              onClick={() => router.back()}
               variant="outline"
               className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
             >
@@ -716,6 +886,21 @@ export function SyllabusCreationForm() {
             </Button>
           </div>
       </form>
+
+      <ProgramaAnioExistenteDialog
+        open={showProgramaAnioExistente}
+        onOpenChange={setShowProgramaAnioExistente}
+        programa={programaAnioExistente}
+        onConfirm={() => {
+          setShowProgramaAnioExistente(false)
+          setLoadDraft(true)
+        }}
+        onCancel={() => {
+          setShowProgramaAnioExistente(false)
+          handleSingleFieldChange("materiaId", 0)
+        }}
+        isLoading={loadingProgramaAnioExistente}
+      />
 
       <CargarProgramaVigenteDialog
         open={showProgramaVigente}
@@ -725,6 +910,75 @@ export function SyllabusCreationForm() {
         onCancel={() => setShowProgramaVigente(false)}
         isLoading={loadingProgramaVigente}
       />
+
+      <Dialog open={!!showCreationWarning} onOpenChange={(open: any) => !open && setShowCreationWarning(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
+              <AlertCircle size={24} />
+              Sobreescribir Programa 
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Al crear este programa se borrará el programa existente para la materia {programaAnioExistente?.materia?.nombre} en el año {programaAnioExistente?.anio}. ¿Desea continuar?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreationWarning(false)}
+              className="border-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowCreationWarning(false)
+                mutate({ data: formData })
+              }}
+              className="bg-destructive"
+            >
+              Cargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!showDraft} onOpenChange={(open: any) => !open && setShowDraft(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
+              <FileText size={24} />
+              Borrador Encontrado
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Se encontró un borrador. ¿Desea cargarlo?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDraft(false)
+                setLoadProgramaVigente(true)
+              }}
+              className="border-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleLoadDraft}
+              className="bg-destructive"
+            >
+              Cargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!removeProgramaCarreraIndex} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
         <DialogContent className="max-w-md">

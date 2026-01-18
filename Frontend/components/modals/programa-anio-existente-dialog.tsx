@@ -21,7 +21,7 @@ interface CargarProgramaVigenteDialogProps {
   isLoading?: boolean
 }
 
-export function CargarProgramaVigenteDialog({
+export function ProgramaAnioExistenteDialog({
   open,
   onOpenChange,
   programa,
@@ -38,9 +38,9 @@ export function CargarProgramaVigenteDialog({
               <AlertCircle className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <DialogTitle>Programa Anterior Encontrado</DialogTitle>
+              <DialogTitle>Programa Existente</DialogTitle>
               <DialogDescription className="text-sm mt-1">
-                Se encontró un programa anterior para esta materia
+                Ya existe un programa registrado para el año {programa?.anio}
               </DialogDescription>
             </div>
           </div>
@@ -56,27 +56,33 @@ export function CargarProgramaVigenteDialog({
               <span className="font-semibold text-foreground">Año:</span>{" "}
               <span className="text-muted-foreground">{programa.anio}</span>
             </p>
-            <p className="text-sm">
-              <span className="font-semibold text-foreground">Profesor:</span>{" "}
-              <span className="text-muted-foreground">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</span>
-            </p>
-            <p className="text-sm">
-              <span className="font-semibold text-foreground">Último estado:</span>{" "}
-              <span className="text-muted-foreground">
-                {programa.estado}
-              </span>
-            </p>
+            {programa.historialEstados && programa.historialEstados.length > 0 && (
+              <p className="text-sm">
+                <span className="font-semibold text-foreground">Estado:</span>{" "}
+                <span className="text-muted-foreground">
+                  {programa.historialEstados[0].estado}
+                </span>
+              </p>
+            )}
+            {programa.historialEstados && programa.historialEstados.length > 0 && (
+              <p className="text-sm">
+                <span className="font-semibold text-foreground">Última modificación:</span>{" "}
+                <span className="text-muted-foreground">
+                  {programa.historialEstados[0].fecha?.split("T")[0]}
+                </span>
+              </p>
+            )}
           </div>
         )}
 
-        <p className="text-sm text-foreground">¿Deseas cargar los datos de este programa para editarlos?</p>
+        <p className="text-sm text-foreground">Si crea un nuevo programa se borrará el existente ¿Desea continuar?</p>
 
         <DialogFooter className="flex gap-3 sm:gap-3">
           <Button variant="outline" onClick={onCancel} disabled={isLoading} className="flex-1 bg-transparent">
             Cancelar
           </Button>
           <Button onClick={onConfirm} disabled={isLoading} className="flex-1 bg-primary hover:bg-primary/90">
-            {isLoading ? "Cargando..." : "Sí, cargar programa"}
+            {isLoading ? "Cargando..." : "Continuar"}
           </Button>
         </DialogFooter>
       </DialogContent>

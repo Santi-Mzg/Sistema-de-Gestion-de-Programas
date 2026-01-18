@@ -13,7 +13,6 @@ public class ProgramaCargaDTO {
 
     // --- BLOQUE ÚNICO ---
     private Long materiaId;
-    private Integer anio;
     private Long profesorResponsableId;
 
     // --- BLOQUE MÚLTIPLE ---
@@ -32,6 +31,4 @@ public class ProgramaCargaDTO {
     private String metodologia;
     private String modalidadEvaluacion;
     private String bibliografia;
-
-    private String estado;
 }

@@ -28,8 +28,8 @@ export default function LoadingOverlay({
   }
 
   const variantClasses = {
-    overlay: "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm",
-    inline: "relative",
+    overlay: "fixed inset-0 z-50 bg-background/50 backdrop-blur-sm",
+    inline: "absolute inset-0 z-50 bg-background/50 backdrop-blur-sm",
     fullscreen: "fixed inset-0 z-50 bg-background",
   }
 

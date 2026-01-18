@@ -1,8 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
@@ -74,6 +72,15 @@ public class ProgramaController {
         return ResponseEntity.ok(foundProgram);
     }
 
+    @GetMapping("/materias/{materiaId}/programa-anio")
+    public ResponseEntity<ProgramaResponseDTO> getProgramaMateriaAnio(
+            @PathVariable Long materiaId
+    ) {
+        ProgramaResponseDTO foundProgram = programaService.getByMateriaIdAndAnio(materiaId);
+
+        return ResponseEntity.ok(foundProgram);
+    }
+
     @GetMapping("/materias/{materiaId}/programa-vigente")
     public ResponseEntity<ProgramaResponseDTO> getProgramaVigente(
             @PathVariable Long materiaId
@@ -101,16 +108,55 @@ public class ProgramaController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("programas/{id}/pdf")
-    public ResponseEntity<byte[]> descargarPrograma(@PathVariable Long id) {
+
+    // PDF
+    @GetMapping("/programas/{id}/pdf")
+    public ResponseEntity<byte[]> generarPDF(@PathVariable Long id) {
         byte[] pdf = pdfService.generarPdf(id);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.inline().filename("programa.pdf").build());
+        headers.setContentDisposition(
+                ContentDisposition.inline().filename("programa.pdf").build()
+        );
 
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
 
+    // BORRADOR
+    @PostMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
+    public ResponseEntity<Void> saveDraft(
+            @PathVariable Long deptId,
+            @PathVariable Long materiaId,
+            @RequestParam Rol rolActivo,
+            @RequestBody ProgramaDraftDTO dto,
+            @AuthenticationPrincipal UserEntity user
+    ) {
+        programaService.saveDraft(deptId, materiaId, dto, user, rolActivo);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
+    public ProgramaDraftDTO getDraft(
+            @PathVariable Long deptId,
+            @PathVariable Long materiaId,
+            @RequestParam Rol rolActivo,
+            @AuthenticationPrincipal UserEntity user
+    ) {
+        return programaService.getDraft(deptId, materiaId, user, rolActivo);
+    }
+
+    @DeleteMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
+    public ResponseEntity<Void> deleteDraft(
+            @PathVariable Long deptId,
+            @PathVariable Long materiaId,
+            @RequestParam Rol rolActivo,
+            @AuthenticationPrincipal UserEntity user
+    ) {
+        programaService.deleteDraft(deptId, materiaId, user, rolActivo);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

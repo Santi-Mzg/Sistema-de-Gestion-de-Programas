@@ -94,7 +94,7 @@ export function AdministracionDashboard() {
 
       {/* Action Button */}
       <div className="mb-6">
-        <Link href={"/programas/crear"}>
+        <Link href={"/programas/cargar"}>
           <Button
             className="gap-2 bg-primary hover:bg-accent text-primary-foreground"
             size="lg"

@@ -14,6 +14,11 @@ import java.util.Optional;
 public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> {
     boolean existsByMateriaIdAndAnio(Long materiaId, Integer anio);
 
+    Optional<ProgramaEntity> findByMateriaIdAndAnio(Long materiaId, Integer anio);
+
+    void deleteByMateriaIdAndAnio(Long materiaId, Integer anio);
+
+
     Optional<ProgramaEntity> findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
             Long materiaId,
             EstadoPrograma estadoActual

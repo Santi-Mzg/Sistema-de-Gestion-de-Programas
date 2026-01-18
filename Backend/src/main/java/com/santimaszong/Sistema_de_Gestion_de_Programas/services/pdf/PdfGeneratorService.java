@@ -26,33 +26,18 @@ public class PdfGeneratorService {
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         Context context = new Context();
-        context.setVariable("p", programa);
-
-//        context.setVariable("departamento", programa.getMateria().getDepartamento().getNombre());
-//        context.setVariable("anio", programa.getAnio());
-//        context.setVariable("nombreMateria", programa.getMateria().getNombre());
-//        context.setVariable("codigoMateria", programa.getMateria().getCodigo());
-//        context.setVariable("profesorResponsable", programa.getProfesorResponsable().getUsuario().getApellido() +", "+programa.getProfesorResponsable().getUsuario().getNombre());
-//        context.setVariable("cargaHorariaTotal", programa.getCargaHorariaTotal());
-//        context.setVariable("cargaHorariaSemanal", programa.getCargaHorariaSemanal());
-//        context.setVariable("cargaHorariaPractica", programa.getCargaHorariaPractica());
-//        context.setVariable("creditos", programa.getCreditos());
-//        context.setVariable("cantidadSemanas", programa.getCantidadSemanas());
-//        context.setVariable("fundamentacion", programa.getFundamentacion());
-//        context.setVariable("objetivos", programa.getObjetivos());
-//        context.setVariable("programaAnalitico", programa.getProgramaAnalitico());
-//        context.setVariable("metodologia", programa.getMetodologia());
-//        context.setVariable("modalidadEvaluacion", programa.getModalidadEvaluacion());
-//        context.setVariable("bibliografia", programa.getBibliografia());
-//
-//        context.setVariable("bloqueMultiple", programa.getBloqueMultiple());
-
+        context.setVariable("programa", programa);
 
         String htmlContent = templateEngine.process("pdf/programa", context);
 
+        String baseUrl = this.getClass()
+                .getClassLoader()
+                .getResource("pdf/")
+                .toExternalForm();
+
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             ITextRenderer renderer = new ITextRenderer();
-            renderer.setDocumentFromString(htmlContent);
+            renderer.setDocumentFromString(htmlContent, baseUrl);
             renderer.layout();
             renderer.createPDF(outputStream);
             return outputStream.toByteArray();

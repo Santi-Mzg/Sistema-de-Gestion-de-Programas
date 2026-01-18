@@ -4,7 +4,9 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoProgr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,21 +55,27 @@ public class ProgramaEntity {
     private Integer cantidadSemanas;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String fundamentacion;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String objetivos;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String programaAnalitico;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String metodologia;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String modalidadEvaluacion;
 
     @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(Types.LONGVARCHAR)
     private String bibliografia;
 
     @Enumerated(EnumType.STRING)

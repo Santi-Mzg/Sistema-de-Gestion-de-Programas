@@ -1,172 +1,555 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8"/>
-    <title>Programa de Materia</title>
+    <title>Programa de Materia - UNS</title>
     <style>
-        /* Configuraciones de página para Flying Saucer */
         @page {
-            size: a4;
-            margin: 1.5cm;
+            size: A4;
+            margin: 3cm 2.5cm 2cm 2.5cm;
+
+            @top-center {
+                content: element(header);
+            }
+
+            @bottom-center {
+                content: counter(page) " / " counter(pages);
+            }
         }
 
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 9pt;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10pt;
             color: #000;
-            line-height: 1.3;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
         }
 
-        .tabla-principal {
+        .page {
+            page-break-after: always;
+            position: relative;
+        }
+
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        .header {
+            position: running(header);
+            border: 2px solid black;
+            padding: 5px;
+        }
+
+        .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: -1px; /* Evita bordes dobles */
         }
 
-        .tabla-principal td {
-            border: 1px solid black;
-            padding: 6px;
-            vertical-align: top;
+        .header-logo-left,
+        .header-logo-right {
+            width: 80px;
+            vertical-align: middle;
         }
 
-        .header-logo {
-            font-size: 14pt;
-            font-weight: bold;
+        .header-logo-left {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .header-logo-right {
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .header-logo-left img,
+        .header-logo-right img {
+            height: 65px;
+        }
+
+        .header-texto {
             text-align: center;
+            vertical-align: middle;
         }
 
-        .bg-gris {
-            background-color: #f0f0f0;
+
+        .header h1 {
+            font-size: 12pt;
             font-weight: bold;
-            text-align: center;
-            font-size: 8pt;
+            margin: 0 0 3px 0;
+        }
+
+        .header h2 {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+        }
+
+        .header p {
+            font-size: 9pt;
+            margin: 0;
+        }
+
+        .page-number {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 9pt;
         }
 
         .seccion-titulo {
             background-color: #000;
             color: #fff;
             font-weight: bold;
-            padding: 4px 8px;
-            margin-top: 10px;
+            padding: 5px 10px;
+            margin: 15px 0 8px 0;
+            font-size: 9pt;
             text-transform: uppercase;
         }
 
-        .caja-texto {
-            border: 1px solid black;
-            padding: 10px;
-            min-height: 60px;
-            text-align: justify;
-        }
-
-        .firma-container {
-            margin-top: 50px;
+        table {
             width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
         }
 
-        .linea-firma {
-            border-top: 1px solid black;
+        table.info-basica td {
+            border: 1px solid #000;
+            padding: 8px;
+            font-size: 9pt;
+        }
+
+        table.info-basica td strong {
+            font-weight: bold;
+        }
+
+        table.horas {
+            border: 1px solid #000;
+            table-layout: fixed;
+        }
+
+        table.horas th {
+            background-color: #e0e0e0;
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 8pt;
+            font-weight: bold;
             text-align: center;
-            width: 200px;
-            margin: 0 auto;
+        }
+
+        table.horas td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        table.correlativas {
+            border: 1px solid #000;
+            font-size: 9pt;
+        }
+
+        table.correlativas th {
+            background-color: #e0e0e0;
+            border: 1px solid #000;
+            padding: 6px;
+            font-weight: bold;
+            text-align: center;
             font-size: 8pt;
         }
 
-        .footer-info {
-            font-size: 7pt;
+        table.correlativas td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+
+        .contenido {
+            text-align: justify;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .lista-items {
+            margin: 10px 0 10px 20px;
+        }
+
+        .lista-items li {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+
+        table.bibliografia {
+            border: 1px solid #000;
+        }
+
+        table.bibliografia th {
+            background-color: #e0e0e0;
+            border: 1px solid #000;
+            padding: 6px;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+
+        table.bibliografia td {
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 9pt;
+        }
+
+        .firma-section {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .firma-box {
             text-align: center;
-            margin-top: 5px;
+            margin-top: 60px;
+        }
+
+        .firma-linea {
+            border-top: 1px solid #000;
+            width: 200px;
+            margin: 0 auto 5px auto;
+        }
+
+        .firma-texto {
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .vigencia-table {
+            width: 100%;
+            border: 1px solid #000;
+        }
+
+        .vigencia-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            font-size: 9pt;
+        }
+
+        .firmas-footer {
+            display: table;
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .firma-col {
+            display: table-cell;
+            width: 33.33%;
+            text-align: center;
+            vertical-align: bottom;
+        }
+
+        .bloque-multiple {
+            border: 2px solid #000;
+            padding: 10px;
+            margin: 20px 0;
+        }
+
+        .bloque-multiple-titulo {
+            font-weight: bold;
+            font-size: 10pt;
+            text-transform: uppercase;
+            background-color: #000;
+            color: #fff;
+            padding: 5px 10px;
+            margin: -10px -10px 15px -10px; /* pisa el borde */
+        }
+
+        .bloque-carrera {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+
+        .bloque-carrera-header {
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
         }
     </style>
 </head>
 <body>
 
-<table class="tabla-principal">
-    <tr>
-        <td width="80%" style="text-align: center;">
-            <div style="font-size: 11pt; font-weight: bold;">UNIVERSIDAD NACIONAL DEL SUR</div>
-            <div style="font-size: 9pt;" th:text="${p.materia.departamento.nombre}">DEPARTAMENTO DE INGENIERÍA QUÍMICA</div>
-            <div style="font-size: 8pt;">Bahía Blanca - Buenos Aires - Argentina</div>
-        </td>
-        <td width="20%" class="header-logo">UNS</td>
-    </tr>
-</table>
+<div class="header">
+    <table class="header-table">
+        <tr>
+            <td class="header-logo-left">
+                <img src="logo_uns_v1.png" alt="UNS"/>
+            </td>
+            <td class="header-texto">
+                <h1>UNIVERSIDAD NACIONAL DEL SUR</h1>
+                <h2 th:text="'DEPARTAMENTO DE ' + ${#strings.toUpperCase(programa.materia.departamento.nombre)}">
+                    DEPARTAMENTO DE CIENCIAS E INGENIERÍA DE LA COMPUTACIÓN
+                </h2>
+                <p>Bahía Blanca - Buenos Aires - Argentina</p>
+            </td>
 
-<table class="tabla-principal">
-    <tr>
-        <td colspan="2">
-            <span style="font-weight: bold;">PROGRAMA DE:</span>
-            <span th:text="${p.materia.nombre}">Fundamentos de la Ingeniería Química</span>
-        </td>
-    </tr>
-    <tr>
-        <td width="50%">
-            <span style="font-weight: bold;">PROFESOR RESPONSABLE:</span><br/>
-            <span th:text="${p.profesorResponsable.usuario.nombre} + ' ' + ${p.profesorResponsable.usuario.apellido}">Dra. Juliana Piña, Dr. Jorge Ressia</span>
-        </td>
-        <td width="50%">
-            <table style="width: 100%; border: none;">
-                <tr style="border: none;">
-                    <td style="border: none; padding: 0;"><strong>CÓDIGO:</strong> <span th:text="${p.materia.codigo}">6116</span></td>
-                    <td style="border: none; padding: 0;"><strong>AÑO:</strong> <span th:text="${p.anio}">2024</span></td>
+            <td class="header-logo-right"></td>
+        </tr>
+    </table>
+</div>
+
+<div class="page">
+    <table class="info-basica">
+        <tr>
+            <td colspan="3">
+                <strong>PROGRAMA DE: </strong>
+                <span th:text=" ${#strings.toUpperCase(programa.materia.nombre)}">Sistemas Operativos</span>
+            </td>
+            <td>
+                <strong>AÑO:</strong><br/>
+                <span th:text="${programa.anio}">2026</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>PROFESOR RESPONSABLE:</strong><br/>
+                <span th:text="${programa.profesorResponsable != null ? (programa.profesorResponsable.usuario.nombre + ' ' + programa.profesorResponsable.usuario.apellido) : ''}">Dra. Juliana Piña</span>
+            </td>
+            <td>
+                <strong>CÓDIGO:</strong><br/>
+                <span th:text="${programa.materia.codigo}">6116</span>
+            </td>
+            <td>
+                <strong>ÁREA:</strong><br/>
+                <span th:text="${programa.materia.area.nombre}">Única</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="horas">
+        <thead>
+            <tr>
+                <th >HORAS DE CLASE TOTALES</th>
+                <th >TEORÍA</th>
+                <th >PRÁCTICA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td th:text="${programa.cargaHorariaTotal}">128</td>
+                <td th:text="${programa.cargaHorariaTotal - programa.cargaHorariaPractica}">64</td>
+                <td th:text="${programa.cargaHorariaPractica}">64</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="horas">
+        <thead>
+            <tr>
+                <th>HORAS DE CLASE SEMANALES</th>
+                <th>CANTIDAD DE SEMANAS</th>
+                <th>CRÉDITOS</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td th:text="${programa.cargaHorariaSemanal}">8</td>
+            <td th:text="${programa.cantidadSemanas}">16</td>
+            <td th:text="${programa.creditos}">8</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="bloque-multiple">
+
+        <div class="bloque-multiple-titulo">
+            BLOQUE MÚLTIPLE – CARRERAS / PLANES
+        </div>
+
+        <div th:each="pc, iter : ${programa.bloqueMultiple}" class="bloque-carrera">
+
+            <div class="bloque-carrera-header">
+                <table class="info-basica">
+                    <tr>
+                        <td colspan="2"><strong>CARRERA A LA QUE PERTENECE</strong></td>
+                        <td colspan="2" th:text="${pc.carreraPlan.carrera.nombre}">Ingeniería Química</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>PLAN AL QUE PERTENECE</strong></td>
+                        <td colspan="2">
+                            Plan
+                            <span th:text="${pc.carreraPlan.anio}">2016</span>
+                            - Versión
+                            <span th:text="${pc.carreraPlan.version}">1</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>UBICACIÓN EN EL PLAN</strong></td>
+                        <td colspan="2" th:text="${pc.ubicacionEnPlan}">Ciclo Profesional</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="seccion-titulo">ASIGNATURAS CORRELATIVAS</div>
+            <table class="correlativas">
+                <thead>
+                <tr>
+                    <th>Cursadas</th>
+                    <th>Aprobadas</th>
                 </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <div th:if="${pc != null and pc.correlativasDebiles != null}">
+                            <span th:each="corr, iterStat : ${pc.correlativasDebiles}">
+                                <span th:text="${corr.nombre + ' (' + corr.codigo + ')'}"></span>
+                                <span th:if="${!iterStat.last}">, </span>
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div th:if="${pc != null and pc.correlativasFuertes != null}">
+                            <span th:each="corr, iterStat : ${pc.correlativasFuertes}">
+                                <span th:text="${corr.nombre + ' (' + corr.codigo + ')'}"></span>
+                                <span th:if="${!iterStat.last}">, </span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
             </table>
-        </td>
-    </tr>
-</table>
 
-<table class="tabla-principal">
-    <tr class="bg-gris">
-        <td rowspan="2" style="vertical-align: middle;">TIPIFICACIÓN</td>
-        <td colspan="2">TEÓRICAS PRESENCIALES</td>
-        <td colspan="2">PRÁCTICAS PRESENCIALES</td>
-        <td style="vertical-align: middle;">TOTAL HORAS</td>
-    </tr>
-    <tr class="bg-gris">
-        <td>Por semana</td>
-        <td>Por cuatrim.</td>
-        <td>Por semana</td>
-        <td>Por cuatrim.</td>
-        <td>Cuatrimestral</td>
-    </tr>
-    <tr style="text-align: center;">
-        <td th:text="${p.fundamentacion}">4C</td>
-        <td th:text="${p.cargaHorariaSemanal}">4</td>
-        <td th:text="${p.cantidadSemanas}">4</td>
-        <td th:text="${p.cargaHorariaTotal}">64</td>
-        <td th:text="${p.cargaHorariaPractica}">64</td>
-        <td style="font-weight: bold;" th:text="${p.cargaHorariaTotal}">128</td>
-    </tr>
-</table>
+            <div class="seccion-titulo">Cómo contribuye la materia a la carrera/plan</div>
+            <div class="contenido" th:utext="${pc.contribucion}"></div>
 
-<div class="seccion-titulo">Descripción / Fundamentación</div>
-<div class="caja-texto" th:text="${p.fundamentacion}">
-    La ubicación de la asignatura permite informar al estudiante sobre el alcance...
+            <div class="seccion-titulo">Contenidos mínimos de la materia en la carrera/plan</div>
+            <div class="contenido" th:utext="${pc.contenidosMinimos}"></div>
+
+        </div>
+    </div>
+
+
+
+
+        <!--    <div class="contenido">-->
+<!--        <div th:each="pc, iter : ${programa.bloqueMultiple}" style="margin-top: 20px;">-->
+<!--        <p style="margin-top: 15px;"><strong>Carrera:</strong>-->
+<!--                <span th:text="${programaCarrera.carreraPlan != null ? programaCarrera.carreraPlan.carrera.nombre : ''}">Ingeniería Química</span>-->
+<!--                <span th:if="${programaCarrera.carreraPlan != null}" th:text="' (Plan ' + ${programaCarrera.carreraPlan.anio} - Versión ' + ${programaCarrera.carreraPlan.version})"></span>-->
+<!--            </p>-->
+
+<!--            <p style="margin-top: 10px; font-weight: bold;">Contribución de la asignatura</p>-->
+<!--            <div th:utext="${programaCarrera.contribucion}">-->
+<!--                <ul class="lista-items">-->
+<!--                    <li>Identificación, formulación y resolución de problemas... (M)</li>-->
+<!--                </ul>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <p style="font-size: 8pt; font-style: italic; margin-top: 15px;">*Tomar como referencia el ANEXO</p>-->
+<!--    </div>-->
+
 </div>
 
-<div class="seccion-titulo">Objetivos</div>
-<div class="caja-texto" th:text="${p.objetivos}">
-    Que el alumno logre identificar procesos químicos básicos...
+<div class="page">
+
+    <div class="seccion-titulo">FUNDAMENTACIÓN</div>
+    <div class="contenido">
+        <p th:text="${programa.fundamentacion}">
+            La ubicación de la asignatura dentro del plan de estudio y los temas desarrollados permiten informar al estudiante...
+        </p>
+    </div>
+
+    <div class="seccion-titulo">OBJETIVOS</div>
+    <div class="contenido">
+        <div th:utext="${programa.objetivos}">
+            <ul class="lista-items">
+                <li>Calcular propiedades físicas y químicas de compuestos puros y mezclas</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="seccion-titulo">PROGRAMA ANALÍTICO</div>
+    <div class="contenido">
+        <div th:utext="${programa.programaAnalitico}" style="white-space: pre-wrap;">
+            1) Unidades y Dimensiones...
+        </div>
+    </div>
+
+    <div class="seccion-titulo">METODOLOGÍA DE LA ENSEÑANZA Y DEL APRENDIZAJE</div>
+    <div class="contenido">
+        <div th:utext="${programa.metodologia}" style="white-space: pre-wrap;">
+            La asignatura está constituida por clases de teoría y clases de problemas...
+        </div>
+    </div>
+
+    <div class="seccion-titulo">MODALIDAD DE EVALUACIÓN</div>
+    <div class="contenido">
+        <div th:utext="${programa.modalidadEvaluacion}" style="white-space: pre-wrap;">
+            De acuerdo con lo establecido en los Planes de Estudio...
+        </div>
+    </div>
+
+    <div class="seccion-titulo">BIBLIOGRAFÍA</div>
+    <div class="contenido" th:utext="${programa.bibliografia}" style="white-space: pre-wrap;">
+        <table class="bibliografia">
+            <thead>
+            <tr>
+                <th width="20%">Autor/es</th>
+                <th width="35%">Título</th>
+                <th width="20%">Editorial</th>
+                <th width="10%">Año</th>
+                <th width="15%">Aclaraciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Felder, R.M. y Rousseau, R.W.</td>
+                <td>Principios Elementales de los Procesos Químicos</td>
+                <td>Addison-Wesley Iberoamericana</td>
+                <td>1991</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div class="seccion-titulo">Programa Analítico (Unidades)</div>
-<div class="caja-texto" style="white-space: pre-wrap;" th:text="${p.programaAnalitico}">
-    1. Balances de materia...
-    2. Termodinámica básica...
-</div>
+<div class="page">
+    <div class="seccion-titulo" style="margin-top: 30px;">VIGENCIA DE ESTE PROGRAMA</div>
+    <table class="vigencia-table">
+        <tr>
+            <td width="20%"><strong>AÑO</strong></td>
+            <td width="40%"><strong>Presenta modificaciones respecto al año anterior</strong></td>
+            <td width="20%"><strong>PROFESOR RESPONSABLE<br/>Firma</strong></td>
+            <td width="20%"><strong>PROFESOR RESPONSABLE<br/>Aclaración</strong></td>
+        </tr>
+        <tr>
+            <td th:text="${programa.anio}">2024</td>
+            <td><!-- Could add a field to track modifications --></td>
+            <td style="height: 50px;"></td>
+            <td th:text="${programa.profesorResponsable != null ? (programa.profesorResponsable.usuario.nombre + ' ' + programa.profesorResponsable.usuario.apellido) : ''}">Dr. Jorge Ressia</td>
+        </tr>
+    </table>
 
-<table style="width: 100%; margin-top: 40px; border: none;">
-    <tr>
-        <td style="border: none; text-align: center;">
-            <div class="linea-firma">Firma Profesor Responsable</div>
-        </td>
-        <td style="border: none; text-align: center;">
-            <div class="linea-firma">Secretaría Académica DIQ</div>
-        </td>
-    </tr>
-</table>
-
-<div class="footer-info">
-    Generado por Sistema de Gestión de Programas - Departamento de Ingeniería Química UNS
+    <div class="seccion-titulo" style="margin-top: 30px;">VISADO</div>
+    <div class="firmas-footer">
+        <div class="firma-col">
+            <div style="height: 80px;"></div>
+            <div class="firma-linea"></div>
+            <div class="firma-texto">COMISIÓN CURRICULAR</div>
+            <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
+        </div>
+        <div class="firma-col">
+            <div style="height: 80px;"></div>
+            <div class="firma-linea"></div>
+            <div class="firma-texto">SECRETARIO ACADÉMICO</div>
+            <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
+        </div>
+        <div class="firma-col">
+            <div style="height: 80px;"></div>
+            <div class="firma-linea"></div>
+            <div class="firma-texto">DIRECTOR DE DEPARTAMENTO</div>
+            <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
+        </div>
+    </div>
 </div>
 
 </body>

@@ -30,18 +30,22 @@ import type {
   CarreraPlanResponseDTO,
   CarreraResponseDTO,
   CarreraUpdateComisionDTO,
+  DeleteDraftParams,
   DepartamentoCreateDTO,
   DepartamentoResponseDTO,
   DepartamentoUpdateCargoDTO,
   EstadoUpdateDTO,
+  GetDraftParams,
   ListProgramasParams,
   Login200,
   LoginRequest,
   MateriaCreateDTO,
   MateriaResponseDTO,
   ProgramaCargaDTO,
+  ProgramaDraftDTO,
   ProgramaResponseDTO,
   ResetPassword200,
+  SaveDraftParams,
   UserCreateDTO,
   UserResponseDTO
 } from './model';
@@ -1081,6 +1085,244 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getCreateUserMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const getDraft = (
+    deptId: number,
+    materiaId: number,
+    params: GetDraftParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaDraftDTO>(
+      {url: `/api/departamentos/${deptId}/programas/draft/${materiaId}`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetDraftQueryKey = (deptId?: number,
+    materiaId?: number,
+    params?: GetDraftParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas/draft/${materiaId}`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetDraftQueryOptions = <TData = Awaited<ReturnType<typeof getDraft>>, TError = unknown>(deptId: number,
+    materiaId: number,
+    params: GetDraftParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDraftQueryKey(deptId,materiaId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDraft>>> = ({ signal }) => getDraft(deptId,materiaId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId && materiaId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDraftQueryResult = NonNullable<Awaited<ReturnType<typeof getDraft>>>
+export type GetDraftQueryError = unknown
+
+
+
+export function useGetDraft<TData = Awaited<ReturnType<typeof getDraft>>, TError = unknown>(
+ deptId: number,
+    materiaId: number,
+    params: GetDraftParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDraftQueryOptions(deptId,materiaId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetDraftSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getDraft>>, TError = unknown>(deptId: number,
+    materiaId: number,
+    params: GetDraftParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDraftQueryKey(deptId,materiaId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDraft>>> = ({ signal }) => getDraft(deptId,materiaId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDraftSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getDraft>>>
+export type GetDraftSuspenseQueryError = unknown
+
+
+
+export function useGetDraftSuspense<TData = Awaited<ReturnType<typeof getDraft>>, TError = unknown>(
+ deptId: number,
+    materiaId: number,
+    params: GetDraftParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDraft>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDraftSuspenseQueryOptions(deptId,materiaId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const saveDraft = (
+    deptId: number,
+    materiaId: number,
+    programaDraftDTO: ProgramaDraftDTO,
+    params: SaveDraftParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/departamentos/${deptId}/programas/draft/${materiaId}`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: programaDraftDTO,
+        params, signal
+    },
+      );
+    }
+  
+
+
+export const getSaveDraftMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDraft>>, TError,{deptId: number;materiaId: number;data: ProgramaDraftDTO;params: SaveDraftParams}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof saveDraft>>, TError,{deptId: number;materiaId: number;data: ProgramaDraftDTO;params: SaveDraftParams}, TContext> => {
+
+const mutationKey = ['saveDraft'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveDraft>>, {deptId: number;materiaId: number;data: ProgramaDraftDTO;params: SaveDraftParams}> = (props) => {
+          const {deptId,materiaId,data,params} = props ?? {};
+
+          return  saveDraft(deptId,materiaId,data,params,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveDraftMutationResult = NonNullable<Awaited<ReturnType<typeof saveDraft>>>
+    export type SaveDraftMutationBody = ProgramaDraftDTO
+    export type SaveDraftMutationError = unknown
+
+    export const useSaveDraft = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDraft>>, TError,{deptId: number;materiaId: number;data: ProgramaDraftDTO;params: SaveDraftParams}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveDraft>>,
+        TError,
+        {deptId: number;materiaId: number;data: ProgramaDraftDTO;params: SaveDraftParams},
+        TContext
+      > => {
+
+      const mutationOptions = getSaveDraftMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const deleteDraft = (
+    deptId: number,
+    materiaId: number,
+    params: DeleteDraftParams,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/departamentos/${deptId}/programas/draft/${materiaId}`, method: 'DELETE',
+        params
+    },
+      );
+    }
+  
+
+
+export const getDeleteDraftMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDraft>>, TError,{deptId: number;materiaId: number;params: DeleteDraftParams}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDraft>>, TError,{deptId: number;materiaId: number;params: DeleteDraftParams}, TContext> => {
+
+const mutationKey = ['deleteDraft'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDraft>>, {deptId: number;materiaId: number;params: DeleteDraftParams}> = (props) => {
+          const {deptId,materiaId,params} = props ?? {};
+
+          return  deleteDraft(deptId,materiaId,params,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDraftMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDraft>>>
+    
+    export type DeleteDraftMutationError = unknown
+
+    export const useDeleteDraft = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDraft>>, TError,{deptId: number;materiaId: number;params: DeleteDraftParams}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDraft>>,
+        TError,
+        {deptId: number;materiaId: number;params: DeleteDraftParams},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteDraftMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -3116,6 +3358,109 @@ export function useGetProgramaVigenteSuspense<TData = Awaited<ReturnType<typeof 
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetProgramaVigenteSuspenseQueryOptions(materiaId,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const getProgramaMateriaAnio = (
+    materiaId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/materias/${materiaId}/programa-anio`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetProgramaMateriaAnioQueryKey = (materiaId?: number,) => {
+    return [
+    `/api/materias/${materiaId}/programa-anio`
+    ] as const;
+    }
+
+    
+export const getGetProgramaMateriaAnioQueryOptions = <TData = Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError = unknown>(materiaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProgramaMateriaAnioQueryKey(materiaId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProgramaMateriaAnio>>> = ({ signal }) => getProgramaMateriaAnio(materiaId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(materiaId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProgramaMateriaAnioQueryResult = NonNullable<Awaited<ReturnType<typeof getProgramaMateriaAnio>>>
+export type GetProgramaMateriaAnioQueryError = unknown
+
+
+
+export function useGetProgramaMateriaAnio<TData = Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError = unknown>(
+ materiaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProgramaMateriaAnioQueryOptions(materiaId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetProgramaMateriaAnioSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError = unknown>(materiaId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProgramaMateriaAnioQueryKey(materiaId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProgramaMateriaAnio>>> = ({ signal }) => getProgramaMateriaAnio(materiaId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProgramaMateriaAnioSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getProgramaMateriaAnio>>>
+export type GetProgramaMateriaAnioSuspenseQueryError = unknown
+
+
+
+export function useGetProgramaMateriaAnioSuspense<TData = Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError = unknown>(
+ materiaId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getProgramaMateriaAnio>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProgramaMateriaAnioSuspenseQueryOptions(materiaId,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

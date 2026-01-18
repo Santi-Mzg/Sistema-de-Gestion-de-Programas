@@ -1,14 +1,14 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetProgramaQueryKey, getListProgramasQueryKey, useActualizarEstado, useGetPrograma, useProfesorCarga } from "@/app/api/generated/client"
-import { AlertCircle, CheckCircle2, Cross } from "lucide-react"
+import { getGetDraftQueryKey, getGetProgramaQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useGetDraft, useGetPrograma, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
+import { AlertCircle, CheckCircle2, Cross, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
@@ -17,6 +17,7 @@ import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { RejectionInfoCard } from "../ui/rejection-info-card"
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 
 interface SyllabusFormProps {
   id: number,
@@ -28,9 +29,15 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   const { activeRole } = useRole();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [loadingPrograma, setLoadingPrograma] = useState(false)
+  const [showDraft, setShowDraft] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  
   const programaQuery = useGetPrograma(id,
     {
       query: {
+        enabled: !!id,
         staleTime: 1000 * 60 * 5,
         queryKey: getGetProgramaQueryKey(id)
       }
@@ -49,10 +56,12 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
       metodologia: "",
       modalidadEvaluacion: "",
       bibliografia: "",
-      estado: EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
   })
 
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
+
+  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate: mutateProfesor, isPending: isPendingProfesor } = useProfesorCarga({
     mutation: {
@@ -80,6 +89,15 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
         });
 
         router.push('/'); 
+
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
       },
       onError: (error: Error) => {
         toast({
@@ -108,6 +126,14 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           )
         });
 
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: programa?.materia?.id!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
         router.push('/'); 
       },
       onError: (error: Error) => {
@@ -130,7 +156,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
               metodologia: programa.metodologia || "",
               modalidadEvaluacion: programa.modalidadEvaluacion || "",
               bibliografia: programa.bibliografia || "",
-              estado: programa.estado || EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR,
           });
       }
   }, [programa]); // Se ejecuta cuando 'programa' pasa de undefined a tener datos.
@@ -161,11 +186,104 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     });
   }
 
+
+  const draftQuery = useGetDraft(
+    activeDepartamento?.departamentoId ?? 0,
+    formData.materiaId ?? 0,
+    {
+      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+    },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId &&
+                  !!programa?.materia?.id,
+        staleTime: Infinity,
+        retry: false, 
+        queryKey: getGetDraftQueryKey(
+          activeDepartamento!.departamentoId!,
+          programa?.materia?.id!,
+          {
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        )
+      }
+    }
+  );
+
+  useEffect(() => {
+    if (draftQuery.data?.payloadJson)       
+        setShowDraft(true);
+  }, [draftQuery.data]); 
+  
+  const handleLoadDraft = () => {
+    if (!draftQuery.data?.payloadJson) return
+
+    setLoadingDraft(true)
+    try {
+      const draftData = JSON.parse(draftQuery.data.payloadJson)
+      setFormData(draftData)
+      setShowDraft(false)
+
+      toast({
+        title: "Borrador recuperado",
+        description: "Se restauró un borrador exitosamente",
+        variant: "info",
+      });
+    } catch (error) {
+      console.error("Error loading draft:", error)
+    } finally {
+      setLoadingDraft(false)
+    }
+  }
+
+
+  const guardarBorrador = useCallback(() => {
+  
+      mutateSaveDraft({
+        deptId: activeDepartamento!.departamentoId!,
+        materiaId: formData.materiaId!,
+        params: {
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        },
+        data: {
+          payloadJson: JSON.stringify(formData),
+        },
+      });
+  
+      setIsDirty(false);
+  
+      toast({
+        description: "✓ Guardado",
+        variant: "draft",
+      })    
+
+  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
+  
+  
+  const debouncedSave = useCallback(() => {
+      const handler = setTimeout(() => {
+        guardarBorrador();
+      }, 2000); // 2 segundos
+  
+      return () => clearTimeout(handler);
+  }, [guardarBorrador]);
+
+  
+  useEffect(() => {
+      if (!isDirty) return;
+
+      const cancel = debouncedSave();
+
+      return cancel;
+  }, [isDirty, debouncedSave]);
+
   const handleSingleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
+
+    setIsDirty(true);
   }
 
 
@@ -220,312 +338,347 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* HEADER */}
-      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Carga de datos de Programa Académico</h1>
-            <p className="text-muted-foreground">
-              {programa.materia?.nombre} ({programa.materia?.codigo})
-            </p>
-          </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-            esRechazado 
-              ? "bg-red-100 border border-amber-200" 
-              : "bg-primary/10"
-            }`}>            
-            {esRechazado ? (
-                <>
-                  <AlertCircle className="text-amber-600" size={20} />
-                  <span className="font-semibold text-amber-700">Requiere Correcciones</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="text-primary" size={20} />
-                  <span className="font-semibold text-primary">Por completar</span>
-                </>
-              )}
+    <>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* HEADER */}
+        <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Carga de datos de Programa Académico</h1>
+              <p className="text-muted-foreground">
+                {programa.materia?.nombre} ({programa.materia?.codigo})
+              </p>
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+              esRechazado 
+                ? "bg-red-100 border border-amber-200" 
+                : "bg-primary/10"
+              }`}>            
+              {esRechazado ? (
+                  <>
+                    <AlertCircle className="text-amber-600" size={20} />
+                    <span className="font-semibold text-amber-700">Requiere Correcciones</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="text-primary" size={20} />
+                    <span className="font-semibold text-primary">Por completar</span>
+                  </>
+                )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {esRechazado && (
-        <RejectionInfoCard estadoHistorico={ultimoEstado} />
-      )}
+        {esRechazado && (
+          <RejectionInfoCard estadoHistorico={ultimoEstado} />
+        )}
 
-      {/* BLOQUE ÚNICO */}
-      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-        <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+        {/* BLOQUE ÚNICO */}
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
+          <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
 
-        <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
+                Departamento
+              </Label>
+              <Input
+                id="departamento"
+                type="text"
+                defaultValue={programa.materia?.departamento || ""}
+                className="border-border focus:border-primary"
+                readOnly
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
+                Año
+              </Label>
+              <Input
+                id="anio"
+                name="anio"
+                defaultValue={programa.anio}
+                className="border-border focus:border-primary"
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+            <div className="space-y-2">
+              <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
+                Materia
+              </Label>
+              <Input
+                id="materia"
+                type="text"
+                defaultValue={programa.materia?.nombre}
+                className="border-border focus:border-primary"
+                readOnly
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
+                Código
+              </Label>
+              <Input
+                id="codigo"
+                type="text"
+                defaultValue={programa.materia?.codigo}
+                className="border-border focus:border-primary"
+                readOnly
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="area" className="text-sm font-semibold text-foreground">
+                Área
+              </Label>
+              <Input
+                id="area"
+                type="text"
+                defaultValue={programa.materia?.area}
+                className="border-border focus:border-primary"
+                readOnly
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
-              Departamento
+            <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
+              Profesor Responsable
             </Label>
             <Input
-              id="departamento"
+              id="profesor"
               type="text"
-              value={programa.materia?.departamento || ""}
+              defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
               className="border-border focus:border-primary"
               readOnly
             />
           </div>
+        </div>
 
+        {/* BLOQUE MÚLTIPLE */}
+        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
+          </div>
+
+          <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
+            {programa.bloqueMultiple?.map((block, index) => (
+              <ProgramaCarreraBlockView
+                key={index}
+                block={block}
+                index={index}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* CONFIGURACIÓN GENERAL */}
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
+
+          {/* Carga Horaria */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
+              <Input defaultValue={programa.cantidadSemanas || ""} readOnly className="border-border focus:border-primary" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
+              <Input defaultValue={programa.cargaHorariaSemanal || ""} readOnly className="border-border focus:border-primary" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
+              <Input defaultValue={programa.cargaHorariaTotal || ""} readOnly className="border-border focus:border-primary" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Créditos</Label>
+              <Input defaultValue={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
+            </div>
+          </div>
+
+          {/* Carga Práctica */}
           <div className="space-y-2">
-            <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
-              Año
+            <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
+              Carga Horaria Práctica *
             </Label>
             <Input
-              id="anio"
-              name="anio"
-              value={programa.anio}
-              className="border-border focus:border-primary"
-              readOnly
+              id="cargaPractica"
+              type="number"
+              value={formData.cargaHorariaPractica}
+              onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
+              placeholder="ej: 64"
+              min={0}
+              max={formData.cargaHorariaTotal}
+              className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              required
             />
           </div>
         </div>
 
-        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+          {/* Campos de texto largo */}
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
+
           <div className="space-y-2">
-            <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
-              Materia
+            <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
+              Fundamentación *
             </Label>
-            <Input
-              id="materia"
-              type="text"
-              value={programa.materia?.nombre}
-              className="border-border focus:border-primary"
-              readOnly
+            <Textarea
+              id="fundamentacion"
+              value={formData.fundamentacion}
+              onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
+              placeholder="Justifica la importancia de esta Materia..."
+              className="border-border focus:border-primary min-h-24 resize-none bg-background"
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
-              Código
+            <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
+              Objetivos *
             </Label>
-            <Input
-              id="codigo"
-              type="text"
-              value={programa.materia?.codigo}
-              className="border-border focus:border-primary"
-              readOnly
+            <Textarea
+              id="objetivos"
+              value={formData.objetivos}
+              onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
+              placeholder="Define los objetivos de aprendizaje..."
+              className="border-border focus:border-primary min-h-24 resize-none bg-background"
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="area" className="text-sm font-semibold text-foreground">
-              Área
+            <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
+              Programa Analítico *
             </Label>
-            <Input
-              id="area"
-              type="text"
-              value={programa.materia?.area}
-              className="border-border focus:border-primary"
-              readOnly
+            <Textarea
+              id="programa"
+              value={formData.programaAnalitico}
+              onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
+              placeholder="Detalla el contenido temático del curso..."
+              className="border-border focus:border-primary min-h-32 resize-none bg-background"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
+              Metodología *
+            </Label>
+            <Textarea
+              id="metodologia"
+              value={formData.metodologia}
+              onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
+              placeholder="Describe los métodos de enseñanza..."
+              className="border-border focus:border-primary min-h-24 resize-none bg-background"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
+              Modalidad de Evaluación *
+            </Label>
+            <Textarea
+              id="evaluacion"
+              value={formData.modalidadEvaluacion}
+              onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
+              placeholder="Especifica cómo se evaluará el aprendizaje..."
+              className="border-border focus:border-primary min-h-24 resize-none bg-background"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
+              Bibliografía *
+            </Label>
+            <Textarea
+              id="bibliografia"
+              value={formData.bibliografia}
+              onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
+              placeholder="Referencias bibliográficas recomendadas..."
+              className="border-border focus:border-primary min-h-32 resize-none bg-background"
+              required
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-            Profesor Responsable
-          </Label>
-          <Input
-            id="profesor"
-            type="text"
-            value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
-            className="border-border focus:border-primary"
-            readOnly
-          />
-        </div>
-      </div>
-
-      {/* BLOQUE MÚLTIPLE */}
-      <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
-        </div>
-
-        <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-          {programa.bloqueMultiple?.map((block, index) => (
-            <ProgramaCarreraBlockView
-              key={index}
-              block={block}
-              index={index}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* CONFIGURACIÓN GENERAL */}
-      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
-
-        {/* Carga Horaria */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
-            <Input value={programa.cantidadSemanas || ""} readOnly className="border-border focus:border-primary" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
-            <Input value={programa.cargaHorariaSemanal || ""} readOnly className="border-border focus:border-primary" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
-            <Input value={programa.cargaHorariaTotal || ""} readOnly className="border-border focus:border-primary" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Créditos</Label>
-            <Input value={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
-          </div>
-        </div>
-
-        {/* Carga Práctica */}
-        <div className="space-y-2">
-          <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-            Carga Horaria Práctica *
-          </Label>
-          <Input
-            id="cargaPractica"
-            type="number"
-            value={formData.cargaHorariaPractica}
-            onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
-            placeholder="ej: 64"
-            min={0}
-            max={formData.cargaHorariaTotal}
-            className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            required
-          />
-        </div>
-      </div>
-
-        {/* Campos de texto largo */}
-      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
-
-        <div className="space-y-2">
-          <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
-            Fundamentación *
-          </Label>
-          <Textarea
-            id="fundamentacion"
-            value={formData.fundamentacion}
-            onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
-            placeholder="Justifica la importancia de esta Materia..."
-            className="border-border focus:border-primary min-h-24 resize-none bg-background"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
-            Objetivos *
-          </Label>
-          <Textarea
-            id="objetivos"
-            value={formData.objetivos}
-            onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
-            placeholder="Define los objetivos de aprendizaje..."
-            className="border-border focus:border-primary min-h-24 resize-none bg-background"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
-            Programa Analítico *
-          </Label>
-          <Textarea
-            id="programa"
-            value={formData.programaAnalitico}
-            onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
-            placeholder="Detalla el contenido temático del curso..."
-            className="border-border focus:border-primary min-h-32 resize-none bg-background"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
-            Metodología *
-          </Label>
-          <Textarea
-            id="metodologia"
-            value={formData.metodologia}
-            onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
-            placeholder="Describe los métodos de enseñanza..."
-            className="border-border focus:border-primary min-h-24 resize-none bg-background"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
-            Modalidad de Evaluación *
-          </Label>
-          <Textarea
-            id="evaluacion"
-            value={formData.modalidadEvaluacion}
-            onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
-            placeholder="Especifica cómo se evaluará el aprendizaje..."
-            className="border-border focus:border-primary min-h-24 resize-none bg-background"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-            Bibliografía *
-          </Label>
-          <Textarea
-            id="bibliografia"
-            value={formData.bibliografia}
-            onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
-            placeholder="Referencias bibliográficas recomendadas..."
-            className="border-border focus:border-primary min-h-32 resize-none bg-background"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-border">
-        <Button 
-          type="submit" 
-          disabled={isPendingProfesor}
-          className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
-        >
-          {isPendingProfesor ? "Cargando..." : "Cargar Datos"}
-        </Button>
-        {programa?.estado !== EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR &&
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4 border-t border-border">
+          <Button 
+            type="submit" 
+            disabled={isPendingProfesor}
+            className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
+          >
+            {isPendingProfesor ? "Cargando..." : "Cargar Datos"}
+          </Button>
+          {programa?.estado !== EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR &&
+            <Button
+              type="button"
+              onClick={() => setRechazDialogOpen(true)}
+              disabled={isPendingProfesor}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            >
+              ✕ Rechazar
+            </Button>
+          }
           <Button
             type="button"
-            onClick={() => setRechazDialogOpen(true)}
-            disabled={isPendingProfesor}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            onClick={() => router.back()}
+            variant="outline"
+            className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
           >
-            ✕ Rechazar
+            Cancelar
           </Button>
-        }
-        <Button
-          type="button"
-          onClick={() => router.push('/')}
-          variant="outline"
-          className="flex-1 border-border text-foreground hover:bg-muted bg-transparent"
-        >
-          Cancelar
-        </Button>
-      </div>
+        </div>
 
-      {/* RECHAZO DIALOG */}
-      <RechazoDialog
-        open={rechazDialogOpen}
-        onOpenChange={setRechazDialogOpen}
-        onConfirm={handleRechazarConfirm}
-        isLoading={isPendingEstado}
-      />
-    </form>
+        {/* RECHAZO DIALOG */}
+        <RechazoDialog
+          open={rechazDialogOpen}
+          onOpenChange={setRechazDialogOpen}
+          onConfirm={handleRechazarConfirm}
+          isLoading={isPendingEstado}
+        />
+      </form>
+
+      <Dialog open={!!showDraft} onOpenChange={(open: any) => !open && setShowDraft(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
+              <FileText size={24} />
+              Borrador Encontrado
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Se encontró un borrador. ¿Desea cargarlo?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDraft(false)
+              }}
+              className="border-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleLoadDraft}
+              className="bg-destructive"
+            >
+              Cargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -26,6 +26,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
   const { activeRole } = useRole()
   const router = useRouter();
   const queryClient = useQueryClient(); 
+  
   const programaQuery = useGetPrograma(id,
     {
       query: {
@@ -166,7 +167,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
             <Input
               id="departamento"
               type="text"
-              value={programa.materia?.departamento || ""}
+              defaultValue={programa.materia?.departamento || ""}
               className="bg-background"
               readOnly
             />
@@ -179,7 +180,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
             <Input
               id="anio"
               name="anio"
-              value={programa.anio}
+              defaultValue={programa.anio}
               className="bg-background"
               readOnly
             />
@@ -194,7 +195,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
             <Input
               id="materia"
               type="text"
-              value={programa.materia?.nombre}
+              defaultValue={programa.materia?.nombre}
               className="bg-background"
               readOnly
             />
@@ -207,7 +208,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
             <Input
               id="codigo"
               type="text"
-              value={programa.materia?.codigo}
+              defaultValue={programa.materia?.codigo}
               className="bg-background"
               readOnly
             />
@@ -220,7 +221,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
             <Input
               id="area"
               type="text"
-              value={programa.materia?.area}
+              defaultValue={programa.materia?.area}
               className="bg-background"
               readOnly
             />
@@ -234,7 +235,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
           <Input
             id="profesor"
             type="text"
-            value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+            defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
             className="bg-background"
             readOnly
           />
@@ -266,25 +267,25 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
-            <Input value={programa.cantidadSemanas || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cantidadSemanas || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
-            <Input value={programa.cargaHorariaSemanal || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cargaHorariaSemanal || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
-            <Input value={programa.cargaHorariaTotal || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cargaHorariaTotal || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Créditos</Label>
-            <Input value={programa.creditos || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.creditos || ""} readOnly className="bg-background" />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Carga Horaria Práctica</Label>
-          <Input value={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
+          <Input defaultValue={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
         </div>
       </div>
 
@@ -294,32 +295,32 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
-          <Textarea value={programa.fundamentacion || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.fundamentacion || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Objetivos</Label>
-          <Textarea value={programa.objetivos || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.objetivos || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Programa Analítico</Label>
-          <Textarea value={programa.programaAnalitico || ""} readOnly className="bg-background min-h-32" />
+          <Textarea defaultValue={programa.programaAnalitico || ""} readOnly className="bg-background min-h-32" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Metodología</Label>
-          <Textarea value={programa.metodologia || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.metodologia || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
-          <Textarea value={programa.modalidadEvaluacion || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.modalidadEvaluacion || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Bibliografía</Label>
-          <Textarea value={programa.bibliografia || ""} readOnly className="bg-background min-h-32" />
+          <Textarea defaultValue={programa.bibliografia || ""} readOnly className="bg-background min-h-32" />
         </div>
       </div>
 
@@ -344,7 +345,7 @@ export function SyllabusCoordinadorForm({ id }: SyllabusFormProps) {
         </Button>
         <Button 
           type="button" 
-          onClick={() => router.push('/')}
+          onClick={() => router.back()}
           variant="outline" 
           className="flex-1 bg-transparent"
         >

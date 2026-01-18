@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
+    private final ProgramaDraftRepository draftRepository;
     private final DecisionComisionRepository decisionRepository;
     private final MateriaService materiaService;
     private final UserService userService;
@@ -38,6 +40,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     public ProgramaServiceImpl(ProgramaRepository programaRepository,
+                               ProgramaDraftRepository draftRepository,
                                DecisionComisionRepository decisionRepository,
                                MateriaService materiaService,
                                UserService userService,
@@ -48,6 +51,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                ProgramaCarreraMapper programaCarreraMapper) {
 
         this.programaRepository = programaRepository;
+        this.draftRepository = draftRepository;
         this.decisionRepository = decisionRepository;
         this.materiaService = materiaService;
         this.userService = userService;
@@ -62,8 +66,11 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     @Transactional
     public ProgramaResponseDTO create(ProgramaCargaDTO programaDTO, UserEntity actor){
-        if (programaRepository.existsByMateriaIdAndAnio(programaDTO.getMateriaId(), programaDTO.getAnio())) {
-            throw new IllegalStateException("Ya existe un programa registrado para esta materia en el año " + programaDTO.getAnio());
+        Integer anioActual = LocalDate.now().getYear();
+
+        if (programaRepository.existsByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual)) {
+            programaRepository.deleteByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual);
+            programaRepository.flush();
         }
 
         ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
@@ -77,6 +84,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         if(!udeActor.hasRole(Rol.ADMINISTRACION)){
             throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
         }
+
+        programaEntity.setAnio(anioActual);
 
         programaEntity.setMateria(materia);
 
@@ -138,17 +147,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         // Aplicar solo campos modificados (PATCH)
-        Optional.ofNullable(programaDTO.getMateriaId())
-                .ifPresent(materiaId -> {
-                    MateriaEntity materiaActual = existingProgram.getMateria();
-                    if(materiaActual != null && materiaActual.getId().equals(materiaId))
-                        return; // Si es el mismo no lo cambia
-
-                    MateriaEntity nuevaMateria = materiaService.getEntityById(materiaId);
-
-                    existingProgram.setMateria(nuevaMateria);
-                });
-
         Optional.ofNullable(programaDTO.getProfesorResponsableId())
                 .ifPresent(profesorId -> {
                     UserEntity profesorActual = existingProgram.getProfesorResponsable().getUsuario();
@@ -336,6 +334,16 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
+    public ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId) {
+        Integer anioActual = LocalDate.now().getYear();
+        ProgramaEntity foundProgram = programaRepository.findByMateriaIdAndAnio(materiaId, anioActual)
+                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+
+        return responseMapper.toDTO(foundProgram);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId) {
         ProgramaEntity foundProgram = programaRepository.findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
                     materiaId,
@@ -392,6 +400,80 @@ public class ProgramaServiceImpl implements ProgramaService {
     public void delete(Long id) {
         programaRepository.deleteById(id);
     }
+
+
+    // BORRADOR
+    public void saveDraft(Long deptId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo) {
+        Long userId = user.getId();
+
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
+
+        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
+            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
+        }
+
+        ProgramaDraftEntity draft = draftRepository
+                .findByUsuarioIdAndMateriaId(
+                        userId,
+                        materiaId
+                )
+                .orElse(new ProgramaDraftEntity());
+
+        draft.setUsuarioId(userId);
+        draft.setMateriaId(materiaId);
+        draft.setPayloadJson(dto.getPayloadJson());
+        draft.setLastUpdated(LocalDateTime.now());
+
+        draftRepository.save(draft);
+    }
+
+    public ProgramaDraftDTO getDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
+        Long userId = user.getId();
+
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
+
+        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
+            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
+        }
+
+        return draftRepository
+                .findByUsuarioIdAndMateriaId(
+                        user.getId(),
+                        materiaId
+                )
+                .map(d -> new ProgramaDraftDTO(d.getPayloadJson()))
+                .orElse(null);
+    }
+
+    public void deleteDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
+        Long userId = user.getId();
+
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
+
+        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
+            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
+        }
+
+        draftRepository.deleteByUsuarioIdAndMateriaId(
+                user.getId(),
+                materiaId
+        );
+    }
+
+
+
 
 
     private void procesarDecisionDocente(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor, String deptName) {

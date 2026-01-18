@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2, Plus } from "lucide-react"
+import { AlertCircle, CheckCircle2, FileText, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
 import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useAdministrativoCarga, useGetPrograma, useListCarreras, useListDocentesDepartamento, useListMateriasDepartamento } from "@/app/api/generated/client"
+import { getGetDraftQueryKey, getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useAdministrativoCarga, useDeleteDraft, useGetDraft, useGetPrograma, useListCarreras, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -28,12 +28,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const queryClient = useQueryClient();
-  const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
   const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
+  const [loadingPrograma, setLoadingPrograma] = useState(false)
+  const [showDraft, setShowDraft] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const actualYear = new Date().getFullYear()
+  
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    anio: actualYear,
-    materiaId: 0,
     profesorResponsableId: 0,
     bloqueMultiple: [],
     cargaHorariaTotal: 0,
@@ -47,11 +49,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const programaQuery = useGetPrograma(id,
     {
       query: {
+        enabled: !!id,
         staleTime: 1000 * 60 * 5,
         queryKey: getGetProgramaQueryKey(id)
       }
     }
   );
+
+
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
 
   const ultimoEstado = programa?.historialEstados?.at(-1);
@@ -91,7 +96,8 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
 
 
-  const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
+  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate, isPending } = useAdministrativoCarga({
     mutation: {
@@ -102,8 +108,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           variant: "success",
         })        
         setFormData({
-          anio: actualYear,
-          materiaId: 0,
           profesorResponsableId: 0,
           bloqueMultiple: [],
           cargaHorariaTotal: 0,
@@ -120,6 +124,15 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         });
 
         router.push('/'); 
+
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
       },
       onError: (error: Error) => {
         toast({
@@ -166,15 +179,105 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     });
   }
 
+  const draftQuery = useGetDraft(
+    activeDepartamento?.departamentoId ?? 0,
+    programa?.materia?.id ?? 0,
+    {
+      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+    },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId &&
+                  !!programa?.materia?.id,
+        staleTime: Infinity,
+        retry: false, 
+        queryKey: getGetDraftQueryKey(
+          activeDepartamento!.departamentoId!,
+          programa?.materia?.id!,
+          {
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        )
+      }
+    }
+  );
+
+  useEffect(() => {
+    if (draftQuery.data?.payloadJson)       
+        setShowDraft(true);
+  }, [draftQuery.data]); 
+
+
+  const handleLoadDraft = () => {
+    if (!draftQuery.data?.payloadJson) return
+
+    setLoadingDraft(true)
+    try {
+      const draftData = JSON.parse(draftQuery.data.payloadJson)
+      setFormData(draftData)
+      setShowDraft(false)
+
+      toast({
+        title: "Borrador recuperado",
+        description: "Se restauró un borrador exitosamente",
+        variant: "info",
+      });
+
+    } catch (error) {
+      console.error("Error loading draft:", error)
+    } finally {
+      setLoadingDraft(false)
+    }
+  }
+
+
+  const guardarBorrador = useCallback(() => {
+  
+      mutateSaveDraft({
+        deptId: activeDepartamento!.departamentoId!,
+        materiaId: formData.materiaId!,
+        params: {
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        },
+        data: {
+          payloadJson: JSON.stringify(formData),
+        },
+      });
+  
+      setIsDirty(false);
+  
+      toast({
+        description: "✓ Guardado",
+        variant: "draft",
+      })    
+
+  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
+  
+  
+  const debouncedSave = useCallback(() => {
+      const handler = setTimeout(() => {
+        guardarBorrador();
+      }, 2000); // 2 segundos
+  
+      return () => clearTimeout(handler);
+  }, [guardarBorrador]);
+
+  
+  useEffect(() => {
+      if (!isDirty) return;
+
+      const cancel = debouncedSave();
+
+      return cancel;
+  }, [isDirty, debouncedSave]);
+
 
  useEffect(() => {
     if (!programa) return
 
-    setLoadingProgramaVigente(true)
-    setSelectedMateria(programa.materia)
+    setLoadingPrograma(true)
     try {
       const mappedData: ProgramaCargaDTO = {
-        anio: programa.anio || actualYear,
         materiaId: programa.materia?.id,
         profesorResponsableId: programa.profesorResponsable?.id,
         bloqueMultiple:
@@ -196,7 +299,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     } catch (error) {
       console.error("Error loading previous program:", error)
     } finally {
-      setLoadingProgramaVigente(false)
+      setLoadingPrograma(false)
     }
 
   }, [programa]);
@@ -227,6 +330,8 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         ...prev,
         bloqueMultiple: [newBlock, ...(prev.bloqueMultiple || [])]
     }));
+
+    setIsDirty(true);
   }
 
   const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
@@ -234,6 +339,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       ...prev,
       bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
     }))
+    setIsDirty(true);
   }
 
   const handleRemoveProgramaCarrera = () => {
@@ -247,6 +353,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     }))
 
     setRemoveProgramaCarreraIndex(null)
+    setIsDirty(true);
   }
 
   const handleSingleFieldChange = (field: string, value: any) => {
@@ -254,6 +361,9 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       ...prev,
       [field]: value,
     }))
+
+    if(field !== "materiaId")
+      setIsDirty(true);
   }
 
 
@@ -454,6 +564,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
                 name="departamento"
                 value={activeDepartamento?.departamentoNombre}
                 className="border-border focus:border-primary bg-background text-lg font-medium"
+                readOnly
                 required
               />
             </div>
@@ -465,8 +576,9 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="anio"
                 name="anio"
-                value={formData.anio || actualYear}
+                value={actualYear}
                 className="border-border focus:border-primary bg-background"
+                readOnly
                 required
               />
             </div>
@@ -477,23 +589,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
                 Materia *
               </Label>
-              <select
+              <Input
                 id="materia"
-                value={formData.materiaId?.toString() || ""}
-                onChange={(e) => {
-                  handleSingleFieldChange("materiaId", Number(e.target.value))
-                  setSelectedMateria(materias.find(m => m.id === Number(e.target.value)) ?? undefined)
-                }}
-                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                type="text"
+                defaultValue={programa.materia?.nombre}
+                className="border-border focus:border-primary"
+                readOnly
                 required
-              >
-                <option value="">Seleccionar materia...</option>
-                {materias.map((materia) => (
-                  <option key={materia.id} value={materia.id}>
-                    {materia.nombre}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="space-y-2">
@@ -503,9 +606,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="codigo"
                 type="text"
-                value={selectedMateria?.codigo ?? ""}
+                defaultValue={programa.materia?.codigo}
                 className="border-border focus:border-primary bg-background"
                 readOnly
+                required
               />
             </div>
 
@@ -516,9 +620,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="area"
                 type="text"
-                value={selectedMateria?.area ?? ""}
+                defaultValue={programa.materia?.area}
                 className="border-border focus:border-primary bg-background"
                 readOnly
+                required
               />
             </div>
           </div>
@@ -622,7 +727,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="cargaTotal"
                 type="number"
-                value={formData.cargaHorariaTotal}
+                defaultValue={formData.cargaHorariaTotal}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 readOnly
@@ -767,6 +872,39 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Button>
           </div>
       </form>
+
+      <Dialog open={!!showDraft} onOpenChange={(open: any) => !open && setShowDraft(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
+              <FileText size={24} />
+              Borrador Encontrado
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Se encontró un borrador. ¿Desea cargarlo?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDraft(false)
+              }}
+              className="border-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleLoadDraft}
+              className="bg-destructive"
+            >
+              Cargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!removeProgramaCarreraIndex} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
         <DialogContent className="max-w-md">
