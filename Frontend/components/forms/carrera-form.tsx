@@ -18,6 +18,11 @@ export function CarreraForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const queryClient = useQueryClient();
+  const currentYear = new Date().getFullYear()
+  const years = Array.from(
+    { length: currentYear - 2000 + 1 },
+    (_, i) => currentYear - i
+  )
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     planAnio: "",
@@ -67,16 +72,12 @@ export function CarreraForm() {
     }); 
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: ["cantidadMaterias", "departamentoId", "comisionId"].includes(name)
-        ? value
-          ? Number.parseInt(value)
-          : undefined
-        : value,
+      [field]: value,
     }))
+
   }
 
 
@@ -103,42 +104,10 @@ export function CarreraForm() {
               id="nombre"
               name="nombre"
               value={formData.nombre}
-              onChange={handleChange}
+              onChange={(e) => handleFieldChange("nombre", e.target.value)}
               placeholder="Ej: Licenciatura en Computación"
               required
               className="border-2 border-border focus:border-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="plan" className="text-sm font-semibold">
-              Plan *
-            </Label>
-            <Input
-              id="plan"
-              name="plan"
-              value={formData.planAnio}
-              onChange={handleChange}
-              placeholder="Ej: Plan 2025 - Versión 1"
-              required
-              className="border-2 border-border focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="duracion" className="text-sm font-semibold">
-              Duración (cuatrimestres) *
-            </Label>
-            <Input
-              id="duracion"
-              name="duracion"
-              value={formData.duracion}
-              onChange={handleChange}
-              placeholder="Ej: 10 Cuat."
-              className="border-2 border-border focus:border-primary"
-              required
             />
           </div>
 
@@ -160,6 +129,64 @@ export function CarreraForm() {
             </Select>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">
+              Plan *
+            </Label>
+            <Select
+              value={formData.planAnio}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, planAnio: value }))
+              }
+            >
+              <SelectTrigger className="border-2 border-border focus:border-primary">
+                <SelectValue placeholder="Seleccionar año" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="version" className="text-sm font-semibold">
+              Versión *
+            </Label>
+            <Input
+              id="version"
+              name="version"
+              type="number"
+              value={formData.planVersion}
+              onChange={(e) => handleFieldChange("planVersion", Number.parseInt(e.target.value))}
+              placeholder="Ej: 1"
+              required
+              min="1"
+              className="border-2 border-border focus:border-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="duracion" className="text-sm font-semibold">
+              Duración (cuatrimestres) *
+            </Label>
+            <Input
+              id="duracion"
+              name="duracion"
+              value={formData.duracion}
+              onChange={(e) => handleFieldChange("duracion", e.target.value)}
+              placeholder="Ej: 10 Cuat."
+              className="border-2 border-border focus:border-primary"
+              required
+            />
+          </div>
+        </div>
+
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">

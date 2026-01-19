@@ -22,8 +22,9 @@ export function useLoginFlow() {
       throw new Error("Login inválido");
     }
     
-    await queryClient.invalidateQueries({
-      queryKey: getMeQueryKey()
+    await queryClient.resetQueries({
+      queryKey: getMeQueryKey(),
+      exact: true,
     });
 
     router.replace("/");

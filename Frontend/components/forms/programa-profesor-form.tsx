@@ -71,6 +71,15 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           description: "Información cargada exitosamente",
           variant: "success",
         })      
+
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
         setFormData({
           cargaHorariaPractica: 0,
           fundamentacion: "",
@@ -89,14 +98,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
         });
 
         router.push('/'); 
-
-        mutateDeleteDraft({
-          deptId: activeDepartamento!.departamentoId!,
-          materiaId: formData.materiaId!,
-          params:{
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-          }
-        });
 
       },
       onError: (error: Error) => {

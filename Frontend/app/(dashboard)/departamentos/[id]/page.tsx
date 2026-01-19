@@ -66,6 +66,7 @@ export default function EditDepartamentoPage() {
     setSecretaria(departamento.secretaria)
   }, [departamento])
 
+  console.log("Departamento loaded:", departamento?.direccionAdministrativa);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -376,11 +377,6 @@ export default function EditDepartamentoPage() {
                         Dirección Actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
-                        {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                            {getInitials(departamento?.directorAdministrativo)}
-                          </AvatarFallback>
-                        </Avatar> */}
                         <div>
                           <p className="font-bold text-lg text-foreground">
                             {direccionAdministrativa.apellido} {direccionAdministrativa.nombre}

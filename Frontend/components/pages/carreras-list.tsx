@@ -146,9 +146,9 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                 <th className="px-6 py-4 text-left">
                     Duración
                 </th>
-                <th className="px-6 py-4 text-left">
+                {/* <th className="px-6 py-4 text-left">
                     Cantidad de Materias
-                </th>
+                </th> */}
                 <th className="px-6 py-4 text-left">
                     Acciones
                 </th>
@@ -159,11 +159,11 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                 filteredCarreras.map((carrera) => (
                   <tr
                     key={carrera.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{carrera.nombre}</td>
                     <td className="px-6 py-4 text-foreground/80">{carrera.duracion}</td>
-                    <td className="px-6 py-4 text-foreground/80">{carrera.cantidadMaterias}</td>
+                    {/* <td className="px-6 py-4 text-foreground/80">{carrera.cantidadMaterias}</td> */}
 
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

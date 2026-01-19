@@ -14,11 +14,9 @@ export function useLogoutFlow() {
             method: "POST",
         });
     } finally {
-        queryClient.removeQueries({
-            queryKey: getMeQueryKey()
-        });
+        queryClient.clear();
         
-        router.replace("/login");
+        window.location.href = "/login";
     }
   };
 

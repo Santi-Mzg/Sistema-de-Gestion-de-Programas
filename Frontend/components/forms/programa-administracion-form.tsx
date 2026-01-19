@@ -122,6 +122,15 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           description: "Programa cargado exitosamente",
           variant: "success",
         })        
+
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
         setFormData({
           profesorResponsableId: 0,
           bloqueMultiple: [],
@@ -139,14 +148,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         });
 
         router.push('/'); 
-
-        mutateDeleteDraft({
-          deptId: activeDepartamento!.departamentoId!,
-          materiaId: formData.materiaId!,
-          params:{
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-          }
-        });
 
       },
       onError: (error: Error) => {
@@ -671,7 +672,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
                           value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
                           onSelect={() => {
                             setSelectedProfesor(profesor)
-                            handleSingleFieldChange("profesorId", profesor.id)
+                            handleSingleFieldChange("profesorResponsableId", profesor.id)
                             setOpenProfesorSelector(false)
                           }}
                         >

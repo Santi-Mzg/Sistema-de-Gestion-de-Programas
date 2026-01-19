@@ -132,16 +132,16 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
             <thead className="bg-primary text-primary-foreground">
               <tr>
                 <th className="px-6 py-4 text-left">
+                    Legajo
+                </th>
+                <th className="px-6 py-4 text-left">
+                    Apellido
+                </th>
+                <th className="px-6 py-4 text-left">
                     Nombre
                 </th>
                 <th className="px-6 py-4 text-left">
-                    Código
-                </th>
-                <th className="px-6 py-4 text-left">
-                    Área
-                </th>
-                <th className="px-6 py-4 text-left">
-                    Departamento
+                    Roles
                 </th>
                 <th className="px-6 py-4 text-left">
                     Acciones
@@ -155,10 +155,10 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                     key={user.id}
                     className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{user.nombre}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">{user.legajo}</td>
                     <td className="px-6 py-4 text-foreground/80">{user.apellido}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.legajo}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.nombre}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.join(", ")}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button

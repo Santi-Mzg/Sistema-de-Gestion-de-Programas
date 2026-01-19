@@ -132,6 +132,14 @@ export function SyllabusCreationForm() {
           variant: "success",
         })    
 
+        mutateDeleteDraft({
+          deptId: activeDepartamento!.departamentoId!,
+          materiaId: formData.materiaId!,
+          params:{
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          }
+        });
+
         setFormData({
           materiaId: 0,
           profesorResponsableId: 0,
@@ -151,13 +159,6 @@ export function SyllabusCreationForm() {
 
         router.push('/'); 
 
-        mutateDeleteDraft({
-          deptId: activeDepartamento!.departamentoId!,
-          materiaId: formData.materiaId!,
-          params:{
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-          }
-        });
       },
       onError: (error: Error) => {
         toast({
@@ -714,7 +715,7 @@ export function SyllabusCreationForm() {
                           value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
                           onSelect={() => {
                             setSelectedProfesor(profesor)
-                            handleSingleFieldChange("profesorId", profesor.id)
+                            handleSingleFieldChange("profesorResponsableId", profesor.id)
                             setOpenProfesorSelector(false)
                           }}
                         >

@@ -17,6 +17,7 @@ import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function EditCarreraPage() {
   const { activeRole } = useRole()
@@ -33,6 +34,12 @@ export default function EditCarreraPage() {
     anio: "",
     version: 1,
   })
+
+  const currentYear = new Date().getFullYear()
+  const years = Array.from(
+    { length: currentYear - 2000 + 1 },
+    (_, i) => currentYear - i
+  )
 
   const havePermissions = !(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')
   
@@ -375,18 +382,26 @@ export default function EditCarreraPage() {
                     <form onSubmit={handleCreatePlan} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="anio" className="text-sm font-semibold">
-                            Año del Plan *
+                          <Label className="text-sm font-semibold">
+                            Plan *
                           </Label>
-                          <Input
-                            id="anio"
-                            name="anio"
+                          <Select
                             value={newPlanData.anio}
-                            onChange={handleNewPlanChange}
-                            placeholder="Ej: 2026"
-                            required
-                            className="border-2 border-border focus:border-primary"
-                          />
+                            onValueChange={(value) =>
+                              setNewPlanData((prev) => ({ ...prev, anio: value }))
+                            }
+                          >
+                            <SelectTrigger className="border-2 border-border focus:border-primary">
+                              <SelectValue placeholder="Seleccionar año" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {years.map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="version" className="text-sm font-semibold">
@@ -397,7 +412,9 @@ export default function EditCarreraPage() {
                             name="version"
                             type="number"
                             value={newPlanData.version}
-                            onChange={handleNewPlanChange}
+                            onChange={(e) =>
+                              setNewPlanData((prev) => ({ ...prev, version: Number.parseInt(e.target.value) }))
+                            }
                             placeholder="Ej: 1"
                             required
                             min="1"
