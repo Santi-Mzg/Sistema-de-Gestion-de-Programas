@@ -189,9 +189,14 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron usuarios</p>
-                      <Link href="/usuarios/crear">
-                        <Button>Crear Usuario</Button>
-                      </Link>
+                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                          <Link href="/usuarios/crear">
+                            <Button>Crear Usuario</Button>
+                          </Link>
+                        }
                     </div>
                   </td>
                 </tr>

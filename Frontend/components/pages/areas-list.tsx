@@ -114,6 +114,7 @@ export function AreasList({ areas = [] }: AreasListProps) {
             />
           </div>
           {(activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+            activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
               activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
@@ -184,9 +185,13 @@ export function AreasList({ areas = [] }: AreasListProps) {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron áreas</p>
-                      <Link href="/areas/crear">
-                        <Button>Crear Área</Button>
-                      </Link>
+                        {(activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
+                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) && 
+                          <Link href="/areas/crear">
+                            <Button>Crear Área</Button>
+                          </Link>
+                        }
                     </div>
                   </td>
                 </tr>

@@ -199,9 +199,14 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron materia</p>
-                      <Link href="/materias/crear">
-                        <Button>Crear Materia</Button>
-                      </Link>
+                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                          <Link href="/materias/crear">
+                            <Button>Crear Materia</Button>
+                          </Link>
+                        }
                     </div>
                   </td>
                 </tr>

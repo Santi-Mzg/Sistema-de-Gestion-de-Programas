@@ -215,9 +215,11 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron departamentos</p>
-                      <Link href="/departamentos/crear">
-                        <Button>Crear Departamento</Button>
-                      </Link>
+                        {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && (
+                          <Link href="/departamentos/crear">
+                            <Button>Crear Departamento</Button>
+                          </Link>
+                        )}
                     </div>
                   </td>
                 </tr>

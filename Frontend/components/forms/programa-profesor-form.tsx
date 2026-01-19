@@ -454,7 +454,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             <Input
               id="profesor"
               type="text"
-              defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+              defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (Legajo: " + programa.profesorResponsable?.legajo + ")" || ""}
               className="border-border focus:border-primary"
               readOnly
             />

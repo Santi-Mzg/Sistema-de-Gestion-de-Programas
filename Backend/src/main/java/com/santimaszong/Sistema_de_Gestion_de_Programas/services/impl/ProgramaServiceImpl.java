@@ -424,6 +424,8 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     // BORRADOR
+    @Override
+    @Transactional
     public void saveDraft(Long deptId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo) {
         Long userId = user.getId();
 
@@ -452,6 +454,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         draftRepository.save(draft);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public ProgramaDraftDTO getDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
         Long userId = user.getId();
 
@@ -474,6 +478,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                 .orElse(null);
     }
 
+    @Override
+    @Transactional
     public void deleteDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
         Long userId = user.getId();
 
