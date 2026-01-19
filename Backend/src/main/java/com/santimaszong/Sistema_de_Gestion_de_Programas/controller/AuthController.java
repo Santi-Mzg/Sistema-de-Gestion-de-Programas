@@ -1,5 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ResetPasswordRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -44,19 +45,8 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody String email) {
-//        // 1. Generar la contraseña aleatoria
-//        String temporaryPassword = passwordGeneratorService.generateSafePassword(16);
-//
-//        // 2. Encriptarla para la DB
-//        String hashedBtn = passwordEncoder.encode(temporaryPassword);
-//
-//        // 3. Actualizar el usuario en DB
-//        usuarioService.updatePassword(email, hashedBtn);
-//
-//        // 4. Enviar la contraseña EN TEXTO PLANO por email al usuario
-//        emailService.sendPasswordReset(email, temporaryPassword);
-
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req);
         return ResponseEntity.ok("Nueva contraseña enviada.");
     }
 

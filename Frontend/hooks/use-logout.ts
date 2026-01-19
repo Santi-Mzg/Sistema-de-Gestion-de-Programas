@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getMeQueryKey } from "@/app/api/generated/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useLogoutFlow() {

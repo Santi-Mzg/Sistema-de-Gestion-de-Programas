@@ -37,11 +37,9 @@ public class EstadoHistoricoEntity {
     private String justificacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "realizado_por_id", nullable = false)
-    private UserEntity realizadoPor;
+    @JoinColumn(name = "actor_id", nullable = false)
+    private UsuarioDepartamentoEntity actor;
 
     private Rol actorRol;
-
-    private String departamentoName;
 
 }

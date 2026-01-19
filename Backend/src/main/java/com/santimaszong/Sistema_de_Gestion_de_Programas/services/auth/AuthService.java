@@ -1,9 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ResetPasswordRequest;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginRequest;
@@ -24,6 +28,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordGeneratorService passwordGeneratorService;
+
 
     public String login(LoginRequest req, HttpServletResponse response) {
         Authentication auth = authenticationManager.authenticate(
@@ -47,11 +55,23 @@ public class AuthService {
         return token;
     }
 
+
     public UserResponseDTO me(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         UserEntity user = userRepo.findByLegajoWithDepartamentos(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
 
         return userMapper.toDTO(user);
+    }
+
+    public void resetPassword(ResetPasswordRequest req) {
+        UserEntity user = userRepo.findByLegajo(req.legajo())
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        String newPassword = passwordGeneratorService.generateSafePassword(12);
+        String hashedBtn = passwordEncoder.encode(newPassword);
+        user.setPassword(hashedBtn);
+
+        emailService.sendEmailRecuperarPassword(req.email(), newPassword);
     }
 }

@@ -19,9 +19,9 @@ public interface EstadoHistoricoResponseMapper extends ToDTOMapper<EstadoHistori
     @Mapping(source = "estado", target = "estado")
     @Mapping(source = "fecha", target = "fecha")
     @Mapping(source = "justificacion", target = "justificacion")
-    @Mapping(source = "realizadoPor", target = "actor")
+    @Mapping(source = "actor.usuario", target = "actor")
     @Mapping(source = "actorRol", target = "actorRol")
-    @Mapping(source = "departamentoName", target = "departamentoName")
+    @Mapping(source = "actor.departamento.nombre", target = "departamentoName")
     EstadoHistoricoResponseDTO toDTO(EstadoHistoricoEntity entity);
 
 }

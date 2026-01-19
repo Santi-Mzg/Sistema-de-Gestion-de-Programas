@@ -18,7 +18,6 @@ public class EstadoHistoricoResponseDTO {
     private EstadoPrograma estado;
     private LocalDateTime fecha;
     private String justificacion;
-//    private UserActionResponseDTO actor;
     private UserResponseReducedDTO actor;
     private String departamentoName;
     private Rol actorRol;

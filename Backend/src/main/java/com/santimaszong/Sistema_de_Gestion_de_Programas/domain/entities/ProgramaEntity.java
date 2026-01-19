@@ -90,19 +90,30 @@ public class ProgramaEntity {
 
 
 
-    public void registrarNuevoEstado(EstadoPrograma estado, UserEntity actor, Rol actorRol, String deptName, String justificacion){
+    public void registrarNuevoEstado(EstadoPrograma estado, UsuarioDepartamentoEntity actor, Rol actorRol, String justificacion){
         EstadoHistoricoEntity nuevoEstadoHistorico = new EstadoHistoricoEntity();
         nuevoEstadoHistorico.setPrograma(this);
         nuevoEstadoHistorico.setEstado(estado);
-        nuevoEstadoHistorico.setRealizadoPor(actor);
+        nuevoEstadoHistorico.setActor(actor);
         nuevoEstadoHistorico.setActorRol(actorRol);
-        nuevoEstadoHistorico.setDepartamentoName(deptName);
         nuevoEstadoHistorico.setJustificacion(justificacion);
         nuevoEstadoHistorico.setFecha(LocalDateTime.now());
 
         historialEstados.add(nuevoEstadoHistorico);
 
         this.setEstadoActual(estado);
+    }
+
+    public UsuarioDepartamentoEntity getAdministracionResponsable() {
+        if (this.historialEstados == null || this.historialEstados.isEmpty()) {
+            return null;
+        }
+
+        return historialEstados.stream()
+                .filter(h -> h.getActorRol().equals(Rol.ADMINISTRACION))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Estado Histórico no encontrado en historial"))
+                .getActor();
     }
 
 }

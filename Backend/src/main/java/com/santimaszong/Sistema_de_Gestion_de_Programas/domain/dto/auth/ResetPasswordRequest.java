@@ -1,3 +1,3 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth;
 
-public record LoginRequest(String legajo, String password) {}
+public record ResetPasswordRequest(String legajo, String email) {}

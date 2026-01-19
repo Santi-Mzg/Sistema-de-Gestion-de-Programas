@@ -9,6 +9,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.Progr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -32,6 +33,8 @@ public class ProgramaServiceImpl implements ProgramaService {
     private final UserService userService;
     private final CarreraService carreraService;
     private final UsuarioDepartamentoService udeService;
+    private final EmailService emailService;
+
 
 
     private final ProgramaResponseMapper responseMapper;
@@ -48,7 +51,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                                UsuarioDepartamentoService udeService,
                                ProgramaResponseMapper responseMapper,
                                ProgramaCargaMapper programaMapper,
-                               ProgramaCarreraMapper programaCarreraMapper) {
+                               ProgramaCarreraMapper programaCarreraMapper,
+                               EmailService emailService) {
 
         this.programaRepository = programaRepository;
         this.draftRepository = draftRepository;
@@ -60,6 +64,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.responseMapper = responseMapper;
         this.programaMapper = programaMapper;
         this.programaCarreraMapper = programaCarreraMapper;
+        this.emailService = emailService;
     }
 
 
@@ -89,8 +94,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         programaEntity.setMateria(materia);
 
-        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
-        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(profesorResponsable.getId(), dptoId);
+        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(programaDTO.getProfesorResponsableId(), dptoId);
         if(!udeProfesor.hasRole(Rol.DOCENTE)){
             throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
         }
@@ -119,9 +123,13 @@ public class ProgramaServiceImpl implements ProgramaService {
             estado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
         }
 
-        programaEntity.registrarNuevoEstado(estado, actor, Rol.ADMINISTRACION, dptoName, null);
-
+        programaEntity.registrarNuevoEstado(estado, udeActor, Rol.ADMINISTRACION, null);
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
+
+        // EMAIL SEND
+        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
+        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesor.getEmail(), profesorResponsable, materia);
+
         return responseMapper.toDTO(createdProgramaEntity);
     }
 
@@ -196,10 +204,16 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getCantidadSemanas() != null;
 
         if (completoAdministrativo) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, actor, Rol.ADMINISTRACION, dptoName, null);
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, udeActor, Rol.ADMINISTRACION, null);
         }
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
+
+        // EMAIL SEND
+        UsuarioDepartamentoEntity udeProfesorResponsable = existingProgram.getProfesorResponsable();
+        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesorResponsable.getEmail(), udeProfesorResponsable.getUsuario(), existingProgram.getMateria());
+
+
         return responseMapper.toDTO(saved);
     }
 
@@ -261,7 +275,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                         existingProgram.getBibliografia() != null;
 
         if (completoProfesor) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, actor, Rol.DOCENTE, deptName, null);
+            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, udeActor, Rol.DOCENTE, null);
 
             // 1. Obtener coordinadores únicos de todas las carreras involucradas
             Set<UsuarioDepartamentoEntity> coordinadores = existingProgram.getBloqueMultiple().stream()
@@ -282,6 +296,13 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         ProgramaEntity saved = programaRepository.save(existingProgram);
+
+        // EMAIL SEND
+        for(ProgramaCarreraEntity bloque : existingProgram.getBloqueMultiple()) {
+            UsuarioDepartamentoEntity udeComision = bloque.getCarreraPlan().getCarrera().getComision();
+            emailService.sendEmailNotificacionCargaDocente(udeComision.getEmail(), existingProgram, bloque.getCarreraPlan().getCarrera());
+        }
+
         return responseMapper.toDTO(saved);
     }
 
@@ -303,15 +324,15 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         switch (rolActivo) {
             case DOCENTE:
-                procesarDecisionDocente(programa, estadoUpdateDTO, actor, deptName);
+                procesarDecisionDocente(programa, estadoUpdateDTO, udeActor);
                 break;
 
             case COORDINACION_COMISION_CURRICULAR:
-                procesarDecisionCoordinador(programa, estadoUpdateDTO, actor, deptName);
+                procesarDecisionCoordinador(programa, estadoUpdateDTO, udeActor);
                 break;
 
             case SECRETARIA:
-                procesarDecisionSecretaria(programa, estadoUpdateDTO, actor, deptName);
+                procesarDecisionSecretaria(programa, estadoUpdateDTO, udeActor);
                 break;
 
             default:
@@ -476,11 +497,11 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
 
-    private void procesarDecisionDocente(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor, String deptName) {
+    private void procesarDecisionDocente(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
 
         switch (estadoUpdateDTO.getAccion()) {
             case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO, actor, Rol.DOCENTE, deptName);
+                rechazar(programa, estadoUpdateDTO, udeActor, Rol.DOCENTE);
                 break;
 
             case APROBAR:
@@ -488,10 +509,10 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
     }
 
-    private void procesarDecisionCoordinador(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor, String deptName) {
+    private void procesarDecisionCoordinador(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
 
         // 1. Buscar la decisión de este coordinador específico
-        DecisionComisionEntity decision = decisionRepository.findByProgramaIdAndComisionUsuarioId(programa.getId(), actor.getId())
+        DecisionComisionEntity decision = decisionRepository.findByProgramaIdAndComisionUsuarioId(programa.getId(), udeActor.getUsuario().getId())
                 .orElseThrow(() -> new IllegalStateException("Usted no es coordinador de este programa"));
 
         switch (estadoUpdateDTO.getAccion()) {
@@ -505,36 +526,40 @@ public class ProgramaServiceImpl implements ProgramaService {
 
                 if (pendientes == 0) {
                     // SOLO AQUÍ cambiamos el estado global
-                    programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_COMISION, actor, Rol.COORDINACION_COMISION_CURRICULAR, deptName, "Aprobación unánime de comisiones");
+                    programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_COMISION, udeActor, Rol.COORDINACION_COMISION_CURRICULAR, "Aprobación unánime de comisiones");
                     programaRepository.save(programa);
+
+                    // EMAIL SEND
+                    UsuarioDepartamentoEntity udeSecretaria = programa.getMateria().getDepartamento().getSecretaria();
+                    emailService.sendEmailNotificacionAprobacionComision(udeSecretaria.getEmail(), udeSecretaria.getUsuario(), programa.getMateria());
                 }
 
                 break;
 
             case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO, actor, Rol.COORDINACION_COMISION_CURRICULAR, deptName);
+                rechazar(programa, estadoUpdateDTO, udeActor, Rol.COORDINACION_COMISION_CURRICULAR);
                 decisionRepository.deleteByProgramaId(programa.getId());
                 break;
 
         }
     }
 
-    private void procesarDecisionSecretaria(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor, String deptName) {
+    private void procesarDecisionSecretaria(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
 
         switch (estadoUpdateDTO.getAccion()) {
             case APROBAR:
-                programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_SECRETARIA, actor, Rol.SECRETARIA, deptName, null);
+                programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_SECRETARIA, udeActor, Rol.SECRETARIA, null);
                 break;
 
             case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO, actor, Rol.SECRETARIA, deptName);
+                rechazar(programa, estadoUpdateDTO, udeActor, Rol.SECRETARIA);
                 break;
 
         }
     }
 
 
-    private void rechazar(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UserEntity actor, Rol actorRol, String deptName) {
+    private void rechazar(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor, Rol actorRol) {
 
         Rol destinoRechazo = estadoUpdateDTO.getDestinoRechazo();
 
@@ -542,14 +567,27 @@ public class ProgramaServiceImpl implements ProgramaService {
             throw new IllegalArgumentException("Debe especificar destino al rechazar");
         }
 
-        EstadoPrograma nuevoEstado = switch (destinoRechazo) {
-            case Rol.ADMINISTRACION -> EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
-            case Rol.DOCENTE -> EstadoPrograma.RECHAZADO_A_PROFESOR;
+        UsuarioDepartamentoEntity udeDestinatario;
+
+        EstadoPrograma nuevoEstado;
+        udeDestinatario = switch (destinoRechazo) {
+            case Rol.ADMINISTRACION -> {
+                nuevoEstado = EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
+                yield programa.getAdministracionResponsable();
+            }
+            case Rol.DOCENTE -> {
+                nuevoEstado = EstadoPrograma.RECHAZADO_A_PROFESOR;
+                yield programa.getProfesorResponsable();
+            }
             default ->
                     throw new IllegalArgumentException("No se puede realizar la acción de rechazar a menos que sea a ADMINISTRACION o a PROFESOR");
         };
+        ;
 
-        programa.registrarNuevoEstado(nuevoEstado, actor, actorRol, deptName, estadoUpdateDTO.getJustificacion());
+        programa.registrarNuevoEstado(nuevoEstado, udeActor, actorRol, estadoUpdateDTO.getJustificacion());
+
+        // EMAIL SEND
+        emailService.sendEmailNotificacionRechazo(udeDestinatario.getEmail(), udeDestinatario.getUsuario(), actorRol, udeActor.getUsuario(), programa.getMateria(), estadoUpdateDTO.getJustificacion());
 
     }
 

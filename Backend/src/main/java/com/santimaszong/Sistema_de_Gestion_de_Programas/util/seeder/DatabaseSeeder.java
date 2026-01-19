@@ -50,7 +50,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if(departamentoRepository.findAll().isEmpty()){
-            seedDepartamentosCarrerasMaterias();
+            seedDepartamentosAndCarreras();
         }
         if(userRepository.findAll().isEmpty()){
             seedAdminUser();
@@ -75,7 +75,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-    private void seedDepartamentosCarrerasMaterias() {
+    private void seedDepartamentosAndCarreras() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////     D E P A R T A M E N T O S      //////////////////////////////
@@ -336,9 +336,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         Set<Rol> roles = Set.of(
                 Rol.ADMINISTRACION,
                 Rol.DOCENTE,
-                Rol.COORDINACION_COMISION_CURRICULAR,
-                Rol.SECRETARIA,
-                Rol.DIRECCION_ADMINISTRATIVA,
                 Rol.SYSTEM_ADMIN
         );
 

@@ -5,6 +5,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioD
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -26,18 +28,21 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UsuarioDepartamentoService userDptoService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final PasswordGeneratorService passwordGeneratorService;
     private final UserMapper userMapper;
 
     public UserServiceImpl(UserRepository userRepository,
                            UsuarioDepartamentoService userDptoService,
+                           EmailService emailService,
                            PasswordEncoder passwordEncoder,
                            PasswordGeneratorService passwordGeneratorService,
                            UserMapper userMapper) {
 
         this.userRepository = userRepository;
         this.userDptoService = userDptoService;
+        this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.passwordGeneratorService = passwordGeneratorService;
         this.userMapper = userMapper;
@@ -48,17 +53,16 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO createUser(Long deptId, UserCreateDTO userDTO){
         UserEntity user;
+        String temporaryPassword = null;
+        boolean nuevoUsuario = false;
 
-        if (userRepository.existsByLegajo(userDTO.getLegajo())) { // Si existe lo busco
+        Optional<UserEntity> existingUser = userRepository.findByLegajoWithDepartamentos(userDTO.getLegajo());
 
-            user = userRepository.findByLegajoWithDepartamentos(userDTO.getLegajo())
-                    .orElseThrow(() -> new EntityNotFoundException("El usuario con legajo " + userDTO.getLegajo()  + "no fue encontrado."));
-
+        if (existingUser.isPresent()) { // Si existe lo busco
+            user = existingUser.get();
 
             boolean userInDpto = user.getDepartamentos().stream()
-                    .anyMatch(ude -> ude.getDepartamento().getId()
-                                    .equals(deptId)
-                    );
+                    .anyMatch(ude -> ude.getDepartamento().getId().equals(deptId));
 
             if(userInDpto) { // Si ya tiene un ude de ese departamento retorno
                 throw new IllegalArgumentException("Usuario ya registrado en el departamento indicado");
@@ -71,8 +75,10 @@ public class UserServiceImpl implements UserService {
             user.setApellido(userDTO.getApellido());
             user.setLegajo(userDTO.getLegajo());
 
-            String temporaryPassword = passwordGeneratorService.generateSafePassword(12);
+            temporaryPassword = passwordGeneratorService.generateSafePassword(12);
             user.setPassword(passwordEncoder.encode(temporaryPassword));
+
+            nuevoUsuario = true;
         }
 
         // De todas maneras creo el ude acorde al departamento
@@ -85,10 +91,19 @@ public class UserServiceImpl implements UserService {
         ude.setRoles(userDTO.getRoles());
         user.getDepartamentos().add(ude);
 
+
         UserEntity savedUser = userRepository.save(user);
 
-        return userMapper.toDTO(savedUser);
+        try {
+            if(nuevoUsuario)
+                emailService.sendEmailNuevoUsuario(userDTO.getEmail(), userDTO.getLegajo(), temporaryPassword);
+            else
+                emailService.sendEmailNuevoDepartamento(userDTO.getEmail(), departamento.getNombre());
+        } catch (Exception e) {
+            throw new RuntimeException("Error al notificar al usuario, pero la cuenta fue creada: "+e);
+        }
 
+        return userMapper.toDTO(savedUser);
     }
 
     @Override

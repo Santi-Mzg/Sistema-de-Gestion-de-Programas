@@ -29,8 +29,8 @@ public interface DepartamentoMapper extends ToEntityMapper<DepartamentoCreateDTO
     DepartamentoEntity toEntity(DepartamentoCreateDTO dto);
 
     @Override
-    @Mapping(source = "secretaria", target = "secretaria")
-    @Mapping(source = "direccionAdministrativa", target = "direccionAdministrativa")
+    @Mapping(source = "secretaria.usuario", target = "secretaria")
+    @Mapping(source = "direccionAdministrativa.usuario", target = "direccionAdministrativa")
     DepartamentoResponseDTO toDTO(DepartamentoEntity entity);
 
 

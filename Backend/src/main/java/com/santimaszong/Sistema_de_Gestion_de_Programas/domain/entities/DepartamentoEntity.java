@@ -56,18 +56,16 @@ public class DepartamentoEntity {
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UsuarioDepartamentoEntity> usuarios;
 
-    public UserEntity getSecretaria() {
+    public UsuarioDepartamentoEntity getSecretaria() {
         return usuarios.stream()
                 .filter(ude -> ude.getRoles().contains(Rol.SECRETARIA))
-                .map(UsuarioDepartamentoEntity::getUsuario)
                 .findFirst()
                 .orElse(null);
     }
 
-    public UserEntity getDireccionAdministrativa() {
+    public UsuarioDepartamentoEntity getDireccionAdministrativa() {
         return usuarios.stream()
                 .filter(ude -> ude.getRoles().contains(Rol.DIRECCION_ADMINISTRATIVA))
-                .map(UsuarioDepartamentoEntity::getUsuario)
                 .findFirst()
                 .orElse(null);
     }

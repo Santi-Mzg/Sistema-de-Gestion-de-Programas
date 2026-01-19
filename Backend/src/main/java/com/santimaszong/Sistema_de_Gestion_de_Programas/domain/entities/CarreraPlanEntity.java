@@ -11,7 +11,15 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "carreras_planes")
+@Table(
+        name = "carreras_planes",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_carrera_anio_version",
+                        columnNames = {"carrera_id", "anio", "version"}
+                )
+        }
+)
 public class CarreraPlanEntity {
 
     @Id
