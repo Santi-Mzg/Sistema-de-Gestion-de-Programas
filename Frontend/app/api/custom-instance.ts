@@ -1,6 +1,7 @@
 import Axios, { AxiosRequestConfig } from 'axios';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+// export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
+export const API_PROXY_URL = '/api-proxy';
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,
@@ -9,7 +10,7 @@ export const customInstance = <T>(
   
   const promise = Axios.request<T>({
     ...config,
-    baseURL: API_URL,
+    baseURL: API_PROXY_URL,
     cancelToken: source.token,
     withCredentials: true,
   }).then(({ data }) => data);
