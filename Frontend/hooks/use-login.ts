@@ -22,12 +22,15 @@ export function useLoginFlow() {
       throw new Error("Login inválido");
     }
     
-    await queryClient.resetQueries({
-      queryKey: getMeQueryKey(),
-      exact: true,
-    });
+    // await queryClient.resetQueries({
+    //   queryKey: getMeQueryKey(),
+    //   exact: true,
+    // });
 
-    router.replace("/");
+    await queryClient.clear();
+
+
+    window.location.href = "/";
   };
 
   return {

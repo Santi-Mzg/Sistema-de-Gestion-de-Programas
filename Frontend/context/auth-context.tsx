@@ -14,8 +14,10 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const meQuery = useMe({
     query: {
+      gcTime: 0,
       staleTime: 0,
       retry: false,
+      refetchOnWindowFocus: true,
       queryKey: getMeQueryKey()
     },
   });
