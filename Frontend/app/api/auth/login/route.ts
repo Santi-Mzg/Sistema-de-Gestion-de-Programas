@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   (await cookies()).set("jwt", data.token, {
     httpOnly: true,
     secure: true,
-    sameSite: "lax",
+    sameSite: "none",
     path: "/",
     maxAge: 60 * 60 * 24,
   });
