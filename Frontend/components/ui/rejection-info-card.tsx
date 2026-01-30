@@ -35,7 +35,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
 
   return (
     <div className="sticky top-0 z-40 mb-6 animate-in slide-in-from-top-5 fade-in duration-500">
-      <div className="bg-gradient-to-br from-destructive/95 to-destructive/90 backdrop-blur-md rounded-xl shadow-2xl border-2 border-destructive overflow-hidden">
+      <div className="bg-linear-to-br from-destructive/95 to-destructive/90 backdrop-blur-md rounded-xl shadow-2xl border-2 border-destructive overflow-hidden">
         {/* Header */}
         <div
           className="flex items-center justify-between p-4 cursor-pointer hover:bg-destructive/20 transition-colors"
@@ -72,7 +72,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
             {/* Metadata */}
             <div className="flex items-center gap-6">
               <div className="flex items-start gap-2 bg-background/10 rounded-lg p-3 flex-1">
-                <User className="w-4 h-4 text-destructive-foreground/70 mt-0.5 flex-shrink-0" />
+                <User className="w-4 h-4 text-destructive-foreground/70 mt-0.5 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-destructive-foreground/70 font-medium">Rechazado por {estadoHistorico.actorRol}</p>
                   <p className="text-sm text-destructive-foreground font-semibold">
@@ -84,7 +84,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
                 </div>
               </div>
               <div className="flex items-start gap-2 bg-background/10 rounded-lg p-3 flex-1">
-                <Calendar className="w-4 h-4 text-destructive-foreground/70 mt-0.5 flex-shrink-0" />
+                <Calendar className="w-4 h-4 text-destructive-foreground/70 mt-0.5 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-destructive-foreground/70 font-medium">Fecha</p>
                   <p className="text-sm text-destructive-foreground font-semibold">

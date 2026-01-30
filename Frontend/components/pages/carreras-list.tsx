@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, GraduationCap } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
+import { useHeader } from "@/context/header-context"
 
 
 interface CarrerasListProps {
@@ -19,13 +20,21 @@ interface CarrerasListProps {
 
 
 export function CarrerasList({ carreras = [] }: CarrerasListProps) {
-
+  const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setHeader({
+      title: `Carreras Departamentales`,
+      subtitle: "Gestiona y consulta todas las carreras del departamento",
+      icon: GraduationCap,
+    })
+  }, [])
 
   // Filter and sort data
   const filteredCarreras = useMemo(() => {
@@ -96,12 +105,6 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
 
   return (
     <div className="w-full bg-background">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-8 rounded-b-2xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Carreras Departamentales</h1>
-        <p className="text-primary-foreground/80">Gestiona y consulta todas las carreras del departamento</p>
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
         <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">

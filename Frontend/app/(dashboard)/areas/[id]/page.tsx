@@ -4,23 +4,24 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, Building2, AlertCircle, Layers } from "lucide-react"
+import { Save, AlertCircle, Layers, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { AreaResponseDTO, AreaCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
 import { getGetAreaQueryKey, useGetArea, useUpdateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
+import { useHeader } from "@/context/header-context"
 
 
 export default function EditAreaPage() {
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
-  const router = useRouter()
+
+  const { setHeader } = useHeader()
 
   const havePermissions = (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA');
 
@@ -33,6 +34,14 @@ export default function EditAreaPage() {
     }
   );
   const area: AreaResponseDTO | undefined = areaQuery.data;
+
+  useEffect(() => {
+    setHeader({
+      title: `Área ${area?.nombre ?? ""}`,
+      subtitle: " ",
+      icon: Layers,
+    })
+  }, [area])
 
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<AreaCreateDTO>({
@@ -130,24 +139,6 @@ export default function EditAreaPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10 -ml-2"
-          >
-            <ArrowLeft size={20} className="mr-2" />
-            Volver
-          </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <Layers size={40} />
-            <h1 className="text-4xl font-bold text-balance">Área {area?.nombre}</h1>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Form - 2 columns */}
@@ -155,7 +146,6 @@ export default function EditAreaPage() {
             <Card className="border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  <Building2 size={24} />
                   Información General
                 </CardTitle>
                 <CardDescription className="text-base">Datos del área</CardDescription>

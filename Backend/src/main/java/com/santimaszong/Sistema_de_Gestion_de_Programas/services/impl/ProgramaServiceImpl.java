@@ -70,7 +70,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
-    public ProgramaResponseDTO create(ProgramaCargaDTO programaDTO, UserEntity actor){
+    public ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO programaDTO, UserEntity actor){
         Integer anioActual = LocalDate.now().getYear();
 
         if (programaRepository.existsByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual)) {
@@ -82,10 +82,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
 
-        Long dptoId = materia.getDepartamento().getId();
-        String dptoName = materia.getDepartamento().getNombre();
-
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), dptoId);
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
         if(!udeActor.hasRole(Rol.ADMINISTRACION)){
             throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
         }
@@ -94,7 +91,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         programaEntity.setMateria(materia);
 
-        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(programaDTO.getProfesorResponsableId(), dptoId);
+        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(programaDTO.getProfesorResponsableId(), deptId);
         if(!udeProfesor.hasRole(Rol.DOCENTE)){
             throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
         }
@@ -135,14 +132,12 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
-    public ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
+    public ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        Long dptoId = existingProgram.getMateria().getDepartamento().getId();
-        String dptoName = existingProgram.getMateria().getDepartamento().getNombre();
 
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), dptoId);
+        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
 
         if(!udeActor.hasRole(Rol.ADMINISTRACION)) {
             throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
@@ -161,7 +156,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                     if(profesorActual != null && profesorActual.getId().equals(profesorId))
                         return; // Si es el mismo no lo cambia
 
-                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, dptoId);
+                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId);
 
                     if(!udeProfesorNuevo.hasRole(Rol.DOCENTE)){
                         throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
@@ -219,12 +214,10 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
-    public ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
+    public ProgramaResponseDTO profesorCarga(Long deptId, Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
         ProgramaEntity existingProgram = programaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        Long deptId = existingProgram.getMateria().getDepartamento().getId();
-        String deptName = existingProgram.getMateria().getDepartamento().getNombre();
 
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
         if(!udeActor.hasRole(Rol.DOCENTE)) {

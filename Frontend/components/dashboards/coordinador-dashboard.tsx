@@ -1,18 +1,36 @@
 "use client"
 
-import { Users, CheckCircle2, AlertCircle } from "lucide-react"
+import { Users, CheckCircle2, AlertCircle, User, Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
 import { ProgramasListReducedCoord } from "../pages/programas-list-reduced-coordinador";
+import { useEffect } from "react";
+import { useHeader } from "@/context/header-context";
+import { useAuth } from "@/context/auth-context";
 
 
 export function CoordinadorDashboard() {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
-
+  const { user } = useAuth();
+  const {setHeader} = useHeader();
+    
+  useEffect(() => {
+    setHeader({
+      title: "Panel de Coordinación de la Comisión Curricular",
+      subtitle: "Visualiza y gestiona los programas asignados",
+      badge: (
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+          <User className="text-primary" size={20} />
+          <span className="font-semibold text-primary">Bienvenido {user?.nombre}</span>
+        </div>
+      ),
+      icon: Home
+    })
+  }, [user]);
   // const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
 
   const programasQuery = useListProgramas(

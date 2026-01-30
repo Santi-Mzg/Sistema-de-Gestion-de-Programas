@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Plus } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, Edit2, Trash2, Plus, Layers } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { AreaCreateDTO, AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
+import { useHeader } from "@/context/header-context"
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
@@ -18,12 +19,25 @@ interface AreasListProps {
 
 
 export function AreasList({ areas = [] }: AreasListProps) {
+  const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedArea, setSelectedArea] = useState<AreaResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  const hasPermission = (activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
+                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN)
+
+  useEffect(() => {
+    setHeader({
+      title: `Áreas Departamentales`,
+      subtitle: "Gestiona y consulta todas las áreas del departamento",
+      icon: Layers,
+    })
+  }, [])
 
   // Filter and sort data
   const filteredAreas = useMemo(() => {
@@ -94,12 +108,6 @@ export function AreasList({ areas = [] }: AreasListProps) {
 
   return (
     <div className="w-full bg-background">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-8 rounded-b-2xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Áreas Departamentales</h1>
-        <p className="text-primary-foreground/80">Gestiona y consulta todas las áreas del departamento</p>
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
         <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
@@ -137,12 +145,15 @@ export function AreasList({ areas = [] }: AreasListProps) {
           <table className="w-full border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-6 py-4 text-left"
+                    colSpan={hasPermission ? 1 : 2}>
                     Nombre
                 </th>
-                <th className="px-6 py-4 text-left">
-                    Acciones
-                </th>
+                {hasPermission && (
+                  <th className="px-6 py-4 text-center">
+                      Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -154,6 +165,7 @@ export function AreasList({ areas = [] }: AreasListProps) {
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{area.nombre}</td>
                     <td className="px-6 py-4">
+                      {hasPermission && (
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"
@@ -164,7 +176,6 @@ export function AreasList({ areas = [] }: AreasListProps) {
                           <Edit2 size={16} className="mr-1" />
                           Editar
                         </Button>
-                        {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -174,20 +185,18 @@ export function AreasList({ areas = [] }: AreasListProps) {
                             <Trash2 size={16} className="mr-1" />
                             Eliminar
                           </Button>
-                          )}
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={2} className="px-6 py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron áreas</p>
-                        {(activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
-                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) && 
+                        {hasPermission && 
                           <Link href="/areas/crear">
                             <Button>Crear Área</Button>
                           </Link>

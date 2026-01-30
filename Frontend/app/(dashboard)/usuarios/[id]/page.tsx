@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDepartamentoDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context"
 import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
+import { useHeader } from "@/context/header-context"
 
 
 export default function EditUserPage() {
@@ -42,10 +42,16 @@ export default function EditUserPage() {
   const user: UserResponseDTO | undefined = userQuery.data;
   const userDpto: UsuarioDepartamentoDTO | undefined = user?.departamentos?.find(depto => depto.departamentoId === activeDepartamento?.departamentoId)
   
+  const { setHeader } = useHeader()
+  useEffect(() => {
+    setHeader({
+      title: `Usuario con legajo ${user?.legajo ?? ""}`,
+      subtitle: " ",
+      icon: User,
+    })
+  }, [user])
   
   const [isLoading, setIsLoading] = useState(false)
-  const [directorDialogOpen, setDirectorDialogOpen] = useState(false)
-  const [direccionAdministrativa, setDireccionAdministrativa] = useState<UserResponseReducedDTO>()
   const [formData, setFormData] = useState<UserCreateDTO>({
         nombre: user?.nombre || "",
         apellido: user?.apellido || "",
@@ -140,25 +146,6 @@ export default function EditUserPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10 -ml-2"
-          >
-            <ArrowLeft size={20} className="mr-2" />
-            Volver
-          </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <Building2 size={40} />
-            <h1 className="text-4xl font-bold text-balance">Editar Usuario</h1>
-          </div>
-          <p className="text-primary-foreground/90 text-lg">Modifica la información general</p>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Form - 2 columns */}
@@ -166,7 +153,6 @@ export default function EditUserPage() {
             <Card className="border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  <Building2 size={24} />
                   Información General
                 </CardTitle>
                 <CardDescription className="text-base">Actualiza los datos básicos del usuario</CardDescription>

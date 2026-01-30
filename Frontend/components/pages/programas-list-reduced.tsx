@@ -2,9 +2,10 @@
 
 import { act, useState } from "react"
 import { Search, ChevronUp, ChevronDown, Eye, Pencil} from "lucide-react"
-import { ProgramaResponseDTO } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
 import { Button } from "../ui/button";
 import { useRole } from "@/context/role-context";
+import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],
@@ -94,10 +95,12 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2`}
+                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
+                          getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
+                        }`}
                       >
-                        {programa.estado}
-                      </span>
+                        {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+                      </span> 
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

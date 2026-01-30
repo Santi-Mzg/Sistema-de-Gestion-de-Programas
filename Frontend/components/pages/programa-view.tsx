@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2, Eye, Plus } from "lucide-react"
-import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { AlertCircle, CheckCircle2, Eye, FileText, Plus, Orbit } from "lucide-react"
+import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
 import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
@@ -15,6 +15,8 @@ import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useQueryClient } from "@tanstack/react-query";
 import { ProgramaCarreraBlockView } from "../forms/programa-carrera-block-view"
+import { useHeader } from "@/context/header-context"
+import { getProgramStateLabel } from "@/lib/utils"
 
 interface SyllabusFormProps {
   id: number,
@@ -36,6 +38,21 @@ export function SyllabusView({ id }: SyllabusFormProps) {
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
   
+  const {setHeader} = useHeader();
+  
+  useEffect(() => {
+    setHeader({
+      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) Año ${programa?.anio}` : "Nuevo Programa Académico",
+      subtitle: "Información de programa académico",
+      badge: (
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+          <Orbit className="text-primary" size={20} />
+          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as ProgramaResponseDTOEstado)}</span>
+        </div>
+      ),
+      icon: FileText
+    })
+  }, [programa]);
 
   if (programaQuery.isLoading) {
     return (
@@ -72,22 +89,6 @@ export function SyllabusView({ id }: SyllabusFormProps) {
 
   return (
     <>
-      {/* HEADER */}
-      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Programa Académico</h1>
-            <p className="text-muted-foreground">
-              {programa.materia?.nombre} ({programa.materia?.codigo})
-            </p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
-            <Eye className="text-primary" size={20} />
-            <span className="font-semibold text-primary">Visualización</span>
-          </div>
-        </div>
-      </div>
-
       {/* BLOQUE ÚNICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
         <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>

@@ -8,6 +8,7 @@ import { RoleProvider } from "@/context/role-context"
 import { AuthProvider } from "@/context/auth-context"
 import { DepartamentoProvider } from "@/context/dept-context"
 import { Toaster } from "@/components/ui/toaster"
+import { HeaderProvider } from "@/context/header-context"
 
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -52,8 +53,10 @@ export default function RootLayout({
             <AuthProvider>
               <DepartamentoProvider >
                 <RoleProvider >
-                  {children}
-                  <Toaster />
+                  <HeaderProvider>
+                    {children}
+                    <Toaster />
+                  </HeaderProvider>
                 </RoleProvider>
               </DepartamentoProvider>
             </AuthProvider>

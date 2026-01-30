@@ -28,6 +28,7 @@ interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraCreateDTO
   index: number
   carreras: CarreraResponseDTO[]
+  // selectedCarreraPlanIds: number[]
   onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
   onRemove: (index: number) => void
 }
@@ -36,12 +37,13 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
   block,
   index,
   carreras,
+  // selectedCarreraPlanIds,
   onUpdate,
   onRemove,
 }: ProgramaCarreraBlockProps) {
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null);
   const [open, setOpen] = useState(false);
-  
+
   useEffect(() => {
     if (block.carreraPlanId && carreras.length > 0) {
       const carreraEncontrada = carreras.find(c => 
@@ -53,6 +55,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
       }
     }
   }, [block.carreraPlanId, carreras]);
+
 
   const materiasQuery = useListMateriasCarreraPlan(selectedCarrera?.id ?? 0, {
     query: {
@@ -193,6 +196,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
             disabled={!selectedCarrera}
           >
             <option value="">Seleccionar plan...</option>
+            {/* {selectedCarrera?.planes?.filter(plan => !selectedCarreraPlanIds.includes(plan.id!)).map((plan) => ( */}
             {selectedCarrera?.planes?.map((plan) => (
               <option key={plan.id} value={plan.id}>
                 {"Plan "+plan.anio +" - Versión "+plan.version}

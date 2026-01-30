@@ -29,9 +29,6 @@ public class ProgramaDraftEntity {
     @Column(name = "usuario_id", nullable = false)
     private Long usuarioId;
 
-//    @Column(name = "departamento_id", nullable = false)
-//    private Long departamentoId;
-
     @Column(name = "materia_id", nullable = false)
     private Long materiaId;
 

@@ -23,9 +23,9 @@ public class MateriaController {
     }
 
 
-    @PostMapping("/departamentos/{deptId}/materias")
-    public ResponseEntity<MateriaResponseDTO> createMateria(@PathVariable Long deptId, @RequestBody MateriaCreateDTO materia) {
-        MateriaResponseDTO createdMateria = materiaService.createMateria(deptId, materia);
+    @PostMapping("/materias")
+    public ResponseEntity<MateriaResponseDTO> createMateria(@RequestBody MateriaCreateDTO materia) {
+        MateriaResponseDTO createdMateria = materiaService.createMateria(materia);
 
         return new ResponseEntity<>(createdMateria, HttpStatus.CREATED);
     }

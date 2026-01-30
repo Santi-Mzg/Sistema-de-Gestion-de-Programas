@@ -27,30 +27,33 @@ public class ProgramaController {
         this.pdfService = pdfService;
     }
 
-    @PostMapping("/programas")
-    public ResponseEntity<ProgramaResponseDTO> createPrograma(@RequestBody ProgramaCargaDTO program,
+    @PostMapping("/departamentos/{deptId}/programas")
+    public ResponseEntity<ProgramaResponseDTO> createPrograma(@PathVariable Long deptId,
+                                                              @RequestBody ProgramaCargaDTO program,
                                                               @AuthenticationPrincipal UserEntity actor) {
-        ProgramaResponseDTO createdProgram = programaService.create(program, actor);
+        ProgramaResponseDTO createdProgram = programaService.create(deptId, program, actor);
 
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/programas/{id}/administrativo-carga")
-    public ResponseEntity<ProgramaResponseDTO> administrativoCarga(@PathVariable Long id,
+    @PatchMapping("/departamentos/{deptId}/programas/{id}/administrativo-carga")
+    public ResponseEntity<ProgramaResponseDTO> administrativoCarga(@PathVariable Long deptId,
+                                                                   @PathVariable Long id,
                                                                    @RequestBody ProgramaCargaDTO program,
                                                                    @AuthenticationPrincipal UserEntity actor) {
-        ProgramaResponseDTO updatedProgram = programaService.administrativoCarga(id, program, actor);
+        ProgramaResponseDTO updatedProgram = programaService.administrativoCarga(deptId, id, program, actor);
 
         return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
     }
 
     // PROFESOR carga sus datos
-    @PatchMapping("/programas/{id}/profesor-carga")
-    public ResponseEntity<ProgramaResponseDTO> profesorCarga(@PathVariable Long id,
+    @PatchMapping("/departamentos/{deptId}/programas/{id}/profesor-carga")
+    public ResponseEntity<ProgramaResponseDTO> profesorCarga(@PathVariable Long deptId,
+                                                             @PathVariable Long id,
                                                              @RequestBody ProgramaCargaDTO programaDTO,
                                                              @AuthenticationPrincipal UserEntity actor) {
 
-        return ResponseEntity.ok(programaService.profesorCarga(id, programaDTO, actor));
+        return ResponseEntity.ok(programaService.profesorCarga(deptId, id, programaDTO, actor));
     }
 
     @PatchMapping("/departamentos/{deptId}/programas/{id}/estado")

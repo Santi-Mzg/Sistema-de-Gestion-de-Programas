@@ -7,7 +7,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.Mater
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 
 public interface MateriaService {
-    MateriaResponseDTO createMateria(Long deptId, MateriaCreateDTO user);
+    MateriaResponseDTO createMateria(MateriaCreateDTO user);
     MateriaResponseDTO getMateriaById(Long id);
     MateriaEntity getEntityById(Long id);
     List<MateriaEntity> listEntities(List<Long> ids);

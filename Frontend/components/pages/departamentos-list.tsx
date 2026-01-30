@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, Building2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
+import { useHeader } from "@/context/header-context"
 
 interface DepartamentosListProps {
   departamentos?: DepartamentoResponseDTO[]
@@ -18,12 +19,21 @@ interface DepartamentosListProps {
 
 
 export function DepartamentosList({ departamentos = [] }: DepartamentosListProps) {
+  const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedDepartamento, setSelectedDepartamento] = useState<DepartamentoResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setHeader({
+      title: `Departamentos Universitarios`,
+      subtitle: "Gestiona y consulta todos los departamentos del sistema",
+      icon: Building2,
+    })
+  }, [])
 
   // Filter and sort data
   const filteredDepartamentos = useMemo(() => {
@@ -94,12 +104,6 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
   return (
     <div className="w-full bg-background">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-8 rounded-b-2xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Departamentos Universitarios</h1>
-        <p className="text-primary-foreground/80">Gestiona y consulta todos los departamento del sistema</p>
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
         <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">

@@ -22,7 +22,6 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
         setActiveDeptId(saved);
       }
   }, []);
-console.log("USER "+JSON.stringify(user))
 
   const availableDepartamentos = useMemo(
     () => user?.departamentos ?? [],

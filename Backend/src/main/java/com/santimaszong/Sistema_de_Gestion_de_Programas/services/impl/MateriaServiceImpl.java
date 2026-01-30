@@ -40,15 +40,12 @@ public class MateriaServiceImpl implements MateriaService {
 
     @Override
     @Transactional
-    public MateriaResponseDTO createMateria(Long deptId, MateriaCreateDTO materiaDTO){
+    public MateriaResponseDTO createMateria(MateriaCreateDTO materiaDTO){
         MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
-
-
-        DepartamentoEntity departamento = departamentoService.getEntityById(deptId);
 
         AreaEntity area = areaService.getEntityById(materiaDTO.getAreaId());
 
-        materiaEntity.setDepartamento(departamento);
+        materiaEntity.setDepartamento(area.getDepartamento());
         materiaEntity.setArea(area);
 
         MateriaEntity createdMateriaEntity = materiaRepository.save(materiaEntity);

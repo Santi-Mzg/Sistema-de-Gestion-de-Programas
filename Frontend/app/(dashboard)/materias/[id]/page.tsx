@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Save, User, Building2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Save, User, Building2, AlertCircle, Book, BookOpenText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +16,7 @@ import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useHeader } from "@/context/header-context"
 
 
 export default function EditMateriaPage() {
@@ -47,6 +48,16 @@ export default function EditMateriaPage() {
   );
   const areas: AreaResponseDTO[] | undefined = areasQuery.data;
   
+  const { setHeader } = useHeader()
+  
+  useEffect(() => {
+    setHeader({
+      title: `${materia?.nombre ?? ""}`,
+      subtitle: " ",
+      icon: BookOpenText,
+    })
+  }, [materia])
+
   const [formData, setFormData] = useState<MateriaCreateDTO>({
       nombre: materia?.nombre,
       codigo: materia?.codigo,
@@ -183,25 +194,6 @@ export default function EditMateriaPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10 -ml-2"
-          >
-            <ArrowLeft size={20} className="mr-2" />
-            Volver
-          </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <Building2 size={40} />
-            <h1 className="text-4xl font-bold text-balance">Editar Materia</h1>
-          </div>
-          <p className="text-primary-foreground/90 text-lg">Modifica la información general</p>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto p-8">
         <div className="grid grid-cols-1 gap-8">
           {/* Main Form - 2 columns */}

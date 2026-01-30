@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { Search, ChevronUp, ChevronDown, Eye } from "lucide-react"
-import { ProgramaResponseDTO } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context";
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button";
+import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],
@@ -106,10 +107,12 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
 
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2`}
+                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
+                          getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
+                        }`}
                       >
-                        {programa.estado}
-                      </span>
+                        {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+                      </span> 
                     </td>
 
                     {/* CELDA 4: ACCIONES */}

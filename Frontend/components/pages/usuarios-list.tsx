@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Plus } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Plus, Users } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { UserResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -12,6 +12,7 @@ import { useDept } from "@/context/dept-context"
 import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
 import { useRole } from "@/context/role-context"
+import { useHeader } from "@/context/header-context"
 
 interface UsuariosListProps {
   usuarios?: UserResponseDTO[]
@@ -19,6 +20,7 @@ interface UsuariosListProps {
 
 
 export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
+  const { setHeader } = useHeader()
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
@@ -26,6 +28,14 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setHeader({
+      title: `Usuarios Departamentales`,
+      subtitle: "Gestiona y consulta todas las usuarios del departamento",
+      icon: Users,
+    })
+  }, [])
 
   // Filter and sort data
   const filteredUsuarios = useMemo(() => {
@@ -87,12 +97,6 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
 
   return (
     <div className="w-full bg-background">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-8 rounded-b-2xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Usuarios Departamentales</h1>
-        <p className="text-primary-foreground/80">Gestiona y consulta todas las Usuarios del departamento</p>
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
         <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">

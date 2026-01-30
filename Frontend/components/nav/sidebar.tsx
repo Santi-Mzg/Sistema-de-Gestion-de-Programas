@@ -10,18 +10,7 @@ import { DepartamentoSelectorDialog } from "@/components/modals/departamento-sel
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { useLogoutFlow } from "@/hooks/use-logout"
 import { RoleSelectorDialog } from "../modals/role-selector-dialog copy"
-
-const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
-  const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
-    SYSTEM_ADMIN: "System Admin",
-    DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
-    SECRETARIA: "Secretaría",
-    COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
-    DOCENTE: "Docente",
-    ADMINISTRACION: "Administración",
-  }
-  return roleLabels[role] || role
-}
+import { getRoleLabel } from "@/lib/utils"
 
 export function Sidebar() {
   const { logout } = useLogoutFlow()

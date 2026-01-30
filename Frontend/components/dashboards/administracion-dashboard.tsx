@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, BookOpen, Eye, Trash2, AlertCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Plus, BookOpen, Eye, Trash2, AlertCircle, User, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
@@ -11,12 +11,31 @@ import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartame
 import { useRole } from "@/context/role-context"
 import { useDept } from "@/context/dept-context"
 import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client"
+import { JSX } from "react/jsx-runtime"
+import { useAuth } from "@/context/auth-context"
+import { useHeader } from "@/context/header-context"
 
 
 export function AdministracionDashboard() {
   const [showForm, setShowForm] = useState(false)
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
+  const { user } = useAuth();
+  const {setHeader} = useHeader();
+
+  useEffect(() => {
+    setHeader({
+      title: "Panel de Administración",
+      subtitle: "Visualiza y gestiona los programas departamentales",
+      badge: (
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+          <User className="text-primary" size={20} />
+          <span className="font-semibold text-primary">Bienvenido {user?.nombre}</span>
+        </div>
+      ),
+      icon: Home
+    })
+  }, [user]);
   
   const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
@@ -126,3 +145,4 @@ export function AdministracionDashboard() {
     </div>
   )
 }
+

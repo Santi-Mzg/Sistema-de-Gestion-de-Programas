@@ -34,6 +34,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { set } from "zod"
+import { useHeader } from "@/context/header-context"
 
 export function SyllabusCreationForm() {
   const router = useRouter();
@@ -173,6 +175,25 @@ export function SyllabusCreationForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!selectedMateria) {
+      toast({
+        title: "Error de validación",
+        description: "Por favor, selecciona una materia antes de continuar.",
+        variant: "destructive",
+      });
+      return; // Evita que se ejecute la mutación
+    }
+
+    if (!formData.profesorResponsableId || formData.profesorResponsableId === 0) {
+      toast({
+        title: "Error de validación",
+        description: "Por favor, selecciona un docente responsable antes de continuar.",
+        variant: "destructive",
+      });
+      return; // Evita que se ejecute la mutación
+    }
+
+
     if (!formData.bloqueMultiple || formData.bloqueMultiple.length === 0) {
       toast({
         title: "Error",
@@ -202,7 +223,10 @@ export function SyllabusCreationForm() {
     if (programaAnioExistente) {
       setShowCreationWarning(true);
     } else {
-      mutate({ data: formData });
+      mutate({ 
+        deptId: activeDepartamento!.departamentoId!,
+        data: formData 
+      });
     }
   }
 
@@ -336,8 +360,21 @@ export function SyllabusCreationForm() {
     }
   }
 
-
-
+  const {setHeader} = useHeader();
+  
+  useEffect(() => {
+    setHeader({
+      title: selectedMateria ? `Programa de ${selectedMateria?.nombre} (${selectedMateria?.codigo}) - ${actualYear}` : "Nuevo Programa Académico",
+      subtitle: "Formulario de carga de programa académico",
+      badge: (
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+          <CheckCircle2 className="text-primary" size={20} />
+          <span className="font-semibold text-primary">En proceso de carga</span>
+        </div>
+      ),
+      icon: FileText
+    })
+  }, [selectedMateria])
 
   const guardarBorrador = useCallback(() => {
 
@@ -414,10 +451,9 @@ export function SyllabusCreationForm() {
       bloqueMultiple: updatedBlocks,
     }))
     setIsDirty(true);
+
+    setRemoveProgramaCarreraIndex(null);
   }
-  console.log("showDraft", showDraft);
-  console.log("showProgramaVigente", showProgramaVigente);
-  console.log("loadingProgramaVigente", loadingProgramaVigente);
 
   const handleSingleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -557,24 +593,6 @@ export function SyllabusCreationForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
-      {/* HEADER */}
-      <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Carga de Programa Académico</h1>
-            <p className="text-muted-foreground">
-              {selectedMateria && selectedMateria.nombre +" ("+selectedMateria.codigo+")"}
-            </p>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
-              <CheckCircle2 className="text-primary" size={20} />
-              <span className="font-semibold text-primary">En proceso de carga</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
         {/* BLOQUE ÚNICO */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
           <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
@@ -609,7 +627,7 @@ export function SyllabusCreationForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">            
+          <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">            
             <div className="flex flex-col space-y-2">
               <Label className="text-sm font-semibold">Carrera *</Label>
               <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
@@ -688,7 +706,7 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <Label className="text-sm font-semibold">Profesor Responsable *</Label>
+            <Label className="text-sm font-semibold">Docente Responsable *</Label>
             <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
               <PopoverTrigger asChild>
                 <Button
@@ -699,7 +717,7 @@ export function SyllabusCreationForm() {
                 >
                   {selectedProfesor 
                     ? `${selectedProfesor.apellido}, ${selectedProfesor.nombre} (Legajo: ${selectedProfesor.legajo})`
-                    : "Seleccionar profesor..."}
+                    : "Seleccionar docente..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -765,6 +783,10 @@ export function SyllabusCreationForm() {
                   block={block}
                   index={index}
                   carreras={carreras}
+                  // selectedCarreraPlanIds={formData.bloqueMultiple
+                  //   ?.map((b) => b.carreraPlanId)
+                  //   .filter((id) => id !== undefined && id !== null)
+                  //   ?? []}
                   onUpdate={handleUpdateProgramaCarrera}
                   onRemove={setRemoveProgramaCarreraIndex}
                 />
@@ -1005,7 +1027,10 @@ export function SyllabusCreationForm() {
               variant="secondary"
               onClick={() => {
                 setShowCreationWarning(false)
-                mutate({ data: formData })
+                mutate({ 
+                  deptId: activeDepartamento!.departamentoId!,
+                  data: formData 
+                })
               }}
               className="bg-destructive"
             >

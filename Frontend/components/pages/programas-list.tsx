@@ -1,14 +1,16 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Search, ChevronUp, ChevronDown, Filter, Plus, Pencil, Eye, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
 import { getGenerarPDFQueryKey, useGenerarPDF } from "@/app/api/generated/client"
+import { useHeader } from "@/context/header-context"
+import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils"
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
@@ -20,6 +22,7 @@ type SortField = "nombreMateria" | "codigoMateria" | "estado" | "profesorRespons
 type SortOrder = "asc" | "desc"
 
 export function ProgramasList({ programas = [] }: ProgramasListProps) {
+  const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
@@ -30,6 +33,14 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
   const [filterDepartamento, setFilterDepartamento] = useState<string>("todos")
 
   
+  useEffect(() => {
+    setHeader({
+      title: `Programas`,
+      subtitle: "Gestiona y consulta los programas disponibles",
+      icon: FileText,
+    })
+  }, [])
+
   // Get unique values for filters
   const uniqueEstados = useMemo(() => {
     return [...new Set(programas.map((s) => s.estado).filter(Boolean))]
@@ -76,21 +87,6 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
     }
   }
 
-  const getEstadoColor = (estado?: string) => {
-    switch (estado?.toLowerCase()) {
-      case "publicado":
-        return "bg-green-100 text-green-800 border-green-300"
-      case "borrador":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300"
-      case "en revision":
-        return "bg-blue-100 text-blue-800 border-blue-300"
-      case "archivado":
-        return "bg-gray-100 text-gray-800 border-gray-300"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300"
-    }
-  }
-
   const handleGenerarPDF = (programaId?: number) => {
     if (!programaId) return;
 
@@ -111,12 +107,6 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
   return (
     <div className="w-full bg-background">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-8 rounded-b-2xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">Programas Universitarios</h1>
-        <p className="text-primary-foreground/80">Gestiona y consulta todos los programa del sistema</p>
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
         <div className="space-y-6 mb-8">
@@ -263,12 +253,12 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                     <td className="px-6 py-4 text-foreground/80">{programa.materia?.departamento}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${getEstadoColor(
-                          programa.estado,
-                        )}`}
+                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
+                          getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
+                        }`}
                       >
-                        {programa.estado}
-                      </span>
+                        {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+                      </span> 
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

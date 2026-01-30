@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.util.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -92,6 +93,31 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
 
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<HttpErrorResponse> handleDuplicateKey(DataIntegrityViolationException ex, HttpServletRequest request) {
+        String message = "Error de integridad de datos";
+
+        Map<String, String> errors = new HashMap<>();
+        List<String> generalErrors = new ArrayList<>();
+
+        errors.put("Error" ,ex.getMessage());
+
+        // Verificamos si es el error de llave duplicada
+        if (ex.getMessage().contains("materias_codigo_key")) {
+            message = "Ya existe una materia con ese código.";
+        }
+
+        HttpErrorResponse response = HttpErrorResponse.of(
+                message,
+                HttpStatus.CONFLICT.value(),
+                errors,
+                generalErrors,
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     /**

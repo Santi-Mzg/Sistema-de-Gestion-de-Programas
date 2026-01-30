@@ -8,9 +8,9 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.security.core.Authentication;
 
 public interface ProgramaService {
-    ProgramaResponseDTO create(ProgramaCargaDTO programa, UserEntity actor);
-    ProgramaResponseDTO administrativoCarga(Long id, ProgramaCargaDTO programa, UserEntity actor);
-    ProgramaResponseDTO profesorCarga(Long id, ProgramaCargaDTO programa, UserEntity actor);
+    ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO programa, UserEntity actor);
+    ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
+    ProgramaResponseDTO profesorCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo);
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);

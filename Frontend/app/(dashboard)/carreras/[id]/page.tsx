@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useHeader } from "@/context/header-context"
 
 export default function EditCarreraPage() {
   const { activeRole } = useRole()
@@ -52,6 +53,16 @@ export default function EditCarreraPage() {
     }
   );
   const carrera: CarreraResponseDTO | undefined = carreraQuery.data;
+
+  const { setHeader } = useHeader()
+
+  useEffect(() => {
+    setHeader({
+      title: `${carrera?.nombre ?? ""}`,
+      subtitle: " ",
+      icon: GraduationCap,
+    })
+  }, [carrera])
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     nombre: carrera?.nombre,
@@ -274,24 +285,6 @@ export default function EditCarreraPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 shadow-lg border-b-4 border-primary/20">
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10 -ml-2"
-          >
-            <ArrowLeft size={20} className="mr-2" />
-            Volver
-          </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <GraduationCap size={40} />
-            <h1 className="text-4xl font-bold text-balance">{carrera?.nombre}</h1>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Form - 2 columns */}
@@ -299,7 +292,6 @@ export default function EditCarreraPage() {
             <Card className="mb-6 border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  <Building2 size={24} />
                   Información General
                 </CardTitle>
                 <CardDescription className="text-base">Datos de la carrera</CardDescription>

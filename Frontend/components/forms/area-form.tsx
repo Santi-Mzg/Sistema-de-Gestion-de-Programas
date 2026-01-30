@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,8 +13,11 @@ import { useDept } from "@/context/dept-context"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
+import { useHeader } from "@/context/header-context"
+import { Layers } from "lucide-react"
 
 export function AreaForm() {
+  const { setHeader } = useHeader()
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const { toast } = useToast()
@@ -23,6 +26,14 @@ export function AreaForm() {
   const [formData, setFormData] = useState<AreaCreateDTO>({
     nombre: "",
   })
+
+  useEffect(() => {
+    setHeader({
+      title: `Crear Área Departamental`,
+      subtitle: "Formulario de creación de una nueva área dentro del departamento",
+      icon: Layers,
+    })
+  }, [])
 
   const { mutate, isPending } = useCreateArea({
       mutation: {

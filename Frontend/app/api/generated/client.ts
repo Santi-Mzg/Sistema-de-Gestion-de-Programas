@@ -45,6 +45,7 @@ import type {
   ProgramaDraftDTO,
   ProgramaResponseDTO,
   ResetPassword200,
+  ResetPasswordRequest,
   SaveDraftParams,
   UserCreateDTO,
   UserResponseDTO
@@ -705,27 +706,27 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
-export const createPrograma = (
-    programaCargaDTO: ProgramaCargaDTO,
+export const createMateria = (
+    materiaCreateDTO: MateriaCreateDTO,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO>(
-      {url: `/api/programas`, method: 'POST',
+      return customInstance<MateriaResponseDTO>(
+      {url: `/api/materias`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: programaCargaDTO, signal
+      data: materiaCreateDTO, signal
     },
       );
     }
   
 
 
-export const getCreateProgramaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{data: ProgramaCargaDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{data: ProgramaCargaDTO}, TContext> => {
+export const getCreateMateriaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{data: MateriaCreateDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{data: MateriaCreateDTO}, TContext> => {
 
-const mutationKey = ['createPrograma'];
+const mutationKey = ['createMateria'];
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -735,10 +736,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPrograma>>, {data: ProgramaCargaDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMateria>>, {data: MateriaCreateDTO}> = (props) => {
           const {data} = props ?? {};
 
-          return  createPrograma(data,)
+          return  createMateria(data,)
         }
 
         
@@ -746,20 +747,20 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type CreateProgramaMutationResult = NonNullable<Awaited<ReturnType<typeof createPrograma>>>
-    export type CreateProgramaMutationBody = ProgramaCargaDTO
-    export type CreateProgramaMutationError = unknown
+    export type CreateMateriaMutationResult = NonNullable<Awaited<ReturnType<typeof createMateria>>>
+    export type CreateMateriaMutationBody = MateriaCreateDTO
+    export type CreateMateriaMutationError = unknown
 
-    export const useCreatePrograma = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{data: ProgramaCargaDTO}, TContext>, }
+    export const useCreateMateria = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{data: MateriaCreateDTO}, TContext>, }
  ): UseMutationResult<
-        Awaited<ReturnType<typeof createPrograma>>,
+        Awaited<ReturnType<typeof createMateria>>,
         TError,
-        {data: ProgramaCargaDTO},
+        {data: MateriaCreateDTO},
         TContext
       > => {
 
-      const mutationOptions = getCreateProgramaMutationOptions(options);
+      const mutationOptions = getCreateMateriaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -1089,6 +1090,176 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const listProgramas = (
+    deptId: number,
+    params: ListProgramasParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/programas`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListProgramasQueryKey = (deptId?: number,
+    params?: ListProgramasParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListProgramasQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(deptId: number,
+    params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramas>>>
+export type ListProgramasQueryError = unknown
+
+
+
+export function useListProgramas<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListProgramasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(deptId: number,
+    params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramas>>>
+export type ListProgramasSuspenseQueryError = unknown
+
+
+
+export function useListProgramasSuspense<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const createPrograma = (
+    deptId: number,
+    programaCargaDTO: ProgramaCargaDTO,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: programaCargaDTO, signal
+    },
+      );
+    }
+  
+
+
+export const getCreateProgramaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{deptId: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{deptId: number;data: ProgramaCargaDTO}, TContext> => {
+
+const mutationKey = ['createPrograma'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPrograma>>, {deptId: number;data: ProgramaCargaDTO}> = (props) => {
+          const {deptId,data} = props ?? {};
+
+          return  createPrograma(deptId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateProgramaMutationResult = NonNullable<Awaited<ReturnType<typeof createPrograma>>>
+    export type CreateProgramaMutationBody = ProgramaCargaDTO
+    export type CreateProgramaMutationError = unknown
+
+    export const useCreatePrograma = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrograma>>, TError,{deptId: number;data: ProgramaCargaDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPrograma>>,
+        TError,
+        {deptId: number;data: ProgramaCargaDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateProgramaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const getDraft = (
     deptId: number,
     materiaId: number,
@@ -1323,169 +1494,6 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getDeleteDraftMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
-export const listMateriasDepartamento = (
-    deptId: number,
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<MateriaResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/materias`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
-
-export const getListMateriasDepartamentoQueryKey = (deptId?: number,) => {
-    return [
-    `/api/departamentos/${deptId}/materias`
-    ] as const;
-    }
-
-    
-export const getListMateriasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ListMateriasDepartamentoQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasDepartamento>>>
-export type ListMateriasDepartamentoQueryError = unknown
-
-
-
-export function useListMateriasDepartamento<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getListMateriasDepartamentoQueryOptions(deptId,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
-export const getListMateriasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ListMateriasDepartamentoSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasDepartamento>>>
-export type ListMateriasDepartamentoSuspenseQueryError = unknown
-
-
-
-export function useListMateriasDepartamentoSuspense<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
-  
- ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getListMateriasDepartamentoSuspenseQueryOptions(deptId,options)
-
-  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
-
-export const createMateria = (
-    deptId: number,
-    materiaCreateDTO: MateriaCreateDTO,
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<MateriaResponseDTO>(
-      {url: `/api/departamentos/${deptId}/materias`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: materiaCreateDTO, signal
-    },
-      );
-    }
-  
-
-
-export const getCreateMateriaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{deptId: number;data: MateriaCreateDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{deptId: number;data: MateriaCreateDTO}, TContext> => {
-
-const mutationKey = ['createMateria'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMateria>>, {deptId: number;data: MateriaCreateDTO}> = (props) => {
-          const {deptId,data} = props ?? {};
-
-          return  createMateria(deptId,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateMateriaMutationResult = NonNullable<Awaited<ReturnType<typeof createMateria>>>
-    export type CreateMateriaMutationBody = MateriaCreateDTO
-    export type CreateMateriaMutationError = unknown
-
-    export const useCreateMateria = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMateria>>, TError,{deptId: number;data: MateriaCreateDTO}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof createMateria>>,
-        TError,
-        {deptId: number;data: MateriaCreateDTO},
-        TContext
-      > => {
-
-      const mutationOptions = getCreateMateriaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -1933,7 +1941,7 @@ const {mutation: mutationOptions} = options ?
     }
     
 export const resetPassword = (
-    resetPasswordBody: string,
+    resetPasswordRequest: ResetPasswordRequest,
  signal?: AbortSignal
 ) => {
       
@@ -1941,7 +1949,7 @@ export const resetPassword = (
       return customInstance<ResetPassword200>(
       {url: `/api/auth/reset-password`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: resetPasswordBody, signal
+      data: resetPasswordRequest, signal
     },
       );
     }
@@ -1949,8 +1957,8 @@ export const resetPassword = (
 
 
 export const getResetPasswordMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext> => {
 
 const mutationKey = ['resetPassword'];
 const {mutation: mutationOptions} = options ?
@@ -1962,7 +1970,7 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPassword>>, {data: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPassword>>, {data: ResetPasswordRequest}> = (props) => {
           const {data} = props ?? {};
 
           return  resetPassword(data,)
@@ -1974,15 +1982,15 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type ResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
-    export type ResetPasswordMutationBody = string
+    export type ResetPasswordMutationBody = ResetPasswordRequest
     export type ResetPasswordMutationError = unknown
 
     export const useResetPassword = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: string}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, }
  ): UseMutationResult<
         Awaited<ReturnType<typeof resetPassword>>,
         TError,
-        {data: string},
+        {data: ResetPasswordRequest},
         TContext
       > => {
 
@@ -2046,124 +2054,6 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getLoginMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
-export const profesorCarga = (
-    id: number,
-    programaCargaDTO: ProgramaCargaDTO,
- ) => {
-      
-      
-      return customInstance<ProgramaResponseDTO>(
-      {url: `/api/programas/${id}/profesor-carga`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: programaCargaDTO
-    },
-      );
-    }
-  
-
-
-export const getProfesorCargaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext> => {
-
-const mutationKey = ['profesorCarga'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof profesorCarga>>, {id: number;data: ProgramaCargaDTO}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  profesorCarga(id,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ProfesorCargaMutationResult = NonNullable<Awaited<ReturnType<typeof profesorCarga>>>
-    export type ProfesorCargaMutationBody = ProgramaCargaDTO
-    export type ProfesorCargaMutationError = unknown
-
-    export const useProfesorCarga = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof profesorCarga>>,
-        TError,
-        {id: number;data: ProgramaCargaDTO},
-        TContext
-      > => {
-
-      const mutationOptions = getProfesorCargaMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
-export const administrativoCarga = (
-    id: number,
-    programaCargaDTO: ProgramaCargaDTO,
- ) => {
-      
-      
-      return customInstance<ProgramaResponseDTO>(
-      {url: `/api/programas/${id}/administrativo-carga`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: programaCargaDTO
-    },
-      );
-    }
-  
-
-
-export const getAdministrativoCargaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext> => {
-
-const mutationKey = ['administrativoCarga'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof administrativoCarga>>, {id: number;data: ProgramaCargaDTO}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  administrativoCarga(id,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AdministrativoCargaMutationResult = NonNullable<Awaited<ReturnType<typeof administrativoCarga>>>
-    export type AdministrativoCargaMutationBody = ProgramaCargaDTO
-    export type AdministrativoCargaMutationError = unknown
-
-    export const useAdministrativoCarga = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{id: number;data: ProgramaCargaDTO}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof administrativoCarga>>,
-        TError,
-        {id: number;data: ProgramaCargaDTO},
-        TContext
-      > => {
-
-      const mutationOptions = getAdministrativoCargaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -2563,6 +2453,66 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const profesorCarga = (
+    deptId: number,
+    id: number,
+    programaCargaDTO: ProgramaCargaDTO,
+ ) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas/${id}/profesor-carga`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: programaCargaDTO
+    },
+      );
+    }
+  
+
+
+export const getProfesorCargaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
+
+const mutationKey = ['profesorCarga'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof profesorCarga>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
+          const {deptId,id,data} = props ?? {};
+
+          return  profesorCarga(deptId,id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProfesorCargaMutationResult = NonNullable<Awaited<ReturnType<typeof profesorCarga>>>
+    export type ProfesorCargaMutationBody = ProgramaCargaDTO
+    export type ProfesorCargaMutationError = unknown
+
+    export const useProfesorCarga = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof profesorCarga>>,
+        TError,
+        {deptId: number;id: number;data: ProgramaCargaDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getProfesorCargaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const actualizarEstado = (
     deptId: number,
     id: number,
@@ -2621,6 +2571,66 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getActualizarEstadoMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const administrativoCarga = (
+    deptId: number,
+    id: number,
+    programaCargaDTO: ProgramaCargaDTO,
+ ) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas/${id}/administrativo-carga`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: programaCargaDTO
+    },
+      );
+    }
+  
+
+
+export const getAdministrativoCargaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
+
+const mutationKey = ['administrativoCarga'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof administrativoCarga>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
+          const {deptId,id,data} = props ?? {};
+
+          return  administrativoCarga(deptId,id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdministrativoCargaMutationResult = NonNullable<Awaited<ReturnType<typeof administrativoCarga>>>
+    export type AdministrativoCargaMutationBody = ProgramaCargaDTO
+    export type AdministrativoCargaMutationError = unknown
+
+    export const useAdministrativoCarga = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof administrativoCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof administrativoCarga>>,
+        TError,
+        {deptId: number;id: number;data: ProgramaCargaDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getAdministrativoCargaMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -3885,16 +3895,14 @@ export function useListAdministrativosDepartamentoSuspense<TData = Awaited<Retur
 
 
 
-export const listProgramas = (
+export const listMateriasDepartamento = (
     deptId: number,
-    params: ListProgramasParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/programas`, method: 'GET',
-        params, signal
+      return customInstance<MateriaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/materias`, method: 'GET', signal
     },
       );
     }
@@ -3902,45 +3910,42 @@ export const listProgramas = (
 
 
 
-export const getListProgramasQueryKey = (deptId?: number,
-    params?: ListProgramasParams,) => {
+export const getListMateriasDepartamentoQueryKey = (deptId?: number,) => {
     return [
-    `/api/departamentos/${deptId}/programas`, ...(params ? [params]: [])
+    `/api/departamentos/${deptId}/materias`
     ] as const;
     }
 
     
-export const getListProgramasQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(deptId: number,
-    params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export const getListMateriasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(deptId,params);
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(deptId,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export type ListProgramasQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramas>>>
-export type ListProgramasQueryError = unknown
+export type ListMateriasDepartamentoQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasDepartamento>>>
+export type ListMateriasDepartamentoQueryError = unknown
 
 
 
-export function useListProgramas<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
- deptId: number,
-    params: ListProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export function useListMateriasDepartamento<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
+ deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListProgramasQueryOptions(deptId,params,options)
+  const queryOptions = getListMateriasDepartamentoQueryOptions(deptId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -3952,37 +3957,35 @@ export function useListProgramas<TData = Awaited<ReturnType<typeof listProgramas
 
 
 
-export const getListProgramasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(deptId: number,
-    params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export const getListMateriasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListProgramasQueryKey(deptId,params);
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramas>>> = ({ signal }) => listProgramas(deptId,params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export type ListProgramasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramas>>>
-export type ListProgramasSuspenseQueryError = unknown
+export type ListMateriasDepartamentoSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasDepartamento>>>
+export type ListMateriasDepartamentoSuspenseQueryError = unknown
 
 
 
-export function useListProgramasSuspense<TData = Awaited<ReturnType<typeof listProgramas>>, TError = unknown>(
- deptId: number,
-    params: ListProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramas>>, TError, TData>, }
+export function useListMateriasDepartamentoSuspense<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
+ deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListProgramasSuspenseQueryOptions(deptId,params,options)
+  const queryOptions = getListMateriasDepartamentoSuspenseQueryOptions(deptId,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

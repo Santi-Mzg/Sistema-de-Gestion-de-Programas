@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDraftQueryKey, getGetProgramaQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useGetDraft, useGetPrograma, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
+import { getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
 import { AlertCircle, CheckCircle2, Cross, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -18,6 +18,8 @@ import { useRole } from "@/context/role-context"
 import { RejectionInfoCard } from "../ui/rejection-info-card"
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import { cn } from "@/lib/utils"
+import { useHeader } from "@/context/header-context"
 
 interface SyllabusFormProps {
   id: number,
@@ -44,6 +46,16 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     }
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
+
+  const programaVigenteQuery = useGetProgramaVigente(id, {
+    query: {
+      enabled: !!id,
+      staleTime: Infinity,
+      queryKey: getGetProgramaVigenteQueryKey(id),
+    },
+  });
+  
+  const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
 
   const ultimoEstado = programa?.historialEstados?.at(-1);
   const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;
@@ -162,6 +174,35 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   }, [programa]); // Se ejecuta cuando 'programa' pasa de undefined a tener datos.
 
 
+    const {setHeader} = useHeader();
+    
+    useEffect(() => {
+      setHeader({
+        title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - ${programa?.anio}` : "Nuevo Programa Académico",
+        subtitle: "Formulario de carga de programa académico",
+        badge: (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+              esRechazado 
+                ? "bg-red-100 border border-amber-200" 
+                : "bg-primary/10"
+              }`}>            
+              {esRechazado ? (
+                  <>
+                    <AlertCircle className="text-amber-600" size={20} />
+                    <span className="font-semibold text-amber-700">Requiere Correcciones</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="text-primary" size={20} />
+                    <span className="font-semibold text-primary">En proceso de carga</span>
+                  </>
+                )}
+            </div>
+        ),
+        icon: FileText
+      })
+    }, [programa]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault() 
 
@@ -182,6 +223,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     }
 
     mutateProfesor({
+      deptId: activeDepartamento!.departamentoId!,
       data: formData,
       id: id
     });
@@ -288,10 +330,10 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   }
 
 
-  const handleRechazarConfirm = (justificacion: string) => {
+  const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
     const data = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
-      destinoRechazo: EstadoUpdateDTODestinoRechazo.ADMINISTRACION,
+      destinoRechazo: destino,
       justificacion,
     }
     setRechazDialogOpen(false)
@@ -341,35 +383,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* HEADER */}
-        <div className="bg-linear-to-r from-primary/10 to-accent/10 border-l-4 border-primary rounded-lg p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Carga de datos de Programa Académico</h1>
-              <p className="text-muted-foreground">
-                {programa.materia?.nombre} ({programa.materia?.codigo})
-              </p>
-            </div>
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-              esRechazado 
-                ? "bg-red-100 border border-amber-200" 
-                : "bg-primary/10"
-              }`}>            
-              {esRechazado ? (
-                  <>
-                    <AlertCircle className="text-amber-600" size={20} />
-                    <span className="font-semibold text-amber-700">Requiere Correcciones</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="text-primary" size={20} />
-                    <span className="font-semibold text-primary">Por completar</span>
-                  </>
-                )}
-            </div>
-          </div>
-        </div>
-
         {esRechazado && (
           <RejectionInfoCard estadoHistorico={ultimoEstado} />
         )}
@@ -447,9 +460,9 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
+         <div className="space-y-2">
             <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-              Profesor Responsable
+              Docente Responsable
             </Label>
             <Input
               id="profesor"

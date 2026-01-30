@@ -41,6 +41,7 @@ export * from './programaDraftDTO';
 export * from './programaResponseDTO';
 export * from './programaResponseDTOEstado';
 export * from './resetPassword200';
+export * from './resetPasswordRequest';
 export * from './saveDraftParams';
 export * from './saveDraftRolActivo';
 export * from './userCreateDTO';

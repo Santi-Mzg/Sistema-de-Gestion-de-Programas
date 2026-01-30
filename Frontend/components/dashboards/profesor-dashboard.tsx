@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, BarChart3, Clock, AlertCircle } from "lucide-react"
+import { BookOpen, BarChart3, Clock, AlertCircle, Home, User } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
 import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
@@ -9,10 +9,29 @@ import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
+import { useHeader } from "@/context/header-context";
+import { useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 
 export function ProfesorDashboard() {
   const { activeDepartamento } = useDept();
   const { activeRole } = useRole();
+  const { user } = useAuth();
+  const {setHeader} = useHeader();
+  
+  useEffect(() => {
+    setHeader({
+      title: "Panel de Docente",
+      subtitle: "Visualiza y gestiona los programas asignados",
+      badge: (
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+          <User className="text-primary" size={20} />
+          <span className="font-semibold text-primary">Bienvenido {user?.nombre}</span>
+        </div>
+      ),
+      icon: Home
+    })
+  }, [user]);
 
   const programasQuery = useListProgramas(
       activeDepartamento!.departamentoId!,
@@ -81,11 +100,6 @@ export function ProfesorDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-2">Panel del Profesor</h1>
-        <p className="text-muted-foreground">Visualiza y edita tus sílabus asignados</p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">

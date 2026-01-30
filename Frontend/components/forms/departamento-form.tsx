@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,8 @@ import { getListDepartamentosQueryKey, useCreateDepartamento } from "@/app/api/g
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
+import { useHeader } from "@/context/header-context"
+import { Building2 } from "lucide-react"
 
 
 export function DepartamentoForm() {
@@ -23,6 +25,16 @@ export function DepartamentoForm() {
     email: "",
     sitioWeb: "",
   })
+
+  const { setHeader } = useHeader()
+
+  useEffect(() => {
+    setHeader({
+      title: `Crear Departamento`,
+      subtitle: "Formulario de creación de un nuevo departamento",
+      icon: Building2,
+    })
+  }, [])
 
   const { mutate, isPending } = useCreateDepartamento({
     mutation: {

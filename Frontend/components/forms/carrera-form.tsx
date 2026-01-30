@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,8 @@ import { getListCarrerasDepartamentoQueryKey, useCreateCarrera } from "@/app/api
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
+import { useHeader } from "@/context/header-context"
+import { GraduationCap } from "lucide-react"
 
 export function CarreraForm() {
   const router = useRouter();
@@ -23,6 +25,17 @@ export function CarreraForm() {
     { length: currentYear - 2000 + 1 },
     (_, i) => currentYear - i
   )
+
+  const { setHeader } = useHeader()
+
+  useEffect(() => {
+    setHeader({
+      title: `Crear Carrera`,
+      subtitle: "Formulario de creación de una nueva carrera dentro del departamento",
+      icon: GraduationCap,
+    })
+  }, [])
+
 
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     planAnio: "",

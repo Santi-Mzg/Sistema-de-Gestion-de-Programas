@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { act, useState } from "react"
+import { act, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,12 +10,14 @@ import { AreaResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { getListAreasDepartamentoQueryKey, getListMateriasCarreraPlanQueryKey, getListMateriasDepartamentoQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, BookOpenText } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios"
+import { useHeader } from "@/context/header-context"
 
 
 export function MateriaForm() {
@@ -23,6 +25,16 @@ export function MateriaForm() {
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
   const queryClient = useQueryClient();
+
+  const { setHeader } = useHeader()
+
+  useEffect(() => {
+    setHeader({
+      title: `Crear Materia`,
+      subtitle: "Formulario de creación de una nueva materia dentro del departamento",
+      icon: BookOpenText,
+    })
+  }, [])
 
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
     {
@@ -62,10 +74,24 @@ export function MateriaForm() {
           router.push('/materias'); 
 
         },
-        onError: (error: Error) => {
+        onError: (error: unknown) => {
+
+          let errorMessage = "Error desconocido";
+
+          if (axios.isAxiosError(error)) {
+            const backendError = error.response?.data;
+            
+            errorMessage = backendError?.message || 
+                          backendError?.errors?.Error || 
+                          "Error de servidor";
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+
+          console.log("Datos del error:", errorMessage);
           toast({
             title: "✗ Error",
-            description: error instanceof Error ? error.message : "Error desconocido",
+            description: errorMessage,
             variant: "destructive",
           })
         },
@@ -75,7 +101,6 @@ export function MateriaForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     mutate({ 
-      deptId: activeDepartamento!.departamentoId!,
       data: formData
     }); 
   }
@@ -195,26 +220,25 @@ export function MateriaForm() {
             <Label htmlFor="areaId" className="text-sm font-semibold">
               Area *
             </Label>
-            <Select
+            <select
               value={formData.areaId?.toString() ?? ""}
-              onValueChange={(e) => setFormData((prev) => ({
+              onChange={(e) => setFormData((prev) => ({
                 ...prev,
-                areaId: Number(e),
+                areaId: Number(e.target.value),
               }))}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               required
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar área" />
-              </SelectTrigger>
-              <SelectContent>
-                {areas.map((area) => (
-                  <SelectItem key={area.id} value={area.id!.toString()}>
-                    {area.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Seleccionar área...</option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.nombre}
+                </option>
+              ))}
+            </select>
           </div>
+
+
         </div>
 
         <div className="flex gap-3 pt-4">

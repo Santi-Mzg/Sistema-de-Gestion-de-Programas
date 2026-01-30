@@ -11,6 +11,9 @@ import { useDept } from "@/context/dept-context"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react"
+import { useHeader } from "@/context/header-context"
+import { Users } from "lucide-react"
 
 const ROLES_PERMITIDOS = [
   UserCreateDTORolesItem.ADMINISTRACION,
@@ -18,16 +21,31 @@ const ROLES_PERMITIDOS = [
 ];
 
 
-const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => ({
-  value,
-  label: value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " "),
-}));
+const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => {
+  let label = value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " ");
+
+  if (value === UserCreateDTORolesItem.ADMINISTRACION) {
+      label = "Administración";
+    }
+
+  return { value, label };
+});
 
 
 export function UsuarioForm() {
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const queryClient = useQueryClient(); 
+
+  const { setHeader } = useHeader()
+
+  useEffect(() => {
+    setHeader({
+      title: `Crear Usuario`,
+      subtitle: "Formulario de creación de un nuevo usuario ",
+      icon: Users,
+    })
+  }, [])
 
   const { 
     register, 
