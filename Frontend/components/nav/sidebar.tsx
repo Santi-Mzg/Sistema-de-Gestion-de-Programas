@@ -1,6 +1,6 @@
 "use client"
 
-import { LogOut, ChevronRight, Building2, Contact, UserRoundCog } from "lucide-react"
+import { LogOut, ChevronRight, Building2, Contact, UserRoundCog, Home, FileText, GraduationCap, Layers, University, BookText, Users, BookOpenText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
@@ -24,50 +24,50 @@ export function Sidebar() {
 
   const menuConfig = {
     SYSTEM_ADMIN: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}`},
-      { label: "Programas", href: "/programas" },
-      { label: "Departamentos", href: "/departamentos" },
-      { label: "Areas", href: "/areas" },
-      { label: "Carreras", href: "/carreras" },
-      { label: "Materias", href: "/materias" },
-      { label: "Usuarios", href: "/usuarios" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
+      { label: "Departamentos", icon: <Building2 size={18}/>, href: "/departamentos" },
+      { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
+      { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Materias", icon: <BookOpenText size={18}/>, href: "/materias" },
+      { label: "Usuarios", icon: <Users size={18}/>, href: "/usuarios" },
     ],
     DIRECCION_ADMINISTRATIVA: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Programas", href: "/programas" },
-      { label: "Areas", href: "/areas" },
-      { label: "Carreras", href: "/carreras" },
-      { label: "Materias", href: "/materias" },
-      { label: "Usuarios", href: "/usuarios" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
+      { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
+      { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Materias", icon: <BookOpenText size={18}/>, href: "/materias" },
+      { label: "Usuarios", icon: <Users size={18}/>, href: "/usuarios" },
     ],
     SECRETARIA: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Programas", href: "/programas" },
-      { label: "Areas", href: "/areas" },
-      { label: "Carreras", href: "/carreras" },
-      { label: "Materias", href: "/materias" },
-      { label: "Usuarios", href: "/usuarios" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
+      { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
+      { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Materias", icon: <BookOpenText size={18}/>, href: "/materias" },
+      { label: "Usuarios", icon: <Users size={18}/>, href: "/usuarios" },
     ],
     ADMINISTRACION: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Programas", href: "/programas" },
-      { label: "Carreras", href: "/carreras" },
-      { label: "Usuarios", href: "/usuarios" },
-      { label: "Materias", href: "/materias" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
+      { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Usuarios", icon: <Users size={18}/>, href: "/usuarios" },
+      { label: "Materias", icon: <BookOpenText size={18}/>, href: "/materias" },
     ],
     COORDINACION_COMISION_CURRICULAR: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Programas", href: "/programas" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
     DOCENTE: [
-      { label: "Inicio", href: "/" },
-      { label: "Mi Departamento", href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Programas", href: "/programas" },
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
   }
 
@@ -195,7 +195,10 @@ export function Sidebar() {
             <div className="space-y-1">
               {options.map((item) => (
                 <Link href={item.href} key={item.href}>
-                  <button className="w-full px-3 py-2 rounded-md flex items-center gap-2 transition-all text-sm text-sidebar-foreground hover:bg-sidebar-accent/20">
+                  <button className="w-full px-3 py-2 rounded-md flex items-center gap-2 transition-all text-sm text-sidebar-foreground hover:bg-sidebar-accent/20 group">
+                    <span className="text-sidebar-foreground/70 group-hover:text-sidebar-foreground transition-colors">
+                      {item.icon}
+                    </span>
                     <span className="flex-1 text-left truncate">{item.label}</span>
                   </button>
                 </Link>
@@ -208,13 +211,13 @@ export function Sidebar() {
         <div className="p-3 border-t border-blue-200/50 shrink-0">
           <Button
             variant="ghost"
-            size="lg"
-            className="w-full justify-start px-3 py-2 rounded-md flex items-center gap-2 transition-all text-sm text-sidebar-foreground hover:bg-red-500/10 hover:text-red-500 group"
+            size="default"
+            className="w-full justify-start h-auto px-4 py-3 rounded-lg flex items-center gap-4 transition-all text-sidebar-foreground hover:bg-red-500/10 hover:text-red-500 group"
             onClick={handleLogout}
             disabled={isLoading}
           >
-            <LogOut size={16} className="transition-colors group-hover:text-red-500" />
-            <span className="text-xs font-medium">
+            <LogOut size={18} className="shrink-0 transition-transform group-hover:scale-110"/>
+            <span className="text-sm font-bold">
               {isLoading ? "Cerrando Sesión..." : "Cerrar Sesión"}
             </span>
           </Button>

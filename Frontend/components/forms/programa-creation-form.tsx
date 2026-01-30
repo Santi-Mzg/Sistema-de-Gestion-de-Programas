@@ -63,13 +63,13 @@ export function SyllabusCreationForm() {
   const [showCreationWarning, setShowCreationWarning] = useState(false);
 
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    materiaId: 0,
-    profesorResponsableId: 0,
+    materiaId: undefined,
+    profesorResponsableId: undefined,
     bloqueMultiple: [],
-    cargaHorariaTotal: 0,
-    cargaHorariaSemanal: 0,
-    creditos: 0,
-    cantidadSemanas: 0
+    cargaHorariaTotal: undefined,
+    cargaHorariaSemanal: undefined,
+    creditos: undefined,
+    cantidadSemanas: undefined
   })
 
   const deptId = activeDepartamento?.departamentoId
@@ -143,13 +143,13 @@ export function SyllabusCreationForm() {
         });
 
         setFormData({
-          materiaId: 0,
-          profesorResponsableId: 0,
+          materiaId: undefined,
+          profesorResponsableId: undefined,
           bloqueMultiple: [],
-          cargaHorariaTotal: 0,
-          cargaHorariaSemanal: 0,
-          creditos: 0,
-          cantidadSemanas: 0,
+          cargaHorariaTotal: undefined,
+          cargaHorariaSemanal: undefined,
+          creditos: undefined,
+          cantidadSemanas: undefined,
         })
 
         queryClient.invalidateQueries({
@@ -334,7 +334,7 @@ export function SyllabusCreationForm() {
     try {
       const mappedData: ProgramaCargaDTO = {
         materiaId: formData.materiaId,
-        profesorResponsableId: programaVigente.profesorResponsable?.id || 0,
+        profesorResponsableId: programaVigente.profesorResponsable?.id || undefined,
         bloqueMultiple:
           programaVigente.bloqueMultiple?.map((c, idx) => ({
             key: `${Date.now()}-${idx}-${Math.random()}`,
@@ -345,10 +345,10 @@ export function SyllabusCreationForm() {
             contribucion: c.contribucion || "",
             contenidosMinimos: c.contenidosMinimos || "",
           })) || [],
-        cargaHorariaTotal: programaVigente.cargaHorariaTotal || 0,
-        cargaHorariaSemanal: programaVigente.cargaHorariaSemanal || 0,
-        creditos: programaVigente.creditos || 0,
-        cantidadSemanas: programaVigente.cantidadSemanas || 0,
+        cargaHorariaTotal: programaVigente.cargaHorariaTotal || undefined,
+        cargaHorariaSemanal: programaVigente.cargaHorariaSemanal || undefined,
+        creditos: programaVigente.creditos || undefined,
+        cantidadSemanas: programaVigente.cantidadSemanas || undefined,
       }
       setFormData(mappedData)
       setLoadProgramaVigente(false)

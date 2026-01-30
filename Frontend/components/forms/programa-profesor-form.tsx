@@ -61,13 +61,13 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;
   
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
-      cargaHorariaPractica: 0,
-      fundamentacion: "",
-      objetivos: "",
-      programaAnalitico: "",
-      metodologia: "",
-      modalidadEvaluacion: "",
-      bibliografia: "",
+      cargaHorariaPractica: undefined,
+      fundamentacion: undefined,
+      objetivos: undefined,
+      programaAnalitico: undefined,
+      metodologia: undefined,
+      modalidadEvaluacion: undefined,
+      bibliografia: undefined,
   })
 
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
@@ -93,13 +93,13 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
         });
 
         setFormData({
-          cargaHorariaPractica: 0,
-          fundamentacion: "",
-          objetivos: "",
-          programaAnalitico: "",
-          metodologia: "",
-          modalidadEvaluacion: "",
-          bibliografia: "",
+          cargaHorariaPractica: undefined,
+          fundamentacion: undefined,
+          objetivos: undefined,
+          programaAnalitico: undefined,
+          metodologia: undefined,
+          modalidadEvaluacion: undefined,
+          bibliografia: undefined,
         })
 
         queryClient.invalidateQueries({

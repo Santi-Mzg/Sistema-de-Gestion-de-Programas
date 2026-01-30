@@ -50,12 +50,12 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const actualYear = new Date().getFullYear()
   
   const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    profesorResponsableId: 0,
+    profesorResponsableId: undefined,
     bloqueMultiple: [],
-    cargaHorariaTotal: 0,
-    cargaHorariaSemanal: 0,
-    creditos: 0,
-    cantidadSemanas: 0
+    cargaHorariaTotal: undefined,
+    cargaHorariaSemanal: undefined,
+    creditos: undefined,
+    cantidadSemanas: undefined
   })
 
   const [openProfesorSelector, setOpenProfesorSelector] = useState(false)
@@ -133,12 +133,12 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         });
 
         setFormData({
-          profesorResponsableId: 0,
+          profesorResponsableId: undefined,
           bloqueMultiple: [],
-          cargaHorariaTotal: 0,
-          cargaHorariaSemanal: 0,
-          creditos: 0,
-          cantidadSemanas: 0,
+          cargaHorariaTotal: undefined,
+          cargaHorariaSemanal: undefined,
+          creditos: undefined,
+          cantidadSemanas: undefined,
         })
 
         queryClient.invalidateQueries({

@@ -105,12 +105,6 @@ export function AdministracionDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-2">Panel Administrativo</h1>
-        <p className="text-muted-foreground">Gestiona todos los programa del sistema universitario</p>
-      </div>
-
       {/* Action Button */}
       <div className="mb-6">
         <Link href={"/programas/cargar"}>
