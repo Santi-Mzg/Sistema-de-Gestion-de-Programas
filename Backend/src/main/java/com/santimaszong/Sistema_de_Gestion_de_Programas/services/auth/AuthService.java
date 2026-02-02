@@ -26,6 +26,7 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final EmailService emailService;
@@ -68,9 +69,13 @@ public class AuthService {
         UserEntity user = userRepo.findByLegajo(req.legajo())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-        String newPassword = passwordGeneratorService.generateSafePassword(12);
+        String newPassword = passwordGeneratorService.generateSafePassword(16);
         String hashedBtn = passwordEncoder.encode(newPassword);
         user.setPassword(hashedBtn);
+        System.out.println(newPassword);
+
+        userRepository.save(user);
+
 
         emailService.sendEmailRecuperarPassword(req.email(), newPassword);
     }

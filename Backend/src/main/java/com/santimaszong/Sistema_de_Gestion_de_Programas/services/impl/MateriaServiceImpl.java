@@ -3,6 +3,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -109,14 +111,14 @@ public class MateriaServiceImpl implements MateriaService {
     @Override
     @Transactional
     public MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materiaDTO) {
-        if(!materiaRepository.existsById(id)) {
-            throw new EntityNotFoundException("La entidad con ID " + id + " no fue encontrada.");
-        }
+        return materiaRepository.findById(id).map(existingCarrera -> {
+            Optional.ofNullable(materiaDTO.getNombre()).ifPresent(existingCarrera::setNombre);
+            Optional.ofNullable(materiaDTO.getCodigo()).ifPresent(existingCarrera::setCodigo);
 
-        MateriaEntity materiaEntity = materiaMapper.toEntity(materiaDTO);
-        MateriaEntity savedMateriaEntity = materiaRepository.save(materiaEntity);
+            MateriaEntity savedMateriaEntity = materiaRepository.save(existingCarrera);
 
-        return materiaMapper.toDTO(savedMateriaEntity);
+            return materiaMapper.toDTO(savedMateriaEntity);
+        }).orElseThrow(() -> new EntityNotFoundException("Materia no existente"));
     }
 
     @Override

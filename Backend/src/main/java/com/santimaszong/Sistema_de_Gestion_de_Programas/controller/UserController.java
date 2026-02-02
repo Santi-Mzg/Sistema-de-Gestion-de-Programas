@@ -70,9 +70,9 @@ public class UserController {
         return userService.listAdministrativosDepartamento(deptId, auth);
     }
 
-    @PutMapping("/usuarios/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserCreateDTO user) {
-        UserResponseDTO updatedUser = userService.updateUser(id, user);
+    @PutMapping("/departamentos/{deptId}/usuarios/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @PathVariable Long deptId, @RequestBody UserCreateDTO user) {
+        UserResponseDTO updatedUser = userService.updateUser(id, deptId, user);
 
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }

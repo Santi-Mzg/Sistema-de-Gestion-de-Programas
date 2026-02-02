@@ -19,6 +19,6 @@ public interface UserService {
     List<UserResponseDTO> listAdministrativosDepartamento(Long deptId, UserEntity auth);
     List<UserResponseDTO> listSecretariosDepartamento(Long deptId, UserEntity auth);
     List<UserResponseDTO> listCoordinadoresDepartamento(Long deptId, UserEntity auth);
-    UserResponseDTO updateUser(Long id, UserCreateDTO user);
+    UserResponseDTO updateUser(Long id, Long deptId, UserCreateDTO user);
     void deleteUser(Long id);
 }

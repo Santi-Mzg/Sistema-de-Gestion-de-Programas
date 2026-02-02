@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
@@ -75,7 +76,7 @@ public class UserServiceImpl implements UserService {
             user.setApellido(userDTO.getApellido());
             user.setLegajo(userDTO.getLegajo());
 
-            temporaryPassword = passwordGeneratorService.generateSafePassword(12);
+            temporaryPassword = passwordGeneratorService.generateSafePassword(16);
             user.setPassword(passwordEncoder.encode(temporaryPassword));
 
             nuevoUsuario = true;
@@ -238,15 +239,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO updateUser(Long id, UserCreateDTO userDTO) {
-        if(!userRepository.existsById(id)) {
-            throw new EntityNotFoundException("El usuario con ID " + id + " no fue encontrado.");
-        }
+    public UserResponseDTO updateUser(Long id, Long deptId, UserCreateDTO userDTO) {
+        return userRepository.findById(id).map(existingUser -> {
+            Optional.ofNullable(userDTO.getNombre()).ifPresent(existingUser::setNombre);
+            Optional.ofNullable(userDTO.getApellido()).ifPresent(existingUser::setApellido);
+            Optional.ofNullable(userDTO.getLegajo()).ifPresent(existingUser::setLegajo);
+            Optional.ofNullable(userDTO.getEmail()).ifPresent(email -> {
+                UsuarioDepartamentoEntity ude = userDptoService.findByUsuarioIdAndDepartamentoId(id, deptId);
+                ude.setEmail(email);
+            });
 
-        UserEntity userEntity = userMapper.toEntity(userDTO);
-        UserEntity savedUserEntity = userRepository.save(userEntity);
+            UserEntity savedUserEntity = userRepository.save(existingUser);
 
-        return userMapper.toDTO(savedUserEntity);
+            return userMapper.toDTO(savedUserEntity);
+        }).orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
     }
 
     @Override
