@@ -165,7 +165,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                 filteredDepartamentos.map((departamento) => (
                   <tr
                     key={departamento.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{departamento.nombre}</td>
                     <td className="px-6 py-4 text-foreground/80">{departamento.direccion}</td>

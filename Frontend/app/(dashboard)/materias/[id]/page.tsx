@@ -14,6 +14,7 @@ import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useL
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
+import { toast } from "@/hooks/use-toast"
 
 
 export default function EditMateriaPage() {
@@ -82,8 +83,22 @@ export default function EditMateriaPage() {
   
   const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateMateria({
     mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => { 
+            toast({
+              title: "✓ Éxito",
+              description: "Información actualizada exitosamente",
+              variant: "success",
+            })    
+
+            router.push('/materias'); 
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            })
+        }
         }
       });
       

@@ -13,6 +13,7 @@ import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDep
 import { useDept } from "@/context/dept-context"
 import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 import { useHeader } from "@/context/header-context"
+import { toast } from "@/hooks/use-toast"
 
 
 export default function EditUserPage() {
@@ -57,7 +58,6 @@ export default function EditUserPage() {
         apellido: user?.apellido || "",
         legajo: user?.legajo || "",
         email: userDpto?.email || "",
-        roles: userDpto?.roles || [],
   })
 
 
@@ -68,7 +68,6 @@ export default function EditUserPage() {
         apellido: user?.apellido || "",
         legajo: user?.legajo || "",
         email: userDpto?.email || "",
-        roles: userDpto?.roles || [],
     })
   }, [user])
 
@@ -83,10 +82,23 @@ export default function EditUserPage() {
   
     const { mutate, isPending } = useUpdateUser({
         mutation: {
-            onSuccess: () => { alert("Éxito"); },
-            onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => { 
+            toast({
+              title: "✓ Éxito",
+              description: "Información actualizada exitosamente",
+              variant: "success",
+            })    
+
+            router.push('/usuarios'); 
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            })
         }
-    });
+    }});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,6 +107,7 @@ export default function EditUserPage() {
     try {
       if(user?.id) {
         mutate({
+            deptId: activeDepartamento.departamentoId || 0,
             id: user.id, 
             data: formData
         });
@@ -209,7 +222,7 @@ export default function EditUserPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-semibold">
-                        Legajo
+                        Email Departamental
                       </Label>
                       <Input
                         id="email"

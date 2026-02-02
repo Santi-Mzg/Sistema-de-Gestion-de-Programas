@@ -165,7 +165,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                 filteredMaterias.map((materia) => (
                   <tr
                     key={materia.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{materia.nombre}</td>
                     <td className="px-6 py-4 text-foreground/80">{materia.codigo}</td>

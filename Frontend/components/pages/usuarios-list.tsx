@@ -13,6 +13,7 @@ import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
+import { getRoleLabel } from "@/lib/utils"
 
 interface UsuariosListProps {
   usuarios?: UserResponseDTO[]
@@ -145,7 +146,10 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                     Nombre
                 </th>
                 <th className="px-6 py-4 text-left">
-                    Roles
+                    Email Departamental
+                </th>
+                <th className="px-6 py-4 text-left">
+                    Roles Departamentales
                 </th>
                 <th className="px-6 py-4 text-left">
                     Acciones
@@ -157,12 +161,13 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                 filteredUsuarios.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
                   >
                     <td className="px-6 py-4 font-medium text-foreground">{user.legajo}</td>
                     <td className="px-6 py-4 text-foreground/80">{user.apellido}</td>
                     <td className="px-6 py-4 text-foreground/80">{user.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.join(", ")}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as UsuarioDepartamentoDTORolesItem)).join(", ")}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button

@@ -164,8 +164,7 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{programas.length}</span> programa
+          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> programa{filteredAndSortedSyllabuses.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}
@@ -270,7 +269,7 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
                         </span> 
                       </td>
                       <td className="px-3 py-1.5">
-                        <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1">
                         <Button
                           size="icon"
                           variant="outline"

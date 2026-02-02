@@ -88,8 +88,21 @@ export default function EditDepartamentoPage() {
   
   const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateDepartamento({
       mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => { 
+            toast({
+              title: "✓ Éxito",
+              description: "Información actualizada exitosamente",
+              variant: "success",
+            })    
+
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            })
+        }
       }
   });
 

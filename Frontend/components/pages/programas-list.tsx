@@ -131,8 +131,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{programas.length}</span> programa
+          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> programa{filteredAndSortedSyllabuses.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

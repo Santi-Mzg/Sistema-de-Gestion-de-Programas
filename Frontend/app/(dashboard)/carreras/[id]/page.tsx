@@ -102,8 +102,22 @@ export default function EditCarreraPage() {
   
   const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateCarrera({
       mutation: {
-          onSuccess: () => { alert("Éxito"); },
-          onError: (err: Error) => alert("Error: " + err.message)
+          onSuccess: () => { 
+            toast({
+              title: "✓ Éxito",
+              description: "Información actualizada exitosamente",
+              variant: "success",
+            })    
+
+            router.push('/carreras'); 
+          },
+          onError: (error: Error) => {
+            toast({
+              title: "✗ Error",
+              description: error instanceof Error ? error.message : "Error desconocido",
+              variant: "destructive",
+            })
+        }
       }
   });
 

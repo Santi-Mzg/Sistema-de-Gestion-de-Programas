@@ -33,7 +33,7 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
     <div className="w-full bg-background">
      {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{programas.length}</span> programas
+          Mostrando <span className="font-semibold text-foreground">{programas.length}</span> programa{programas.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}
