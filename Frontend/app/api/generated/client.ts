@@ -3277,6 +3277,109 @@ export function useGenerarPDFSuspense<TData = Awaited<ReturnType<typeof generarP
 
 
 
+export const listProgramasMateria = (
+    materiaId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO[]>(
+      {url: `/api/materias/${materiaId}/programas`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getListProgramasMateriaQueryKey = (materiaId?: number,) => {
+    return [
+    `/api/materias/${materiaId}/programas`
+    ] as const;
+    }
+
+    
+export const getListProgramasMateriaQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasMateria>>, TError = unknown>(materiaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasMateriaQueryKey(materiaId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasMateria>>> = ({ signal }) => listProgramasMateria(materiaId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(materiaId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasMateriaQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasMateria>>>
+export type ListProgramasMateriaQueryError = unknown
+
+
+
+export function useListProgramasMateria<TData = Awaited<ReturnType<typeof listProgramasMateria>>, TError = unknown>(
+ materiaId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasMateriaQueryOptions(materiaId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListProgramasMateriaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasMateria>>, TError = unknown>(materiaId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasMateriaQueryKey(materiaId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasMateria>>> = ({ signal }) => listProgramasMateria(materiaId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasMateriaSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasMateria>>>
+export type ListProgramasMateriaSuspenseQueryError = unknown
+
+
+
+export function useListProgramasMateriaSuspense<TData = Awaited<ReturnType<typeof listProgramasMateria>>, TError = unknown>(
+ materiaId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasMateria>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasMateriaSuspenseQueryOptions(materiaId,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const getProgramaVigente = (
     materiaId: number,
  signal?: AbortSignal

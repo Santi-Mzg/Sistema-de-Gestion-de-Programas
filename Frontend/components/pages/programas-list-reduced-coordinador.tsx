@@ -12,13 +12,13 @@ interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],
 }
 
-type SortField = "nombreMateria" | "codigoMateria" | "carreraPlan" | "nombreDepartamento" | "estado"
+type SortField = "materia" | "carreraPlan" | "nombreDepartamento" | "profesorResponsable"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps) {
   const { activeDepartamento } = useDept();
   const router = useRouter();
-  const [sortField, setSortField] = useState<SortField>("nombreMateria")
+  const [sortField, setSortField] = useState<SortField>("materia")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   const handleSort = (field: SortField) => {
@@ -39,36 +39,31 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
         <table className="w-full border-collapse">
           <thead className="bg-primary text-primary-foreground">
             <tr>
-              {/* COL 1: MATERIA */}
               <th className="px-6 py-4 text-left w-1/3">
-                <button onClick={() => handleSort("nombreMateria")} className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
-                  Materia {sortField === "nombreMateria" && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                <button onClick={() => handleSort("materia")} className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
+                  Materia {sortField === "materia" && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </button>
               </th>
-              {/* COL 2: CARRERA-PLAN */}
+              <th className="px-6 py-4 text-left">
+                <button
+                  onClick={() => handleSort("profesorResponsable")}
+                  className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+                >
+                  Docente
+                  {sortField === "profesorResponsable" &&
+                    (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                </button>
+              </th>
               <th className="px-6 py-4 text-left w-1/4">
                 <button onClick={() => handleSort("carreraPlan")} className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
                   Carrera - Plan {sortField === "carreraPlan" && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </button>
               </th>
-              {/* COL 3: DEPARTAMENTO */}
               <th className="px-6 py-4 text-left w-1/4">
                 <button onClick={() => handleSort("nombreDepartamento")} className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
                   Departamento {sortField === "nombreDepartamento" && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </button>
               </th>
-              {/* COL 4: ESTADO */}
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort("estado")}
-                  className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                >
-                  Estado
-                  {sortField === "estado" &&
-                    (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                </button>
-              </th>
-              {/* COL 5: ACCIONES */}
               <th className="px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
@@ -82,13 +77,13 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
 
                 return planesAsignados.map((relacion) => (
                   <tr key={`${programa.id}-${relacion.plan?.id}`} className="transition-colors border-b border-border last:border-0">
-                    {/* CELDA 1: MATERIA */}
                     <td className="px-6 py-4 align-middle">
                       <div className="font-medium text-foreground">{programa.materia?.nombre}</div>
                       <div className="text-xs text-muted-foreground">{programa.materia?.codigo}</div>
                     </td>
 
-                    {/* CELDA 2: CARRERA-PLAN */}
+                    <td className="px-6 py-4 text-foreground/80">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+
                     <td className="px-6 py-4 align-middle">
                       <div className="flex flex-col">
                         <span className="font-semibold text-primary text-sm">{relacion.carreraNombre}</span>
@@ -98,24 +93,12 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
                       </div>
                     </td>
 
-                    {/* CELDA 3: DEPARTAMENTO */}
                     <td className="px-6 py-4 align-middle">
                       <span className="text-sm font-medium text-foreground/80">
                         {programa.materia?.departamento || "N/A"}
                       </span>
                     </td>
 
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
-                          getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
-                        }`}
-                      >
-                        {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
-                      </span> 
-                    </td>
-
-                    {/* CELDA 4: ACCIONES */}
                     <td className="px-6 py-4 align-middle text-center">
                       <Button
                         size="sm"

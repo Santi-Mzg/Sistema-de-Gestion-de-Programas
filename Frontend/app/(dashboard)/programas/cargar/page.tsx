@@ -21,7 +21,7 @@ export default function CrearPrograma() {
       )
     }
 
-    if(activeRole !== "SYSTEM_ADMIN" && activeRole !== "ADMINISTRACION" && activeRole !== "DIRECCION_ADMINISTRATIVA") {
+    if(activeRole !== "SYSTEM_ADMIN" && activeRole !== "ADMINISTRACION") {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">

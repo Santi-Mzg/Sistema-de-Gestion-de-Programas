@@ -9,13 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { MateriaResponseDTO, MateriaCreateDTO, UserResponseDTO, UserResponseReducedDTO, AreaResponseDTO } from "@/app/api/generated/model"
 import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey } from "@/app/api/generated/client"
-import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useHeader } from "@/context/header-context"
 
 

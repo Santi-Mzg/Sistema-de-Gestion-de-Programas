@@ -1,15 +1,12 @@
 "use client"
 
+import { getListProgramasMateriaQueryKey, useListProgramasMateria } from "@/app/api/generated/client";
+import { ProgramaResponseDTO } from "@/app/api/generated/model";
 import { ProgramasList } from "@/components/pages/programas-list";
-import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "../../api/generated/model";
-import { getListProgramasQueryKey, useListProgramas } from "../../api/generated/client";
-import { useDept } from "@/context/dept-context";
-import { useRole } from "@/context/role-context";
-import { AlertCircle } from "lucide-react";
-import LoadingSpinner from "@/components/ui/loading-spinner";
-import { ProgramasListCoordinador } from "@/components/pages/programas-list-coordinador";
+import { useParams } from "next/navigation";
 
 export default function Programas() {
+    const { id } = useParams<{ id: string }>()
 
   // props: {
   //   searchParams?: Promise<{
@@ -26,22 +23,14 @@ export default function Programas() {
   // const { programas, total } = await getProgramasByPage(currentPage, PRODUCTS_PER_PAGE, searchTerm)
   // const totalPages = Math.ceil(total / PROGRAMAS_PER_PAGE)
 
-    const { activeDepartamento } = useDept()
-    const { activeRole } = useRole();
-    
-    const deptId = activeDepartamento?.departamentoId;
 
-    const programasQuery = useListProgramas(
-        deptId!,
-        {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-        },
+    const programasQuery = useListProgramasMateria(
+        Number(id),
         {
           query: {
-            enabled: !!deptId && !!activeRole,
-            staleTime: 1000 * 60 * 5,    
-            refetchOnWindowFocus: false,
-            queryKey: getListProgramasQueryKey(deptId!, {rolActivo: activeRole as UsuarioDepartamentoDTORolesItem}),
+            enabled: !!id,
+            staleTime: 1000 * 60 * 5,
+            queryKey: getListProgramasMateriaQueryKey(Number(id)),
           },
         }
     );
@@ -82,7 +71,7 @@ export default function Programas() {
     // }
 
 
-    const isReady = !!deptId && !!activeRole && programasQuery.isSuccess;
+    const isReady = !!id && programasQuery.isSuccess;
 
     if (!isReady) {
       // return <LoadingSpinner text="Cargando datos de los programas..." />
@@ -90,7 +79,7 @@ export default function Programas() {
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando datos de los programas...</p>
+            <p className="text-yellow-700">Cargando programas...</p>
           </div>  
         </div>
       )
@@ -108,13 +97,7 @@ export default function Programas() {
     // }
 
     return (
-      <>
-        {activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR ? (
-          <ProgramasListCoordinador programas={programas} />
-        ) : (
-          <ProgramasList programas={programas} />
-        )}
-        {/* <ProgramasList programas={programas} totalPages={totalPages} /> */}
-      </>
+      <ProgramasList programas={programas} />
+      // <ProgramasList programas={programas} totalPages={totalPages} />
     );
 }

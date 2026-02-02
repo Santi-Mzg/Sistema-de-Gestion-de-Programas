@@ -2,7 +2,7 @@
 
 import { act, useState } from "react"
 import { Search, ChevronUp, ChevronDown, Eye, Pencil} from "lucide-react"
-import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button";
 import { useRole } from "@/context/role-context";
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
@@ -12,7 +12,7 @@ interface ProgramasListProps {
   onRowClick: (programaId: number) => void;
 }
 
-type SortField = "materia" | "estado" | "nombreDepartamento"
+type SortField = "materia" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasListProps) {
@@ -51,6 +51,18 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
+                {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
+                  <th className="px-6 py-4 text-left">
+                    <button
+                      onClick={() => handleSort("profesorResponsable")}
+                      className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+                    >
+                      Docente
+                      {sortField === "profesorResponsable" &&
+                        (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                    </button>
+                  </th>
+                }
                 <th className="px-6 py-4 text-left">
                   <button
                     onClick={() => handleSort("nombreDepartamento")}
@@ -88,6 +100,9 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
                       <div className="font-medium text-foreground">{programa.materia?.nombre}</div>
                       <div className="text-xs text-muted-foreground">{programa.materia?.codigo}</div>
                     </td>
+                    {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
+                      <td className="px-6 py-4 text-foreground/80">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+                    }
                     <td className="px-6 py-4 align-middle">
                       <span className="text-sm font-medium text-foreground/80">
                         {programa.materia?.departamento || "N/A"}

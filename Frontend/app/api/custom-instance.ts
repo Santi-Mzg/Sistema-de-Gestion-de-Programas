@@ -1,6 +1,5 @@
 import Axios, { AxiosRequestConfig } from 'axios';
 
-// export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sistema-de-gestion-de-programas-backend.onrender.com';
 export const API_PROXY_URL = '/api-proxy';
 
 export const customInstance = <T>(

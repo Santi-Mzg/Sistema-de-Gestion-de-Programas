@@ -93,6 +93,13 @@ public class ProgramaController {
         return ResponseEntity.ok(foundProgram);
     }
 
+    @GetMapping("/materias/{materiaId}/programas")
+    public List<ProgramaResponseDTO> listProgramasMateria(
+            @PathVariable Long materiaId
+    ) {
+        return programaService.getListByMateria(materiaId);
+    }
+
     @GetMapping("/departamentos/{deptId}/programas")
     public List<ProgramaResponseDTO> listProgramas(
             @PathVariable Long deptId,
@@ -100,7 +107,7 @@ public class ProgramaController {
             @RequestParam Rol rolActivo,
             Authentication auth
     ) {
-        return programaService.getList(auth, deptId, carreraId, rolActivo);
+        return programaService.getListAnioActual(auth, deptId, carreraId, rolActivo);
     }
 
 

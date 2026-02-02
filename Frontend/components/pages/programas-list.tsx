@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Plus, Pencil, Eye, FileText } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Plus, Eye, FileText, History, FolderClock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ProgramaResponseDTO, ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
-import { getGenerarPDFQueryKey, useGenerarPDF } from "@/app/api/generated/client"
 import { useHeader } from "@/context/header-context"
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils"
 
@@ -18,7 +17,7 @@ interface ProgramasListProps {
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-type SortField = "nombreMateria" | "codigoMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
+type SortField = "anio" | "nombreMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasList({ programas = [] }: ProgramasListProps) {
@@ -29,8 +28,9 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
   const [sortField, setSortField] = useState<SortField>("nombreMateria")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterProfesor, setFilterProfesor] = useState<string>("todos")
-  const [filterDepartamento, setFilterDepartamento] = useState<string>("todos")
+
+  const pathname = usePathname() // 2. Obtener la ruta actual
+  const esVistaVersiones = pathname.includes("/versiones")
 
   
   useEffect(() => {
@@ -43,11 +43,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
   // Get unique values for filters
   const uniqueEstados = useMemo(() => {
-    return [...new Set(programas.map((s) => s.estado).filter(Boolean))]
-  }, [programas])
-
-  const uniqueProfesores = useMemo(() => {
-    return [...new Set(programas.map((s) => s.profesorResponsable).filter(Boolean))]
+    return [...new Set(programas.map((s) => getProgramStateLabel(s.estado as ProgramaResponseDTOEstado)).filter(Boolean))]
   }, [programas])
 
 
@@ -62,10 +58,9 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesEstado = filterEstado === "todos" || programa.estado === filterEstado
-      const matchesProfesor = filterProfesor === "todos" || programa.profesorResponsable === filterProfesor
+      const matchesEstado = filterEstado === "todos" || getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) === filterEstado
 
-      return matchesSearch && matchesEstado && matchesProfesor
+      return matchesSearch && matchesEstado
     })
 
     filtered.sort((a, b) => {
@@ -76,7 +71,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
     })
 
     return filtered
-  }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterProfesor, filterDepartamento])
+  }, [programas, searchTerm, sortField, sortOrder, filterEstado])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -94,83 +89,43 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
       `${BACKEND_URL}/api/programas/${programaId}/pdf`,
       "_blank"
     );
-      // const carreraQuery = useGenerarPDF(programaId,
-      //   {
-      //     query: {
-      //       staleTime: 1000 * 60 * 5,
-      //       queryKey: getGenerarPDFQueryKey(programaId)
-      //     }
-      //   }
-      // );
-      // const carrera: CarreraResponseDTO | undefined = carreraQuery.data;
   }
 
   return (
     <div className="w-full bg-background">
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="max-w-full mx-auto">
         {/* Search and Filters Section */}
-        <div className="space-y-6 mb-8">
           {/* Search Bar */}
-        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-muted/30 p-3 rounded-lg border">
+          <div className="relative flex-1 min-w-[300px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <Input
-              placeholder="Buscar por nombre, código, profesor o estado..."
+              placeholder="Buscar por nombre, código, docente o departamento..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
+              className="pl-9 h-9 text-sm rounded-md" // h-9 para hacerlo más bajo
             />
           </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+          
+          <div className="flex items-center gap-3">
+            <Filter size={16} />
+            <select
+              value={filterEstado}
+              onChange={(e) => setFilterEstado(e.target.value)}
+              className="h-9 px-3 py-1 text-sm border rounded-md bg-background"
+            >
+              <option value="todos">Todos los estados</option>
+              {uniqueEstados.map((estado) => (
+                <option key={estado} value={estado || ""}>{estado}</option>
+              ))}
+            </select>
+
+            {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
               activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-            <Button size="lg"
-                    variant="outline"
-                    onClick={() => router.push(`/programas/cargar`)}
-                    className="border-2 hover:bg-primary hover:text-primary-foreground">
-              <Plus size={16} className="mr-1" />
-              Cargar Nuevo Programa
-            </Button>
-          }
-        </div>
-
-          {/* Filter Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                <Filter size={16} /> Estado
-              </label>
-              <select
-                value={filterEstado}
-                onChange={(e) => setFilterEstado(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="todos">Todos los estados</option>
-                {uniqueEstados.map((estado) => (
-                  <option key={estado} value={estado || ""}>
-                    {estado}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="flex text-sm font-semibold text-foreground mb-2 items-center gap-2">
-                <Filter size={16} /> Profesor
-              </label>
-              <select
-                value={filterProfesor}
-                onChange={(e) => setFilterProfesor(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="todos">Todos los profesores</option>
-                {uniqueProfesores.map((profesor) => (
-                  <option key={profesor?.id} value={profesor?.id || ""}>
-                    {profesor?.apellido}, {profesor?.nombre} (Legajo: {profesor?.legajo})
-                  </option>
-                ))}
-              </select>
-            </div>
+              <Button size="sm" onClick={() => router.push(`/programas/cargar`)} className="h-9">
+                <Plus size={16} className="mr-1" /> Nuevo Programa
+              </Button>
+            }
           </div>
         </div>
 
@@ -181,101 +136,126 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
+          <table className="w-full text-sm border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold w-16">
+                  <button
+                    onClick={() => handleSort("anio")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
+                    Año
+                    {sortField === "anio" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
+                </th>
+                <th className="px-3 py-2 text-left font-semibold">
                   <button
                     onClick={() => handleSort("nombreMateria")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
                   >
                     Materia
                     {sortField === "nombreMateria" &&
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort("codigoMateria")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Código
-                    {sortField === "codigoMateria" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort("profesorResponsable")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Profesor
-                    {sortField === "profesorResponsable" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left">
+                {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
+                  <th className="px-3 py-2 text-left font-semibold">
+                    <button
+                      onClick={() => handleSort("profesorResponsable")}
+                      className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                    >
+                      Docente
+                      {sortField === "profesorResponsable" &&
+                        (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                    </button>
+                  </th>
+                }
+                <th className="px-3 py-2 text-left font-semibold">
                   <button
                     onClick={() => handleSort("nombreDepartamento")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
                   >
                     Departamento
                     {sortField === "nombreDepartamento" &&
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                   <button
                     onClick={() => handleSort("estado")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
                   >
                     Estado
                     {sortField === "estado" &&
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold w-40">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y">
               {filteredAndSortedSyllabuses.length > 0 ? (
                 filteredAndSortedSyllabuses.map((programa) => (
                   <tr
                     key={programa.id}
-                    className="hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-b-0"
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{programa.materia?.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.codigo}</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
-                    <td className="px-6 py-4 text-foreground/80">{programa.materia?.departamento}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-1.5">{programa.anio}</td>
+                    <td className="px-3 py-1.5">
+                      <div className="font-medium leading-tight">{programa.materia?.nombre}</div>
+                      <div className="text-xs text-muted-foreground uppercase">{programa.materia?.codigo}</div>
+                    </td>
+                    {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
+                      <td className="px-3 py-1.5 text-xs">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+                    }
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{programa.materia?.departamento}</td>
+                    <td className="px-3 py-1.5">
                       <span
-                        className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
+                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-sm ${
                           getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
                         }`}
                       >
                         {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
                       </span> 
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="outline"
                           onClick={() => router.push(`/programas/${programa.id}`)}
-                          className="border-2 hover:bg-primary hover:text-primary-foreground"
+                          className="border h-7 w-7 hover:bg-primary"
+                          title="Ver Programa"
                         >
-                            <>
-                              <Eye size={16} className="mr-1" />
-                              Ver
-                            </>
+                          <Eye size={16} />
                         </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => router.push(`/programas/${programa.id}/historial-estados`)}
+                          className="border h-7 w-7 hover:bg-primary"
+                          title="Ver Historial de Estados"
+                        >
+                          <History size={16}/>
+                        </Button>
+                        {!esVistaVersiones && 
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => router.push(`/programas/materia/${programa.materia?.id}/versiones`)}
+                            className="border h-7 w-7 hover:bg-primary"
+                            title="Ver Versiones Anteriores"
+                          >
+                            <FolderClock size={16} />
+                          </Button>
+                        }
                         {(activeRole === "SECRETARIA" || activeRole === "DIRECCION_ADMINISTRATIVA" || activeRole === "SYSTEM_ADMIN") && programa.estado === "APROBADO_POR_SECRETARIA" && (
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="outline"
                             onClick={() => handleGenerarPDF(programa.id)}
                             className="border-2 hover:bg-primary hover:text-primary-foreground"

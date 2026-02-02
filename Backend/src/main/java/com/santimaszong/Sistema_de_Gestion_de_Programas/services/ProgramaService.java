@@ -15,7 +15,8 @@ public interface ProgramaService {
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
-    List<ProgramaResponseDTO> getList(Authentication auth, Long deptId, Long carreraId, Rol rolActivo);
+    List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Long carreraId, Rol rolActivo);
+    List<ProgramaResponseDTO> getListByMateria(Long materiaId);
     List<ProgramaResponseDTO> listAll();
     void delete(Long id);
     void saveDraft(Long departamentoId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo);

@@ -370,31 +370,40 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getList(Authentication auth, Long deptId, Long carreraId, Rol rolActivo) {
+    public List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Long carreraId, Rol rolActivo) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
 
+        Integer anioActual = LocalDate.now().getYear();
         List<ProgramaEntity> programs = new ArrayList<>();
-
 
         // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
         if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
-            programs = programaRepository.findByMateriaDepartamentoId(deptId);
+            programs = programaRepository.findByMateriaDepartamentoIdAndAnio(deptId, anioActual);
         }
 
         // 2. Si es coordinador ve los programas de la carrera
         else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
-            programs = programaRepository.findProgramasByCoordinadorLegajo(auth.getName());
+            programs = programaRepository.findProgramasByCoordinadorLegajoAndAnio(auth.getName(), anioActual);
         }
         // 3. Si es profesor ve los programas que tiene asignados
         else if (rolActivo.equals(Rol.DOCENTE) ) {
-            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoId(auth.getName(), deptId);
+            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(auth.getName(), deptId, anioActual);
         }
 
         return programs.stream()
+                .map(responseMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseDTO> getListByMateria(Long materiaId) {
+        MateriaEntity materia = materiaService.getEntityById(materiaId);
+        return materia.getProgramas().stream()
                 .map(responseMapper::toDTO)
                 .collect(Collectors.toList());
     }

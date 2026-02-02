@@ -30,12 +30,12 @@ export function Header() {
 
             {Icon && (
               <div className="hidden sm:flex p-3 bg-primary/10 rounded-xl text-primary shrink-0">
-                <Icon size={24} />
+                <Icon size={20} />
               </div>
             )}
             
             <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground truncate">
+              <h1 className="text-lg md:text-xl font-bold tracking-tight text-foreground truncate">
                 {title}
               </h1>
               <p className="text-xs md:text-sm text-muted-foreground truncate">

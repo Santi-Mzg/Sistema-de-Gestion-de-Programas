@@ -372,16 +372,16 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     })
   }, [programa]);
 
-  useEffect(() => {
-    const total =
-      (formData.cantidadSemanas || 0) *
-      (formData.cargaHorariaSemanal || 0)
+  // useEffect(() => {
+  //   const total =
+  //     (formData.cantidadSemanas || 0) *
+  //     (formData.cargaHorariaSemanal || 0)
 
-    setFormData((prev) => ({
-      ...prev,
-      cargaHorariaTotal: total,
-    }))
-  }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     cargaHorariaTotal: total,
+  //   }))
+  // }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
 
   const handleAddProgramaCarrera = () => {
     const newBlock: ProgramaCarreraCreateDTO = {
@@ -798,7 +798,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="cargaTotal"
                 type="number"
-                defaultValue={formData.cargaHorariaTotal}
+                value={(formData.cantidadSemanas || 0) * (formData.cargaHorariaSemanal || 0)}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 readOnly

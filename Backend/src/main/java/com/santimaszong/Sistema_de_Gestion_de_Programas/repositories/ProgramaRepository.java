@@ -24,12 +24,13 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> 
             EstadoPrograma estadoActual
     );
 
-    List<ProgramaEntity> findByMateriaDepartamentoId(Long departamentoId);
+    List<ProgramaEntity> findByMateriaDepartamentoIdAndAnio(Long departamentoId, Integer anio);
 
 
-    List<ProgramaEntity> findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoId(
+    List<ProgramaEntity> findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
             String legajo,
-            Long departamentoId
+            Long departamentoId,
+            Integer anio
     );
 
     @Query("""
@@ -40,7 +41,8 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> 
         JOIN c.comision ud
         JOIN ud.usuario u
         WHERE u.legajo = :legajo
+        AND p.anio = :anio
     """)
-    List<ProgramaEntity> findProgramasByCoordinadorLegajo(@Param("legajo") String legajo);
+    List<ProgramaEntity> findProgramasByCoordinadorLegajoAndAnio(@Param("legajo") String legajo, @Param("anio") Integer anio);
 
 }
