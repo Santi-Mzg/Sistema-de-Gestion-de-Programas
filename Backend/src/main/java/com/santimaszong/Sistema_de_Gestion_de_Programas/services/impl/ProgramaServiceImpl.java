@@ -167,8 +167,14 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         Optional.ofNullable(programaDTO.getBloqueMultiple())
                 .ifPresent(bloquesMultiplesDTO -> {
-                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
+                    existingProgram.getBloqueMultiple().forEach(pc -> {
+                        pc.getCorrelativasFuertes().clear();
+                        pc.getCorrelativasDebiles().clear();
+                    });
+
                     existingProgram.getBloqueMultiple().clear();
+
+                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
                     existingProgram.getBloqueMultiple().addAll(bloquesMultiplesEntity);
                 });
 

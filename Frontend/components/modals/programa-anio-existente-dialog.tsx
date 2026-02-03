@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
-import type { ProgramaResponseDTO } from "@/app/api/generated/model"
+import type { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import { getProgramStateLabel } from "@/lib/utils"
 
 interface CargarProgramaVigenteDialogProps {
   open: boolean
@@ -56,14 +57,12 @@ export function ProgramaAnioExistenteDialog({
               <span className="font-semibold text-foreground">Año:</span>{" "}
               <span className="text-muted-foreground">{programa.anio}</span>
             </p>
-            {programa.historialEstados && programa.historialEstados.length > 0 && (
-              <p className="text-sm">
-                <span className="font-semibold text-foreground">Estado:</span>{" "}
-                <span className="text-muted-foreground">
-                  {programa.historialEstados[0].estado}
-                </span>
-              </p>
-            )}
+            <p className="text-sm">
+              <span className="font-semibold text-foreground">Estado:</span>{" "}
+              <span className="text-muted-foreground">
+                {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+              </span>
+            </p>
             {programa.historialEstados && programa.historialEstados.length > 0 && (
               <p className="text-sm">
                 <span className="font-semibold text-foreground">Última modificación:</span>{" "}
