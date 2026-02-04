@@ -114,7 +114,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                         programaEntity.getCantidadSemanas() != null &&
                         programaEntity.getMateria() != null &&
                         programaEntity.getProfesorResponsable() != null &&
-                        programaEntity.getBloqueMultiple() != null;
+                        !programaEntity.getBloqueMultiple().isEmpty();
 
         if (completoAdministracion) {
             estado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
@@ -172,7 +172,11 @@ public class ProgramaServiceImpl implements ProgramaService {
                         pc.getCorrelativasDebiles().clear();
                     });
 
+                    programaRepository.saveAndFlush(existingProgram);
+
                     existingProgram.getBloqueMultiple().clear();
+
+                    programaRepository.saveAndFlush(existingProgram);
 
                     List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
                     existingProgram.getBloqueMultiple().addAll(bloquesMultiplesEntity);
