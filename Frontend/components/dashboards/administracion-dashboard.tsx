@@ -66,7 +66,7 @@ export function AdministracionDashboard() {
   const router = useRouter();
 
   const handleNavigate = (id: number) => {
-    router.push(`/programas/completar/administracion/${id}`);
+    router.push(`/programas/${id}/carga/administracion`);
   };
 
 
@@ -107,7 +107,7 @@ export function AdministracionDashboard() {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Action Button */}
       <div className="mb-6">
-        <Link href={"/programas/cargar"}>
+        <Link href={"/programas/crear"}>
           <Button
             className="gap-2 bg-primary hover:bg-accent text-primary-foreground"
             size="lg"

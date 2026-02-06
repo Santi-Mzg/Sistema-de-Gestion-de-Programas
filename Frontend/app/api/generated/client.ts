@@ -37,6 +37,7 @@ import type {
   EstadoUpdateDTO,
   GetDraftParams,
   ListProgramasParams,
+  ListProgramasPendientesParams,
   Login200,
   LoginRequest,
   MateriaCreateDTO,
@@ -3987,6 +3988,116 @@ export function useListAdministrativosDepartamentoSuspense<TData = Awaited<Retur
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListAdministrativosDepartamentoSuspenseQueryOptions(deptId,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listProgramasPendientes = (
+    deptId: number,
+    params: ListProgramasPendientesParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/programas/pendientes`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListProgramasPendientesQueryKey = (deptId?: number,
+    params?: ListProgramasPendientesParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas/pendientes`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListProgramasPendientesQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasPendientes>>, TError = unknown>(deptId: number,
+    params: ListProgramasPendientesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasPendientesQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasPendientes>>> = ({ signal }) => listProgramasPendientes(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasPendientesQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasPendientes>>>
+export type ListProgramasPendientesQueryError = unknown
+
+
+
+export function useListProgramasPendientes<TData = Awaited<ReturnType<typeof listProgramasPendientes>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasPendientesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasPendientesQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListProgramasPendientesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasPendientes>>, TError = unknown>(deptId: number,
+    params: ListProgramasPendientesParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasPendientesQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasPendientes>>> = ({ signal }) => listProgramasPendientes(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasPendientesSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasPendientes>>>
+export type ListProgramasPendientesSuspenseQueryError = unknown
+
+
+
+export function useListProgramasPendientesSuspense<TData = Awaited<ReturnType<typeof listProgramasPendientes>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasPendientesParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientes>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasPendientesSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

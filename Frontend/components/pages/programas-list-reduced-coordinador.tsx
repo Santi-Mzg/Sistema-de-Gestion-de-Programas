@@ -75,7 +75,7 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
                   activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
                 ) || [];
 
-                return planesAsignados.map((relacion) => (
+                return planesAsignados.filter(p => !p.aprobadoPorComision).map((relacion) => (
                   <tr key={`${programa.id}-${relacion.plan?.id}`} className="transition-colors border-b border-border last:border-0">
                     <td className="px-3 py-1.5">
                       <div className="font-medium text-foreground">{programa.materia?.nombre}</div>
@@ -103,7 +103,7 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => router.push(`/programas/revisar/${programa.id}`)}
+                        onClick={() => router.push(`/programas/${programa.id}/revision/comision/${relacion.plan?.id}`)}
                         className="border-2 hover:bg-primary hover:text-primary-foreground transition-all"
                       >
                         <Eye size={16} className="mr-2" />

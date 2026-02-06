@@ -199,6 +199,11 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       return
     }
 
+    setFormData((prev) => ({
+      ...prev,
+      cargaHorariaTotal: (prev.cantidadSemanas || 0) * (prev.cargaHorariaSemanal || 0)
+    }));
+
     mutate({ 
       deptId: activeDepartamento!.departamentoId!,
       id,
@@ -241,6 +246,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     setLoadingDraft(true)
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
+      setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
       setFormData(draftData)
       setShowDraft(false)
 

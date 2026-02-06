@@ -28,6 +28,8 @@ export * from './estadoUpdateDTODestinoRechazo';
 export * from './getDraftParams';
 export * from './getDraftRolActivo';
 export * from './listProgramasParams';
+export * from './listProgramasPendientesParams';
+export * from './listProgramasPendientesRolActivo';
 export * from './listProgramasRolActivo';
 export * from './login200';
 export * from './loginRequest';

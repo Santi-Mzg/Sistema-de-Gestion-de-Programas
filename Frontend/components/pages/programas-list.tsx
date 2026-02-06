@@ -122,7 +122,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
             {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
               activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-              <Button size="sm" onClick={() => router.push(`/programas/cargar`)} className="h-9">
+              <Button size="sm" onClick={() => router.push(`/programas/crear`)} className="h-9">
                 <Plus size={16} className="mr-1" /> Nuevo Programa
               </Button>
             }
@@ -257,12 +257,10 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                             size="icon"
                             variant="outline"
                             onClick={() => handleGenerarPDF(programa.id)}
-                            className="border-2 hover:bg-primary hover:text-primary-foreground"
+                            className="border h-7 w-7 hover:bg-primary"
+                            title="Generar PDF"
                           >
-                            <>
-                              <FileText size={16} className="mr-1" />
-                              PDF
-                            </>
+                            <FileText size={16} />
                           </Button>
                           )}
                       </div>
@@ -275,9 +273,11 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search size={32} className="opacity-40" />
                       <p className="text-base">No se encontraron Programas con los filtros seleccionados</p>
-                      <Link href="/programas/cargar">
-                        <Button>Cargar Programa</Button>
-                      </Link>
+                      {(activeRole === "ADMINISTRACION" || activeRole === "SYSTEM_ADMIN") && (
+                        <Link href="/programas/crear">
+                          <Button>Crear Programa</Button>
+                        </Link>
+                      )}
                     </div>
                   </td>
                 </tr>

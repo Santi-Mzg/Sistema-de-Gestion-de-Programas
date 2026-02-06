@@ -7,5 +7,6 @@
 import type { ActualizarEstadoRolActivo } from './actualizarEstadoRolActivo';
 
 export type ActualizarEstadoParams = {
+carreraId?: number;
 rolActivo: ActualizarEstadoRolActivo;
 };

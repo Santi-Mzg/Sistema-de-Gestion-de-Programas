@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./auth-context";
 import { UsuarioDepartamentoDTO } from "@/app/api/generated/model";
+import { useRouter } from "next/navigation";
 
 interface DepartamentoContextType {
   availableDepartamentos: UsuarioDepartamentoDTO[];
@@ -15,6 +16,7 @@ const DepartamentoContext = createContext<DepartamentoContextType | null>(null);
 export function DepartamentoProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [activeDeptId, setActiveDeptId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
       const saved = localStorage.getItem("activeDept");
@@ -38,6 +40,7 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
   const handleSetActiveDept = (dept: string) => {
     setActiveDeptId(dept);
     localStorage.setItem("activeDept", dept);
+    router.push(`/`);
   };
 
   return (

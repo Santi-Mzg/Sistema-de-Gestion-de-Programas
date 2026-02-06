@@ -7,6 +7,5 @@
 import type { ListProgramasRolActivo } from './listProgramasRolActivo';
 
 export type ListProgramasParams = {
-carreraId?: number;
 rolActivo: ListProgramasRolActivo;
 };

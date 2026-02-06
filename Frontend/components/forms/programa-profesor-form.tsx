@@ -47,15 +47,15 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
 
-  const programaVigenteQuery = useGetProgramaVigente(id, {
-    query: {
-      enabled: !!id,
-      staleTime: Infinity,
-      queryKey: getGetProgramaVigenteQueryKey(id),
-    },
-  });
+  // const programaVigenteQuery = useGetProgramaVigente(id, {
+  //   query: {
+  //     enabled: !!id,
+  //     staleTime: Infinity,
+  //     queryKey: getGetProgramaVigenteQueryKey(id),
+  //   },
+  // });
   
-  const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
+  // const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
 
   const ultimoEstado = programa?.historialEstados?.at(-1);
   const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;

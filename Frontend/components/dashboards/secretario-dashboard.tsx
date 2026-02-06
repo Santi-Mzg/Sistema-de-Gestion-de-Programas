@@ -63,7 +63,7 @@ export function SecretarioDashboard() {
     const router = useRouter();
   
     const handleNavigate = (id: number) => {
-      router.push(`/programas/revisar/${id}`);
+      router.push(`/programas/${id}/revision/secretaria`);
     };
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {

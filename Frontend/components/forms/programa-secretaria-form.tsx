@@ -19,11 +19,10 @@ import { useHeader } from "@/context/header-context"
 
 interface SyllabusFormProps {
   id: number,
-  carreraId?: number,
 }
 
 
-export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
+export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole()
   const router = useRouter();
@@ -138,7 +137,6 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       id: id,
       data: data,
       params: {
-        carreraId: carreraId,
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       }
     });
@@ -158,7 +156,6 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       id: id,
       data: data,
       params: {
-        carreraId: carreraId,
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       }
     });

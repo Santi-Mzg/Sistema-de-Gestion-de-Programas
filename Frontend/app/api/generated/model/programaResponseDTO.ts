@@ -29,4 +29,5 @@ export interface ProgramaResponseDTO {
   bibliografia?: string;
   estado?: ProgramaResponseDTOEstado;
   historialEstados?: EstadoHistoricoResponseDTO[];
+  aprobado?: boolean;
 }

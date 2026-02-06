@@ -107,8 +107,6 @@ export function SyllabusCreationForm() {
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
   const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined)
   
-  const cargaTotal = (formData.cantidadSemanas || 0) * (formData.cargaHorariaSemanal || 0)
-
   // useEffect(() => {
   //   const total =
   //     (formData.cantidadSemanas || 0) *
@@ -222,6 +220,11 @@ export function SyllabusCreationForm() {
       return
     }
 
+    setFormData((prev) => ({
+      ...prev,
+      cargaHorariaTotal: (prev.cantidadSemanas || 0) * (prev.cargaHorariaSemanal || 0)
+    }));
+
     if (programaAnioExistente) {
       setShowCreationWarning(true);
     } else {
@@ -255,6 +258,9 @@ export function SyllabusCreationForm() {
   useEffect(() => {
     if (programaAnioExistenteQuery.data) {
       setShowProgramaAnioExistente(true);
+    }
+    else{
+      setLoadDraft(true);
     }
   }, [programaAnioExistenteQuery.data]);
 
@@ -295,6 +301,7 @@ export function SyllabusCreationForm() {
     setLoadingDraft(true)
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
+      setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
       setFormData(draftData)
       setShowDraft(false)
 

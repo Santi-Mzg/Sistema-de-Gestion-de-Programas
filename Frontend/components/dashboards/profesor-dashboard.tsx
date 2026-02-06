@@ -62,7 +62,7 @@ export function ProfesorDashboard() {
   const router = useRouter();
 
   const handleNavigate = (id: number) => {
-    router.push(`/programas/completar/docente_responsable/${id}`);
+    router.push(`/programas/${id}/carga/docente`);
   };
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {

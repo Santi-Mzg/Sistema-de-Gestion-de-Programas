@@ -16,4 +16,5 @@ export interface ProgramaCarreraResponseDTO {
   correlativasDebiles?: MateriaResponseReducedDTO[];
   contribucion?: string;
   contenidosMinimos?: string;
+  aprobadoPorComision?: boolean;
 }

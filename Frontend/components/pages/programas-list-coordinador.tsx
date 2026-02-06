@@ -54,35 +54,50 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
   }, [activeDepartamento?.carrerasComoComision])
 
   // Filter and sort data
-  const filteredAndSortedSyllabuses = useMemo(() => {
-    const filtered = programas.filter((programa) => {
-      const matchesSearch =
-        !searchTerm ||
-        programa.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.materia?.departamento?.toLowerCase().includes(searchTerm.toLowerCase())
+  const rows = useMemo(() => {
+    return programas.flatMap(programa =>
+      (programa.bloqueMultiple || [])
+        .filter(rel =>
+          activeDepartamento?.carrerasComoComision?.includes(rel.carreraNombre!)
+        )
+        .map(rel => ({
+          programa,
+          relacion: rel,
+        }))
+    )
+  }, [programas, activeDepartamento])
 
+  const filteredAndSortedRows = useMemo(() => {
+  const filtered = rows.filter(({ programa, relacion }) => {
+    const matchesSearch =
+      !searchTerm ||
+      programa.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      programa.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      programa.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesEstado = filterEstado === "todos" || getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) === filterEstado
+      const matchesEstado =
+        filterEstado === "todos" ||
+        getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) === filterEstado
 
-      const matchesCarreraPlanes = filterCarreraPlan === "todos" || programa.bloqueMultiple?.some(b =>
-        uniqueCarreraPlanes.includes(b.carreraNombre!)
-      )
+      const matchesCarreraPlan =
+        filterCarreraPlan === "todos" ||
+        relacion.carreraNombre === filterCarreraPlan
 
-      return matchesSearch && matchesEstado && matchesCarreraPlanes
+      return matchesSearch && matchesEstado && matchesCarreraPlan
     })
 
     filtered.sort((a, b) => {
-      const aValue = String((a as any)[sortField] ?? "")
-      const bValue = String((b as any)[sortField] ?? "")
-
-      return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+      const aValue = String((a.programa as any)[sortField] ?? "")
+      const bValue = String((b.programa as any)[sortField] ?? "")
+      return sortOrder === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
     })
 
     return filtered
+
   }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterCarreraPlan])
 
   const handleSort = (field: SortField) => {
@@ -164,7 +179,7 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> programa{filteredAndSortedSyllabuses.length === 1 ? "" : "s"}
+          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedRows.length}</span> programa{filteredAndSortedRows.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}
@@ -233,13 +248,9 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredAndSortedSyllabuses.length > 0 ? (
-                filteredAndSortedSyllabuses.flatMap((programa) => {
-                  const planesAsignados = programa.bloqueMultiple?.filter(b => 
-                    activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
-                  ) || [];
-
-                  return planesAsignados.map((relacion) => (
+              {filteredAndSortedRows.length > 0 ? (
+                filteredAndSortedRows.map(({programa, relacion}) => {
+                  return (
                     <tr
                       key={programa.id}
                       className="hover:bg-muted/30 transition-colors"
@@ -316,7 +327,7 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
                       </td>
                     </tr>
                   )
-                )})
+                })
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">

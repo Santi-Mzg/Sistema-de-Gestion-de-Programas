@@ -2,8 +2,8 @@
 
 import { Users, CheckCircle2, AlertCircle, User, Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
-import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
+import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { getListProgramasPendientesQueryKey, useListProgramasPendientes } from "@/app/api/generated/client";
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
 import { ProgramasListReducedCoord } from "../pages/programas-list-reduced-coordinador";
@@ -31,9 +31,8 @@ export function CoordinadorDashboard() {
       icon: Home
     })
   }, [user]);
-  // const carrerasId: number[] = activeDepartamento?.carrerasComoComision || [];
 
-  const programasQuery = useListProgramas(
+  const programasQuery = useListProgramasPendientes(
       activeDepartamento!.departamentoId!,
       {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
@@ -42,7 +41,7 @@ export function CoordinadorDashboard() {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListProgramasQueryKey(
+        queryKey: getListProgramasPendientesQueryKey(
             activeDepartamento!.departamentoId!,
             {
               rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
@@ -51,9 +50,8 @@ export function CoordinadorDashboard() {
       } 
     }
   );
-  const programas: ProgramaResponseDTO[] = programasQuery.data || [];
+  const programasPendientes: ProgramaResponseDTO[] = programasQuery.data || [];
 
-  const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_PROFESOR);
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
       return(

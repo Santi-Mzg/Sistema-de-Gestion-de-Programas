@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 export default function CompletarPrograma() {
   const { activeRole } = useRole()
   const { id } = useParams<{ id: string }>()
+  const { carreraId } = useParams<{ carreraId: string }>()
 
 
   if (!activeRole) {
@@ -23,12 +24,12 @@ export default function CompletarPrograma() {
     )
   }
 
-  if(!(activeRole === "SYSTEM_ADMIN" || activeRole === "SECRETARIA" || activeRole === "COORDINACION_COMISION_CURRICULAR")) {
+  if(!(activeRole === "SYSTEM_ADMIN" || activeRole === "COORDINACION_COMISION_CURRICULAR")) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">No tienes permisos para revisar programas</p>
+          <p className="text-red-700">No tienes permisos para revisar el programa en esta instancia</p>
         </div>
       </div>
     )
@@ -60,6 +61,6 @@ export default function CompletarPrograma() {
 
 
     return (
-      <SyllabusCoordinadorForm id={Number(id)} />
+      <SyllabusCoordinadorForm id={Number(id)} carreraId={Number(carreraId)} />
     );
 }
