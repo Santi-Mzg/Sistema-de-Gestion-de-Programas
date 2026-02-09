@@ -280,21 +280,13 @@ public class ProgramaServiceImpl implements ProgramaService {
         if (completoProfesor) {
             existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, udeActor, Rol.DOCENTE, null);
 
-            // 1. Obtener coordinadores únicos de todas las carreras involucradas
-            Set<UsuarioDepartamentoEntity> coordinadores = existingProgram.getBloqueMultiple().stream()
-                    .map(pc -> pc.getCarreraPlan().getCarrera().getComision())
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-
             // 2. Crear registros de decisión pendientes y enviar mails
-            for (UsuarioDepartamentoEntity coord : coordinadores) {
+            for (ProgramaCarreraEntity pg : existingProgram.getBloqueMultiple()) {
                 DecisionComisionEntity decision = new DecisionComisionEntity();
-                decision.setPrograma(existingProgram);
-                decision.setComision(coord);
+                decision.setProgramaCarrera(pg);
                 decision.setAprobado(false); // Aún no aprobó
                 decisionRepository.save(decision);
 
-//                emailService.notificarCoordinador(coord.getUsuario().getEmail(), existingProgram.getId());
             }
         }
 
@@ -311,7 +303,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
-    public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo) {
+    public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo) {
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
 
@@ -322,8 +314,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         ProgramaEntity programa = programaRepository.findById(programId)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
-        UserEntity actor = userService.getEntityByLegajo(auth.getName());
-        String deptName = udeActor.getDepartamento().getNombre();
 
         switch (rolActivo) {
             case DOCENTE:
@@ -331,7 +321,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                 break;
 
             case COORDINACION_COMISION_CURRICULAR:
-                procesarDecisionCoordinador(programa, estadoUpdateDTO, udeActor);
+                procesarDecisionCoordinador(programa, carreraId, estadoUpdateDTO, udeActor);
                 break;
 
             case SECRETARIA:
@@ -380,7 +370,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Long carreraId, Rol rolActivo) {
+    public List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -402,6 +392,33 @@ public class ProgramaServiceImpl implements ProgramaService {
         // 3. Si es profesor ve los programas que tiene asignados
         else if (rolActivo.equals(Rol.DOCENTE) ) {
             programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(auth.getName(), deptId, anioActual);
+        }
+
+        return programs.stream()
+                .map(responseMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo) {
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
+
+        if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        Integer anioActual = LocalDate.now().getYear();
+        List<ProgramaEntity> programs = new ArrayList<>();
+
+        if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
+//            programs = programaRepository.findByMateriaDepartamentoIdAndAnio(deptId, anioActual);
+        }
+        else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
+            programs = programaRepository.findProgramasPendientesCoordinador(auth.getName(), anioActual, EstadoPrograma.COMPLETO_POR_PROFESOR);
+        }
+        else if (rolActivo.equals(Rol.DOCENTE) ) {
+//            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(auth.getName(), deptId, anioActual);
         }
 
         return programs.stream()
@@ -511,10 +528,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         );
     }
 
-
-
-
-
     private void procesarDecisionDocente(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
 
         switch (estadoUpdateDTO.getAccion()) {
@@ -527,10 +540,10 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
     }
 
-    private void procesarDecisionCoordinador(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
+    private void procesarDecisionCoordinador(ProgramaEntity programa, Long carreraId, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
 
         // 1. Buscar la decisión de este coordinador específico
-        DecisionComisionEntity decision = decisionRepository.findByProgramaIdAndComisionUsuarioId(programa.getId(), udeActor.getUsuario().getId())
+        DecisionComisionEntity decision = decisionRepository.findByProgramaIdAndCarreraIdAndComisionId(programa.getId(), carreraId, udeActor.getId())
                 .orElseThrow(() -> new IllegalStateException("Usted no es coordinador de este programa"));
 
         switch (estadoUpdateDTO.getAccion()) {
@@ -540,11 +553,14 @@ public class ProgramaServiceImpl implements ProgramaService {
                 decisionRepository.save(decision);
 
                 // 2. ¿Todos los coordinadores involucrados han aprobado?
-                long pendientes = decisionRepository.countByProgramaIdAndAprobadoFalse(programa.getId());
+                long pendientes = decisionRepository.countByProgramaCarreraProgramaIdAndAprobadoFalse(programa.getId());
 
                 if (pendientes == 0) {
                     // SOLO AQUÍ cambiamos el estado global
                     programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_COMISION, udeActor, Rol.COORDINACION_COMISION_CURRICULAR, "Aprobación unánime de comisiones");
+
+                    programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
+
                     programaRepository.save(programa);
 
                     // EMAIL SEND
@@ -556,7 +572,8 @@ public class ProgramaServiceImpl implements ProgramaService {
 
             case RECHAZAR:
                 rechazar(programa, estadoUpdateDTO, udeActor, Rol.COORDINACION_COMISION_CURRICULAR);
-                decisionRepository.deleteByProgramaId(programa.getId());
+                programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
+                programaRepository.save(programa);
                 break;
 
         }

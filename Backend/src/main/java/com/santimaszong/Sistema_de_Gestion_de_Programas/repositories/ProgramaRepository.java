@@ -34,15 +34,77 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> 
     );
 
     @Query("""
-        SELECT DISTINCT p FROM ProgramaEntity p
-        JOIN p.bloqueMultiple pc
-        JOIN pc.carreraPlan cp
-        JOIN cp.carrera c
-        JOIN c.comision ud
-        JOIN ud.usuario u
-        WHERE u.legajo = :legajo
-        AND p.anio = :anio
+    SELECT p FROM ProgramaEntity p
+        WHERE p.anio = :anio
+        AND EXISTS (
+            SELECT 1 FROM ProgramaCarreraEntity pc
+            WHERE pc.programa = p
+            AND pc.carreraPlan.carrera.comision.usuario.legajo = :legajo
+        )
     """)
     List<ProgramaEntity> findProgramasByCoordinadorLegajoAndAnio(@Param("legajo") String legajo, @Param("anio") Integer anio);
+
+//    @Query("""
+//        SELECT DISTINCT p FROM ProgramaEntity p
+//        JOIN p.decisionComisiones d
+//        WHERE d.comision.usuario.legajo = :legajo
+//        AND p.anio = :anio
+//        AND d.aprobado = false
+//        AND p.estadoActual IN (
+//            INCOMPLETO_POR_ADMINISTRACION,
+//            RECHAZADO_A_ADMINISTRACION
+//        )
+//    """)
+//    List<ProgramaEntity> findProgramasPendientesAdministrativo(@Param("legajo") String legajo, @Param("anio") Integer anio);
+//
+//    @Query("""
+//        SELECT DISTINCT p FROM ProgramaEntity p
+//        JOIN p.decisionComisiones d
+//        WHERE d.comision.usuario.legajo = :legajo
+//        AND p.anio = :anio
+//        AND d.aprobado = false
+//        AND p.estadoActual IN (
+//            COMPLETO_POR_ADMINISTRACION,
+//            INCOMPLETO_POR_PROFESOR,
+//            RECHAZADO_A_PROFESOR
+//        )
+//    """)
+//    List<ProgramaEntity> findProgramasPendientesDocente(@Param("legajo") String legajo, @Param("anio") Integer anio);
+
+
+//    @Query("""
+//        SELECT DISTINCT p FROM ProgramaEntity p
+//        JOIN p.decisionComisiones d
+//        WHERE d.comision.usuario.legajo = :legajo
+//        AND p.anio = :anio
+//        AND d.aprobado = false
+//        AND p.estadoActual = 'COMPLETO_POR_PROFESOR'
+//    """)
+
+    @Query("""            
+        SELECT p FROM ProgramaEntity p
+            WHERE p.anio = :anio
+            AND p.estadoActual = :estado
+            AND EXISTS (
+                SELECT 1 FROM ProgramaCarreraEntity pc
+                WHERE pc.programa = p
+                AND pc.carreraPlan.carrera.comision.usuario.legajo = :legajo
+                AND pc.decisionComision.aprobado = false
+            )
+    """)
+    List<ProgramaEntity> findProgramasPendientesCoordinador(
+            @Param("legajo") String legajo,
+            @Param("anio") Integer anio,
+            @Param("estado") EstadoPrograma estado
+    );
+
+//    @Query("""
+//        SELECT DISTINCT p FROM ProgramaEntity p
+//        JOIN p.materia.departamento d
+//        WHERE d.comision.usuario.legajo = :legajo
+//        AND p.anio = :anio
+//        AND p.estadoActual = 'APROBADO_POR_COMISION'
+//    """)
+//    List<ProgramaEntity> findProgramasPendientesSecretaria(@Param("legajo") String legajo, @Param("anio") Integer anio);
 
 }

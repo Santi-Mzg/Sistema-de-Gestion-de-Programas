@@ -11,18 +11,18 @@ public interface ProgramaService {
     ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO profesorCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
-    ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo);
+    ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo);
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
-    List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Long carreraId, Rol rolActivo);
+    List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo);
     List<ProgramaResponseDTO> getListByMateria(Long materiaId);
     List<ProgramaResponseDTO> listAll();
     void delete(Long id);
     void saveDraft(Long departamentoId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo);
     ProgramaDraftDTO getDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
     void deleteDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
-
+    List<ProgramaResponseDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo);
 
 
 }

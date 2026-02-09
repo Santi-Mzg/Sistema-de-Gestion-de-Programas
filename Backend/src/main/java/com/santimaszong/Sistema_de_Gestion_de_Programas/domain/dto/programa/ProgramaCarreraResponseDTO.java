@@ -22,4 +22,5 @@ public class ProgramaCarreraResponseDTO {
     private List<MateriaResponseReducedDTO> correlativasDebiles;
     private String contribucion;
     private String contenidosMinimos;
+    private Boolean aprobadoPorComision;
 }

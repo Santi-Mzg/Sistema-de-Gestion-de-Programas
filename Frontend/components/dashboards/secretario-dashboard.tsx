@@ -107,11 +107,11 @@ export function SecretarioDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <FileText size={16} className="text-primary" />
-              Documentos
+              Programas Vigentes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">45</div>
+            <div className="text-3xl font-bold text-primary">{programasVigentes.length}</div>
             <p className="text-xs text-muted-foreground mt-1">En archivo</p>
           </CardContent>
         </Card>
@@ -120,11 +120,11 @@ export function SecretarioDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Clock size={16} className="text-accent" />
-              Próximos Vencimientos
+              Programas en Proceso
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-accent">2</div>
+            <div className="text-3xl font-bold text-accent">{programas.length - programasVigentes.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
           </CardContent>
         </Card>

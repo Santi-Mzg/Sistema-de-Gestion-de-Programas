@@ -107,19 +107,17 @@ export function SyllabusCreationForm() {
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
   const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined)
   
-  // useEffect(() => {
-  //   const total =
-  //     (formData.cantidadSemanas || 0) *
-  //     (formData.cargaHorariaSemanal || 0)
+  useEffect(() => {
+    const total =
+      (formData.cantidadSemanas || 0) *
+      (formData.cargaHorariaSemanal || 0)
 
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     cargaHorariaTotal: total,
-  //   }))
-  //   console.log(formData.cargaHorariaTotal)
-  //   console.log(total)
+    setFormData((prev) => ({
+      ...prev,
+      cargaHorariaTotal: total,
+    }))
 
-  // }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
+  }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
 
   const { mutate: mutateSaveDraft } = useSaveDraft()
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
@@ -220,10 +218,6 @@ export function SyllabusCreationForm() {
       return
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      cargaHorariaTotal: (prev.cantidadSemanas || 0) * (prev.cargaHorariaSemanal || 0)
-    }));
 
     if (programaAnioExistente) {
       setShowCreationWarning(true);
@@ -846,7 +840,7 @@ export function SyllabusCreationForm() {
               <Input
                 id="cargaTotal"
                 type="number"
-                value={(formData.cantidadSemanas || 0) * (formData.cargaHorariaSemanal || 0)}
+                value={formData.cargaHorariaTotal}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 readOnly

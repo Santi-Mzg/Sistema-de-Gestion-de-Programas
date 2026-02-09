@@ -109,8 +109,8 @@ export function ProfesorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">3</div>
-            <p className="text-xs text-muted-foreground mt-1">Este semestre</p>
+            <div className="text-3xl font-bold text-primary">{programas.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Este año lectivo</p>
           </CardContent>
         </Card>
 
@@ -122,7 +122,7 @@ export function ProfesorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-accent">1</div>
+            <div className="text-3xl font-bold text-accent">{programasPendientes.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Por completar</p>
           </CardContent>
         </Card>
@@ -130,13 +130,13 @@ export function ProfesorDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <BarChart3 size={16} className="text-secondary" />
-              Aprobados
+              <AlertCircle size={16} className="text-orange-600" />
+              Rechazados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-secondary">2</div>
-            <p className="text-xs text-muted-foreground mt-1">Por administración</p>
+            <div className="text-3xl font-bold text-orange-600">{programasRechazados.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Por corregir</p>
           </CardContent>
         </Card>
       </div>
@@ -157,15 +157,6 @@ export function ProfesorDashboard() {
         </CardHeader>
         <CardContent>
           <ProgramasListReduced programas={programasRechazados} onRowClick={handleNavigate} />
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Mis Cursos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProgramasListReduced programas={programasVigentes} onRowClick={handleNavigate} />
         </CardContent>
       </Card>
 

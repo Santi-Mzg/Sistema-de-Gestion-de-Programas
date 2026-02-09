@@ -342,7 +342,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
         ude.setUsuario(user);
         ude.setDepartamento(dept);
-        ude.setEmail("");
+        ude.setEmail("santymaszong@gmail.com");
         ude.setRoles(roles);
         udeRepository.save(ude);
     }

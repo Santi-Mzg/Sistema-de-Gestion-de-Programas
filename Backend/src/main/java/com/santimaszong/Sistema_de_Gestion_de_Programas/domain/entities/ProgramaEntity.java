@@ -85,8 +85,8 @@ public class ProgramaEntity {
     @OrderBy("fecha ASC")
     private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
 
-    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
+//    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+//    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
 
 
 

@@ -55,4 +55,8 @@ public class ProgramaCarreraEntity {
     @Column(columnDefinition = "TEXT")
     private String contenidosMinimos;
 
+    @OneToOne(mappedBy = "programaCarrera", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private DecisionComisionEntity decisionComision;
+
+
 }

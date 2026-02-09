@@ -60,10 +60,11 @@ public class ProgramaController {
     public ResponseEntity<ProgramaResponseDTO> actualizarEstado(@PathVariable Long deptId,
                                                                 @PathVariable Long id,
                                                                 @RequestBody EstadoUpdateDTO estadoUpdateDTO,
+                                                                @RequestParam(required = false) Long carreraId,
                                                                 @RequestParam Rol rolActivo,
                                                                 Authentication auth) {
 
-        return ResponseEntity.ok(programaService.actualizarEstado(auth, deptId, id, estadoUpdateDTO, rolActivo));
+        return ResponseEntity.ok(programaService.actualizarEstado(auth, deptId, carreraId, id, estadoUpdateDTO, rolActivo));
     }
 
 
@@ -103,11 +104,19 @@ public class ProgramaController {
     @GetMapping("/departamentos/{deptId}/programas")
     public List<ProgramaResponseDTO> listProgramas(
             @PathVariable Long deptId,
-            @RequestParam(required = false) Long carreraId,
             @RequestParam Rol rolActivo,
             Authentication auth
     ) {
-        return programaService.getListAnioActual(auth, deptId, carreraId, rolActivo);
+        return programaService.getListAnioActual(auth, deptId, rolActivo);
+    }
+
+    @GetMapping("/departamentos/{deptId}/programas/pendientes")
+    public List<ProgramaResponseDTO> listProgramasPendientes(
+            @PathVariable Long deptId,
+            @RequestParam Rol rolActivo,
+            Authentication auth
+    ) {
+        return programaService.getListPendientes(auth, deptId, rolActivo);
     }
 
 

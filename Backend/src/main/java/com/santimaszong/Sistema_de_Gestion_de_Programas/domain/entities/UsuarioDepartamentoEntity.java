@@ -39,8 +39,8 @@ public class UsuarioDepartamentoEntity {
     @OneToMany(mappedBy = "profesorResponsable")
     private List<ProgramaEntity> materiasComoProfesor;
 
-    @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
+//    @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+//    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(

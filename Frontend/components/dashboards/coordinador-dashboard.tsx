@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, CheckCircle2, AlertCircle, User, Home } from "lucide-react"
+import { Users, CheckCircle2, AlertCircle, User, Home, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { getListProgramasPendientesQueryKey, useListProgramasPendientes } from "@/app/api/generated/client";
@@ -94,11 +94,13 @@ export function CoordinadorDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users size={16} className="text-primary" />
-              Profesores Asignados
+              Carreras Asignadas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">12</div>
+            <div className="text-3xl font-bold text-primary">
+             {activeDepartamento?.carrerasComoComision?.map(c => c).join(", ") || "N/A"}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">En tu coordinación</p>
           </CardContent>
         </Card>
@@ -106,21 +108,8 @@ export function CoordinadorDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-green-600" />
-              Aprobados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">8</div>
-            <p className="text-xs text-muted-foreground mt-1">Sílabus revisados</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle size={16} className="text-orange-600" />
-              Por Revisar
+              <Clock size={16} className="text-orange-600" />
+              Programas Pendientes
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -129,6 +118,19 @@ export function CoordinadorDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-green-600" />
+            Aprobados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-green-600">8</div>
+          <p className="text-xs text-muted-foreground mt-1">Sílabus revisados</p>
+        </CardContent>
+      </Card>
 
       <Card className="mb-6">
         <CardHeader>

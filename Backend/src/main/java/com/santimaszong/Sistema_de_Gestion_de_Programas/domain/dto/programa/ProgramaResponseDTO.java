@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseReducedDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DecisionComisionEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,5 +40,7 @@ public class ProgramaResponseDTO {
 
     private EstadoPrograma estado;
     private List<EstadoHistoricoResponseDTO> historialEstados;
+    private Boolean aprobado;
+
 }
 
