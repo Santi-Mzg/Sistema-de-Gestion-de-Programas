@@ -99,8 +99,8 @@ export function CoordinadorDashboard() {
           </CardHeader>
           <CardContent>
             {activeDepartamento?.carrerasComoComision?.map(c => (
-              <div className="text-md font-bold text-primary" key={c}>
-                {c}
+              <div className="text-md pb-1 font-bold text-primary" key={c}>
+                - {c}
               </div>
             ))}
             <p className="text-xs text-muted-foreground mt-1">En tu coordinación</p>
