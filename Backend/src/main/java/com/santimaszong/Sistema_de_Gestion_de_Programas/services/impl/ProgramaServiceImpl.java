@@ -284,9 +284,11 @@ public class ProgramaServiceImpl implements ProgramaService {
             for (ProgramaCarreraEntity pg : existingProgram.getBloqueMultiple()) {
                 DecisionComisionEntity decision = new DecisionComisionEntity();
                 decision.setProgramaCarrera(pg);
-                decision.setAprobado(false); // Aún no aprobó
-                decisionRepository.save(decision);
+                pg.setDecisionComision(decision);
 
+                decision.setAprobado(false); // Aún no aprobó
+
+                decisionRepository.save(decision);
             }
         }
 

@@ -63,11 +63,37 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
       return matchesSearch && matchesEstado
     })
 
-    filtered.sort((a, b) => {
-      const aValue = String((a as any)[sortField] ?? "")
-      const bValue = String((b as any)[sortField] ?? "")
+    const getSortValue = (programa: ProgramaResponseDTO, field: SortField): string => {
+      switch (field) {
+        case "anio":
+          return String(programa.anio ?? "")
 
-      return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+        case "nombreMateria":
+          return programa.materia?.nombre ?? ""
+
+        case "profesorResponsable":
+          return programa.profesorResponsable
+            ? `${programa.profesorResponsable.apellido} ${programa.profesorResponsable.nombre}`
+            : ""
+
+        case "nombreDepartamento":
+          return programa.materia?.departamento ?? ""
+
+        case "estado":
+          return getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) ?? ""
+
+        default:
+          return ""
+      }
+    }
+
+    filtered.sort((a, b) => {
+      const aValue = getSortValue(a, sortField)
+      const bValue = getSortValue(b, sortField)
+
+      return sortOrder === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
     })
 
     return filtered

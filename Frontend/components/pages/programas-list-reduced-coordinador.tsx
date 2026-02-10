@@ -29,6 +29,48 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
     }
   }
 
+  // 1. Aplanamos la lista para tener una fila por cada carrera/plan
+const programasAplanados = programas.flatMap((programa) => {
+  const planesAsignados = programa.bloqueMultiple?.filter(b => 
+    activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
+  ) || [];
+  
+  return planesAsignados
+    .filter(p => !p.aprobadoPorComision)
+    .map(relacion => ({
+      ...programa,
+      relacionEspecifica: relacion // Guardamos la relación para el render
+    }));
+});
+
+// 2. Aplicamos el ordenamiento
+const programasOrdenados = [...programasAplanados].sort((a, b) => {
+  let valueA: string = "";
+  let valueB: string = "";
+
+  switch (sortField) {
+    case "materia":
+      valueA = a.materia?.nombre || "";
+      valueB = b.materia?.nombre || "";
+      break;
+    case "profesorResponsable":
+      valueA = a.profesorResponsable?.apellido || "";
+      valueB = b.profesorResponsable?.apellido || "";
+      break;
+    case "carreraPlan":
+      valueA = a.relacionEspecifica.carreraNombre || "";
+      valueB = b.relacionEspecifica.carreraNombre || "";
+      break;
+    case "nombreDepartamento":
+      valueA = a.materia?.departamento || "";
+      valueB = b.materia?.departamento || "";
+      break;
+  }
+
+  const comparison = valueA.localeCompare(valueB);
+  return sortOrder === "asc" ? comparison : -comparison;
+});
+
   return (
     <div className="w-full bg-background">
       <div className="mb-2 text-sm text-muted-foreground">
@@ -69,13 +111,12 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
           </thead>
 
           <tbody className="divide-y divide-border">
-            {programas.length > 0 ? (
-              programas.flatMap((programa) => {
-                const planesAsignados = programa.bloqueMultiple?.filter(b => 
-                  activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
-                ) || [];
+            {programasOrdenados.length > 0 ? (
+              programasOrdenados.map((item) => {
+                const programa = item;
+                const relacion = item.relacionEspecifica;
 
-                return planesAsignados.filter(p => !p.aprobadoPorComision).map((relacion) => (
+                return (
                   <tr key={`${programa.id}-${relacion.plan?.id}`} className="transition-colors border-b border-border last:border-0">
                     <td className="px-3 py-1.5">
                       <div className="font-medium text-foreground">{programa.materia?.nombre}</div>
@@ -111,7 +152,7 @@ export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps
                       </Button>
                     </td>
                   </tr>
-                ));
+                );
               })
             ) : (
               <tr>

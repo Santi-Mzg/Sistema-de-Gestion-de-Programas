@@ -118,6 +118,57 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
     );
   }
 
+  // 1. Aplanamos la lista para tener una fila por cada carrera/plan
+const programasAplanados = programas.flatMap((programa) => {
+  const planesAsignados = programa.bloqueMultiple?.filter(b => 
+    activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
+  ) || [];
+  
+  return planesAsignados
+    .filter(p => !p.aprobadoPorComision)
+    .map(relacion => ({
+      ...programa,
+      relacionEspecifica: relacion // Guardamos la relación para el render
+    }));
+});
+
+// 2. Aplicamos el ordenamiento
+const programasOrdenados = [...programasAplanados].sort((a, b) => {
+    let valueA: string = "";
+    let valueB: string = "";
+
+  
+    switch (sortField) {
+      case "anio":
+        valueA = String(a.anio);
+        valueB = String(b.anio);
+        break;
+      case "estado":
+        valueA = getProgramStateLabel(a.estado as ProgramaResponseDTOEstado);
+        valueB = getProgramStateLabel(b.estado as ProgramaResponseDTOEstado);
+        break;
+      case "nombreMateria":
+        valueA = a.materia?.nombre || "";
+        valueB = b.materia?.nombre || "";
+        break;
+      case "profesorResponsable":
+        valueA = a.profesorResponsable?.apellido || "";
+        valueB = b.profesorResponsable?.apellido || "";
+        break;
+      case "carreraPlan":
+        valueA = a.relacionEspecifica.carreraNombre || "";
+        valueB = b.relacionEspecifica.carreraNombre || "";
+        break;
+      case "nombreDepartamento":
+        valueA = a.materia?.departamento || "";
+        valueB = b.materia?.departamento || "";
+        break;
+    }
+
+    const comparison = valueA.localeCompare(valueB);
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+
   return (
     <div className="w-full bg-background">
       <div className="max-w-full mx-auto">
@@ -248,8 +299,11 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredAndSortedRows.length > 0 ? (
-                filteredAndSortedRows.map(({programa, relacion}) => {
+              {programasOrdenados.length > 0 ? (
+                programasOrdenados.map((item) => {
+                  const programa = item;
+                  const relacion = item.relacionEspecifica;
+                  
                   return (
                     <tr
                       key={programa.id}

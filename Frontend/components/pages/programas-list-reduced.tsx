@@ -29,11 +29,38 @@ export function ProgramasListReduced({ programas = [], onRowClick }: ProgramasLi
     }
   }
 
+  const programasOrdenados = programas.sort((a, b) => {
+  let valueA: string = "";
+  let valueB: string = "";
+
+  switch (sortField) {
+    case "materia":
+      valueA = a.materia?.nombre || "";
+      valueB = b.materia?.nombre || "";
+      break;
+    case "profesorResponsable":
+      valueA = a.profesorResponsable?.apellido || "";
+      valueB = b.profesorResponsable?.apellido || "";
+      break;
+    case "estado":
+      valueA = getProgramStateLabel(a.estado as ProgramaResponseDTOEstado);
+      valueB = getProgramStateLabel(b.estado as ProgramaResponseDTOEstado);
+      break;
+    case "nombreDepartamento":
+      valueA = a.materia?.departamento || "";
+      valueB = b.materia?.departamento || "";
+      break;
+  }
+
+  const comparison = valueA.localeCompare(valueB);
+  return sortOrder === "asc" ? comparison : -comparison;
+});
+
   return (
     <div className="w-full bg-background">
      {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{programas.length}</span> programa{programas.length === 1 ? "" : "s"}
+          Mostrando <span className="font-semibold text-foreground">{programasOrdenados.length}</span> programa{programasOrdenados.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

@@ -17,15 +17,6 @@ public class DecisionComisionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "programa_id")
-//    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
-//    private ProgramaEntity programa;
-//
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "comision_id")
-//    private UsuarioDepartamentoEntity comision;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programa_carrera_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_decision_programa_carrera"))
     private ProgramaCarreraEntity programaCarrera;

@@ -98,9 +98,11 @@ export function CoordinadorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">
-             {activeDepartamento?.carrerasComoComision?.map(c => c).join(", ") || "N/A"}
-            </div>
+            {activeDepartamento?.carrerasComoComision?.map(c => (
+              <div className="text-md font-bold text-primary" key={c}>
+                {c}
+              </div>
+            ))}
             <p className="text-xs text-muted-foreground mt-1">En tu coordinación</p>
           </CardContent>
         </Card>
@@ -117,20 +119,20 @@ export function CoordinadorDashboard() {
             <p className="text-xs text-muted-foreground mt-1">Esperando revisión</p>
           </CardContent>
         </Card>
-      </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-green-600" />
-            Aprobados
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-green-600">8</div>
-          <p className="text-xs text-muted-foreground mt-1">Sílabus revisados</p>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-green-600" />
+              Aprobados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">8</div>
+            <p className="text-xs text-muted-foreground mt-1">Sílabus revisados</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card className="mb-6">
         <CardHeader>
