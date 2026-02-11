@@ -34,11 +34,18 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
   
   useEffect(() => {
-    setHeader({
-      title: `Programas`,
-      subtitle: "Gestiona y consulta los programas disponibles",
-      icon: FileText,
-    })
+    if(esVistaVersiones) 
+        setHeader({
+          title: `Versiones del Programa de ${programas[0]?.materia?.nombre}`,
+          subtitle: "Consulta las versiones anteriores del programa seleccionado",
+          icon: FolderClock,
+        })
+    else
+        setHeader({
+          title: `Programas - ${programas[0]?.anio}`,
+          subtitle: "Gestiona y consulta los programas disponibles",
+          icon: FileText,
+        })
   }, [])
 
   // Get unique values for filters

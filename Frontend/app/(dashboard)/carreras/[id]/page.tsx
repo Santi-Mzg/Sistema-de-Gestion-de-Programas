@@ -132,12 +132,9 @@ export default function EditCarreraPage() {
             data: formData
         });
         
-        alert("Carrera actualizado exitosamente")
       }
-    //   router.push("/Carreras")
     } catch (error) {
       console.error("Error updating Carrera:", error)
-      alert("Error al actualizar el Carrera")
     } finally {
       setIsLoading(false)
     }

@@ -981,7 +981,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!removeProgramaCarreraIndex} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
+      <Dialog open={removeProgramaCarreraIndex !== null} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">

@@ -117,12 +117,9 @@ export default function EditDepartamentoPage() {
             data: formData
         });
         
-        alert("Departamento actualizado exitosamente")
       }
-    //   router.push("/departamentos")
     } catch (error) {
       console.error("Error updating departamento:", error)
-      alert("Error al actualizar el departamento")
     } finally {
       setIsLoading(false)
     }

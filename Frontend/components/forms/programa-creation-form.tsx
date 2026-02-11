@@ -34,7 +34,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { set } from "zod"
 import { useHeader } from "@/context/header-context"
 
 export function SyllabusCreationForm() {
@@ -58,6 +57,18 @@ export function SyllabusCreationForm() {
   const [showProgramaVigente, setShowProgramaVigente] = useState(false)
   const [loadProgramaVigente, setLoadProgramaVigente] = useState(false);
   const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
+
+  // type ProgramaLoadStep =
+  // | "IDLE"
+  // | "CHECK_ANIO"
+  // | "SHOW_ANIO_DIALOG"
+  // | "CHECK_DRAFT"
+  // | "SHOW_DRAFT_DIALOG"
+  // | "CHECK_VIGENTE"
+  // | "SHOW_VIGENTE_DIALOG"
+  // | "READY";
+
+  // const [step, setStep] = useState<ProgramaLoadStep>("IDLE");
 
   const [isDirty, setIsDirty] = useState(false);
   const [showCreationWarning, setShowCreationWarning] = useState(false);
@@ -1079,7 +1090,7 @@ export function SyllabusCreationForm() {
       </Dialog>
 
 
-      <Dialog open={!!removeProgramaCarreraIndex} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
+      <Dialog open={removeProgramaCarreraIndex !== null} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">

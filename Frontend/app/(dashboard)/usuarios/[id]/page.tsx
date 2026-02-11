@@ -112,12 +112,9 @@ export default function EditUserPage() {
             data: formData
         });
         
-        alert("User actualizado exitosamente")
       }
-    //   router.push("/Users")
     } catch (error) {
       console.error("Error updating User:", error)
-      alert("Error al actualizar el User")
     } finally {
       setIsLoading(false)
     }

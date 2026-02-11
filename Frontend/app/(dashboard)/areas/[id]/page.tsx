@@ -98,12 +98,10 @@ export default function EditAreaPage() {
             data: formData
         });
         
-        alert("Área actualizada exitosamente")
       }
     //   router.push("/Areas")
     } catch (error) {
       console.error("Error updating Area:", error)
-      alert("Error al actualizar el Area")
     } finally {
       setIsLoading(false)
     }

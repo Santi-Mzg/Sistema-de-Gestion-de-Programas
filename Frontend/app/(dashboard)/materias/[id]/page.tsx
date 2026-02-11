@@ -113,12 +113,9 @@ export default function EditMateriaPage() {
             data: formData
         });
         
-        alert("Materia actualizado exitosamente")
       }
-    //   router.push("/Materias")
   } catch (error) {
       console.error("Error updating materia:", error)
-      alert("Error al actualizar el materia")
     } finally {
       setIsLoading(false)
     }
