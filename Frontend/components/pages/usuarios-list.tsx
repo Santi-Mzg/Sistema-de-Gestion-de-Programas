@@ -127,8 +127,8 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredUsuarios.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{usuarios.length}</span> Usuario
+          Mostrando <span className="font-semibold text-foreground">{filteredUsuarios.length}</span> de {" "}
+          <span className="font-semibold text-foreground">{usuarios.length}</span> usuario{usuarios.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

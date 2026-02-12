@@ -135,7 +135,7 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           Mostrando <span className="font-semibold text-foreground">{filteredCarreras.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{carreras.length}</span> carrera
+          <span className="font-semibold text-foreground">{carreras.length}</span> carrera{carreras.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

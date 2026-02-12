@@ -135,7 +135,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           Mostrando <span className="font-semibold text-foreground">{filteredMaterias.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{materias.length}</span> Materia
+          <span className="font-semibold text-foreground">{materias.length}</span> materia{materias.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

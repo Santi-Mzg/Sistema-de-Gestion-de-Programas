@@ -132,13 +132,13 @@ export function SecretarioDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Archive size={16} className="text-secondary" />
-              Archivados
+              <Clock size={16} className="text-orange-600" />
+              Programas Pendientes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-secondary">23</div>
-            <p className="text-xs text-muted-foreground mt-1">Períodos anteriores</p>
+            <div className="text-3xl font-bold text-orange-600">{programasPendientes.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Esperando revisión</p>
           </CardContent>
         </Card>
       </div>

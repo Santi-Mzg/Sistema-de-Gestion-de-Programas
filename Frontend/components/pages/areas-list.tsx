@@ -137,7 +137,7 @@ export function AreasList({ areas = [] }: AreasListProps) {
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           Mostrando <span className="font-semibold text-foreground">{filteredAreas.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{areas.length}</span> área
+          <span className="font-semibold text-foreground">{areas.length}</span> área{areas.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

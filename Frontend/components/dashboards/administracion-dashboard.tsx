@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, BookOpen, Eye, Trash2, AlertCircle, User, Home } from "lucide-react"
+import { Plus, BookOpen, Eye, Trash2, AlertCircle, User, Home, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
@@ -105,7 +105,47 @@ export function AdministracionDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      {/* Action Button */}
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Clock size={16} className="text-accent" />
+                    Programas en Proceso
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-accent">{programas.length - programasVigentes.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
+                </CardContent>
+              </Card>
+      
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Clock size={16} className="text-accent" />
+                    Programas Pendientes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-accent">{programasPendientes.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Por completar</p>
+                </CardContent>
+              </Card>
+      
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <AlertCircle size={16} className="text-orange-600" />
+                    Programas Rechazados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-orange-600">{programasRechazados.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Por corregir</p>
+                </CardContent>
+              </Card>
+            </div>
+
       <div className="mb-6">
         <Link href={"/programas/crear"}>
           <Button

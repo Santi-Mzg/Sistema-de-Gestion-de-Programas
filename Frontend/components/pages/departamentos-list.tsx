@@ -131,7 +131,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           Mostrando <span className="font-semibold text-foreground">{filteredDepartamentos.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{departamentos.length}</span> departamento
+          <span className="font-semibold text-foreground">{departamentos.length}</span> departamento{departamentos.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

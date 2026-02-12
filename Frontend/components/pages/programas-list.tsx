@@ -31,10 +31,10 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
   const pathname = usePathname() // 2. Obtener la ruta actual
   const esVistaVersiones = pathname.includes("/versiones")
-
+  const actualYear = new Date().getFullYear()
   
   useEffect(() => {
-    if(esVistaVersiones) 
+    if(esVistaVersiones && programas.length > 0) 
         setHeader({
           title: `Versiones del Programa de ${programas[0]?.materia?.nombre}`,
           subtitle: "Consulta las versiones anteriores del programa seleccionado",
@@ -42,7 +42,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         })
     else
         setHeader({
-          title: `Programas - ${programas[0]?.anio}`,
+          title: `Programas - ${actualYear}`,
           subtitle: "Gestiona y consulta los programas disponibles",
           icon: FileText,
         })
@@ -164,7 +164,8 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> programa{filteredAndSortedSyllabuses.length === 1 ? "" : "s"}
+          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> de {" "}
+          <span className="font-semibold text-foreground">{programas.length}</span> programa{programas.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}

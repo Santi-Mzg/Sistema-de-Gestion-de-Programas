@@ -131,7 +131,7 @@ export function ProfesorDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertCircle size={16} className="text-orange-600" />
-              Rechazados
+              Programas Rechazados
             </CardTitle>
           </CardHeader>
           <CardContent>

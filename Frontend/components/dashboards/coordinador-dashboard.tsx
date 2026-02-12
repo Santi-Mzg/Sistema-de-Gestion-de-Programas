@@ -129,7 +129,7 @@ export function CoordinadorDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">8</div>
-            <p className="text-xs text-muted-foreground mt-1">Sílabus revisados</p>
+            <p className="text-xs text-muted-foreground mt-1">Programas revisados</p>
           </CardContent>
         </Card>
       </div>
