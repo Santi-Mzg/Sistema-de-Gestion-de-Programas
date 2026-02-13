@@ -117,11 +117,11 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
 
   const handleGenerarPDF = (programaId?: number) => {
     if (!programaId) return;
-
-    window.open(
-      `${BACKEND_URL}/api/programas/${programaId}/pdf`,
-      "_blank"
-    );
+    const baseUrl = window.location.origin;
+  
+    const pdfUrl = `${baseUrl}/api-proxy/api/programas/${programaId}/pdf`;
+      
+    window.open(pdfUrl, "_blank");
   }
 
   return (

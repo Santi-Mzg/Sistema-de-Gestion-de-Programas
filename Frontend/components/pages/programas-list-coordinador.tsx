@@ -54,51 +54,60 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
   }, [activeDepartamento?.carrerasComoComision])
 
   // Filter and sort data
-  const rows = useMemo(() => {
-    return programas.flatMap(programa =>
-      (programa.bloqueMultiple || [])
-        .filter(rel =>
-          activeDepartamento?.carrerasComoComision?.includes(rel.carreraNombre!)
-        )
-        .map(rel => ({
-          programa,
-          relacion: rel,
-        }))
-    )
-  }, [programas, activeDepartamento])
+ const rowsDisplay = useMemo(() => {
+    // 1. Aplanar: Una fila por cada relación materia-carrera que el coordinador supervisa
+    const flattened = programas.flatMap((programa) => {
+      const planesAsignados = programa.bloqueMultiple?.filter(b => 
+        activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
+      ) || [];
+      
+      return planesAsignados.map(relacion => ({
+        ...programa,
+        relacionEspecifica: relacion 
+      }));
+    });
 
-  const filteredAndSortedRows = useMemo(() => {
-  const filtered = rows.filter(({ programa, relacion }) => {
-    const matchesSearch =
-      !searchTerm ||
-      programa.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      programa.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      programa.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
+    // 2. Filtrar
+    const filtered = flattened.filter((item) => {
+      const matchesSearch =
+        !searchTerm ||
+        item.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesEstado =
         filterEstado === "todos" ||
-        getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) === filterEstado
+        getProgramStateLabel(item.estado as ProgramaResponseDTOEstado) === filterEstado;
 
       const matchesCarreraPlan =
         filterCarreraPlan === "todos" ||
-        relacion.carreraNombre === filterCarreraPlan
+        item.relacionEspecifica.carreraNombre === filterCarreraPlan;
 
-      return matchesSearch && matchesEstado && matchesCarreraPlan
-    })
+      return matchesSearch && matchesEstado && matchesCarreraPlan;
+    });
 
-    filtered.sort((a, b) => {
-      const aValue = String((a.programa as any)[sortField] ?? "")
-      const bValue = String((b.programa as any)[sortField] ?? "")
-      return sortOrder === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue)
-    })
+    // 3. Ordenar
+    return [...filtered].sort((a, b) => {
+      let valueA: string = "";
+      let valueB: string = "";
 
-    return filtered
+      switch (sortField) {
+        case "anio": valueA = String(a.anio); valueB = String(b.anio); break;
+        case "estado":
+          valueA = getProgramStateLabel(a.estado as ProgramaResponseDTOEstado);
+          valueB = getProgramStateLabel(b.estado as ProgramaResponseDTOEstado);
+          break;
+        case "nombreMateria": valueA = a.materia?.nombre || ""; valueB = b.materia?.nombre || ""; break;
+        case "profesorResponsable": valueA = a.profesorResponsable?.apellido || ""; valueB = b.profesorResponsable?.apellido || ""; break;
+        case "carreraPlan": valueA = a.relacionEspecifica.carreraNombre || ""; valueB = b.relacionEspecifica.carreraNombre || ""; break;
+        case "nombreDepartamento": valueA = a.materia?.departamento || ""; valueB = b.materia?.departamento || ""; break;
+      }
 
-  }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterCarreraPlan])
+      const comparison = valueA.localeCompare(valueB);
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterCarreraPlan, activeDepartamento]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -109,14 +118,6 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
     }
   }
 
-  const handleGenerarPDF = (programaId?: number) => {
-    if (!programaId) return;
-
-    window.open(
-      `${BACKEND_URL}/api/programas/${programaId}/pdf`,
-      "_blank"
-    );
-  }
 
   // 1. Aplanamos la lista para tener una fila por cada carrera/plan
 const programasAplanados = programas.flatMap((programa) => {
@@ -230,7 +231,7 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedRows.length}</span> programa{filteredAndSortedRows.length === 1 ? "" : "s"}
+          Mostrando <span className="font-semibold text-foreground">{rowsDisplay.length}</span> programa{rowsDisplay.length === 1 ? "" : "s"}
         </div>
 
         {/* Table */}
@@ -238,150 +239,70 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
           <table className="w-full text-sm border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-semibold w-16">
-                  <button
-                    onClick={() => handleSort("anio")}
-                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Año
-                    {sortField === "anio" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">
-                  <button
-                    onClick={() => handleSort("nombreMateria")}
-                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Materia
-                    {sortField === "nombreMateria" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">
-                  <button
-                    onClick={() => handleSort("profesorResponsable")}
-                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Docente
-                    {sortField === "profesorResponsable" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold w-1/4">
-                  <button onClick={() => handleSort("carreraPlan")} className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
-                    Carrera - Plan {sortField === "carreraPlan" && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">
-                  <button
-                    onClick={() => handleSort("nombreDepartamento")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Departamento
-                    {sortField === "nombreDepartamento" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">
-                  <button
-                    onClick={() => handleSort("estado")}
-                    className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
-                  >
-                    Estado
-                    {sortField === "estado" &&
-                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                  </button>
-                </th>
-                <th className="px-3 py-2 text-left font-semibold w-40">
-                  Acciones
-                </th>
+                {[
+                  { id: "anio", label: "Año" },
+                  { id: "nombreMateria", label: "Materia" },
+                  { id: "profesorResponsable", label: "Docente" },
+                  { id: "carreraPlan", label: "Carrera - Plan" },
+                  { id: "nombreDepartamento", label: "Departamento" },
+                  { id: "estado", label: "Estado" }
+                ].map((col) => (
+                  <th key={col.id} className="px-3 py-3 text-left font-semibold">
+                    <button
+                      onClick={() => handleSort(col.id as SortField)}
+                      className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+                    >
+                      {col.label}
+                      {sortField === col.id && (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                    </button>
+                  </th>
+                ))}
+                <th className="px-3 py-3 text-left font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {programasOrdenados.length > 0 ? (
-                programasOrdenados.map((item) => {
-                  const programa = item;
-                  const relacion = item.relacionEspecifica;
-                  
-                  return (
-                    <tr
-                      key={programa.id}
-                      className="hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-3 py-1.5">{programa.anio}</td>
-                      <td className="px-3 py-1.5">
-                        <div className="font-medium leading-tight">{programa.materia?.nombre}</div>
-                        <div className="text-xs text-muted-foreground uppercase">{programa.materia?.codigo}</div>
-                      </td>
-                      <td className="px-3 py-1.5 text-xs">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
-                      <td className="px-3 py-1.5">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-primary text-xs">{relacion.carreraNombre}</span>
-                          <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded w-fit mt-1">
-                            Plan {relacion.plan?.anio} — v{relacion.plan?.version}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-1.5 text-xs text-muted-foreground">{programa.materia?.departamento}</td>
-                      <td className="px-3 py-1.5">
-                        <span
-                          className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-sm ${
-                            getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
-                          }`}
-                        >
-                          {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
-                        </span> 
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <div className="flex items-center justify-center gap-1">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => router.push(`/programas/${programa.id}`)}
-                          className="border h-7 w-7 hover:bg-primary"
-                          title="Ver Programa"
-                        >
+              {rowsDisplay.length > 0 ? (
+                rowsDisplay.map((item) => (
+                  <tr key={`${item.id}-${item.relacionEspecifica.plan?.id}`} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-3 py-2">{item.anio}</td>
+                    <td className="px-3 py-2">
+                      <div className="font-medium leading-tight">{item.materia?.nombre}</div>
+                      <div className="text-xs text-muted-foreground uppercase">{item.materia?.codigo}</div>
+                    </td>
+                    <td className="px-3 py-2 text-xs">
+                      {item.profesorResponsable?.apellido}, {item.profesorResponsable?.nombre}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-primary text-xs">{item.relacionEspecifica.carreraNombre}</span>
+                        <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded w-fit mt-1">
+                          Plan {item.relacionEspecifica.plan?.anio} — v{item.relacionEspecifica.plan?.version}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{item.materia?.departamento}</td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 ${getProgramStateStyles(item.estado as ProgramaResponseDTOEstado)}`}>
+                        {getProgramStateLabel(item.estado as ProgramaResponseDTOEstado)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/${item.id}`)} title="Ver Programa">
                           <Eye size={16} />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => router.push(`/programas/${programa.id}/historial-estados`)}
-                          className="border h-7 w-7 hover:bg-primary"
-                          title="Ver Historial de Estados"
-                        >
+                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/${item.id}/historial-estados`)} title="Historial">
                           <History size={16}/>
                         </Button>
-                          {!esVistaVersiones && 
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => router.push(`/programas/materia/${programa.materia?.id}/versiones`)}
-                              className="border h-7 w-7 hover:bg-primary"
-                              title="Ver Versiones Anteriores"
-                            >
-                              <FolderClock size={16} />
-                            </Button>
-                          }
-                          {(activeRole === "SECRETARIA" || activeRole === "DIRECCION_ADMINISTRATIVA" || activeRole === "SYSTEM_ADMIN") && programa.estado === "APROBADO_POR_SECRETARIA" && (
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleGenerarPDF(programa.id)}
-                              className="border-2 hover:bg-primary hover:text-primary-foreground"
-                            >
-                              <>
-                                <FileText size={16} className="mr-1" />
-                                PDF
-                              </>
-                            </Button>
-                            )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
+                        {!esVistaVersiones && (
+                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/materia/${item.materia?.id}/versiones`)} title="Versiones">
+                            <FolderClock size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
