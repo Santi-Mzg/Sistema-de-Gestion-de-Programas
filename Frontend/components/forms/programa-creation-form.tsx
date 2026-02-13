@@ -145,7 +145,7 @@ export function SyllabusCreationForm() {
 
         mutateDeleteDraft({
           deptId: activeDepartamento!.departamentoId!,
-          materiaId: formData.materiaId!,
+          materiaId: selectedMateria?.id!,
           params:{
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
@@ -241,7 +241,7 @@ export function SyllabusCreationForm() {
   }
 
   useEffect(() => {
-    if (formData.materiaId){
+    if (selectedMateria){
       setShowDraft(false);
       setLoadDraft(false);
       setShowProgramaVigente(false);
@@ -249,7 +249,7 @@ export function SyllabusCreationForm() {
       setShowCreationWarning(false);
       setShowProgramaAnioExistente(false);
     }   
-  }, [formData.materiaId]); 
+  }, [selectedMateria]); 
 
   const programaAnioExistenteQuery = useGetProgramaMateriaAnio(formData.materiaId ?? 0, {
     query: {
@@ -261,27 +261,32 @@ export function SyllabusCreationForm() {
   });
 
   useEffect(() => {
-    if (programaAnioExistenteQuery.data) {
-      setShowProgramaAnioExistente(true);
+    if (programaAnioExistenteQuery.isSuccess) {
+      if (programaAnioExistenteQuery.data) {
+        setShowProgramaAnioExistente(true);
+        setLoadDraft(false);
+      }
+      else{
+        setShowProgramaAnioExistente(false);
+        setLoadDraft(true);
+      }
     }
-    else{
-      setLoadDraft(true);
-    }
-  }, [programaAnioExistenteQuery.data]);
+  }, [programaAnioExistenteQuery.data, programaAnioExistenteQuery.isSuccess]);
 
   const programaAnioExistente: ProgramaResponseDTO | undefined = programaAnioExistenteQuery.data;
 
 
   const draftQuery = useGetDraft(
     activeDepartamento?.departamentoId ?? 0,
-    formData.materiaId ?? 0,
+    selectedMateria?.id ?? 0,
     {
       rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
     },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!formData.materiaId && loadDraft,
-        staleTime: Infinity,
+        staleTime: 0,
+        gcTime: 0,
         retry: false, 
         queryKey: getGetDraftQueryKey(
           activeDepartamento!.departamentoId!,
@@ -395,7 +400,7 @@ export function SyllabusCreationForm() {
 
     mutateSaveDraft({
       deptId: activeDepartamento!.departamentoId!,
-      materiaId: formData.materiaId!,
+      materiaId: selectedMateria?.id!,
       params: {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
@@ -1004,7 +1009,8 @@ export function SyllabusCreationForm() {
         }}
         onCancel={() => {
           setShowProgramaAnioExistente(false)
-          handleSingleFieldChange("materiaId", 0)
+          setSelectedMateria(undefined)
+          handleSingleFieldChange("materiaId", undefined)
         }}
         isLoading={loadingProgramaAnioExistente}
       />

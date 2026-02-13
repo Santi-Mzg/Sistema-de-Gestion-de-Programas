@@ -126,7 +126,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
         mutateDeleteDraft({
           deptId: activeDepartamento!.departamentoId!,
-          materiaId: formData.materiaId!,
+          materiaId: programa?.materia?.id!,
           params:{
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
@@ -219,7 +219,8 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       query: {
         enabled: !!activeDepartamento?.departamentoId &&
                   !!programa?.materia?.id,
-        staleTime: Infinity,
+        staleTime: 0,
+        gcTime: 0,
         retry: false, 
         queryKey: getGetDraftQueryKey(
           activeDepartamento!.departamentoId!,
@@ -266,7 +267,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   
       mutateSaveDraft({
         deptId: activeDepartamento!.departamentoId!,
-        materiaId: formData.materiaId!,
+        materiaId: programa?.materia?.id!,
         params: {
           rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
