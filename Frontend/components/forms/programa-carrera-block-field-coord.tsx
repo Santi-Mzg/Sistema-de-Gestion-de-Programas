@@ -3,28 +3,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import React from "react"
-import { MateriaResponseDTO, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
+import { MateriaResponseDTO, ProgramaCarreraCreateDTO, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
 
 interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraResponseDTO
-  index: number
+  onUpdate: (block: ProgramaCarreraCreateDTO) => void
 }
-export const ProgramaCarreraBlockView = React.memo(function ProgramaCarreraBlock({
+export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarreraBlock({
   block,
-  index,
+  onUpdate,
 }: ProgramaCarreraBlockProps) {
 
-console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
   return (
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
-      <div className="text-lg font-semibold text-primary">#{index+1+" "+block.carreraNombre+" (Plan "+block.plan?.anio+" - Versión "+block.plan?.version+")"}</div>
+      <div className="text-lg font-semibold text-primary">{block.carreraNombre+" (Plan "+block.plan?.anio+" - Versión "+block.plan?.version+")"}</div>
       <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
         <div className="space-y-2">
-          <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
+          <Label htmlFor={`carrera`} className="text-sm font-semibold text-foreground">
             Carrera
           </Label>
           <Input
-            id={`carrera-${index}`}
+            id={`carrera`}
             value={block.carreraNombre}
             className="bg-background border-border"
             disabled
@@ -32,11 +31,11 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`plan-${index}`} className="text-sm font-semibold text-foreground">
+          <Label htmlFor={`plan`} className="text-sm font-semibold text-foreground">
             Plan
           </Label>
             <Input
-              id={`plan-${index}`}
+              id={`plan`}
               value={"Plan "+block.plan?.anio+" - Versión "+block.plan?.version}
               className="bg-background border-border"
               disabled
@@ -44,11 +43,11 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
+          <Label htmlFor={`ubicacion`} className="text-sm font-semibold text-foreground">
             Ubicación en Plan
           </Label>
           <Input
-            id={`ubicacion-${index}`}
+            id={`ubicacion`}
             value={block.ubicacionEnPlan}
             className="border-border focus:border-primary"
             disabled
@@ -103,23 +102,28 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
+        <Label htmlFor={`contribucion`} className="text-sm font-semibold text-foreground">
           Contribución
         </Label>
         <Textarea
-          id={`contribucion-${index}`}
+          id={`contribucion`}
           value={block.contribucion}
+          onChange={(e) => onUpdate({
+                    ...block,
+                    contribucion: e.target.value,
+                  })}
+          placeholder="Describe la contribución a esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
-          disabled
+          required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
+        <Label htmlFor={`contenidos`} className="text-sm font-semibold text-foreground">
           Contenidos Mínimos
         </Label>
         <Textarea
-          id={`contenidos-${index}`}
+          id={`contenidos`}
           value={block.contenidosMinimos}
           className="border-border focus:border-primary min-h-16 resize-none"
           disabled

@@ -282,15 +282,14 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 
       <div className="space-y-2">
         <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
-          Contribución *
+          Contribución
         </Label>
         <Textarea
           id={`contribucion-${index}`}
           value={block.contribucion}
-          onChange={(e) => handleFieldChange("contribucion", e.target.value)}
-          placeholder="Describe la contribución de esta carrera..."
+          placeholder="Describe la contribución a esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
-          required
+          disabled
         />
       </div>
 

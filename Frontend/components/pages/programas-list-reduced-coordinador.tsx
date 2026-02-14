@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ChevronUp, ChevronDown, Eye } from "lucide-react"
-import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import { ChevronUp, ChevronDown, Eye } from "lucide-react"
+import { ProgramaResponseDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context";
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button";
-import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],

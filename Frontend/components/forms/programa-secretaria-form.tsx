@@ -128,8 +128,6 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
   const handleAceptar = () => {
     const data = {
       accion: EstadoUpdateDTOAccion.APROBAR,
-      destinoRechazo: undefined,
-      justificacion: undefined,
     }
 
     mutate({

@@ -601,28 +601,28 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
-                Departamento *
+                Departamento
               </Label>
               <Input
                 id="departamento"
                 name="departamento"
                 value={activeDepartamento?.departamentoNombre}
                 className="border-border focus:border-primary bg-background text-lg font-medium"
-                readOnly
+                disabled
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="anio" className="text-sm font-semibold text-foreground">
-                Año *
+                Año
               </Label>
               <Input
                 id="anio"
                 name="anio"
                 value={actualYear}
                 className="border-border focus:border-primary bg-background"
-                readOnly
+                disabled
                 required
               />
             </div>
@@ -631,42 +631,42 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">            
             <div className="space-y-2">
               <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
-                Materia *
+                Materia
               </Label>
               <Input
                 id="materia"
                 type="text"
                 defaultValue={programa.materia?.nombre}
                 className="border-border focus:border-primary bg-background"
-                readOnly
+                disabled
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="codigo" className="text-sm font-semibold text-foreground">
-                Código *
+                Código
               </Label>
               <Input
                 id="codigo"
                 type="text"
                 defaultValue={programa.materia?.codigo}
                 className="border-border focus:border-primary bg-background"
-                readOnly
+                disabled
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="area" className="text-sm font-semibold text-foreground">
-                Área *
+                Área
               </Label>
               <Input
                 id="area"
                 type="text"
                 defaultValue={programa.materia?.area}
                 className="border-border focus:border-primary bg-background"
-                readOnly
+                disabled
                 required
               />
             </div>
@@ -798,7 +798,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Total *
+                Carga Horaria Total
               </Label>
               <Input
                 id="cargaTotal"
@@ -806,7 +806,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
                 value={formData.cargaHorariaTotal}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                readOnly
+                disabled
               />
             </div>
             <div className="space-y-2">

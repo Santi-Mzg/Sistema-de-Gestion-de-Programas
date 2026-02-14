@@ -11,4 +11,5 @@ export interface EstadoUpdateDTO {
   accion?: EstadoUpdateDTOAccion;
   destinoRechazo?: EstadoUpdateDTODestinoRechazo;
   justificacion?: string;
+  contribucionCarrera?: string;
 }

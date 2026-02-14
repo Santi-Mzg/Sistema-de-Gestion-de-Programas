@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2, Eye, FileText, Plus } from "lucide-react"
-import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey, getListProgramasPendientesQueryKey } from "@/app/api/generated/client"
+import { AlertCircle, Eye, FileText } from "lucide-react"
+import { ProgramaResponseDTO, EstadoUpdateDTOAccion, UsuarioDepartamentoDTORolesItem, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
+import { useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey, getListProgramasPendientesQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
-import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useQueryClient } from "@tanstack/react-query";
 import { useHeader } from "@/context/header-context"
+import { ProgramaCarreraBlockFieldCoord } from "./programa-carrera-block-field-coord"
 
 interface SyllabusFormProps {
   id: number,
@@ -38,7 +38,16 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
     }
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
+
+  const [bloque, setBloque] = useState<ProgramaCarreraResponseDTO | undefined>(undefined);
   
+  useEffect(() => {
+    if (programa?.bloqueMultiple) {
+      const found = programa.bloqueMultiple.find(block => block.plan?.id === carreraId);
+      setBloque(found);
+    }
+  }, [programa, carreraId]);
+
   const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
 
   const { mutate, isPending } = useActualizarEstado({
@@ -129,8 +138,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
   const handleAceptar = () => {
     const data = {
       accion: EstadoUpdateDTOAccion.APROBAR,
-      destinoRechazo: undefined,
-      justificacion: undefined,
+      contribucionCarrera: bloque?.contribucion,
     }
 
     mutate({
@@ -165,7 +173,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
   }
 
   return (
-    <form className="space-y-8 pb-8">
+    <form className="space-y-8">
       {/* BLOQUE ÚNICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
         <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
@@ -180,7 +188,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
               type="text"
               defaultValue={programa.materia?.departamento || ""}
               className="bg-background"
-              readOnly
+              disabled
             />
           </div>
 
@@ -193,7 +201,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
               name="anio"
               defaultValue={programa.anio}
               className="bg-background"
-              readOnly
+              disabled
             />
           </div>
         </div>
@@ -208,7 +216,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
               type="text"
               defaultValue={programa.materia?.nombre}
               className="bg-background"
-              readOnly
+              disabled
             />
           </div>
 
@@ -221,7 +229,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
               type="text"
               defaultValue={programa.materia?.codigo}
               className="bg-background"
-              readOnly
+              disabled
             />
           </div>
 
@@ -234,7 +242,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
               type="text"
               defaultValue={programa.materia?.area}
               className="bg-background"
-              readOnly
+              disabled
             />
           </div>
         </div>
@@ -248,7 +256,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
             type="text"
             defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
             className="bg-background"
-            readOnly
+            disabled
           />
         </div>
       </div>
@@ -259,13 +267,12 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
           <h2 className="text-lg font-bold text-accent mb-6">Información por Carrera</h2>
 
         <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-            {programa.bloqueMultiple.map((block, index) => (
-              <ProgramaCarreraBlockView
-                key={index}
-                block={block}
-                index={index}
+             {bloque &&
+              <ProgramaCarreraBlockFieldCoord
+                block={bloque}
+                onUpdate={setBloque}
               />
-            ))}
+             }
           </div>
         </div>
       )}
@@ -278,25 +285,25 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
-            <Input defaultValue={programa.cantidadSemanas || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cantidadSemanas || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
-            <Input defaultValue={programa.cargaHorariaSemanal || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cargaHorariaSemanal || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
-            <Input defaultValue={programa.cargaHorariaTotal || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.cargaHorariaTotal || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Créditos</Label>
-            <Input defaultValue={programa.creditos || ""} readOnly className="bg-background" />
+            <Input defaultValue={programa.creditos || ""} disabled className="bg-background" />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Carga Horaria Práctica</Label>
-          <Input defaultValue={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
+          <Input defaultValue={programa.cargaHorariaPractica || ""} disabled className="bg-background" />
         </div>
       </div>
 
@@ -306,32 +313,32 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
-          <Textarea defaultValue={programa.fundamentacion || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.fundamentacion || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Objetivos</Label>
-          <Textarea defaultValue={programa.objetivos || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.objetivos || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Programa Analítico</Label>
-          <Textarea defaultValue={programa.programaAnalitico || ""} readOnly className="bg-background min-h-32" />
+          <Textarea defaultValue={programa.programaAnalitico || ""} disabled className="bg-background min-h-32" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Metodología</Label>
-          <Textarea defaultValue={programa.metodologia || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.metodologia || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
-          <Textarea defaultValue={programa.modalidadEvaluacion || ""} readOnly className="bg-background min-h-24" />
+          <Textarea defaultValue={programa.modalidadEvaluacion || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Bibliografía</Label>
-          <Textarea defaultValue={programa.bibliografia || ""} readOnly className="bg-background min-h-32" />
+          <Textarea defaultValue={programa.bibliografia || ""} disabled className="bg-background min-h-32" />
         </div>
       </div>
 

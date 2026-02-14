@@ -23,7 +23,7 @@ export default function HistorialEstado() {
   const programaQuery = useGetPrograma(Number(id),
     {
       query: {
-        staleTime: 1000 * 60 * 5,
+        staleTime: 0,
         queryKey: getGetProgramaQueryKey(Number(id))
       }
     }

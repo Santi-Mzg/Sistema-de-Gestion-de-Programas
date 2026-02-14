@@ -80,8 +80,8 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                     className="w-4 h-4"
                   />
                   <div>
-                    <p className="font-semibold text-foreground">Profesor Responsable</p>
-                    <p className="text-sm text-muted-foreground">Devolver al profesor para correcciones</p>
+                    <p className="font-semibold text-foreground">Docente Responsable</p>
+                    <p className="text-sm text-muted-foreground">Devolver al docente para correcciones</p>
                   </div>
                 </label>
               }
@@ -108,7 +108,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                 <p className="text-sm font-medium text-foreground">
                   Destinatario:{" "}
                   <span className="font-semibold">
-                    {selectedDestino === "ADMINISTRACION" ? "Administración" : "Profesor Responsable"}
+                    {selectedDestino === "ADMINISTRACION" ? "Administración" : "Docente Responsable"}
                   </span>
                 </p>
               </div>

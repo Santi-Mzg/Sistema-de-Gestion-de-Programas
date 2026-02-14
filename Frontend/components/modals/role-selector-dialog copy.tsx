@@ -6,18 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Building2, Check, UserRoundCog } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-
-const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
-  const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
-    SYSTEM_ADMIN: "System Admin",
-    DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
-    SECRETARIA: "Secretaría",
-    COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
-    DOCENTE: "Docente",
-    ADMINISTRACION: "Administración",
-  }
-  return roleLabels[role] || role
-}
+import { getRoleLabel } from "@/lib/utils"
 
 const ROL_PRIORITY: Record<string, number> = {
   [UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN]: 1,

@@ -21,7 +21,7 @@ export function formatDate(dateString?: string): string {
 
 export const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
   const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
-    SYSTEM_ADMIN: "System Admin",
+    SYSTEM_ADMIN: "Administrador del Sistema",
     DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
     SECRETARIA: "Secretaría",
     COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
