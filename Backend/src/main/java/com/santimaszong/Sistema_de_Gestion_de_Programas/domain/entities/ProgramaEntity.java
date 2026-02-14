@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 
 import java.sql.Types;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +98,7 @@ public class ProgramaEntity {
         nuevoEstadoHistorico.setActor(actor);
         nuevoEstadoHistorico.setActorRol(actorRol);
         nuevoEstadoHistorico.setJustificacion(justificacion);
-        nuevoEstadoHistorico.setFecha(LocalDateTime.now());
+        nuevoEstadoHistorico.setFecha(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         historialEstados.add(nuevoEstadoHistorico);
 

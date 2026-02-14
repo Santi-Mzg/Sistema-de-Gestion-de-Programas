@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini.GeminiService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
 import lombok.extern.java.Log;
 import org.springframework.http.*;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Log
 @RestController
@@ -21,10 +23,12 @@ public class ProgramaController {
 
     private final ProgramaService programaService;
     private final PdfGeneratorService pdfService;
+    private final GeminiService geminiService;
 
-    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService) {
+    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService, GeminiService geminiService) {
         this.programaService = programaService;
         this.pdfService = pdfService;
+        this.geminiService = geminiService;
     }
 
     @PostMapping("/departamentos/{deptId}/programas")
@@ -128,19 +132,6 @@ public class ProgramaController {
     }
 
 
-    // PDF
-    @GetMapping("/programas/{id}/pdf")
-    public ResponseEntity<byte[]> generarPDF(@PathVariable Long id) {
-        byte[] pdf = pdfService.generarPdf(id);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(
-                ContentDisposition.inline().filename("programa.pdf").build()
-        );
-
-        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
-    }
 
 
     // BORRADOR
@@ -177,5 +168,32 @@ public class ProgramaController {
         programaService.deleteDraft(deptId, materiaId, user, rolActivo);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+
+
+    // PDF
+    @GetMapping("/programas/{id}/pdf")
+    public ResponseEntity<byte[]> generarPDF(@PathVariable Long id) {
+        byte[] pdf = pdfService.generarPdf(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.inline().filename("programa.pdf").build()
+        );
+
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+    }
+
+
+
+
+    //GEMINI
+    @PostMapping("/programas/formatear-apa")
+    public ResponseEntity<String> formatearAPA(@RequestBody String bibliografia) {
+        String resultado = geminiService.formatearABibliografiaAPA(bibliografia);
+        return ResponseEntity.ok(resultado);
     }
 }

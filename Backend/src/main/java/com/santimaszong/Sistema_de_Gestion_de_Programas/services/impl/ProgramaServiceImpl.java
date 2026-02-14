@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
+    private final ProgramaCarreraRepository programaCarreraRepository;
     private final ProgramaDraftRepository draftRepository;
     private final DecisionComisionRepository decisionRepository;
     private final MateriaService materiaService;
@@ -43,6 +44,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     public ProgramaServiceImpl(ProgramaRepository programaRepository,
+                               ProgramaCarreraRepository programaCarreraRepository,
                                ProgramaDraftRepository draftRepository,
                                DecisionComisionRepository decisionRepository,
                                MateriaService materiaService,
@@ -55,6 +57,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                EmailService emailService) {
 
         this.programaRepository = programaRepository;
+        this.programaCarreraRepository = programaCarreraRepository;
         this.draftRepository = draftRepository;
         this.decisionRepository = decisionRepository;
         this.materiaService = materiaService;
@@ -308,7 +311,6 @@ public class ProgramaServiceImpl implements ProgramaService {
     public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo) {
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
-
         if ((rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR) || rolActivo.equals(Rol.DOCENTE)) && !udeActor.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -550,6 +552,12 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         switch (estadoUpdateDTO.getAccion()) {
             case APROBAR:
+                ProgramaCarreraEntity bloque = programaCarreraRepository.findByProgramaIdAndCarreraPlanId(programa.getId(), carreraId)
+                        .orElseThrow(() -> new IllegalStateException("Esta carrera no está relacionada con este programa"));
+
+                bloque.setContribucion(estadoUpdateDTO.getContribucionCarrera());
+                programaCarreraRepository.save(bloque);
+
                 decision.setAprobado(true);
                 decision.setFechaDecision(LocalDateTime.now());
                 decisionRepository.save(decision);

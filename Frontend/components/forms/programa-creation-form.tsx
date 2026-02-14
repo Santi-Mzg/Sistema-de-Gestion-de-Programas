@@ -216,7 +216,6 @@ export function SyllabusCreationForm() {
       (b) =>
         !b.carreraPlanId ||
         !b.ubicacionEnPlan ||
-        !b.contribucion ||
         !b.contenidosMinimos
     )
 

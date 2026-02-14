@@ -181,7 +181,8 @@ public class EmailService {
                             "</div>",
                     carrera.getNombre(),
                     programa.getMateria().getNombre(),
-                    programa.getMateria().getCodigo()
+                    programa.getMateria().getCodigo(),
+                    programa.getAnio()
             );
 
             sendHtmlEmail(destinatario, "Programa pendiente de revisión", htmlBody);
@@ -215,7 +216,11 @@ public class EmailService {
                             "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
                             "  <p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p>" +
                             "</div>",
-                    materia.getNombre()
+                    materia.getNombre(),
+                    materia.getNombre(),
+                    materia.getCodigo(),
+                    materia.getDepartamento()
+
             );
 
             sendHtmlEmail(destinatario, "Programa aprobado por comisión", htmlBody);
