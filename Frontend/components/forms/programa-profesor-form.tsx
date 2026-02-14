@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
-import { AlertCircle, CheckCircle2, Cross, FileText } from "lucide-react"
+import { getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useFormatearAPA, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
+import { AlertCircle, CheckCircle2, Sparkles, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
@@ -229,7 +229,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     });
   }
 
-
   const draftQuery = useGetDraft(
     activeDepartamento?.departamentoId ?? 0,
     programa?.materia?.id ?? 0,
@@ -347,6 +346,33 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
       }
     });
   }
+
+  const {mutate, isPending: isPendingFormatoAPA} = useFormatearAPA({
+    mutation: {
+      onSuccess: (data) => {
+        handleSingleFieldChange("bibliografia", data);
+        toast({
+          title: "✓ Formateo exitoso",
+          description: "Formateo APA aplicado a la bibliografía",
+          variant: "info",
+        })
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "✗ Error",
+          description: "Error al formatear bibliografía: " + (error instanceof Error ? error.message : "Error desconocido"),
+          variant: "destructive",
+        })
+      }
+    }
+  })
+
+  const handleFormatoAPA = async () => {
+    if(!formData.bibliografia?.trim()) 
+      return
+    
+    mutate({ data: formData.bibliografia })
+  };
 
   if (programaQuery.isLoading) {
     return (
@@ -610,9 +636,21 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-              Bibliografía *
-            </Label>
+            <div className="flex justify-between">
+              <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
+                Bibliografía *
+              </Label>
+              <Button 
+                type="button" 
+                onClick={handleFormatoAPA}
+                disabled={isPendingFormatoAPA}
+                className="flex bg-primary hover:bg-accent text-primary-foreground font-medium"
+                title="Formatear bibliografía al estilo APA con AI"
+              >
+                <Sparkles size={18} />
+                {isPendingFormatoAPA ? "Formateando..." : "Formatear"}
+              </Button>
+            </div>
             <Textarea
               id="bibliografia"
               value={formData.bibliografia}

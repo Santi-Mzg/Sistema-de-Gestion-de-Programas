@@ -25,6 +25,8 @@ export * from './estadoHistoricoResponseDTOEstado';
 export * from './estadoUpdateDTO';
 export * from './estadoUpdateDTOAccion';
 export * from './estadoUpdateDTODestinoRechazo';
+export * from './formatearAPA200';
+export * from './formatearAPABody';
 export * from './getDraftParams';
 export * from './getDraftRolActivo';
 export * from './listProgramasParams';

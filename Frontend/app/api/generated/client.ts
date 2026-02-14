@@ -549,6 +549,65 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const formatearAPA = (
+    formatearAPABody: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<string>(
+      {url: `/api/programas/formatear-apa`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: formatearAPABody, signal
+    },
+      );
+    }
+  
+
+
+export const getFormatearAPAMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof formatearAPA>>, TError,{data: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof formatearAPA>>, TError,{data: string}, TContext> => {
+
+const mutationKey = ['formatearAPA'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof formatearAPA>>, {data: string}> = (props) => {
+          const {data} = props ?? {};
+
+          return  formatearAPA(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FormatearAPAMutationResult = NonNullable<Awaited<ReturnType<typeof formatearAPA>>>
+    export type FormatearAPAMutationBody = string
+    export type FormatearAPAMutationError = unknown
+
+    export const useFormatearAPA = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof formatearAPA>>, TError,{data: string}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof formatearAPA>>,
+        TError,
+        {data: string},
+        TContext
+      > => {
+
+      const mutationOptions = getFormatearAPAMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const createMateria = (
     materiaCreateDTO: MateriaCreateDTO,
  signal?: AbortSignal
