@@ -643,7 +643,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
               <Button 
                 type="button" 
                 onClick={handleFormatoAPA}
-                disabled={isPendingFormatoAPA}
+                disabled={isPendingFormatoAPA || !formData.bibliografia?.trim()}
                 className="flex bg-primary hover:bg-accent text-primary-foreground font-medium"
                 title="Formatear bibliografía al estilo APA con AI"
               >
@@ -657,6 +657,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
               onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-32 resize-none bg-background"
+              disabled={isPendingFormatoAPA}
               required
             />
           </div>
