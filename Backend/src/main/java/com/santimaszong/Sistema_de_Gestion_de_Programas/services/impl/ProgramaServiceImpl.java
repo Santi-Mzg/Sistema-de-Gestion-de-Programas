@@ -79,17 +79,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         if (programaRepository.existsByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual)) {
             programaRepository.deleteByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual);
             programaRepository.flush();
-
-            existingProgram.getBloqueMultiple().forEach(pc -> {
-                pc.getCorrelativasFuertes().clear();
-                pc.getCorrelativasDebiles().clear();
-            });
-
-            programaRepository.saveAndFlush(existingProgram);
-
-            existingProgram.getBloqueMultiple().clear();
-
-            programaRepository.saveAndFlush(existingProgram);
         }
 
         ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);

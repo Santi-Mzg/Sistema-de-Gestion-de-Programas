@@ -264,8 +264,7 @@ export function SyllabusCreationForm() {
       if (programaAnioExistenteQuery.data) {
         setShowProgramaAnioExistente(true);
         setLoadDraft(false);
-      }
-      else{
+      } else {
         setShowProgramaAnioExistente(false);
         setLoadDraft(true);
       }
@@ -299,9 +298,16 @@ export function SyllabusCreationForm() {
   );
 
   useEffect(() => {
-    if (draftQuery.data?.payloadJson)       
+    if (draftQuery.isSuccess) {
+      if (draftQuery.data?.payloadJson) {
         setShowDraft(true);
-  }, [draftQuery.data]); 
+        setLoadProgramaVigente(false);
+      } else {
+        setLoadProgramaVigente(true);
+        setShowDraft(false);
+      }
+    }
+  }, [draftQuery.data, draftQuery.isSuccess]); 
 
 
   const handleLoadDraft = () => {
@@ -648,7 +654,7 @@ export function SyllabusCreationForm() {
 
           <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">            
             <div className="flex flex-col space-y-2">
-              <Label className="text-sm font-semibold">Carrera *</Label>
+              <Label className="text-sm font-semibold">Materia *</Label>
               <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
                 <PopoverTrigger asChild>
                   <Button

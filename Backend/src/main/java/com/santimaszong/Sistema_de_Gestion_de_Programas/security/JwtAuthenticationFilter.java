@@ -9,12 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Slf4j
@@ -71,11 +73,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
+                else {
+                    throw new InsufficientAuthenticationException("Token expirado");
+                }
             }
-        } catch (ExpiredJwtException e) {
-            log.info("Token inválido o expirado. La petición continuará como no autenticada. "+ e.getMessage());
+        } catch (ExpiredJwtException | InsufficientAuthenticationException e) {
+            log.warn("Token expirado: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expirado");
+            return;
         } catch (Exception e) {
-            log.info("Ocurrio un error inesperado al intentar autenticarse. La petición continuará como no autenticada");
+            log.warn("Token inválido: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido");
+            return;
         }
 
         filterChain.doFilter(request, response);

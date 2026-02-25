@@ -15,7 +15,6 @@ interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type SortField = "anio" | "nombreMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
@@ -152,8 +151,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                 <option key={estado} value={estado || ""}>{estado}</option>
               ))}
             </select>
-
-            {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+            {!esVistaVersiones && (activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
               activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
               <Button size="sm" onClick={() => router.push(`/programas/crear`)} className="h-9">
                 <Plus size={16} className="mr-1" /> Nuevo Programa

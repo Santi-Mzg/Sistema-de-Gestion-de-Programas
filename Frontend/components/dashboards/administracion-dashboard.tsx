@@ -115,7 +115,7 @@ export function AdministracionDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-accent">{programas.length - programasVigentes.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
+                  <p className="text-xs text-muted-foreground mt-1">En el departamento</p>
                 </CardContent>
               </Card>
       

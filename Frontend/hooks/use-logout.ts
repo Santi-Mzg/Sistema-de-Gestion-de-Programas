@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useLogoutFlow() {
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const logout = async () => {

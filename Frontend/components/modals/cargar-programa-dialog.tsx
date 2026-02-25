@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
-import type { ProgramaResponseDTO } from "@/app/api/generated/model"
+import type { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import { getProgramStateLabel } from "@/lib/utils"
 
 interface CargarProgramaVigenteDialogProps {
   open: boolean
@@ -57,13 +58,13 @@ export function CargarProgramaVigenteDialog({
               <span className="text-muted-foreground">{programa.anio}</span>
             </p>
             <p className="text-sm">
-              <span className="font-semibold text-foreground">Profesor:</span>{" "}
+              <span className="font-semibold text-foreground">Docente responsable:</span>{" "}
               <span className="text-muted-foreground">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</span>
             </p>
             <p className="text-sm">
               <span className="font-semibold text-foreground">Último estado:</span>{" "}
               <span className="text-muted-foreground">
-                {programa.estado}
+                {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
               </span>
             </p>
           </div>

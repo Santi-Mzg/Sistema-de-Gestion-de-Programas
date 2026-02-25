@@ -225,7 +225,7 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               ¿Estás seguro de que deseas eliminar al usuario{" "}
-              <span className="font-semibold text-foreground">"{selectedUser?.nombre}"</span>?
+              <span className="font-semibold text-foreground">{selectedUser?.apellido} {selectedUser?.nombre} (Legajo: {selectedUser?.legajo})</span>?
             </DialogDescription>
           </DialogHeader>
 

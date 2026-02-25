@@ -67,8 +67,8 @@ export default function EditCarreraPage() {
   const [formData, setFormData] = useState<CarreraCreateDTO>({
     nombre: carrera?.nombre,
     duracion: carrera?.duracion,
-    planAnio: carrera?.planes?.[0].anio,
-    planVersion: carrera?.planes?.[0].version,
+    planAnio: carrera?.planes?.[0]?.anio,
+    planVersion: carrera?.planes?.[0]?.version,
   })
   
   const deptId = activeDepartamento?.departamentoId || 0;
