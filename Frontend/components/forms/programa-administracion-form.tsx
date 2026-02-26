@@ -186,7 +186,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       (b) =>
         !b.carreraPlanId ||
         !b.ubicacionEnPlan ||
-        !b.contribucion ||
         !b.contenidosMinimos
     )
 
