@@ -239,7 +239,8 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
       query: {
         enabled: !!activeDepartamento?.departamentoId &&
                   !!programa?.materia?.id,
-        staleTime: 0,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
         gcTime: 0,
         retry: false, 
         queryKey: getGetDraftQueryKey(

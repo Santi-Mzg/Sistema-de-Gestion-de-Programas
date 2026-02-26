@@ -283,7 +283,8 @@ export function SyllabusCreationForm() {
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!formData.materiaId && loadDraft,
-        staleTime: 0,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
         gcTime: 0,
         retry: false, 
         queryKey: getGetDraftQueryKey(
