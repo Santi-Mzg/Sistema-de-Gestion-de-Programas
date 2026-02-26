@@ -148,6 +148,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           )
         });
 
+        queryClient.invalidateQueries({
+          queryKey: getGetProgramaQueryKey(id)
+        });
+
         router.push('/'); 
 
       },

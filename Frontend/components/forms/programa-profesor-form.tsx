@@ -106,7 +106,11 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
+          ),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetProgramaQueryKey(id)
         });
 
         router.push('/'); 

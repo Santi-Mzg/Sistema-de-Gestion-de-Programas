@@ -1,12 +1,12 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class GeminiService {
@@ -19,7 +19,7 @@ public class GeminiService {
             .build();
 
     public String formatearABibliografiaAPA(String textoSucio) {
-        String prompt = "Actúa como un experto bibliotecario. Toma el siguiente texto y conviértelo estrictamente a formato de Normas APA 7ma edición. Si hay varios elementos, devuélvelos como una lista y devuelve únicamente el texto formateado sin explicaciones. Bibliografía: " + textoSucio;
+        String prompt = "Actúa como un experto bibliotecario. Toma el siguiente texto y conviértelo estrictamente a formato de Normas APA 7ma edición. Si hay varios elementos, devuélvelos como una lista con cada ítem comenzando con una viñeta estilo punto y devuelve únicamente el texto formateado sin explicaciones. Bibliografía: " + textoSucio;
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
