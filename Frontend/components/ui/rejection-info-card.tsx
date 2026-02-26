@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { AlertCircle, ChevronDown, ChevronUp, User, Calendar } from "lucide-react"
-import type { EstadoHistoricoResponseDTO } from "@/app/api/generated/model"
+import type { EstadoHistoricoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { getRoleLabel } from "@/lib/utils"
 
 interface RejectionInfoCardProps {
   estadoHistorico: EstadoHistoricoResponseDTO
@@ -74,7 +75,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
               <div className="flex items-start gap-2 bg-background/10 rounded-lg p-3 flex-1">
                 <User className="w-4 h-4 text-destructive-foreground/70 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-destructive-foreground/70 font-medium">Rechazado por {estadoHistorico.actorRol}</p>
+                  <p className="text-xs text-destructive-foreground/70 font-medium">Rechazado por {getRoleLabel(estadoHistorico.actorRol as UsuarioDepartamentoDTORolesItem)}</p>
                   <p className="text-sm text-destructive-foreground font-semibold">
                     {estadoHistorico.actor?.apellido + ", " +estadoHistorico.actor?.nombre || "No especificado"}
                   </p>
