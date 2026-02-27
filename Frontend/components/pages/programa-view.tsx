@@ -24,13 +24,11 @@ interface SyllabusFormProps {
 
 
 export function SyllabusView({ id }: SyllabusFormProps) {
-  const { activeDepartamento } = useDept()
-  const { activeRole } = useRole()
   const router = useRouter();
-  const queryClient = useQueryClient(); 
   const programaQuery = useGetPrograma(id,
     {
       query: {
+        enabled: !!id,
         staleTime: 1000 * 60 * 5,
         queryKey: getGetProgramaQueryKey(id)
       }
@@ -177,21 +175,21 @@ export function SyllabusView({ id }: SyllabusFormProps) {
       </div>
 
       {/* BLOQUE MÚLTIPLE */}
-      {programa.bloqueMultiple && programa.bloqueMultiple.length > 0 && (
-        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-accent mb-6">Información por Carrera</h2>
+      <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
+        </div>
 
         <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-            {programa.bloqueMultiple.map((block, index) => (
-              <ProgramaCarreraBlockView
-                key={index}
-                block={block}
-                index={index}
-              />
-            ))}
-          </div>
+          {programa.bloqueMultiple?.map((block, index) => (
+            <ProgramaCarreraBlockView
+              key={index}
+              block={block}
+              index={index}
+            />
+          ))}
         </div>
-      )}
+      </div>
 
       {/* CONFIGURACIÓN GENERAL */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">

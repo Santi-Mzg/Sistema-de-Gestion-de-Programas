@@ -270,7 +270,7 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
                       <div className="text-xs text-muted-foreground uppercase">{item.materia?.codigo}</div>
                     </td>
                     <td className="px-3 py-2 text-xs">
-                      {item.profesorResponsable?.apellido}, {item.profesorResponsable?.nombre}
+                      {item.profesorResponsable?.apellido}, {item.profesorResponsable?.nombre} (Legajo: {item.profesorResponsable?.legajo})
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-col">

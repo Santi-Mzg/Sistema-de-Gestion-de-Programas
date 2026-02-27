@@ -62,6 +62,7 @@ export function Sidebar() {
     COORDINACION_COMISION_CURRICULAR: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mis Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
     DOCENTE: [

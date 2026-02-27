@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, GraduationCap } from "lucide-react"
+import { Search, Trash2, Eye, Plus, GraduationCap } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
+import { useDept } from "@/context/dept-context"
 
 
 interface CarrerasListProps {
@@ -22,6 +23,7 @@ interface CarrerasListProps {
 export function CarrerasList({ carreras = [] }: CarrerasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
+  const { activeDepartamento } = useDept()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null)
@@ -29,24 +31,39 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
   const router = useRouter()
 
   useEffect(() => {
-    setHeader({
-      title: `Carreras Departamentales`,
-      subtitle: "Gestiona y consulta todas las carreras del departamento",
-      icon: GraduationCap,
-    })
+    if(activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR) {
+      setHeader({
+        title: `Carreras Asignadas`,
+        subtitle: "Consulta las carreras asignadas como coordinador/a de comisiones curriculares",
+        icon: GraduationCap,
+      })
+    } else {
+      setHeader({
+        title: `Carreras Departamentales`,
+        subtitle: "Gestiona y consulta todas las carreras del departamento",
+        icon: GraduationCap,
+      })
+    }
   }, [])
 
   // Filter and sort data
   const filteredCarreras = useMemo(() => {
-    const filtered = carreras.filter((carrera) => {
-      return (
-        !searchTerm ||
-        carrera.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+    if(activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR) {
+      return carreras.filter(carrera => 
+        activeDepartamento?.carrerasComoComision?.includes(carrera.nombre!)
       )
-    })
+    }
+    else {
+      const filtered = carreras.filter((carrera) => {
+        return (
+          !searchTerm ||
+          carrera.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      })
 
-    return filtered
-  }, [carreras, searchTerm,])
+      return filtered
+    }
+  }, [carreras, searchTerm])
 
 
   const handleDeleteClick = (carrera: CarreraResponseDTO) => {
@@ -107,36 +124,40 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
-        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-            />
-          </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-            <Button size="lg"
-                    variant="outline"
-                    onClick={() => router.push(`/carreras/crear`)}
-                    className="border-2 hover:bg-primary hover:text-primary-foreground">
-              <Plus size={16} className="mr-1" />
-              Crear Nueva
-            </Button>
-          }
-        </div>
+        {activeRole !== UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR && (
+          <>
+            <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
+              {/* Search Bar */}
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 py-3 text-base border-2 border-border rounded-xl"
+                />
+              </div>
+              {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
+                  activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
+                  activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
+                  activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                <Button size="lg"
+                        variant="outline"
+                        onClick={() => router.push(`/carreras/crear`)}
+                        className="border-2 hover:bg-primary hover:text-primary-foreground">
+                  <Plus size={16} className="mr-1" />
+                  Crear Nueva
+                </Button>
+              }
+            </div>
 
-        {/* Results Count */}
-        <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredCarreras.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{carreras.length}</span> carrera{carreras.length === 1 ? "" : "s"}
-        </div>
+            {/* Results Count */}
+            <div className="mb-4 text-sm text-muted-foreground">
+              Mostrando <span className="font-semibold text-foreground">{filteredCarreras.length}</span> de{" "}
+              <span className="font-semibold text-foreground">{carreras.length}</span> carrera{carreras.length === 1 ? "" : "s"}
+            </div>
+          </>
+        )}
 
         {/* Table */}
         <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">

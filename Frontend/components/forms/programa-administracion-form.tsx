@@ -837,7 +837,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Input
               id="cargaPractica"
               type="number"
-              value={formData?.cargaHorariaPractica}
+              value={programa.cargaHorariaPractica}
               onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -854,7 +854,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="fundamentacion"
-              value={formData?.fundamentacion}
+              value={programa.fundamentacion}
               onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
               placeholder="Justifica la importancia de esta Materia..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -868,7 +868,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="objetivos"
-              value={formData?.objetivos}
+              value={programa.objetivos}
               onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
               placeholder="Define los objetivos de aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -882,7 +882,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="programa"
-              value={formData?.programaAnalitico}
+              value={programa.programaAnalitico}
               onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
               placeholder="Detalla el contenido temático del curso..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -896,7 +896,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="metodologia"
-              value={formData?.metodologia}
+              value={programa.metodologia}
               onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
               placeholder="Describe los métodos de enseñanza..."
               className="border-border focus:border-primary min-h-20 resize-none" 
@@ -910,7 +910,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="evaluacion"
-              value={formData?.modalidadEvaluacion}
+              value={programa.modalidadEvaluacion}
               onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -924,7 +924,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Label>
             <Textarea
               id="bibliografia"
-              value={formData?.bibliografia}
+              value={programa.bibliografia}
               onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
@@ -978,7 +978,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Button
               variant="secondary"
               onClick={handleLoadDraft}
-              className="bg-destructive"
+              className="bg-primary"
             >
               Cargar
             </Button>

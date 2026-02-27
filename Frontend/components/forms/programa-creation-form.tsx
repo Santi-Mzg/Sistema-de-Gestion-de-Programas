@@ -357,6 +357,9 @@ export function SyllabusCreationForm() {
 
     setLoadingProgramaVigente(true)
     setSelectedMateria(programaVigente.materia)
+
+    console.log("programaVigente completo:", programaVigente);
+    console.log("bloques vigentes:", programaVigente?.bloqueMultiple);
     try {
       const mappedData: ProgramaCargaDTO = {
         materiaId: formData.materiaId,
@@ -892,7 +895,7 @@ export function SyllabusCreationForm() {
             <Input
               id="cargaPractica"
               type="number"
-              value={formData?.cargaHorariaPractica}
+              value={programaVigente?.cargaHorariaPractica}
               onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -909,7 +912,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="fundamentacion"
-              value={formData?.fundamentacion}
+              value={programaVigente?.fundamentacion}
               placeholder="Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -922,7 +925,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="objetivos"
-              value={formData?.objetivos}
+              value={programaVigente?.objetivos}
               placeholder="Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico"
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -935,7 +938,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="programa"
-              value={formData?.programaAnalitico}
+              value={programaVigente?.programaAnalitico}
               placeholder="Indique la nómina de unidades temáticas y su desarrollo."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -948,7 +951,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="metodologia"
-              value={formData?.metodologia}
+              value={programaVigente?.metodologia}
               placeholder="Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de
                   prácticas de gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o
                   visitas, trabajos de campo, etc.*
@@ -964,7 +967,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="evaluacion"
-              value={formData?.modalidadEvaluacion}
+              value={programaVigente?.modalidadEvaluacion}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -977,7 +980,7 @@ export function SyllabusCreationForm() {
             </Label>
             <Textarea
               id="bibliografia"
-              value={formData?.bibliografia}
+              value={programaVigente?.bibliografia}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1093,7 +1096,7 @@ export function SyllabusCreationForm() {
             <Button
               variant="secondary"
               onClick={handleLoadDraft}
-              className="bg-destructive"
+              className="bg-primary"
             >
               Cargar
             </Button>
