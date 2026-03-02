@@ -368,7 +368,7 @@
                 <table class="info-basica">
                     <tr>
                         <td colspan="2"><strong>CARRERA A LA QUE PERTENECE</strong></td>
-                        <td colspan="2" th:text="${pc.carreraPlan.carrera.nombre}">Ingeniería Química</td>
+                        <td colspan="2" th:text="${pc.carreraPlan.carrera.nombre}"></td>
                     </tr>
                     <tr>
                         <td colspan="2"><strong>PLAN AL QUE PERTENECE</strong></td>
@@ -417,34 +417,15 @@
             </table>
 
             <div class="seccion-titulo">Cómo contribuye la materia a la carrera/plan</div>
-            <div class="contenido" th:utext="${pc.contribucion}"></div>
+            <div class="contenido" th:text="${pc.contribucion}" style="white-space: pre-wrap;"></div>
 
             <div class="seccion-titulo">Contenidos mínimos de la materia en la carrera/plan</div>
-            <div class="contenido" th:utext="${pc.contenidosMinimos}"></div>
+            <div class="contenido" th:text="${pc.contenidosMinimos}" style="white-space: pre-wrap;"></div>
 
         </div>
     </div>
 
 
-
-
-        <!--    <div class="contenido">-->
-<!--        <div th:each="pc, iter : ${programa.bloqueMultiple}" style="margin-top: 20px;">-->
-<!--        <p style="margin-top: 15px;"><strong>Carrera:</strong>-->
-<!--                <span th:text="${programaCarrera.carreraPlan != null ? programaCarrera.carreraPlan.carrera.nombre : ''}">Ingeniería Química</span>-->
-<!--                <span th:if="${programaCarrera.carreraPlan != null}" th:text="' (Plan ' + ${programaCarrera.carreraPlan.anio} - Versión ' + ${programaCarrera.carreraPlan.version})"></span>-->
-<!--            </p>-->
-
-<!--            <p style="margin-top: 10px; font-weight: bold;">Contribución de la asignatura</p>-->
-<!--            <div th:utext="${programaCarrera.contribucion}">-->
-<!--                <ul class="lista-items">-->
-<!--                    <li>Identificación, formulación y resolución de problemas... (M)</li>-->
-<!--                </ul>-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--        <p style="font-size: 8pt; font-style: italic; margin-top: 15px;">*Tomar como referencia el ANEXO</p>-->
-<!--    </div>-->
 
 </div>
 
@@ -452,43 +433,38 @@
 
     <div class="seccion-titulo">FUNDAMENTACIÓN</div>
     <div class="contenido">
-        <p th:text="${programa.fundamentacion}">
-            La ubicación de la asignatura dentro del plan de estudio y los temas desarrollados permiten informar al estudiante...
+        <p th:text="${programa.fundamentacion}" style="white-space: pre-wrap;">
         </p>
     </div>
 
     <div class="seccion-titulo">OBJETIVOS</div>
     <div class="contenido">
-        <div th:utext="${programa.objetivos}">
+        <div th:text="${programa.objetivos}" style="white-space: pre-wrap;">
             <ul class="lista-items">
-                <li>Calcular propiedades físicas y químicas de compuestos puros y mezclas</li>
             </ul>
         </div>
     </div>
 
     <div class="seccion-titulo">PROGRAMA ANALÍTICO</div>
     <div class="contenido">
-        <div th:utext="${programa.programaAnalitico}" style="white-space: pre-wrap;">
-            1) Unidades y Dimensiones...
+        <div th:text="${programa.programaAnalitico}" style="white-space: pre-wrap;">
         </div>
     </div>
 
     <div class="seccion-titulo">METODOLOGÍA DE LA ENSEÑANZA Y DEL APRENDIZAJE</div>
     <div class="contenido">
-        <div th:utext="${programa.metodologia}" style="white-space: pre-wrap;">
-            La asignatura está constituida por clases de teoría y clases de problemas...
+        <div th:text="${programa.metodologia}" style="white-space: pre-wrap;">
         </div>
     </div>
 
     <div class="seccion-titulo">MODALIDAD DE EVALUACIÓN</div>
     <div class="contenido">
-        <div th:utext="${programa.modalidadEvaluacion}" style="white-space: pre-wrap;">
-            De acuerdo con lo establecido en los Planes de Estudio...
+        <div th:text="${programa.modalidadEvaluacion}" style="white-space: pre-wrap;">
         </div>
     </div>
 
     <div class="seccion-titulo">BIBLIOGRAFÍA</div>
-    <div class="contenido" th:utext="${programa.bibliografia}" style="white-space: pre-wrap;">
+    <div class="contenido" th:text="${programa.bibliografia}" style="white-space: pre-wrap;">
         <table class="bibliografia">
             <thead>
             <tr>

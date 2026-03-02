@@ -2,7 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaRepository;
-import jakarta.persistence.Column;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
@@ -21,6 +21,7 @@ public class PdfGeneratorService {
         this.programaRepository = programaRepository;
     }
 
+    @Transactional(readOnly = true)
     public byte[] generarPdf(Long programaId) {
         ProgramaEntity programa = programaRepository.findById(programaId)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
