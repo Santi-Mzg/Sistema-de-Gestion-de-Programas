@@ -64,8 +64,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.sendgrid</groupId>
-            <artifactId>sendgrid-java</artifactId>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>LATEST</version>
         </dependency>
 
         <dependency>

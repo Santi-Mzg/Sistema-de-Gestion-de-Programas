@@ -151,9 +151,11 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                 <th className="px-6 py-4 text-left">
                     Roles Departamentales
                 </th>
-                <th className="px-6 py-4 text-left">
-                    Acciones
-                </th>
+                {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+                  <th className="px-6 py-4 text-left">
+                      Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -168,28 +170,30 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                     <td className="px-6 py-4 text-foreground/80">{user.nombre}</td>
                     <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email}</td>
                     <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as UsuarioDepartamentoDTORolesItem)).join(", ")}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => router.push(`/usuarios/${user.id}`)}
-                          className="border-2 hover:bg-primary hover:text-primary-foreground"
-                        >
-                          <Edit2 size={16} className="mr-1" />
-                          Editar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(user)}
-                          className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          Eliminar
-                        </Button>
-                      </div>
-                    </td>
+                    {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => router.push(`/usuarios/${user.id}`)}
+                            className="border-2 hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <Edit2 size={16} className="mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(user)}
+                            className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            Eliminar
+                          </Button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (

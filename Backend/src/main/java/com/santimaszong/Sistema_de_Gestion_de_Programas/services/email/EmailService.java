@@ -1,31 +1,47 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.email;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
-
 
 @Service
 public class EmailService {
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    private final Resend resend;
 
-    @Value("${sendgrid.from.email}")
+    @Value("${resend.from.email}")
     private String fromEmail;
 
+    public EmailService(@Value("${resend.api.key}") String apiKey) {
+        this.resend = new Resend(apiKey);
+    }
 
+    private void sendHtmlEmail(String to, String subject, String htmlBody) throws IOException{
+
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(to)
+                .subject(subject)
+                .html(htmlBody)
+                .build();
+
+        try {
+            CreateEmailResponse response = resend.emails().send(params);
+
+        } catch (ResendException e) {
+            throw new RuntimeException("Error enviando email con Resend", e);
+        }
+    }
+
+
+    // EMAILS SERVICES
     @Async
     public void sendEmailNuevoUsuario(String destinatario, String legajo, String password) {
 
@@ -274,29 +290,27 @@ public class EmailService {
         }
     }
 
-
-    private void sendHtmlEmail(String to, String subject, String htmlBody) throws IOException {
-
-        Email from = new Email(fromEmail, "Sílabus-UNS");
-        Email toEmail = new Email(to);
-        Content content = new Content("text/html", htmlBody);
-        Mail mail = new Mail(from, subject, toEmail, content);
-
-        SendGrid sg = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-
-        Response response = sg.api(request);
-
-        if (response.getStatusCode() >= 400) {
-            throw new RuntimeException("Error SendGrid: " + response.getBody());
-        }
-
-    }
-
-
+// SENDGRID
+//    private void sendHtmlEmail(String to, String subject, String htmlBody) throws IOException {
+//
+//        Email from = new Email(fromEmail, "Sílabus-UNS");
+//        Email toEmail = new Email(to);
+//        Content content = new Content("text/html", htmlBody);
+//        Mail mail = new Mail(from, subject, toEmail, content);
+//
+//        SendGrid sg = new SendGrid(resendApiKey);
+//        Request request = new Request();
+//
+//        request.setMethod(Method.POST);
+//        request.setEndpoint("mail/send");
+//        request.setBody(mail.build());
+//
+//        Response response = sg.api(request);
+//
+//        if (response.getStatusCode() >= 400) {
+//            throw new RuntimeException("Error SendGrid: " + response.getBody());
+//        }
+//
+//    }
 
 }
