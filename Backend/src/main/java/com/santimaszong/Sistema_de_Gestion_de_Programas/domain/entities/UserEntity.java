@@ -41,11 +41,12 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false, unique = true)
     private String legajo;
 
-    @Column(nullable=false)
+    @Column
     private String password;
 
     private boolean isAdmin = false;
 
+    private boolean enabled;
 
     // ============================
     // RELACIONES
@@ -105,7 +106,7 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 
 }

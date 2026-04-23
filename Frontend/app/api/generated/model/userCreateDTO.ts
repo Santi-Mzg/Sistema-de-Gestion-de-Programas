@@ -12,4 +12,5 @@ export interface UserCreateDTO {
   legajo?: string;
   email?: string;
   roles?: UserCreateDTORolesItem[];
+  password?: string;
 }

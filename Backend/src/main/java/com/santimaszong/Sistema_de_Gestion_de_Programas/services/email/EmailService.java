@@ -43,20 +43,16 @@ public class EmailService {
 
     // EMAILS SERVICES
     @Async
-    public void sendEmailNuevoUsuario(String destinatario, String legajo, String password) {
+    public void sendEmailNuevoUsuario(String destinatario, String legajo, String rawToken) {
 
         try {
             String htmlTemplate = String.format(
                         "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
                                 "  <h2 style='color: #2563eb;'>Estimado/a,</h2>" +
                                 "  <p>Se ha creado una cuenta para ti en el <strong>Sistema de Gestión de Programas</strong>.</p>" +
-                                "  <p>Tus credenciales de acceso son:</p>" +
+                                "  <p>Para configurar tus credenciales haz click en el siguiente link de acceso:</p>" +
                                 "  <div style='background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;'>" +
-                                "    <p style='margin: 0;'><strong>Legajo:</strong> %s</p>" +
-                                "    <p style='margin: 5px 0 0 0;'><strong>Contraseña:</strong> <code style='background:#fff; padding:2px 5px;'>{{password}}</code></p>" +
-                                "  </div>" +
-                                "  <div style='margin-top: 25px;'>" +
-                                "    <a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Acceder al Sistema</a>" +
+                                "    <p style='margin: 5px 0 0 0;'><strong>Link:</strong> <code style='background:#fff; padding:2px 5px;'>{{link}}</code></p>" +
                                 "  </div>" +
                                 "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
                                 "  <p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p>" +
@@ -64,7 +60,7 @@ public class EmailService {
                     legajo
             );
 
-            String htmlBody = htmlTemplate.replace("{{password}}", password);
+            String htmlBody = htmlTemplate.replace("{{link}}", "https://sistema-de-gestion-de-programas-fro.vercel.app/set-password?token="+rawToken);
 
 
             sendHtmlEmail(destinatario, "Bienvenido a Sílabus-UNS", htmlBody);

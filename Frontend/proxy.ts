@@ -5,6 +5,7 @@
   const PUBLIC_ROUTES = [
     "/login",
     "/reset-password",
+    "/set-password",
   ];
 
 

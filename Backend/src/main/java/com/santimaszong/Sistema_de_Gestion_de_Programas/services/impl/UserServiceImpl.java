@@ -1,24 +1,26 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseDTO;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,25 +30,26 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordTokenRepository tokenRepository;
     private final UsuarioDepartamentoService userDptoService;
     private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
-    private final PasswordGeneratorService passwordGeneratorService;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+
 
     public UserServiceImpl(UserRepository userRepository,
+                           PasswordTokenRepository tokenRepository,
                            UsuarioDepartamentoService userDptoService,
                            EmailService emailService,
-                           PasswordEncoder passwordEncoder,
-                           PasswordGeneratorService passwordGeneratorService,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           PasswordEncoder passwordEncoder) {
 
         this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
         this.userDptoService = userDptoService;
         this.emailService = emailService;
-        this.passwordEncoder = passwordEncoder;
-        this.passwordGeneratorService = passwordGeneratorService;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -54,7 +57,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO createUser(Long deptId, UserCreateDTO userDTO){
         UserEntity user;
-        String temporaryPassword = null;
         boolean nuevoUsuario = false;
 
         Optional<UserEntity> existingUser = userRepository.findByLegajoWithDepartamentos(userDTO.getLegajo());
@@ -76,9 +78,6 @@ public class UserServiceImpl implements UserService {
             user.setApellido(userDTO.getApellido());
             user.setLegajo(userDTO.getLegajo());
 
-            temporaryPassword = passwordGeneratorService.generateSafePassword(16);
-            user.setPassword(passwordEncoder.encode(temporaryPassword));
-
             nuevoUsuario = true;
         }
 
@@ -92,20 +91,42 @@ public class UserServiceImpl implements UserService {
         ude.setRoles(userDTO.getRoles());
         user.getDepartamentos().add(ude);
 
-
         UserEntity savedUser = userRepository.save(user);
 
+
         try {
-            if(nuevoUsuario)
-                emailService.sendEmailNuevoUsuario(userDTO.getEmail(), userDTO.getLegajo(), temporaryPassword);
-            else
+            if(nuevoUsuario) { // Si es nuevo le creo token para actualizar contraseña
+                PasswordTokenEntity token = new PasswordTokenEntity();
+                token.setUser(savedUser);
+                String rawToken = generateRawToken();
+                String hashedToken = DigestUtils.sha256Hex(rawToken);
+                token.setTokenHash(hashedToken);
+                token.setType(TokenType.SET_PASSWORD);
+                token.setCreatedAt(LocalDateTime.now());
+//                token.setExpiresAt(LocalDateTime.now().plusDays(1));
+                token.setUsed(false);
+
+                tokenRepository.save(token);
+
+                emailService.sendEmailNuevoUsuario(userDTO.getEmail(), userDTO.getLegajo(), rawToken);
+            }
+            else {
                 emailService.sendEmailNuevoDepartamento(userDTO.getEmail(), departamento.getNombre());
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error al notificar al usuario, pero la cuenta fue creada: "+e);
         }
 
         return userMapper.toDTO(savedUser);
     }
+
+    private String generateRawToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -247,6 +268,9 @@ public class UserServiceImpl implements UserService {
             Optional.ofNullable(userDTO.getEmail()).ifPresent(email -> {
                 UsuarioDepartamentoEntity ude = userDptoService.findByUsuarioIdAndDepartamentoId(id, deptId);
                 ude.setEmail(email);
+            });
+            Optional.ofNullable(userDTO.getPassword()).ifPresent( password -> {
+                existingUser.setPassword(passwordEncoder.encode(password));
             });
 
             UserEntity savedUserEntity = userRepository.save(existingUser);

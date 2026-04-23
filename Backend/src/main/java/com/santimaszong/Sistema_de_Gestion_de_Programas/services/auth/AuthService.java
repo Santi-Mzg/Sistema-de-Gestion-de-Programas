@@ -1,8 +1,11 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ResetPasswordRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.security.PasswordGeneratorService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.SetPasswordRequest;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.PasswordTokenEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,12 +29,11 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final PasswordGeneratorService passwordGeneratorService;
+    private final PasswordTokenRepository tokenRepo;
+
 
 
     public String login(LoginRequest req, HttpServletResponse response) {
@@ -65,18 +67,28 @@ public class AuthService {
         return userMapper.toDTO(user);
     }
 
-    public void resetPassword(ResetPasswordRequest req) {
-        UserEntity user = userRepo.findByLegajo(req.legajo())
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+    public void setPassword(SetPasswordRequest req) {
+        PasswordTokenEntity token = tokenRepo.findByTokenHash(DigestUtils.sha256Hex(req.token()))
+                .orElseThrow(() -> new EntityNotFoundException("Token no encontrado"));
 
-        String newPassword = passwordGeneratorService.generateSafePassword(16);
-        String hashedBtn = passwordEncoder.encode(newPassword);
+        UserEntity user = token.getUser();
+        String hashedBtn = passwordEncoder.encode(req.password());
         user.setPassword(hashedBtn);
-        System.out.println(newPassword);
 
-        userRepository.save(user);
-
-
-        emailService.sendEmailRecuperarPassword(req.email(), newPassword);
+        userRepo.save(user);
     }
+
+    public void resetPassword(ResetPasswordRequest req) {
+//        UserEntity user = userRepo.findByLegajo(req.legajo())
+//                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+//
+//        String hashedBtn = passwordEncoder.encode(newPassword);
+//        user.setPassword(hashedBtn);
+//        System.out.println(newPassword);
+//
+//        userRepo.save(user);
+//
+//        emailService.sendEmailRecuperarPassword(req.email(), newPassword);
+    }
+
 }

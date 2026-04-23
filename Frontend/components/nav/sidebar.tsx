@@ -1,6 +1,6 @@
 "use client"
 
-import { LogOut, ChevronRight, Building2, Contact, UserRoundCog, Home, FileText, GraduationCap, Layers, University, BookText, Users, BookOpenText } from "lucide-react"
+import { LogOut, ChevronRight, Building2, Contact, UserRoundCog, Home, FileText, GraduationCap, Layers, University, BookText, Users, BookOpenText, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
@@ -11,9 +11,11 @@ import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { useLogoutFlow } from "@/hooks/use-logout"
 import { RoleSelectorDialog } from "../modals/role-selector-dialog copy"
 import { getRoleLabel } from "@/lib/utils"
+import { useAuth } from "@/context/auth-context"
 
 export function Sidebar() {
   const { logout } = useLogoutFlow()
+  const { user } = useAuth()
   const { availableRoles, activeRole, setActiveRole } = useRole()
   const { availableDepartamentos, activeDepartamento, setActiveDepartamento } = useDept()
   const [isLoading, setIsLoading] = useState(false)
@@ -25,6 +27,7 @@ export function Sidebar() {
   const menuConfig = {
     SYSTEM_ADMIN: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Departamentos", icon: <Building2 size={18}/>, href: "/departamentos" },
@@ -35,6 +38,7 @@ export function Sidebar() {
     ],
     DIRECCION_ADMINISTRATIVA: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
@@ -44,6 +48,7 @@ export function Sidebar() {
     ],
     SECRETARIA: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
@@ -53,6 +58,7 @@ export function Sidebar() {
     ],
     ADMINISTRACION: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
@@ -61,12 +67,14 @@ export function Sidebar() {
     ],
     COORDINACION_COMISION_CURRICULAR: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Mis Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
     DOCENTE: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
       { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],

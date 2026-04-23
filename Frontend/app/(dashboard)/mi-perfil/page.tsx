@@ -14,10 +14,11 @@ import { useDept } from "@/context/dept-context"
 import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
+import { useAuth } from "@/context/auth-context"
 
 
-export default function EditUserPage() {
-  const { id } = useParams<{ id: string }>()
+export default function MainUserPage() {
+  const { user } = useAuth()
   const { activeDepartamento } = useDept()
 
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
@@ -31,18 +32,8 @@ export default function EditUserPage() {
     )
   }
 
-
   const router = useRouter()
-  const userQuery = useGetUserById(Number(id),
-    {
-      query: {
-        staleTime: 1000 * 60 * 5,
-        queryKey: getGetUserByIdQueryKey(Number(id))
-      }
-    });
-  const user: UserResponseDTO | undefined = userQuery.data;
-  const userDpto: UsuarioDepartamentoDTO | undefined = user?.departamentos?.find(depto => depto.departamentoId === activeDepartamento?.departamentoId)
-  
+
   const { setHeader } = useHeader()
   useEffect(() => {
     setHeader({
@@ -53,11 +44,13 @@ export default function EditUserPage() {
   }, [user])
   
   const [isLoading, setIsLoading] = useState(false)
+  const [checkNewPassword, setCheckNewPassword] = useState("")
   const [formData, setFormData] = useState<UserCreateDTO>({
         nombre: user?.nombre || "",
         apellido: user?.apellido || "",
         legajo: user?.legajo || "",
-        email: userDpto?.email || "",
+        email: activeDepartamento?.email || "",
+        password: ""
   })
 
 
@@ -67,7 +60,8 @@ export default function EditUserPage() {
         nombre: user?.nombre || "",
         apellido: user?.apellido || "",
         legajo: user?.legajo || "",
-        email: userDpto?.email || "",
+        email: activeDepartamento?.email || "",
+        password: ""
     })
   }, [user])
 
@@ -89,7 +83,7 @@ export default function EditUserPage() {
               variant: "success",
             })    
 
-            router.push('/usuarios'); 
+            router.push('/'); 
           },
           onError: (error: Error) => {
             toast({
@@ -106,6 +100,16 @@ export default function EditUserPage() {
 
     try {
       if(user?.id) {
+        if(formData.password && formData.password !== checkNewPassword) {
+          toast({
+            title: "✗ Error",
+            description: "Las contraseñas no coinciden",
+            variant: "destructive",
+          })
+          setIsLoading(false)
+          return
+        }
+
         mutate({
             deptId: activeDepartamento.departamentoId || 0,
             id: user.id, 
@@ -114,41 +118,24 @@ export default function EditUserPage() {
         
       }
     } catch (error) {
-      console.error("Error updating User:", error)
+      toast({
+        title: "✗ Error",
+        description: error instanceof Error ? error.message : "Error cargando los datos",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
 
-  if (userQuery.isLoading) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando datos del usuario...</p>
-        </div>
-      </div>
-    )
-  }
 
-  if (userQuery.error) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="text-red-600" size={24} />
-          <p className="text-red-700">Error al obtener el usuario</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user || !user.id || !userDpto) {
+  if (!user || !user.id || !activeDepartamento) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <AlertCircle className="text-yellow-600" size={24} />
-          <p className="text-yellow-700">El usuario solicitado no existe o no pudo ser cargado</p>
+          <p className="text-yellow-700">No pudo cargarse la información del usuario</p>
         </div>
       </div>
     )
@@ -165,7 +152,7 @@ export default function EditUserPage() {
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   Información General
                 </CardTitle>
-                <CardDescription className="text-base">Actualiza los datos básicos del usuario</CardDescription>
+                <CardDescription className="text-base">Actualiza sus datos básicos</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -233,11 +220,43 @@ export default function EditUserPage() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm font-semibold">
+                        Nueva Contraseña
+                      </Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="border-2 border-border focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="checkNewPassword" className="text-sm font-semibold">
+                        Confirmar Contraseña
+                      </Label>
+                      <Input
+                        id="checkNewPassword"
+                        name="checkNewPassword"
+                        type="password"
+                        value={checkNewPassword}
+                        onChange={(e) => setCheckNewPassword(e.target.value)}
+                        className="border-2 border-border focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex gap-3 pt-4 border-t-2 border-border">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => router.back()}
+                      onClick={() => router.push('/')}
                       disabled={isLoading}
                       className="flex-1 border-2"
                     >
