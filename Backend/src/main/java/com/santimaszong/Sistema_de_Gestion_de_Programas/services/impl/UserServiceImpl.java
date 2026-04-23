@@ -103,7 +103,8 @@ public class UserServiceImpl implements UserService {
                 token.setTokenHash(hashedToken);
                 token.setType(TokenType.SET_PASSWORD);
                 token.setCreatedAt(LocalDateTime.now());
-//                token.setExpiresAt(LocalDateTime.now().plusDays(1));
+//                token.setExpiresAt(LocalDateTime.now().plusHours(1));
+                token.setExpiresAt(LocalDateTime.now().plusYears(1));
                 token.setUsed(false);
 
                 tokenRepository.save(token);

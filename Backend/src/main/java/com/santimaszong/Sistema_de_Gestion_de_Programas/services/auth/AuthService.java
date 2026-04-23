@@ -23,6 +23,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+import javax.security.auth.login.CredentialExpiredException;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -71,11 +73,15 @@ public class AuthService {
         PasswordTokenEntity token = tokenRepo.findByTokenHash(DigestUtils.sha256Hex(req.token()))
                 .orElseThrow(() -> new EntityNotFoundException("Token no encontrado"));
 
+//        if(token.isExpired() || token.isUsed()) return new CredentialExpiredException("Token no válido");
         UserEntity user = token.getUser();
         String hashedBtn = passwordEncoder.encode(req.password());
         user.setPassword(hashedBtn);
+        user.setEnabled(true);
 
         userRepo.save(user);
+
+        token.setUsed(true);
     }
 
     public void resetPassword(ResetPasswordRequest req) {

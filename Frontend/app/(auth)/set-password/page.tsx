@@ -32,11 +32,11 @@ interface PasswordRequirement {
 }
 
 const passwordRequirements: PasswordRequirement[] = [
-  { label: "Minimo 8 caracteres", test: (p) => p.length >= 8 },
-  { label: "Al menos una mayuscula", test: (p) => /[A-Z]/.test(p) },
-  { label: "Al menos una minuscula", test: (p) => /[a-z]/.test(p) },
-  { label: "Al menos un numero", test: (p) => /[0-9]/.test(p) },
-  { label: "Al menos un caracter especial", test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
+  { label: "Mínimo 8 caracteres", test: (p) => p.length >= 8 },
+  { label: "Al menos una mayúscula", test: (p) => /[A-Z]/.test(p) },
+  { label: "Al menos una minúscula", test: (p) => /[a-z]/.test(p) },
+  { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
+  { label: "Al menos un carácter especial", test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
 ]
 
 export default function SetPasswordPage() {
@@ -67,12 +67,12 @@ export default function SetPasswordPage() {
     setError("")
 
     if (!allRequirementsMet) {
-      setError("La contrasena no cumple con todos los requisitos")
+      setError("La contraseña no cumple con todos los requisitos")
       return
     }
 
     if (!passwordsMatch) {
-      setError("Las contrasenas no coinciden")
+      setError("Las contraseñas no coinciden")
       return
     }
 
@@ -101,18 +101,18 @@ export default function SetPasswordPage() {
                   </div>
                 </div>
               </div>
-              <CardTitle className="text-2xl text-green-800">Contrasena Establecida</CardTitle>
+              <CardTitle className="text-2xl text-green-800">Contraseña Establecida</CardTitle>
               <CardDescription className="text-green-600">
-                Su contrasena ha sido configurada exitosamente
+                Su cuenta ha sido configurada exitosamente.
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Ya puede iniciar sesion con su nueva contrasena.
+                Ya puede iniciar sesión.
               </p>
               <Link href="/login">
                 <Button className="w-full" size="lg">
-                  Ir a Iniciar Sesion
+                  Iniciar Sesión
                 </Button>
               </Link>
             </CardContent>
@@ -178,9 +178,9 @@ export default function SetPasswordPage() {
                 <ShieldCheck size={32} className="text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">Establecer Contrasena</h1>
+            <h1 className="text-2xl font-bold text-white">Establecer Contraseña</h1>
             <p className="text-primary-foreground/80 text-sm mt-1">
-              Crea una contrasena segura para tu cuenta
+              Crea una contraseña segura para activar tu cuenta
             </p>
           </div>
 
@@ -189,13 +189,13 @@ export default function SetPasswordPage() {
               {/* New Password Field */}
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Nueva Contrasena
+                  Nueva Contraseña
                 </label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Ingresa tu nueva contrasena"
+                    placeholder="Ingresa tu nueva contraseña"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isLoading}
@@ -220,7 +220,7 @@ export default function SetPasswordPage() {
               {newPassword.length > 0 && (
                 <div className="bg-muted/50 rounded-lg p-4 border">
                   <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Requisitos de la contrasena:
+                    Requisitos:
                   </p>
                   <div className="grid grid-cols-1 gap-1.5">
                     {requirementsMet.map((req, index) => (
@@ -245,13 +245,13 @@ export default function SetPasswordPage() {
               {/* Confirm Password Field */}
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                  Confirmar Contrasena
+                  Confirmar Contrasña
                 </label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Repite tu contrasena"
+                    placeholder="Repite tu contraseña"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
@@ -285,12 +285,12 @@ export default function SetPasswordPage() {
                     {passwordsMatch ? (
                       <>
                         <Check size={12} />
-                        Las contrasenas coinciden
+                        Las contraseñas coinciden
                       </>
                     ) : (
                       <>
                         <X size={12} />
-                        Las contrasenas no coinciden
+                        Las contraseñas no coinciden
                       </>
                     )}
                   </p>
@@ -320,7 +320,7 @@ export default function SetPasswordPage() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={18} />
-                    Establecer Contrasena
+                    Establecer Contraseña
                   </span>
                 )}
               </Button>
