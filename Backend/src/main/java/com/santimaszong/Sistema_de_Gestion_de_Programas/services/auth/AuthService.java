@@ -83,7 +83,8 @@ public class AuthService {
         PasswordTokenEntity token = tokenRepo.findByTokenHash(DigestUtils.sha256Hex(req.token()))
                 .orElseThrow(() -> new EntityNotFoundException("Token no encontrado"));
 
-//        if(token.isExpired() || token.isUsed()) return new CredentialExpiredException("Token no válido");
+        if(token.isExpired() || token.isUsed()) throw  new IllegalStateException("Token no válido");
+        
         UserEntity user = token.getUser();
         String hashedBtn = passwordEncoder.encode(req.password());
         user.setPassword(hashedBtn);
@@ -92,6 +93,7 @@ public class AuthService {
         userRepo.save(user);
 
         token.setUsed(true);
+        token.setExpiresAt(LocalDateTime.now());
     }
 
     @Transactional
