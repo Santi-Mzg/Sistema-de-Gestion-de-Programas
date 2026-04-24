@@ -5,7 +5,4 @@
  * OpenAPI spec version: v0
  */
 
-export interface ResetPasswordRequest {
-  token?: string;
-  password?: string;
-}
+export type ForgotPassword200 = { [key: string]: unknown };

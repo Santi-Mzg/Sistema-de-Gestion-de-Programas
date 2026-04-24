@@ -2,15 +2,14 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

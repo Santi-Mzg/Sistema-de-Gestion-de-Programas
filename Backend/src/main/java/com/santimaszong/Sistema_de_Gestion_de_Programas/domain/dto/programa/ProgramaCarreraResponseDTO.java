@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -18,8 +18,8 @@ public class ProgramaCarreraResponseDTO {
     private String carreraNombre;
     private CarreraPlanResponseDTO plan;
     private String ubicacionEnPlan;
-    private List<MateriaResponseReducedDTO> correlativasFuertes;
-    private List<MateriaResponseReducedDTO> correlativasDebiles;
+    private Set<MateriaResponseReducedDTO> correlativasFuertes;
+    private Set<MateriaResponseReducedDTO> correlativasDebiles;
     private String contribucion;
     private String contenidosMinimos;
     private Boolean aprobadoPorComision;

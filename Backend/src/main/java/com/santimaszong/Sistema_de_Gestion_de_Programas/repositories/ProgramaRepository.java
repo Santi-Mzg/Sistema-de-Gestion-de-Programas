@@ -24,23 +24,71 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> 
             EstadoPrograma estadoActual
     );
 
-    List<ProgramaEntity> findByMateriaDepartamentoIdAndAnio(Long departamentoId, Integer anio);
-
-
-    List<ProgramaEntity> findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
-            String legajo,
-            Long departamentoId,
-            Integer anio
+    @Query("""
+        SELECT DISTINCT p FROM ProgramaEntity p
+        JOIN FETCH p.materia m
+        JOIN FETCH m.departamento
+        JOIN FETCH m.area
+        LEFT JOIN FETCH p.profesorResponsable pr
+        LEFT JOIN FETCH pr.usuario
+        LEFT JOIN FETCH p.bloqueMultiple pc
+        LEFT JOIN FETCH pc.decisionComision
+        LEFT JOIN FETCH pc.carreraPlan cp
+        LEFT JOIN FETCH cp.carrera
+        LEFT JOIN FETCH pc.correlativasFuertes
+        LEFT JOIN FETCH pc.correlativasDebiles
+        LEFT JOIN FETCH p.historialEstados
+        WHERE m.departamento.id = :departamentoId
+        AND p.anio = :anio
+    """)
+    List<ProgramaEntity> findByMateriaDepartamentoIdAndAnio(
+            @Param("departamentoId") Long departamentoId,
+            @Param("anio") Integer anio
     );
 
     @Query("""
-    SELECT p FROM ProgramaEntity p
-        WHERE p.anio = :anio
-        AND EXISTS (
-            SELECT 1 FROM ProgramaCarreraEntity pc
-            WHERE pc.programa = p
-            AND pc.carreraPlan.carrera.comision.usuario.legajo = :legajo
-        )
+    SELECT DISTINCT p FROM ProgramaEntity p
+    JOIN FETCH p.materia m
+    JOIN FETCH m.departamento
+    JOIN FETCH m.area
+    LEFT JOIN FETCH p.profesorResponsable pr
+    LEFT JOIN FETCH pr.usuario
+    LEFT JOIN FETCH p.bloqueMultiple pc
+    LEFT JOIN FETCH pc.decisionComision
+    LEFT JOIN FETCH pc.carreraPlan cp
+    LEFT JOIN FETCH cp.carrera
+    LEFT JOIN FETCH pc.correlativasFuertes
+    LEFT JOIN FETCH pc.correlativasDebiles
+    LEFT JOIN FETCH p.historialEstados
+    WHERE pr.usuario.legajo = :legajo
+    AND m.departamento.id = :departamentoId
+    AND p.anio = :anio
+""")
+    List<ProgramaEntity> findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
+            @Param("legajo") String legajo,
+            @Param("departamentoId") Long departamentoId,
+            @Param("anio") Integer anio
+    );
+
+
+//    @Query("""
+//        SELECT DISTINCT p FROM ProgramaEntity p
+//        JOIN ProgramaCarreraEntity pc ON pc.programa = p
+//        JOIN pc.carreraPlan cp
+//        JOIN cp.carrera c
+//        JOIN c.comision com
+//        JOIN com.usuario u
+//        WHERE p.anio = :anio
+//        AND u.legajo = :legajo
+//    """)
+    @Query("""
+        SELECT p FROM ProgramaEntity p
+            WHERE p.anio = :anio
+            AND EXISTS (
+                SELECT 1 FROM ProgramaCarreraEntity pc
+                WHERE pc.programa = p
+                AND pc.carreraPlan.carrera.comision.usuario.legajo = :legajo
+            )
     """)
     List<ProgramaEntity> findProgramasByCoordinadorLegajoAndAnio(@Param("legajo") String legajo, @Param("anio") Integer anio);
 

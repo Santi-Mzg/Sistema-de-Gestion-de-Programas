@@ -9,10 +9,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,7 +46,7 @@ public class ProgramaEntity {
 
     // --- BLOQUE MÚLTIPLE ---
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProgramaCarreraEntity> bloqueMultiple = new ArrayList<>();
+    private Set<ProgramaCarreraEntity> bloqueMultiple = new HashSet<>();
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
@@ -84,7 +84,7 @@ public class ProgramaEntity {
 
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("fecha ASC")
-    private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
+    private Set<EstadoHistoricoEntity> historialEstados = new LinkedHashSet<>();
 
 //    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();

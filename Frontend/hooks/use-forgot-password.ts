@@ -1,14 +1,14 @@
 "use client";
 
-import { ResetPasswordRequest } from "@/app/api/generated/model";
+import { ForgotPasswordRequest } from "@/app/api/generated/model";
 import { useState } from "react";
 
-export function useResetPasswordFlow() {
+export function useForgotPasswordFlow() {
 
   const [success, setSuccess] = useState(false);
 
-  const resetPassword = async (data: ResetPasswordRequest) => {
-    const res = await fetch("/api/auth/reset-password", {
+  const forgotPassword = async (data: ForgotPasswordRequest) => {
+    const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -22,7 +22,7 @@ export function useResetPasswordFlow() {
   };
 
   return {
-    resetPassword,
+    forgotPassword,
     success,
     setSuccess
   };

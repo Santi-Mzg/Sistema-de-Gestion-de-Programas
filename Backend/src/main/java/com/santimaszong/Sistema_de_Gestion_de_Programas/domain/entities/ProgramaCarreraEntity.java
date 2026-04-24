@@ -1,14 +1,13 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,7 +36,7 @@ public class ProgramaCarreraEntity {
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
-    private List<MateriaEntity> correlativasFuertes = new ArrayList<>();
+    private Set<MateriaEntity> correlativasFuertes = new HashSet<>();
 
 
     @ManyToMany
@@ -47,7 +46,7 @@ public class ProgramaCarreraEntity {
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
-    private List<MateriaEntity> correlativasDebiles = new ArrayList<>();
+    private Set<MateriaEntity> correlativasDebiles = new HashSet<>();
 
     @Column(columnDefinition = "TEXT")
     private String contribucion;

@@ -1,7 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ForgotPasswordRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ResetPasswordRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.SetPasswordRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -42,15 +42,15 @@ public class AuthController {
     }
 
     @PostMapping("/set-password")
-    public ResponseEntity<?> setPassword(@RequestBody SetPasswordRequest req) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
         authService.setPassword(req);
         return ResponseEntity.ok("Contraseña actualizada.");
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
-        authService.resetPassword(req);
-        return ResponseEntity.ok("Nueva contraseña enviada.");
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        authService.forgotPassword(req);
+        return ResponseEntity.ok("Cambio de contraseña solicitado.");
     }
 
 }

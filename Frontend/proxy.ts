@@ -4,7 +4,7 @@
 
   const PUBLIC_ROUTES = [
     "/login",
-    "/reset-password",
+    "/forgot-password",
     "/set-password",
   ];
 

@@ -25,6 +25,8 @@ export * from './estadoHistoricoResponseDTOEstado';
 export * from './estadoUpdateDTO';
 export * from './estadoUpdateDTOAccion';
 export * from './estadoUpdateDTODestinoRechazo';
+export * from './forgotPassword200';
+export * from './forgotPasswordRequest';
 export * from './formatearAPA200';
 export * from './formatearAPABody';
 export * from './getDraftParams';

@@ -8,14 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Mail, CheckCircle, User } from "lucide-react"
-import { useResetPasswordFlow } from "@/hooks/use-reset-password"
+import { useForgotPasswordFlow } from "@/hooks/use-forgot-password"
 
-export default function RecoverPasswordPage() {
-  const [email, setEmail] = useState("")
+export default function ForgotPasswordPage() {
   const [legajo, setLegajo] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { resetPassword, success, setSuccess } = useResetPasswordFlow()
+  const { forgotPassword, success, setSuccess } = useForgotPasswordFlow()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +22,7 @@ export default function RecoverPasswordPage() {
     setIsLoading(true)
 
     try {
-      await resetPassword({ legajo, email })
+      await forgotPassword({ legajo })
     } catch (err) {
       setError("Error al procesar la solicitud. Intenta de nuevo.")
     } finally {
@@ -48,8 +47,7 @@ export default function RecoverPasswordPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Hemos enviado un mail de recuperación con una contraseña a <strong>{email}</strong>. Por favor revisa tu
-                bandeja de entrada (y carpeta de spam).
+                Hemos enviado un mail de recuperación con un link a sus mails asociados al sistema.
               </p>
 
               <div className="space-y-3 pt-4">
@@ -58,7 +56,7 @@ export default function RecoverPasswordPage() {
                 </Button>
                 <Button
                   onClick={() => {
-                    setEmail("")
+                    setLegajo("")
                     setSuccess(false)
                   }}
                   variant="ghost"
@@ -97,7 +95,7 @@ export default function RecoverPasswordPage() {
         <Card className="border-2 border-primary/20">
           <CardHeader>
             <CardTitle className="text-2xl">Recuperar Contraseña</CardTitle>
-            <CardDescription>Ingresa tu correo electrónico para recibir un mail de recuperación</CardDescription>
+            <CardDescription>Ingrese su legajo para recibir un link de recuperación en sus mails asociados al sistema</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -119,24 +117,6 @@ export default function RecoverPasswordPage() {
                   <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Correo Electrónico
-                </label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="correo@uns.edu.ar"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    required
-                    className="border-2 pl-10"
-                  />
-                  <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                </div>
-              </div>
 
               {/* Error Message */}
               {error && (
@@ -148,7 +128,7 @@ export default function RecoverPasswordPage() {
               {/* Info Message */}
               <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-900 dark:text-blue-100">
-                  Recibirás un correo electrónico con una nueva contraseña.
+                  Recibirás un correo electrónico con un link de recuperación.
                 </p>
               </div>
 

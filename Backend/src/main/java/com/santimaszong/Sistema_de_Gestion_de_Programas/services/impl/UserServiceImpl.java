@@ -5,6 +5,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.AuthService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordTokenRepository tokenRepository;
+    private final AuthService authService;
     private final UsuarioDepartamentoService userDptoService;
     private final EmailService emailService;
     private final UserMapper userMapper;
@@ -39,6 +41,7 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordTokenRepository tokenRepository,
+                           AuthService authService,
                            UsuarioDepartamentoService userDptoService,
                            EmailService emailService,
                            UserMapper userMapper,
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
 
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.authService = authService;
         this.userDptoService = userDptoService;
         this.emailService = emailService;
         this.userMapper = userMapper;
@@ -98,7 +102,7 @@ public class UserServiceImpl implements UserService {
             if(nuevoUsuario) { // Si es nuevo le creo token para actualizar contraseña
                 PasswordTokenEntity token = new PasswordTokenEntity();
                 token.setUser(savedUser);
-                String rawToken = generateRawToken();
+                String rawToken = authService.generateRawToken();
                 String hashedToken = DigestUtils.sha256Hex(rawToken);
                 token.setTokenHash(hashedToken);
                 token.setType(TokenType.SET_PASSWORD);
@@ -109,7 +113,7 @@ public class UserServiceImpl implements UserService {
 
                 tokenRepository.save(token);
 
-                emailService.sendEmailNuevoUsuario(userDTO.getEmail(), userDTO.getLegajo(), rawToken);
+                emailService.sendEmailNuevoUsuario(userDTO.getEmail(), rawToken);
             }
             else {
                 emailService.sendEmailNuevoDepartamento(userDTO.getEmail(), departamento.getNombre());
@@ -120,14 +124,6 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toDTO(savedUser);
     }
-
-    private String generateRawToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
 
     @Override
     @Transactional(readOnly = true)

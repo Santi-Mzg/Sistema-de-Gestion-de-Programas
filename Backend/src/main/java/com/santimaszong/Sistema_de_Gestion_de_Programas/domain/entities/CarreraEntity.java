@@ -3,11 +3,10 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,7 +23,7 @@ public class CarreraEntity {
     @Column(name = "duracion_carrera", nullable = false)
     private String duracion;
 
-    @OneToMany(mappedBy = "carrera", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "carrera", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarreraPlanEntity> planes;
 
     @ManyToOne(fetch = FetchType.LAZY)

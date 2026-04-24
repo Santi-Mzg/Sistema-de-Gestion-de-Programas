@@ -5,7 +5,6 @@
  * OpenAPI spec version: v0
  */
 
-export interface ResetPasswordRequest {
-  token?: string;
-  password?: string;
+export interface ForgotPasswordRequest {
+  legajo?: string;
 }

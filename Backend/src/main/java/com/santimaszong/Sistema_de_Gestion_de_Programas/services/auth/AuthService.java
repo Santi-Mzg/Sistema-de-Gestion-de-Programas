@@ -1,8 +1,10 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ForgotPasswordRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.ResetPasswordRequest;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.SetPasswordRequest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.PasswordTokenEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -22,16 +24,23 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserReposit
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.CredentialExpiredException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepo;
+    private final PasswordTokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final EmailService emailService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final PasswordTokenRepository tokenRepo;
@@ -69,7 +78,8 @@ public class AuthService {
         return userMapper.toDTO(user);
     }
 
-    public void setPassword(SetPasswordRequest req) {
+    @Transactional
+    public void setPassword(ResetPasswordRequest req) {
         PasswordTokenEntity token = tokenRepo.findByTokenHash(DigestUtils.sha256Hex(req.token()))
                 .orElseThrow(() -> new EntityNotFoundException("Token no encontrado"));
 
@@ -84,17 +94,38 @@ public class AuthService {
         token.setUsed(true);
     }
 
-    public void resetPassword(ResetPasswordRequest req) {
-//        UserEntity user = userRepo.findByLegajo(req.legajo())
-//                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-//
-//        String hashedBtn = passwordEncoder.encode(newPassword);
-//        user.setPassword(hashedBtn);
-//        System.out.println(newPassword);
-//
-//        userRepo.save(user);
-//
-//        emailService.sendEmailRecuperarPassword(req.email(), newPassword);
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest req) {
+        UserEntity user = userRepo.findByLegajoWithDepartamentos(req.legajo())
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        Set<String> emails = user.getDepartamentos().stream()
+                .map(UsuarioDepartamentoEntity::getEmail)
+                .collect(Collectors.toSet());
+
+
+        PasswordTokenEntity token = new PasswordTokenEntity();
+        token.setUser(user);
+        String rawToken = generateRawToken();
+        String hashedToken = DigestUtils.sha256Hex(rawToken);
+        token.setTokenHash(hashedToken);
+        token.setType(TokenType.RESET_PASSWORD);
+        token.setCreatedAt(LocalDateTime.now());
+        token.setExpiresAt(LocalDateTime.now().plusHours(1));
+        token.setUsed(false);
+
+        tokenRepository.save(token);
+
+        for(String e : emails){
+            emailService.sendEmailRecuperarPassword(e, rawToken);
+        }
+    }
+
+    public String generateRawToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
 }

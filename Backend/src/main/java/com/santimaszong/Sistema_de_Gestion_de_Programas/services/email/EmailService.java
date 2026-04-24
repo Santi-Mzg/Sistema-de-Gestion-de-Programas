@@ -43,7 +43,7 @@ public class EmailService {
 
     // EMAILS SERVICES
     @Async
-    public void sendEmailNuevoUsuario(String destinatario, String legajo, String rawToken) {
+    public void sendEmailNuevoUsuario(String destinatario, String rawToken) {
 
         try {
             String htmlTemplate = String.format(
@@ -56,8 +56,7 @@ public class EmailService {
                                 "  </div>" +
                                 "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
                                 "  <p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p>" +
-                                "</div>",
-                    legajo
+                                "</div>"
             );
 
             String htmlBody = htmlTemplate.replace("{{link}}", "https://sistema-de-gestion-de-programas-fro.vercel.app/set-password?token="+rawToken);
@@ -98,7 +97,7 @@ public class EmailService {
     }
 
     @Async
-    public void sendEmailRecuperarPassword(String destinatario, String newPassword) {
+    public void sendEmailRecuperarPassword(String destinatario, String rawToken) {
 
         try {
             String htmlTemplate =
@@ -106,13 +105,12 @@ public class EmailService {
                             "  <h2 style='color: #2563eb;'>Recuperación de Contraseña</h2>" +
                             "  <p>Estimado/a,</p>" +
                             "  <p>Ha solicitado restablecer tu contraseña.</p>" +
-                            "  <p>Se ha generado una nueva contraseña para que pueda acceder a su cuenta:</p>" +
-                            "  <div style='background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px dashed #2563eb;'>" +
-                            "    <span style='font-size: 14px; color: #666;'>Contraseña:</span><br/>" +
-                            "    <strong style='font-size: 24px; color: #1e40af; letter-spacing: 2px;'>{{password}}</strong>" +
+                            "  <p>Se ha generado una link de recuperación de contraseña:</p>" +
+                            "  <div style='background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;'>" +
+                            "    <p style='margin: 5px 0 0 0;'><strong>Link:</strong> <code style='background:#fff; padding:2px 5px;'>{{link}}</code></p>" +
                             "  </div>" +
                             "  <hr style='border: 0; border-top: 1px solid #eee; margin-top: 30px;' />" +
-                            "  <p style='font-size: 12px; color: #777;'>Si no solicitaste este cambio, te recomendamos contactar al administrador del departamento.</p>" +
+                            "  <p style='font-size: 12px; color: #777;'>Si no solicitaste este cambio, te recomendamos cambiar tu contraseña manualmente en el sistema.</p>" +
                             "  <div style='margin-top: 25px;'>" +
                             "    <a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Acceder al Sistema</a>" +
                             "  </div>" +
@@ -120,9 +118,10 @@ public class EmailService {
                             "  <p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p>" +
                             "</div>";
 
-            String htmlBody = htmlTemplate.replace("{{password}}", newPassword);
+            String htmlBody = htmlTemplate.replace("{{link}}", "https://sistema-de-gestion-de-programas-fro.vercel.app/set-password?token="+rawToken);
 
-            sendHtmlEmail(destinatario, "Nueva contraseña - Sílabus UNS", htmlBody);
+
+            sendHtmlEmail(destinatario, "Cambio de contraseña - Sílabus UNS", htmlBody);
         } catch (IOException e) {
             throw new RuntimeException("Error al crear el email para: " + destinatario, e);
         }

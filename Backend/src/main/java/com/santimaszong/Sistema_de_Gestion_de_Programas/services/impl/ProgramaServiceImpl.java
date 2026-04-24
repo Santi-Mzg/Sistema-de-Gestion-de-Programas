@@ -103,8 +103,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         programaEntity.setProfesorResponsable(udeProfesor);
 
 
-        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
-        List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
+        Set<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
+        Set<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
 
         programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
 
@@ -181,7 +181,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
                     programaRepository.saveAndFlush(existingProgram);
 
-                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
+                    Set<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
                     existingProgram.getBloqueMultiple().addAll(bloquesMultiplesEntity);
                 });
 
@@ -636,8 +636,8 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     }
 
-    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
-        List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
+    private Set<ProgramaCarreraEntity> getProgramaCarreraEntities(Set<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
+        Set<ProgramaCarreraEntity> bloquesMultiplesEntity = new HashSet<>();
 
         for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
             ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
@@ -646,12 +646,12 @@ public class ProgramaServiceImpl implements ProgramaService {
             CarreraPlanEntity plan = carreraService.getPlanEntityById(bloqueDTO.getCarreraPlanId());
 
             bloqueEntity.setCarreraPlan(plan);
-            List<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
+            Set<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
             if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }
 
-            List<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
+            Set<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
             if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }
@@ -659,7 +659,7 @@ public class ProgramaServiceImpl implements ProgramaService {
             bloqueEntity.setCorrelativasFuertes(correlativasFuertes);
             bloqueEntity.setCorrelativasDebiles(correlativasDebiles);
 
-            bloquesMultiplesEntity.addLast(bloqueEntity);
+            bloquesMultiplesEntity.add(bloqueEntity);
         }
         return bloquesMultiplesEntity;
     }

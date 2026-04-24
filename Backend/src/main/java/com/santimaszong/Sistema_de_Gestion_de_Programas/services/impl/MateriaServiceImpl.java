@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,8 +105,8 @@ public class MateriaServiceImpl implements MateriaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MateriaEntity> listEntities(List<Long> ids) {
-        return materiaRepository.findAllById(ids);
+    public Set<MateriaEntity> listEntities(Set<Long> ids) {
+        return materiaRepository.findAllByIdAsSet(ids);
     }
 
     @Override
