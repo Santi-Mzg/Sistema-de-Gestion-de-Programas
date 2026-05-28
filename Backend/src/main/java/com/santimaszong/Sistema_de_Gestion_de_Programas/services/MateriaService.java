@@ -11,7 +11,7 @@ public interface MateriaService {
     MateriaResponseDTO createMateria(MateriaCreateDTO user);
     MateriaResponseDTO getMateriaById(Long id);
     MateriaEntity getEntityById(Long id);
-    Set<MateriaEntity> listEntities(Set<Long> ids);
+    List<MateriaEntity> listEntities(List<Long> ids);
     List<MateriaResponseDTO> listMaterias();
     List<MateriaResponseDTO> listMateriasDepartamento(Long deptId);
     List<MateriaResponseDTO> listMateriasCarreraPlan(Long carreraId);

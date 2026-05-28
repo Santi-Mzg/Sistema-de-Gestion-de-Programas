@@ -2,9 +2,10 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -36,7 +37,8 @@ public class ProgramaCarreraEntity {
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
-    private Set<MateriaEntity> correlativasFuertes = new HashSet<>();
+    @BatchSize(size = 5)
+    private List<MateriaEntity> correlativasFuertes = new ArrayList<>();
 
 
     @ManyToMany
@@ -46,7 +48,8 @@ public class ProgramaCarreraEntity {
             inverseJoinColumns = @JoinColumn(name = "materia_id")
     )
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
-    private Set<MateriaEntity> correlativasDebiles = new HashSet<>();
+    @BatchSize(size = 5)
+    private List<MateriaEntity> correlativasDebiles = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
     private String contribucion;

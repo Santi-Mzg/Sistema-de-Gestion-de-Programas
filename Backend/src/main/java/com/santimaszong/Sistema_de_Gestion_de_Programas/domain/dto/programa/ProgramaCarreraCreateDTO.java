@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,8 +15,8 @@ public class ProgramaCarreraCreateDTO {
     private String key;
     private Long carreraPlanId;
     private String ubicacionEnPlan;
-    private Set<Long> correlativasFuertesIds;
-    private Set<Long> correlativasDebilesIds;
+    private List<Long> correlativasFuertesIds;
+    private List<Long> correlativasDebilesIds;
     private String contribucion;
     private String contenidosMinimos;
 }

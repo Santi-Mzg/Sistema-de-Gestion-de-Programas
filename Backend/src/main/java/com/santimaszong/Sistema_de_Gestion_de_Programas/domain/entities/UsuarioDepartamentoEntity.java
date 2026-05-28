@@ -3,6 +3,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.*;
 
@@ -33,9 +34,11 @@ public class UsuarioDepartamentoEntity {
     private List<EstadoHistoricoEntity> historialAcciones = new ArrayList<>();
 
     @OneToMany(mappedBy = "comision")
-    private List<CarreraEntity> carrerasComoComision;
+    @BatchSize(size = 5)
+    private Set<CarreraEntity> carrerasComoComision;
 
     @OneToMany(mappedBy = "profesorResponsable")
+    @BatchSize(size = 5)
     private List<ProgramaEntity> materiasComoProfesor;
 
 //    @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

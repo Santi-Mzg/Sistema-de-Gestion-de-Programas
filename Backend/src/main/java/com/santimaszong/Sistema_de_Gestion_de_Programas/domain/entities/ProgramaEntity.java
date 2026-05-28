@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoProgr
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 
 import java.sql.Types;
@@ -46,7 +47,8 @@ public class ProgramaEntity {
 
     // --- BLOQUE MÚLTIPLE ---
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<ProgramaCarreraEntity> bloqueMultiple = new HashSet<>();
+    @BatchSize(size = 20)
+    private List<ProgramaCarreraEntity> bloqueMultiple = new ArrayList<>();
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;
@@ -84,7 +86,8 @@ public class ProgramaEntity {
 
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("fecha ASC")
-    private Set<EstadoHistoricoEntity> historialEstados = new LinkedHashSet<>();
+    @BatchSize(size = 20)
+    private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();

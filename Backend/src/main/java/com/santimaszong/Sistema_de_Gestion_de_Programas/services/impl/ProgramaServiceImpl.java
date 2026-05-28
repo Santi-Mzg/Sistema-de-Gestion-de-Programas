@@ -7,6 +7,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseReducedMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
@@ -39,7 +40,8 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
     private final ProgramaResponseMapper responseMapper;
-    private final ProgramaCargaMapper programaMapper;
+    private final ProgramaResponseReducedMapper responseReducedMapper;
+    private final ProgramaCargaMapper cargaMapper;
     private final ProgramaCarreraMapper programaCarreraMapper;
 
 
@@ -52,7 +54,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                                CarreraService carreraService,
                                UsuarioDepartamentoService udeService,
                                ProgramaResponseMapper responseMapper,
-                               ProgramaCargaMapper programaMapper,
+                               ProgramaResponseReducedMapper responseReducedMapper,
+                               ProgramaCargaMapper cargaMapper,
                                ProgramaCarreraMapper programaCarreraMapper,
                                EmailService emailService) {
 
@@ -65,7 +68,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.carreraService = carreraService;
         this.udeService = udeService;
         this.responseMapper = responseMapper;
-        this.programaMapper = programaMapper;
+        this.responseReducedMapper = responseReducedMapper;
+        this.cargaMapper = cargaMapper;
         this.programaCarreraMapper = programaCarreraMapper;
         this.emailService = emailService;
     }
@@ -81,7 +85,7 @@ public class ProgramaServiceImpl implements ProgramaService {
             programaRepository.flush();
         }
 
-        ProgramaEntity programaEntity = programaMapper.toEntity(programaDTO);
+        ProgramaEntity programaEntity = cargaMapper.toEntity(programaDTO);
 
         MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
 
@@ -103,8 +107,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         programaEntity.setProfesorResponsable(udeProfesor);
 
 
-        Set<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
-        Set<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
+        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
+        List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
 
         programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
 
@@ -181,7 +185,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
                     programaRepository.saveAndFlush(existingProgram);
 
-                    Set<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
+                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
                     existingProgram.getBloqueMultiple().addAll(bloquesMultiplesEntity);
                 });
 
@@ -344,7 +348,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Override
     @Transactional(readOnly = true)
     public ProgramaResponseDTO getById(Long id) {
-        ProgramaEntity foundProgram = programaRepository.findById(id)
+        ProgramaEntity foundProgram = programaRepository.findWithAllDetailsById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
         return responseMapper.toDTO(foundProgram);
@@ -374,7 +378,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo) {
+    public List<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -399,13 +403,30 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         return programs.stream()
+                .map(responseReducedMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo) {
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
+
+        if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        Integer anioActual = LocalDate.now().getYear();
+        List<ProgramaEntity> programs = programaRepository.findProgramasByCoordinadorLegajoAndAnio(auth.getName(), anioActual);
+
+        return programs.stream()
                 .map(responseMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo) {
+    public List<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -426,26 +447,43 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         return programs.stream()
-                .map(responseMapper::toDTO)
+                .map(responseReducedMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListByMateria(Long materiaId) {
-        MateriaEntity materia = materiaService.getEntityById(materiaId);
-        return materia.getProgramas().stream()
-                .map(responseMapper::toDTO)
-                .collect(Collectors.toList());
-    }
+    public List<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo) {
+        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
+        if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
+            throw new AccessDeniedException("No autorizado");
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> listAll() {
-        List<ProgramaEntity> programs = programaRepository.findAll();
+        Integer anioActual = LocalDate.now().getYear();
+        List<ProgramaEntity> programs = programaRepository.findProgramasPendientesCoordinador(auth.getName(), anioActual, EstadoPrograma.COMPLETO_POR_PROFESOR);
+
         return programs.stream()
                 .map(responseMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId) {
+        MateriaEntity materia = materiaService.getEntityById(materiaId);
+        return materia.getProgramas().stream()
+                .map(responseReducedMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProgramaResponseReducedDTO> listAll() {
+        List<ProgramaEntity> programs = programaRepository.findAll();
+        return programs.stream()
+                .map(responseReducedMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -636,8 +674,8 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     }
 
-    private Set<ProgramaCarreraEntity> getProgramaCarreraEntities(Set<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
-        Set<ProgramaCarreraEntity> bloquesMultiplesEntity = new HashSet<>();
+    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
+        List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
 
         for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
             ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
@@ -646,12 +684,12 @@ public class ProgramaServiceImpl implements ProgramaService {
             CarreraPlanEntity plan = carreraService.getPlanEntityById(bloqueDTO.getCarreraPlanId());
 
             bloqueEntity.setCarreraPlan(plan);
-            Set<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
+            List<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
             if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }
 
-            Set<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
+            List<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
             if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
                 throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
             }

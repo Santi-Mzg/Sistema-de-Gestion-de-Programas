@@ -70,6 +70,7 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/set-password",
+                                "/api/ping",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()

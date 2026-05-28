@@ -99,14 +99,14 @@ public class ProgramaController {
     }
 
     @GetMapping("/materias/{materiaId}/programas")
-    public List<ProgramaResponseDTO> listProgramasMateria(
+    public List<ProgramaResponseReducedDTO> listProgramasMateria(
             @PathVariable Long materiaId
     ) {
         return programaService.getListByMateria(materiaId);
     }
 
     @GetMapping("/departamentos/{deptId}/programas")
-    public List<ProgramaResponseDTO> listProgramas(
+    public List<ProgramaResponseReducedDTO> listProgramas(
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
             Authentication auth
@@ -114,13 +114,31 @@ public class ProgramaController {
         return programaService.getListAnioActual(auth, deptId, rolActivo);
     }
 
+    @GetMapping("/departamentos/{deptId}/programas-coordinacion")
+    public List<ProgramaResponseDTO> listProgramasCoordinacion(
+            @PathVariable Long deptId,
+            @RequestParam Rol rolActivo,
+            Authentication auth
+    ) {
+        return programaService.getListAnioActualCoordinador(auth, deptId, rolActivo);
+    }
+
     @GetMapping("/departamentos/{deptId}/programas/pendientes")
-    public List<ProgramaResponseDTO> listProgramasPendientes(
+    public List<ProgramaResponseReducedDTO> listProgramasPendientes(
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
             Authentication auth
     ) {
         return programaService.getListPendientes(auth, deptId, rolActivo);
+    }
+
+    @GetMapping("/departamentos/{deptId}/programas-coordinacion/pendientes")
+    public List<ProgramaResponseDTO> listProgramasPendientesCoordinador(
+            @PathVariable Long deptId,
+            @RequestParam Rol rolActivo,
+            Authentication auth
+    ) {
+        return programaService.getListPendientesCoordinador(auth, deptId, rolActivo);
     }
 
 

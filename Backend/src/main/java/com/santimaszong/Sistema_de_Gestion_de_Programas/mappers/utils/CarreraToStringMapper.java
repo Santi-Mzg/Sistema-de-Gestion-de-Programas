@@ -5,13 +5,14 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface CarreraToStringMapper {
 
 
     @Named("carrerasToString")
-    default List<String> carrerasToString(List<CarreraEntity> carreras) {
+    default List<String> carrerasToString(Set<CarreraEntity> carreras) {
         if (carreras == null) return null;
         return carreras.stream()
                 .map(CarreraEntity::getNombre)

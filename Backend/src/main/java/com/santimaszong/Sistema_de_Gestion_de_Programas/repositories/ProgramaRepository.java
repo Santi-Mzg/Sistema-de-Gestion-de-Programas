@@ -1,6 +1,7 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.repositories;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import org.springframework.data.jpa.repository.Query;
@@ -12,62 +13,54 @@ import java.util.Optional;
 
 @Repository
 public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long> {
+
+    @EntityGraph(attributePaths = {
+            "materia.departamento",
+            "materia.area",
+            "profesorResponsable.usuario",
+            "bloqueMultiple.carreraPlan.carrera"
+    })
+    Optional<ProgramaEntity> findWithAllDetailsById(Long id);
+
     boolean existsByMateriaIdAndAnio(Long materiaId, Integer anio);
 
+    @EntityGraph(attributePaths = {
+            "materia.departamento",
+            "materia.area",
+            "profesorResponsable.usuario",
+            "bloqueMultiple.carreraPlan.carrera"
+    })
     Optional<ProgramaEntity> findByMateriaIdAndAnio(Long materiaId, Integer anio);
 
     void deleteByMateriaIdAndAnio(Long materiaId, Integer anio);
 
-
+    @EntityGraph(attributePaths = {
+            "materia.departamento",
+            "materia.area",
+            "profesorResponsable.usuario",
+            "bloqueMultiple.carreraPlan.carrera"
+    })
     Optional<ProgramaEntity> findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
             Long materiaId,
             EstadoPrograma estadoActual
     );
 
-    @Query("""
-        SELECT DISTINCT p FROM ProgramaEntity p
-        JOIN FETCH p.materia m
-        JOIN FETCH m.departamento
-        JOIN FETCH m.area
-        LEFT JOIN FETCH p.profesorResponsable pr
-        LEFT JOIN FETCH pr.usuario
-        LEFT JOIN FETCH p.bloqueMultiple pc
-        LEFT JOIN FETCH pc.decisionComision
-        LEFT JOIN FETCH pc.carreraPlan cp
-        LEFT JOIN FETCH cp.carrera
-        LEFT JOIN FETCH pc.correlativasFuertes
-        LEFT JOIN FETCH pc.correlativasDebiles
-        LEFT JOIN FETCH p.historialEstados
-        WHERE m.departamento.id = :departamentoId
-        AND p.anio = :anio
-    """)
-    List<ProgramaEntity> findByMateriaDepartamentoIdAndAnio(
-            @Param("departamentoId") Long departamentoId,
-            @Param("anio") Integer anio
-    );
+    @EntityGraph(attributePaths = {
+            "materia.departamento",
+            "materia.area",
+            "profesorResponsable.usuario"
+    })
+    List<ProgramaEntity> findByMateriaDepartamentoIdAndAnio(Long departamentoId, Integer anio);
 
-    @Query("""
-    SELECT DISTINCT p FROM ProgramaEntity p
-    JOIN FETCH p.materia m
-    JOIN FETCH m.departamento
-    JOIN FETCH m.area
-    LEFT JOIN FETCH p.profesorResponsable pr
-    LEFT JOIN FETCH pr.usuario
-    LEFT JOIN FETCH p.bloqueMultiple pc
-    LEFT JOIN FETCH pc.decisionComision
-    LEFT JOIN FETCH pc.carreraPlan cp
-    LEFT JOIN FETCH cp.carrera
-    LEFT JOIN FETCH pc.correlativasFuertes
-    LEFT JOIN FETCH pc.correlativasDebiles
-    LEFT JOIN FETCH p.historialEstados
-    WHERE pr.usuario.legajo = :legajo
-    AND m.departamento.id = :departamentoId
-    AND p.anio = :anio
-""")
+    @EntityGraph(attributePaths = {
+            "materia.departamento",
+            "materia.area",
+            "profesorResponsable.usuario"
+    })
     List<ProgramaEntity> findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
-            @Param("legajo") String legajo,
-            @Param("departamentoId") Long departamentoId,
-            @Param("anio") Integer anio
+            String legajo,
+            Long departamentoId,
+            Integer anio
     );
 
 

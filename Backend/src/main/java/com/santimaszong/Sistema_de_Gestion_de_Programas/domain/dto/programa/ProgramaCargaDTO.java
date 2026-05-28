@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +16,7 @@ public class ProgramaCargaDTO {
     private Long profesorResponsableId;
 
     // --- BLOQUE MÚLTIPLE ---
-    private Set<ProgramaCarreraCreateDTO> bloqueMultiple;
+    private List<ProgramaCarreraCreateDTO> bloqueMultiple;
 
     // --- BLOQUE ÚNICO ---
     private Integer cargaHorariaTotal;

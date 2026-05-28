@@ -6,11 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @Repository
 public interface MateriaRepository extends JpaRepository<MateriaEntity, Long> {
     @Query("SELECT m FROM MateriaEntity m WHERE m.id IN :ids")
-    Set<MateriaEntity> findAllByIdAsSet(@Param("ids") Collection<Long> ids);
+    List<MateriaEntity> findAllById(@Param("ids") List<Long> ids);
 }

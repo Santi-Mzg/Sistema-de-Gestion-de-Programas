@@ -169,9 +169,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> listUsersDepartamento(Long deptId, UserEntity auth) {
-        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
+//        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
+        List<UserResponseDTO> userList = userRepository.findAllByDepartamentoId(deptId)
                         .stream()
-                        .map(UsuarioDepartamentoEntity::getUsuario)
                         .map(userMapper::toDTO)
                         .toList();
 

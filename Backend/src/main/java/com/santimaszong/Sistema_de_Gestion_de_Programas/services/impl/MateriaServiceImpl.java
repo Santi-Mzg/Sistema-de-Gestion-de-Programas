@@ -105,8 +105,8 @@ public class MateriaServiceImpl implements MateriaService {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<MateriaEntity> listEntities(Set<Long> ids) {
-        return materiaRepository.findAllByIdAsSet(ids);
+    public List<MateriaEntity> listEntities(List<Long> ids) {
+        return materiaRepository.findAllById(ids);
     }
 
     @Override

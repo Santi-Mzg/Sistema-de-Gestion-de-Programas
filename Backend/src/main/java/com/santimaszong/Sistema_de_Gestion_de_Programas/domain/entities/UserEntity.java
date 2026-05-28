@@ -1,8 +1,6 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,7 +50,7 @@ public class UserEntity implements UserDetails {
     // ============================
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<UsuarioDepartamentoEntity> departamentos = new ArrayList<>();
+    private Set<UsuarioDepartamentoEntity> departamentos = new HashSet<>();
 
 
     // ============================

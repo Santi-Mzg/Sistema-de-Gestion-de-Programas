@@ -15,14 +15,16 @@ public interface ProgramaService {
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
-    List<ProgramaResponseDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo);
-    List<ProgramaResponseDTO> getListByMateria(Long materiaId);
-    List<ProgramaResponseDTO> listAll();
+    List<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo);
+    List<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo);
+    List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId);
+    List<ProgramaResponseReducedDTO> listAll();
     void delete(Long id);
     void saveDraft(Long departamentoId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo);
     ProgramaDraftDTO getDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
     void deleteDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
-    List<ProgramaResponseDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo);
+    List<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo);
+    List<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo);
 
 
 }
