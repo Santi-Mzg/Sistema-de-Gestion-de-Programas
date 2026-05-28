@@ -1,8 +1,8 @@
 "use client"
 
 import { ProgramasList } from "@/components/pages/programas-list";
-import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "../../api/generated/model";
-import { getListProgramasQueryKey, useListProgramas } from "../../api/generated/client";
+import { ProgramaResponseDTO, ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "../../api/generated/model";
+import { getListProgramasCoordinacionQueryKey, getListProgramasQueryKey, useListProgramas, useListProgramasCoordinacion } from "../../api/generated/client";
 import { useDept } from "@/context/dept-context";
 import { useRole } from "@/context/role-context";
 import { AlertCircle } from "lucide-react";
@@ -28,8 +28,23 @@ export default function Programas() {
 
     const { activeDepartamento } = useDept()
     const { activeRole } = useRole();
-    
     const deptId = activeDepartamento?.departamentoId;
+    const isCoordinacion = activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR;
+
+    const programasCoordinacionQuery = useListProgramasCoordinacion(
+        deptId!,
+        {
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        },
+        {
+          query: {
+            enabled: !!deptId && !!activeRole && isCoordinacion,
+            staleTime: 1000 * 60 * 5,    
+            refetchOnWindowFocus: false,
+            queryKey: getListProgramasCoordinacionQueryKey(deptId!, {rolActivo: activeRole as UsuarioDepartamentoDTORolesItem}),
+          },
+        }
+    );
 
     const programasQuery = useListProgramas(
         deptId!,
@@ -38,15 +53,15 @@ export default function Programas() {
         },
         {
           query: {
-            enabled: !!deptId && !!activeRole,
+            enabled: !!deptId && !!activeRole && !isCoordinacion,
             staleTime: 1000 * 60 * 5,    
             refetchOnWindowFocus: false,
             queryKey: getListProgramasQueryKey(deptId!, {rolActivo: activeRole as UsuarioDepartamentoDTORolesItem}),
           },
         }
     );
+    
 
-    const programas: ProgramaResponseDTO[] = programasQuery.data || [];
 
     // if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
     //   return(
@@ -82,7 +97,7 @@ export default function Programas() {
     // }
 
 
-    const isReady = !!deptId && !!activeRole && programasQuery.isSuccess;
+    const isReady = !!deptId && !!activeRole && (programasQuery.isSuccess || programasCoordinacionQuery.isSuccess);
 
     if (!isReady) {
       // return <LoadingSpinner text="Cargando datos de los programas..." />
@@ -107,14 +122,16 @@ export default function Programas() {
     //   )
     // }
 
-    return (
-      <>
-        {activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR ? (
+    if(isCoordinacion) {
+        const programas: ProgramaResponseDTO[] = programasCoordinacionQuery.data || [];
+        return (
           <ProgramasListCoordinador programas={programas} />
-        ) : (
+        )
+    }
+    else {
+        const programas: ProgramaResponseReducedDTO[] = programasQuery.data || [];
+        return (
           <ProgramasList programas={programas} />
-        )}
-        {/* <ProgramasList programas={programas} totalPages={totalPages} /> */}
-      </>
-    );
+        )
+    }
 }

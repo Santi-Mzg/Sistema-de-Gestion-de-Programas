@@ -15,7 +15,10 @@ const DepartamentoContext = createContext<DepartamentoContextType | null>(null);
 
 export function DepartamentoProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [activeDeptId, setActiveDeptId] = useState<string | null>(null);
+  const [activeDeptId, setActiveDeptId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem("activeDept");
+  });
   const router = useRouter();
 
   useEffect(() => {

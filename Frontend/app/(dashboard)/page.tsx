@@ -7,6 +7,7 @@ import { SecretarioDashboard } from "@/components/dashboards/secretario-dashboar
 import { useRole } from "@/context/role-context"
 import { UsuarioDepartamentoDTORolesItem } from "../api/generated/model"
 import { useDept } from "@/context/dept-context"
+import { DirAdminDashboard } from "@/components/dashboards/dir-admin-dashboard"
 
 
 export default function Dashboard() {
@@ -27,6 +28,9 @@ export default function Dashboard() {
   switch (activeRole) {
     case UsuarioDepartamentoDTORolesItem.DOCENTE:
       return <ProfesorDashboard />;
+
+    case UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA:
+      return <DirAdminDashboard />;
 
     case UsuarioDepartamentoDTORolesItem.SECRETARIA:
       return <SecretarioDashboard />;

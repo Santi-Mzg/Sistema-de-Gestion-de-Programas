@@ -330,7 +330,7 @@ export default function SetPasswordPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Universidad Nacional del Sur. Todos los derechos reservados.
+          © 2026 Universidad Nacional del Sur.
         </p>
       </div>
     </div>

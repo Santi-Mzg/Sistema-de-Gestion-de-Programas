@@ -3,7 +3,7 @@
 import { Users, CheckCircle2, AlertCircle, User, Home, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
-import { getListProgramasPendientesQueryKey, useListProgramasPendientes } from "@/app/api/generated/client";
+import { getListProgramasPendientesCoordinadorQueryKey, useListProgramasPendientesCoordinador } from "@/app/api/generated/client";
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
 import { ProgramasListReducedCoord } from "../pages/programas-list-reduced-coordinador";
@@ -32,7 +32,7 @@ export function CoordinadorDashboard() {
     })
   }, [user]);
 
-  const programasQuery = useListProgramasPendientes(
+  const programasQuery = useListProgramasPendientesCoordinador(
       activeDepartamento!.departamentoId!,
       {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
@@ -41,7 +41,7 @@ export function CoordinadorDashboard() {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListProgramasPendientesQueryKey(
+        queryKey: getListProgramasPendientesCoordinadorQueryKey(
             activeDepartamento!.departamentoId!,
             {
               rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,

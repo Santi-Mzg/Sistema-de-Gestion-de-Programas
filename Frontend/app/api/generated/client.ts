@@ -38,7 +38,9 @@ import type {
   ForgotPassword200,
   ForgotPasswordRequest,
   GetDraftParams,
+  ListProgramasCoordinacionParams,
   ListProgramasParams,
+  ListProgramasPendientesCoordinadorParams,
   ListProgramasPendientesParams,
   Login200,
   LoginRequest,
@@ -47,6 +49,7 @@ import type {
   ProgramaCargaDTO,
   ProgramaDraftDTO,
   ProgramaResponseDTO,
+  ProgramaResponseReducedDTO,
   ResetPassword200,
   ResetPasswordRequest,
   SaveDraftParams,
@@ -1001,7 +1004,7 @@ export const listProgramas = (
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
+      return customInstance<ProgramaResponseReducedDTO[]>(
       {url: `/api/departamentos/${deptId}/programas`, method: 'GET',
         params, signal
     },
@@ -3399,13 +3402,116 @@ export function useGenerarPDFSuspense<TData = Awaited<ReturnType<typeof generarP
 
 
 
+export const ping = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<string>(
+      {url: `/api/ping`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getPingQueryKey = () => {
+    return [
+    `/api/ping`
+    ] as const;
+    }
+
+    
+export const getPingQueryOptions = <TData = Awaited<ReturnType<typeof ping>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPingQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ping>>> = ({ signal }) => ping(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PingQueryResult = NonNullable<Awaited<ReturnType<typeof ping>>>
+export type PingQueryError = unknown
+
+
+
+export function usePing<TData = Awaited<ReturnType<typeof ping>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPingQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getPingSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof ping>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPingQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ping>>> = ({ signal }) => ping(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PingSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof ping>>>
+export type PingSuspenseQueryError = unknown
+
+
+
+export function usePingSuspense<TData = Awaited<ReturnType<typeof ping>>, TError = unknown>(
+  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPingSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const listProgramasMateria = (
     materiaId: number,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
+      return customInstance<ProgramaResponseReducedDTO[]>(
       {url: `/api/materias/${materiaId}/programas`, method: 'GET', signal
     },
       );
@@ -4127,7 +4233,7 @@ export const listProgramasPendientes = (
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
+      return customInstance<ProgramaResponseReducedDTO[]>(
       {url: `/api/departamentos/${deptId}/programas/pendientes`, method: 'GET',
         params, signal
     },
@@ -4218,6 +4324,226 @@ export function useListProgramasPendientesSuspense<TData = Awaited<ReturnType<ty
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListProgramasPendientesSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listProgramasCoordinacion = (
+    deptId: number,
+    params: ListProgramasCoordinacionParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/programas-coordinacion`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListProgramasCoordinacionQueryKey = (deptId?: number,
+    params?: ListProgramasCoordinacionParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas-coordinacion`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListProgramasCoordinacionQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError = unknown>(deptId: number,
+    params: ListProgramasCoordinacionParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasCoordinacionQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasCoordinacion>>> = ({ signal }) => listProgramasCoordinacion(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasCoordinacionQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasCoordinacion>>>
+export type ListProgramasCoordinacionQueryError = unknown
+
+
+
+export function useListProgramasCoordinacion<TData = Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasCoordinacionParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasCoordinacionQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListProgramasCoordinacionSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError = unknown>(deptId: number,
+    params: ListProgramasCoordinacionParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasCoordinacionQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasCoordinacion>>> = ({ signal }) => listProgramasCoordinacion(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasCoordinacionSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasCoordinacion>>>
+export type ListProgramasCoordinacionSuspenseQueryError = unknown
+
+
+
+export function useListProgramasCoordinacionSuspense<TData = Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasCoordinacionParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasCoordinacion>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasCoordinacionSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listProgramasPendientesCoordinador = (
+    deptId: number,
+    params: ListProgramasPendientesCoordinadorParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ProgramaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/programas-coordinacion/pendientes`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListProgramasPendientesCoordinadorQueryKey = (deptId?: number,
+    params?: ListProgramasPendientesCoordinadorParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas-coordinacion/pendientes`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListProgramasPendientesCoordinadorQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError = unknown>(deptId: number,
+    params: ListProgramasPendientesCoordinadorParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasPendientesCoordinadorQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>> = ({ signal }) => listProgramasPendientesCoordinador(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasPendientesCoordinadorQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>>
+export type ListProgramasPendientesCoordinadorQueryError = unknown
+
+
+
+export function useListProgramasPendientesCoordinador<TData = Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasPendientesCoordinadorParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasPendientesCoordinadorQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListProgramasPendientesCoordinadorSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError = unknown>(deptId: number,
+    params: ListProgramasPendientesCoordinadorParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProgramasPendientesCoordinadorQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>> = ({ signal }) => listProgramasPendientesCoordinador(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListProgramasPendientesCoordinadorSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>>
+export type ListProgramasPendientesCoordinadorSuspenseQueryError = unknown
+
+
+
+export function useListProgramasPendientesCoordinadorSuspense<TData = Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError = unknown>(
+ deptId: number,
+    params: ListProgramasPendientesCoordinadorParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listProgramasPendientesCoordinador>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListProgramasPendientesCoordinadorSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 
