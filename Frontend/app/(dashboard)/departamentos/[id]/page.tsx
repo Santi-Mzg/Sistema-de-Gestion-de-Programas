@@ -96,6 +96,7 @@ export default function EditDepartamentoPage() {
               variant: "success",
             })    
 
+            router.push('/departamentos'); 
           },
         onError: (error: unknown) => {
 
@@ -278,7 +279,7 @@ export default function EditDepartamentoPage() {
                 <CardDescription className="text-base">Datos del departamento</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
                       Nombre del Departamento *
@@ -361,12 +362,13 @@ export default function EditDepartamentoPage() {
                   {activeRole === 'SYSTEM_ADMIN' && (
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
                       <Button
-                        type="submit"
-                        disabled={isLoading || !formData.nombre}
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={isPendingDpto || !formData.nombre}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                        {isPendingDpto ? "Guardando..." : "Guardar Cambios"}
                       </Button>
                     </div>
                   )}
@@ -409,10 +411,10 @@ export default function EditDepartamentoPage() {
                       <Button
                         onClick={() => setDirectorDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPendingDireccion}
                       >
                         <User size={18} className="mr-2" />
-                        Cambiar Dirección
+                        {isPendingDireccion ? "Asignando..." : "Cambiar Dirección"}
                       </Button>
                     )}
                   </div>
@@ -426,10 +428,11 @@ export default function EditDepartamentoPage() {
                       <Button
                         onClick={() => setDirectorDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPendingDireccion}
                       >
                         <User size={18} className="mr-2" />
                         Asignar Dirección
+                        {isPendingDireccion ? "Asignando..." : "Asignar Dirección"}
                       </Button>
                     )}
                   </div>
@@ -474,10 +477,10 @@ export default function EditDepartamentoPage() {
                       <Button
                         onClick={() => setSecretariaDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPendingSecretaria}
                       >
                         <User size={18} className="mr-2" />
-                        Cambiar Secretaría
+                        {isPendingSecretaria ? "Asignando..." : "Cambiar Secretaría"}
                       </Button>
                     )}
                   </div>
@@ -491,10 +494,10 @@ export default function EditDepartamentoPage() {
                       <Button
                         onClick={() => setSecretariaDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPendingSecretaria}
                       >
                         <User size={18} className="mr-2" />
-                        Asignar Secretaría
+                        {isPendingSecretaria ? "Asignando..." : "Cambiar Secretaría"}
                       </Button>
                     )}
                   </div>

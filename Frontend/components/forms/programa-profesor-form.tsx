@@ -103,14 +103,14 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           bibliografia: undefined,
         })
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           ),
         });
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getGetProgramaQueryKey(id)
         });
 
@@ -428,7 +428,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form className="space-y-8">
         {esRechazado && (
           <RejectionInfoCard estadoHistorico={ultimoEstado} />
         )}
@@ -685,7 +685,8 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4 border-t border-border">
           <Button 
-            type="submit" 
+            type="button"
+            onClick={handleSubmit}
             disabled={isPendingProfesor}
             className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
           >

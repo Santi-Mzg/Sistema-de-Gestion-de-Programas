@@ -67,7 +67,7 @@ export default function EditAreaPage() {
     }))
   }
   
-    const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateArea({
+    const { mutate: mutateDpto, isPending } = useUpdateArea({
         mutation: {
           onSuccess: () => { 
             toast({
@@ -179,7 +179,7 @@ export default function EditAreaPage() {
                 <CardDescription className="text-base">Datos del área</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
                       Nombre del Área *
@@ -199,12 +199,13 @@ export default function EditAreaPage() {
                   {havePermissions && (   
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
                       <Button
-                        type="submit"
-                        disabled={isLoading || !formData.nombre}
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={isPending || !formData.nombre}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                        {isPending ? "Guardando..." : "Guardar Cambios"}
                       </Button>
                     </div>
                   )}

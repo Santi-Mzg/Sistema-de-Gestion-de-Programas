@@ -82,7 +82,7 @@ export default function EditMateriaPage() {
     }))
   }
   
-  const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateMateria({
+  const { mutate: mutateDpto, isPending } = useUpdateMateria({
     mutation: {
           onSuccess: () => { 
             toast({
@@ -230,7 +230,7 @@ export default function EditMateriaPage() {
                 <CardDescription className="text-base">Actualiza los datos básicos de la materia</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
                       Nombre del Materia *
@@ -304,18 +304,19 @@ export default function EditMateriaPage() {
                         type="button"
                         variant="outline"
                         onClick={() => router.back()}
-                        disabled={isLoading}
+                        disabled={isPending}
                         className="flex-1 border-2"
                       >
                         Cancelar
                       </Button>
                       <Button
-                        type="submit"
-                        disabled={isLoading || !formData.nombre}
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={isPending || !formData.nombre}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Cambios"}
+                        {isPending ? "Guardando..." : "Guardar Cambios"}
                       </Button>
                     </div>
                   }

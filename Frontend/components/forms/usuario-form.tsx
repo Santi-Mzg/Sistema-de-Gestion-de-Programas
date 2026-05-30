@@ -69,7 +69,7 @@ export function UsuarioForm() {
           variant: "success",
         })    
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
         });
 
@@ -128,7 +128,7 @@ export function UsuarioForm() {
 
 
   return (
-   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4 bg-white rounded-lg shadow">
+   <form className="space-y-6 p-4 bg-white rounded-lg shadow">
       
       {/* INPUT ESTÁNDAR */}
       <div className="grid grid-cols-2 gap-2">
@@ -206,7 +206,7 @@ export function UsuarioForm() {
       </div>
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+        <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
           {isPending ? "Creando..." : "Crear"}
         </Button>
       </div>

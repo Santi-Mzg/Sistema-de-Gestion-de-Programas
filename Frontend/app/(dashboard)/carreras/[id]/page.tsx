@@ -322,7 +322,7 @@ export default function EditCarreraPage() {
                 <CardDescription className="text-base">Datos de la carrera</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
                       Nombre de la Carrera *
@@ -358,12 +358,13 @@ export default function EditCarreraPage() {
                   {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') &&
                     <div className="flex gap-3 pt-4 border-t-2 border-border">
                       <Button
-                        type="submit"
-                        disabled={isLoading || !formData.nombre}
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={isPendingDpto || !formData.nombre}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isLoading ? "Guardando..." : "Guardar Datos"}
+                        {isPendingDpto ? "Guardando..." : "Guardar Datos"}
                       </Button>
                     </div>
                   }
@@ -441,7 +442,8 @@ export default function EditCarreraPage() {
                       </div>
                       <div className="flex gap-3">
                         <Button
-                          type="submit"
+                          type="button"
+                          onClick={handleSubmit}
                           disabled={isCreatingPlan || !newPlanData.anio}
                           className="flex-1 bg-primary hover:bg-primary/90"
                         >
@@ -543,10 +545,10 @@ export default function EditCarreraPage() {
                       <Button
                         onClick={() => setDirectorDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPending}
                       >
                         <User size={18} className="mr-2" />
-                        Cambiar Comisión
+                        {isPending ? "Asignando..." : "Cambiar Comisión"}
                       </Button>
                     )}
                   </div>
@@ -560,10 +562,10 @@ export default function EditCarreraPage() {
                       <Button
                         onClick={() => setDirectorDialogOpen(true)}
                         className="w-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold"
-                        disabled={isLoading}
+                        disabled={isPending}
                       >
                         <User size={18} className="mr-2" />
-                        Asignar Comisión
+                        {isPending ? "Asignando..." : "Asignar Comisión"}
                       </Button>
                     )}
                   </div>

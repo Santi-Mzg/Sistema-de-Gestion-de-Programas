@@ -60,14 +60,14 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
           variant: "success",
         })      
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListProgramasCoordinacionQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           ),
         });
         
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListProgramasPendientesCoordinadorQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }

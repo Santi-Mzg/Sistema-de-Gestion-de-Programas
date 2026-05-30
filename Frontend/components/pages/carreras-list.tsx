@@ -85,13 +85,13 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListCarrerasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),
           });
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getGetCarreraQueryKey(variables.id)
           });
         },
@@ -173,7 +173,7 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                         onClick={() => router.push(`/carreras/crear`)}
                         className="border-2 hover:bg-primary hover:text-primary-foreground">
                   <Plus size={16} className="mr-1" />
-                  Crear Nueva
+                  Crear Carrera
                 </Button>
               }
             </div>

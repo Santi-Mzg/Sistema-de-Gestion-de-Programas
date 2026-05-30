@@ -74,13 +74,13 @@ export function AreasList({ areas = [] }: AreasListProps) {
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListAreasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),
           });
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getGetAreaQueryKey(variables.id)
           });
         },
@@ -159,7 +159,7 @@ export function AreasList({ areas = [] }: AreasListProps) {
                     onClick={() => router.push(`/areas/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Nueva
+              Crear Área
             </Button>
           }
         </div>

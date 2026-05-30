@@ -44,18 +44,20 @@ public class DepartamentoEntity {
     private String sitioWeb;
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<MateriaEntity> materias;
+    private List<MateriaEntity> materias = new ArrayList<>();
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AreaEntity> areas = new ArrayList<>();
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CarreraEntity> carreras;
+    private List<CarreraEntity> carreras = new ArrayList<>();
 
     @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<UsuarioDepartamentoEntity> usuarios;
+    private List<UsuarioDepartamentoEntity> usuarios = new ArrayList<>();
 
     public UsuarioDepartamentoEntity getSecretaria() {
+        if (usuarios == null) return null;
+
         return usuarios.stream()
                 .filter(ude -> ude.getRoles().contains(Rol.SECRETARIA))
                 .findFirst()
@@ -63,6 +65,8 @@ public class DepartamentoEntity {
     }
 
     public UsuarioDepartamentoEntity getDireccionAdministrativa() {
+        if (usuarios == null) return null;
+
         return usuarios.stream()
                 .filter(ude -> ude.getRoles().contains(Rol.DIRECCION_ADMINISTRATIVA))
                 .findFirst()

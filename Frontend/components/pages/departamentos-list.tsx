@@ -66,11 +66,11 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListDepartamentosQueryKey(),
           });
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getGetDepartamentoQueryKey(variables.id)
           });
         },
@@ -147,7 +147,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     onClick={() => router.push(`/departamentos/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Nuevo
+              Crear Departamento
             </Button>
           }
         </div>

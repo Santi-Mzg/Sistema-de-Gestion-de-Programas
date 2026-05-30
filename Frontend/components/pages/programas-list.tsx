@@ -307,7 +307,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
                       <p className="text-base">No se encontraron Programas con los filtros seleccionados</p>
                       {(activeRole === "ADMINISTRACION" || activeRole === "SYSTEM_ADMIN") && (
                         <Link href="/programas/crear">
-                          <Button>Crear Programa</Button>
+                          <Button>Nuevo Programa</Button>
                         </Link>
                       )}
                     </div>

@@ -162,7 +162,7 @@ export function SyllabusCreationForm() {
           cantidadSemanas: undefined,
         })
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
@@ -635,7 +635,7 @@ export function SyllabusCreationForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form className="space-y-8">
         {/* BLOQUE ÚNICO */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
           <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
@@ -1005,7 +1005,8 @@ export function SyllabusCreationForm() {
         {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-border">
             <Button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >

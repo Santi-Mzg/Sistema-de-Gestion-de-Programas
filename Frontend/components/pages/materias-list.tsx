@@ -69,13 +69,13 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListMateriasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),
           });
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getGetMateriaQueryKey(variables.id)
           });
         },
@@ -155,7 +155,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                     onClick={() => router.push(`/materias/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Nueva
+              Crear Materia
             </Button>
           }
         </div>

@@ -48,7 +48,7 @@ export function AreaForm() {
             nombre: "",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
           });
 
@@ -105,7 +105,7 @@ export function AreaForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="space-y-6">
       <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -144,7 +144,7 @@ export function AreaForm() {
 
 
         <div className="flex gap-3 pt-4">
-          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+          <Button type="button" onClick={handleSubmit} disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>

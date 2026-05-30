@@ -73,13 +73,13 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getListUsersDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),
           });
 
-          queryClient.invalidateQueries({
+          queryClient.removeQueries({
             queryKey: getGetUserByIdQueryKey(variables.id)
           });
         },
@@ -148,7 +148,7 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                     onClick={() => router.push(`/usuarios/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Nuevo
+              Crear Usuario
             </Button>
           }
         </div>

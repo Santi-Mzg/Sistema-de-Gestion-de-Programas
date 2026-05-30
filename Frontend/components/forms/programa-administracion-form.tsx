@@ -142,14 +142,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           cantidadSemanas: undefined,
         })
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
         });
 
-        queryClient.invalidateQueries({
+        queryClient.removeQueries({
           queryKey: getGetProgramaQueryKey(id)
         });
 
@@ -606,7 +606,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form className="space-y-8">
         {esRechazado && (
           <RejectionInfoCard estadoHistorico={ultimoEstado} />
         )}
@@ -950,7 +950,8 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-border">
             <Button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >

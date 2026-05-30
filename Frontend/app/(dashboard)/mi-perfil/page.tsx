@@ -271,18 +271,18 @@ export default function MainUserPage() {
                       type="button"
                       variant="outline"
                       onClick={() => router.push('/')}
-                      disabled={isLoading}
+                      disabled={isPending}
                       className="flex-1 border-2"
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
-                      disabled={isLoading || !formData.nombre}
+                      disabled={isPending || !formData.nombre}
                       className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <Save size={18} className="mr-2" />
-                      {isLoading ? "Guardando..." : "Guardar Cambios"}
+                      {isPending ? "Guardando..." : "Guardar Cambios"}
                     </Button>
                   </div>
                 </form>
