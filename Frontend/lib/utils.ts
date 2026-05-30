@@ -23,7 +23,7 @@ export const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
   const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
     SYSTEM_ADMIN: "Administrador del Sistema",
     DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
-    SECRETARIA: "Secretaría",
+    SECRETARIA: "Secretaría Académica",
     COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
     DOCENTE: "Docente",
     ADMINISTRACION: "Administración",
