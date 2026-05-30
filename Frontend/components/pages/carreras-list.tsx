@@ -5,7 +5,7 @@ import { Search, Trash2, Eye, Plus, GraduationCap } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useDeleteCarrera } from "@/app/api/generated/client"
+import { getGetCarreraQueryKey, getListCarrerasDepartamentoQueryKey, useDeleteCarrera } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
 import { useDept } from "@/context/dept-context"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
 
 
 interface CarrerasListProps {
@@ -30,6 +31,8 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient();
+
 
   useEffect(() => {
     if(activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR) {
@@ -75,12 +78,22 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
 
   const { mutate, isPending } = useDeleteCarrera({
     mutation: {
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Carrera eliminada exitosamente",
             variant: "success",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListCarrerasDepartamentoQueryKey(
+              activeDepartamento!.departamentoId!
+            ),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: getGetCarreraQueryKey(variables.id)
+          });
         },
         onError: (error: unknown) => {
 

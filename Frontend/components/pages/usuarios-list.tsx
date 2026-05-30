@@ -5,7 +5,7 @@ import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Plus, Users } fr
 import { Input } from "@/components/ui/input"
 import { UserResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useDeleteUser } from "@/app/api/generated/client"
+import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useDeleteUser } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import { useDept } from "@/context/dept-context"
@@ -15,6 +15,8 @@ import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
 import { getRoleLabel } from "@/lib/utils"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface UsuariosListProps {
   usuarios?: UserResponseDTO[]
@@ -30,6 +32,8 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient();
+
 
   useEffect(() => {
     setHeader({
@@ -62,12 +66,22 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
 
   const { mutate, isPending } = useDeleteUser({
     mutation: {
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Usuario eliminado exitosamente",
             variant: "success",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListUsersDepartamentoQueryKey(
+              activeDepartamento!.departamentoId!
+            ),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: getGetUserByIdQueryKey(variables.id)
+          });
         },
         onError: (error: unknown) => {
 

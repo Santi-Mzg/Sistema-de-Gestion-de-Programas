@@ -5,7 +5,7 @@ import { Search, Edit2, Trash2, Plus, Layers } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { AreaCreateDTO, AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useDeleteArea } from "@/app/api/generated/client"
+import { getGetAreaQueryKey, getListAreasDepartamentoQueryKey, useDeleteArea } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -13,6 +13,8 @@ import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { useDept } from "@/context/dept-context"
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
@@ -27,6 +29,10 @@ export function AreasList({ areas = [] }: AreasListProps) {
   const [selectedArea, setSelectedArea] = useState<AreaResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const { activeDepartamento } = useDept()
+  const queryClient = useQueryClient();
+
+
 
   const hasPermission = (activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
                           activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
@@ -61,12 +67,22 @@ export function AreasList({ areas = [] }: AreasListProps) {
 
   const { mutate, isPending } = useDeleteArea({
     mutation: {
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Área eliminada exitosamente",
             variant: "success",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListAreasDepartamentoQueryKey(
+              activeDepartamento!.departamentoId!
+            ),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: getGetAreaQueryKey(variables.id)
+          });
         },
         onError: (error: unknown) => {
 

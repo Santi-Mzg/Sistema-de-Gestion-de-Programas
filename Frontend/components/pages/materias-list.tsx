@@ -5,7 +5,7 @@ import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, Alert
 import { Input } from "@/components/ui/input"
 import { MateriaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useDeleteMateria } from "@/app/api/generated/client"
+import { getGetMateriaQueryKey, getListMateriasDepartamentoQueryKey, useDeleteMateria } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -13,6 +13,8 @@ import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
+import { useDept } from "@/context/dept-context"
 
 interface MateriasListProps {
   materias?: MateriaResponseDTO[]
@@ -22,11 +24,13 @@ interface MateriasListProps {
 export function MateriasList({ materias = [] }: MateriasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
+  const { activeDepartamento } = useDept()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setHeader({
@@ -58,12 +62,22 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
 
   const { mutate, isPending } = useDeleteMateria({
     mutation: {
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Materia eliminada exitosamente",
             variant: "success",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListMateriasDepartamentoQueryKey(
+              activeDepartamento!.departamentoId!
+            ),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: getGetMateriaQueryKey(variables.id)
+          });
         },
         onError: (error: unknown) => {
 

@@ -5,7 +5,7 @@ import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, Build
 import { Input } from "@/components/ui/input"
 import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { useDeleteDepartamento } from "@/app/api/generated/client"
+import { getGetDepartamentoQueryKey, getListDepartamentosQueryKey, useDeleteDepartamento } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -13,6 +13,7 @@ import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DepartamentosListProps {
   departamentos?: DepartamentoResponseDTO[]
@@ -27,6 +28,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
   const [selectedDepartamento, setSelectedDepartamento] = useState<DepartamentoResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setHeader({
@@ -57,12 +59,20 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
   const { mutate, isPending } = useDeleteDepartamento({
     mutation: {
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Departamento eliminado exitosamente",
             variant: "success",
           })
+
+          queryClient.invalidateQueries({
+            queryKey: getListDepartamentosQueryKey(),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: getGetDepartamentoQueryKey(variables.id)
+          });
         },
         onError: (error: unknown) => {
 

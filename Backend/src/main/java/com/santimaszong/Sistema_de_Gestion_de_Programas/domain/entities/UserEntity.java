@@ -52,6 +52,8 @@ public class UserEntity implements UserDetails {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UsuarioDepartamentoEntity> departamentos = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PasswordTokenEntity> passwordToken = new ArrayList<>();
 
     // ============================
     // USERDETAILS IMPLEMENTATION
