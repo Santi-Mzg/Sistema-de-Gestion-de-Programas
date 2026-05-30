@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
+import axios from "axios"
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
@@ -67,10 +68,23 @@ export function AreasList({ areas = [] }: AreasListProps) {
             variant: "success",
           })
         },
-        onError: (error: Error) => {
+        onError: (error: unknown) => {
+
+          let errorMessage = "Ocurrió un error inesperado";
+
+          if (axios.isAxiosError(error)) {
+            const backendError = error.response?.data;
+            
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                          "Ocurrió un error inesperado";
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+
           toast({
             title: "✗ Error",
-            description: error instanceof Error ? error.message : "Error desconocido",
+            description: errorMessage,
             variant: "destructive",
           })
         },

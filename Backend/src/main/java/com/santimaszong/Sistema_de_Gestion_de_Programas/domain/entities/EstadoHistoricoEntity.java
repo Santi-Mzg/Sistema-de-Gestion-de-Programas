@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
@@ -27,7 +29,7 @@ public class EstadoHistoricoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programa_id")
-    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private ProgramaEntity programa;
 
     @Enumerated(EnumType.STRING)
@@ -41,6 +43,7 @@ public class EstadoHistoricoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "actor_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UsuarioDepartamentoEntity actor;
 
     private Rol actorRol;

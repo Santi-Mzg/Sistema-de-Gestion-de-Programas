@@ -30,7 +30,7 @@ public class UsuarioDepartamentoEntity {
     @Column(nullable = false)
     private String email;
 
-    @OneToMany(mappedBy = "actor", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "actor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EstadoHistoricoEntity> historialAcciones = new ArrayList<>();
 
     @OneToMany(mappedBy = "comision")
