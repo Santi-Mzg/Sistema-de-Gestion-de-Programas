@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
 import { useHeader } from "@/context/header-context"
 import { Building2 } from "lucide-react"
+import axios from "axios"
 
 
 export function DepartamentoForm() {
@@ -58,10 +59,23 @@ export function DepartamentoForm() {
 
           router.push('/departamentos'); 
         },
-        onError: (error: Error) => {
+        onError: (error: unknown) => {
+
+          let errorMessage = "Ocurrió un error inesperado";
+
+          if (axios.isAxiosError(error)) {
+            const backendError = error.response?.data;
+            
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                          "Ocurrió un error inesperado";
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+
           toast({
             title: "✗ Error",
-            description: error instanceof Error ? error.message : "Error desconocido",
+            description: errorMessage,
             variant: "destructive",
           })
         },

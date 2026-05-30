@@ -16,6 +16,7 @@ import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useQueryClient } from "@tanstack/react-query";
 import { useHeader } from "@/context/header-context"
+import axios from "axios"
 
 interface SyllabusFormProps {
   id: number,
@@ -65,13 +66,27 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
 
         router.push('/'); 
       },
-      onError: (error: Error) => {
+
+      onError: (error: unknown) => {
+
+        let errorMessage = "Ocurrió un error inesperado";
+
+        if (axios.isAxiosError(error)) {
+          const backendError = error.response?.data;
+          
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                        "Ocurrió un error inesperado";
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
         toast({
           title: "✗ Error",
-          description: error instanceof Error ? error.message : "Error desconocido",
+          description: errorMessage,
           variant: "destructive",
         })
-      },    
+      },
     }
   });
 

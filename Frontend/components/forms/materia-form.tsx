@@ -76,19 +76,18 @@ export function MateriaForm() {
         },
         onError: (error: unknown) => {
 
-          let errorMessage = "Error desconocido";
+          let errorMessage = "Ocurrió un error inesperado";
 
           if (axios.isAxiosError(error)) {
             const backendError = error.response?.data;
             
-            errorMessage = backendError?.message || 
-                          backendError?.errors?.Error || 
-                          "Error de servidor";
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                          "Ocurrió un error inesperado";
           } else if (error instanceof Error) {
             errorMessage = error.message;
           }
 
-          console.log("Datos del error:", errorMessage);
           toast({
             title: "✗ Error",
             description: errorMessage,

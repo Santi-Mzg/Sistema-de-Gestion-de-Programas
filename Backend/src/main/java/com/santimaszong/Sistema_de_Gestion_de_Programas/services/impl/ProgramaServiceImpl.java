@@ -676,12 +676,18 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
         List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
+        List<String> carrerasSinComision = new ArrayList<>();
 
         for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
             ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
             bloqueEntity.setPrograma(programaEntity);
 
             CarreraPlanEntity plan = carreraService.getPlanEntityById(bloqueDTO.getCarreraPlanId());
+            CarreraEntity carrera = plan.getCarrera();
+            if(carrera.getComision() == null){
+                carrerasSinComision.add(carrera.getNombre());
+                continue;
+            }
 
             bloqueEntity.setCarreraPlan(plan);
             List<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
@@ -699,6 +705,17 @@ public class ProgramaServiceImpl implements ProgramaService {
 
             bloquesMultiplesEntity.add(bloqueEntity);
         }
+
+        if (!carrerasSinComision.isEmpty()) {
+
+            String carreras = String.join(", ", carrerasSinComision);
+
+            throw new IllegalStateException(
+                    "Las carreras asociadas al programa deben tener asignada una comisión curricular: "
+                            + carreras
+            );
+        }
+
         return bloquesMultiplesEntity;
     }
 }

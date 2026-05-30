@@ -16,6 +16,7 @@ import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
+import axios from "axios"
 
 
 export default function EditDepartamentoPage() {
@@ -96,13 +97,26 @@ export default function EditDepartamentoPage() {
             })    
 
           },
-          onError: (error: Error) => {
-            toast({
-              title: "✗ Error",
-              description: error instanceof Error ? error.message : "Error desconocido",
-              variant: "destructive",
-            })
-        }
+        onError: (error: unknown) => {
+
+          let errorMessage = "Ocurrió un error inesperado";
+
+          if (axios.isAxiosError(error)) {
+            const backendError = error.response?.data;
+            
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                          "Ocurrió un error inesperado";
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+
+          toast({
+            title: "✗ Error",
+            description: errorMessage,
+            variant: "destructive",
+          })
+        },
       }
   });
 

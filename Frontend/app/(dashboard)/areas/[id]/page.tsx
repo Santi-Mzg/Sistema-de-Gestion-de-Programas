@@ -15,6 +15,7 @@ import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
+import axios from "axios"
 
 
 export default function EditAreaPage() {
@@ -77,13 +78,26 @@ export default function EditAreaPage() {
 
             router.push('/areas'); 
           },
-          onError: (error: Error) => {
-            toast({
-              title: "✗ Error",
-              description: error instanceof Error ? error.message : "Error desconocido",
-              variant: "destructive",
-            })
-        }
+        onError: (error: unknown) => {
+
+          let errorMessage = "Ocurrió un error inesperado";
+
+          if (axios.isAxiosError(error)) {
+            const backendError = error.response?.data;
+            
+            errorMessage = backendError?.errors?.Error || 
+                          backendError?.message || 
+                          "Ocurrió un error inesperado";
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+
+          toast({
+            title: "✗ Error",
+            description: errorMessage,
+            variant: "destructive",
+          })
+        },
         }
     });
 
