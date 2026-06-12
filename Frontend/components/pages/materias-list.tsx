@@ -69,7 +69,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
             variant: "success",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListMateriasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),

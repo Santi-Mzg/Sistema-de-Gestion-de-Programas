@@ -50,14 +50,14 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
           variant: "success",
         })      
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           ),
         });
         
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListProgramasPendientesQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }

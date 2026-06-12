@@ -85,7 +85,7 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
             variant: "success",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListCarrerasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),

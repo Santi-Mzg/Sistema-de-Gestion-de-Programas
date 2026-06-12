@@ -142,14 +142,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           cantidadSemanas: undefined,
         })
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
         });
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getGetProgramaQueryKey(id)
         });
 

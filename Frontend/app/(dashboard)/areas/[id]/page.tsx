@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AreaResponseDTO, AreaCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getGetAreaQueryKey, useGetArea, useUpdateArea } from "@/app/api/generated/client"
+import { getGetAreaQueryKey, getListAreasDepartamentoQueryKey, useGetArea, useUpdateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
+
 
 
 export default function EditAreaPage() {
@@ -23,6 +25,8 @@ export default function EditAreaPage() {
   const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient(); 
+
 
   const { setHeader } = useHeader()
 
@@ -75,6 +79,14 @@ export default function EditAreaPage() {
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
+
+            queryClient.invalidateQueries({
+              queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetAreaQueryKey(Number(id))
+            });
 
             router.push('/areas'); 
           },

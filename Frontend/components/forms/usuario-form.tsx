@@ -69,7 +69,7 @@ export function UsuarioForm() {
           variant: "success",
         })    
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
         });
 

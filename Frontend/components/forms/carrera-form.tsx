@@ -61,7 +61,7 @@ export function CarreraForm() {
             // cantidadMaterias: undefined,
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
           });
 

@@ -103,14 +103,14 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           bibliografia: undefined,
         })
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           ),
         });
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getGetProgramaQueryKey(id)
         });
 

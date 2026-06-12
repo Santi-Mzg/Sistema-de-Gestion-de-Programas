@@ -162,7 +162,7 @@ export function SyllabusCreationForm() {
           cantidadSemanas: undefined,
         })
 
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }

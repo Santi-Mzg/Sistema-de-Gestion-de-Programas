@@ -66,13 +66,14 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
             variant: "success",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListDepartamentosQueryKey(),
           });
 
           queryClient.removeQueries({
             queryKey: getGetDepartamentoQueryKey(variables.id)
           });
+
         },
         onError: (error: unknown) => {
 

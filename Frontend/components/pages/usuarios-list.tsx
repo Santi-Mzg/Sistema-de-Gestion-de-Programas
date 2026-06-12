@@ -73,7 +73,7 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
             variant: "success",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListUsersDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),

@@ -48,7 +48,7 @@ export function AreaForm() {
             nombre: "",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
           });
 

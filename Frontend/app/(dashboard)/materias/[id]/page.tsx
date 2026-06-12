@@ -10,12 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MateriaResponseDTO, MateriaCreateDTO, UserResponseDTO, UserResponseReducedDTO, AreaResponseDTO } from "@/app/api/generated/model"
-import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey } from "@/app/api/generated/client"
+import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey, getListMateriasDepartamentoQueryKey } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export default function EditMateriaPage() {
@@ -23,6 +24,7 @@ export default function EditMateriaPage() {
   const { activeDepartamento } = useDept()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient(); 
   const [isLoading, setIsLoading] = useState(false)
 
   const havePermissions = !(activeRole !== 'SYSTEM_ADMIN' && activeRole !== 'DIRECCION_ADMINISTRATIVA' && activeRole !== 'SECRETARIA' && activeRole !== 'ADMINISTRACION')
@@ -90,6 +92,14 @@ export default function EditMateriaPage() {
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
+
+            queryClient.invalidateQueries({
+              queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetMateriaQueryKey(Number(id))
+            });
 
             router.push('/materias'); 
           },

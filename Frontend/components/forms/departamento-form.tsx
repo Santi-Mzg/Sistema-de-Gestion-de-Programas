@@ -53,7 +53,7 @@ export function DepartamentoForm() {
             sitioWeb: "",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListDepartamentosQueryKey()
           });
 

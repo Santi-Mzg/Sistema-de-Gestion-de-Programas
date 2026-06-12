@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO, CarreraPlanCreateDTO } from "@/app/api/generated/model"
-import { getGetCarreraQueryKey, getListUsersDepartamentoQueryKey, useCreateCarreraPlan, useDeleteCarreraPlan, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { getGetCarreraQueryKey, getListCarrerasDepartamentoQueryKey, getListUsersDepartamentoQueryKey, useCreateCarreraPlan, useDeleteCarreraPlan, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+
 
 export default function EditCarreraPage() {
   const { activeRole } = useRole()
@@ -110,6 +111,14 @@ export default function EditCarreraPage() {
               variant: "success",
             })    
 
+            queryClient.invalidateQueries({
+              queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetCarreraQueryKey(Number(id))
+            });
+
             router.push('/carreras'); 
           },
         onError: (error: unknown) => {
@@ -162,6 +171,15 @@ export default function EditCarreraPage() {
               description: `Coordinación de la Comisión Curricular actualizada exitosamente`,
               variant: "success",
             })
+            
+            queryClient.invalidateQueries({
+              queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetCarreraQueryKey(Number(id))
+            });
+
           },
           onError: (error: Error) => {
             toast({

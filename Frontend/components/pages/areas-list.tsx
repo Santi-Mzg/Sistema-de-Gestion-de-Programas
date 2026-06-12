@@ -74,7 +74,7 @@ export function AreasList({ areas = [] }: AreasListProps) {
             variant: "success",
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListAreasDepartamentoQueryKey(
               activeDepartamento!.departamentoId!
             ),

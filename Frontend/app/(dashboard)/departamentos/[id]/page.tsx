@@ -11,18 +11,21 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getGetDepartamentoQueryKey, getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
+import { getGetDepartamentoQueryKey, getListDepartamentosQueryKey, getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export default function EditDepartamentoPage() {
   const { activeRole } = useRole()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient(); 
+
   const departamentoQuery = useGetDepartamento(Number(id),
       {
         query: {
@@ -96,6 +99,14 @@ export default function EditDepartamentoPage() {
               variant: "success",
             })    
 
+            queryClient.invalidateQueries({
+              queryKey: getListDepartamentosQueryKey()
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetDepartamentoQueryKey(Number(id))
+            });
+
             router.push('/departamentos'); 
           },
         onError: (error: unknown) => {
@@ -148,6 +159,14 @@ export default function EditDepartamentoPage() {
               description: `Dirección Administrativa actualizada exitosamente`,
               variant: "success",
             })
+
+            queryClient.invalidateQueries({
+              queryKey: getListDepartamentosQueryKey()
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetDepartamentoQueryKey(Number(id))
+            });
           },
           onError: (error: Error) => {
             toast({
@@ -188,6 +207,14 @@ export default function EditDepartamentoPage() {
               description: `Secretaría Académica actualizada exitosamente`,
               variant: "success",
             })
+
+            queryClient.invalidateQueries({
+              queryKey: getListDepartamentosQueryKey()
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetDepartamentoQueryKey(Number(id))
+            });
           },
           onError: (error: Error) => {
             toast({
@@ -431,7 +458,6 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingDireccion}
                       >
                         <User size={18} className="mr-2" />
-                        Asignar Dirección
                         {isPendingDireccion ? "Asignando..." : "Asignar Dirección"}
                       </Button>
                     )}
@@ -497,7 +523,7 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingSecretaria}
                       >
                         <User size={18} className="mr-2" />
-                        {isPendingSecretaria ? "Asignando..." : "Cambiar Secretaría"}
+                        {isPendingSecretaria ? "Asignando..." : "Asignar Secretaría"}
                       </Button>
                     )}
                   </div>

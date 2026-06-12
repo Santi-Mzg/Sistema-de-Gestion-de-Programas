@@ -11,15 +11,18 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDepartamentoDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context"
-import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
+import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>()
   const { activeDepartamento } = useDept()
+  const queryClient = useQueryClient(); 
+  
 
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
     return(
@@ -89,6 +92,14 @@ export default function EditUserPage() {
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
+
+            queryClient.invalidateQueries({
+              queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: getGetUserByIdQueryKey(Number(id))
+            });
 
             router.push('/usuarios'); 
           },

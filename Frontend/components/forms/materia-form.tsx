@@ -67,7 +67,7 @@ export function MateriaForm() {
             areaId: areas?.[0]?.id,
           })
 
-          queryClient.removeQueries({
+          queryClient.invalidateQueries({
             queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
           });
 
