@@ -222,8 +222,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>11.17.0</version>
                 <configuration>
-                    <user>avnadmin</user>
-                    <password>AVNS_8Sg9XbhenAVT1GYIfrK</password>
+                    <url>${env.SPRING_DATASOURCE_URL}</url>
+                    <user>${env.SPRING_DATASOURCE_USERNAME}</user>
+                    <password>${env.SPRING_DATASOURCE_PASSWORD}</password>
                     <schemas>
                         <schema>public</schema>
                     </schemas>
