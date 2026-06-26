@@ -64,51 +64,42 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 2a ─ SCA Backend (OWASP Dependency Check)
   # ═══════════════════════════════════════════════════════════════════════════
-  sca-backend:
-    name: "2a · SCA Backend (OWASP Dependency Check)"
+    sca-backend:
+    name: "2a · SCA Backend (Trivy — dependências Maven)"
     needs: secret-detection
     runs-on: ubuntu-latest
-    # La descarga inicial de la NVD puede tomar ~30 min; el caché la elimina.
-    # timeout-minutes: 60
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java 21 (Temurin)
-        uses: actions/setup-java@v4
+      - name: Trivy — scan dependências Backend (pom.xml)
+        uses: aquasecurity/trivy-action@master
         with:
-          java-version: '21'
-          distribution: temurin
-          cache: maven
+          scan-type: fs
+          scan-ref: Backend/
+          scanners: vuln
+          format: table
+          exit-code: '0'
+          severity: MEDIUM,HIGH,CRITICAL
 
-      # La base de datos NVD no forma parte del caché de Maven (~/.m2),
-      # por lo que necesita su propia entrada de caché.
-      - name: Cache NVD database
-        uses: actions/cache@v4
+      - name: Trivy — gerar relatório JSON
+        uses: aquasecurity/trivy-action@master
         with:
-          path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: owasp-nvd-${{ runner.os }}
-          restore-keys: owasp-nvd-${{ runner.os }}
+          scan-type: fs
+          scan-ref: Backend/
+          scanners: vuln
+          format: json
+          output: trivy-backend-report.json
+          exit-code: '0'
+          severity: MEDIUM,HIGH,CRITICAL
 
-      - name: Make mvnw executable
-        working-directory: Backend
-        run: chmod +x ./mvnw
-
-      - name: OWASP Dependency Check
-        working-directory: Backend
-        run: |
-          ./mvnw org.owasp:dependency-check-maven:check \
-          -DfailBuildOnCVSS=7 \
-          -DsuppressAutoUpdate=false \
-          -DnvdApiKey=${{ secrets.NVD_API_KEY }} \
-          --no-transfer-progress
-
-      - name: Upload Dependency Check report
+      - name: Upload Trivy Backend report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-check-report
-          path: Backend/target/dependency-check-report.html
+          name: trivy-backend-sca-report
+          path: trivy-backend-report.json
           retention-days: 30
 
 
