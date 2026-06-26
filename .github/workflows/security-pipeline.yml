@@ -21,9 +21,9 @@ name: Security Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [devsecops]
   pull_request:
-    branches: [main]
+    branches: [devsecops]
 
 # Permisos mínimos a nivel workflow; se amplían por job donde es necesario.
 permissions:
