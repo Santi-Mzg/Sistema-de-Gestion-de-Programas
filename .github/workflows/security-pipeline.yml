@@ -64,7 +64,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 2a ─ SCA Backend (OWASP Dependency Check)
   # ═══════════════════════════════════════════════════════════════════════════
-    sca-backend:
+  sca-backend:
     name: "2a · SCA Backend (Trivy — dependências Maven)"
     needs: secret-detection
     runs-on: ubuntu-latest
