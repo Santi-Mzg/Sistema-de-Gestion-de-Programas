@@ -276,8 +276,7 @@ jobs:
 
           # Iniciar Spring Boot em background dentro do mesmo step
           ./mvnw spring-boot:run \
-            -Dspring-boot.run.useTestClasspath=true \
-            -Dspring-boot.run.profiles=test \
+            -Dspring-boot.run.profiles=dast \
             --no-transfer-progress > /tmp/spring.log 2>&1 &
           echo $! > /tmp/spring_pid
 
