@@ -259,11 +259,13 @@ jobs:
       #   - src/test/resources/application.properties (que ya tiene H2,
       #     JWT stub y claves dummy) toma precedencia sobre el de main
       #     (que requiere PostgreSQL y variables de entorno reales).
-      - name: Compilar backend
+      - name: Baixar dependências e compilar
         working-directory: Backend
         run: |
           chmod +x ./mvnw
-          ./mvnw compile test-compile -q --no-transfer-progress
+          ./mvnw dependency:resolve dependency:resolve-plugins \
+            test-compile compile \
+            -q --no-transfer-progress
 
       - name: Start backend (H2 in-memory, test profile)
         working-directory: Backend
@@ -277,11 +279,9 @@ jobs:
           ./mvnw spring-boot:run \
             -Dspring-boot.run.useTestClasspath=true \
             -Dspring-boot.run.profiles=test \
-            --no-transfer-progress \
-            -o &
+            --no-transfer-progress &
           echo $! > /tmp/spring_pid
 
-      # Polling a /actuator/health cada 2 segundos, máximo 180 segundos.
       - name: Wait for backend health (max 180s)
         run: |
           echo "Waiting for Spring Boot to start..."
