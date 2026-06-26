@@ -259,6 +259,12 @@ jobs:
       #   - src/test/resources/application.properties (que ya tiene H2,
       #     JWT stub y claves dummy) toma precedencia sobre el de main
       #     (que requiere PostgreSQL y variables de entorno reales).
+      - name: Compilar backend
+        working-directory: Backend
+        run: |
+          chmod +x ./mvnw
+          ./mvnw compile test-compile -q --no-transfer-progress
+
       - name: Start backend (H2 in-memory, test profile)
         working-directory: Backend
         env:
@@ -268,26 +274,26 @@ jobs:
           RESEND_FROM_EMAIL: dast@example.com
           SERVER_PORT: '8080'
         run: |
-          chmod +x ./mvnw
           ./mvnw spring-boot:run \
             -Dspring-boot.run.useTestClasspath=true \
             -Dspring-boot.run.profiles=test \
-            --no-transfer-progress &
+            --no-transfer-progress \
+            -o &
           echo $! > /tmp/spring_pid
 
-      # Polling a /actuator/health cada 2 segundos, máximo 120 segundos.
-      - name: Wait for backend health (max 120s)
+      # Polling a /actuator/health cada 2 segundos, máximo 180 segundos.
+      - name: Wait for backend health (max 180s)
         run: |
           echo "Waiting for Spring Boot to start..."
-          for i in $(seq 1 60); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
               echo "Backend healthy after $((i * 2))s"
               exit 0
             fi
-            echo "  attempt $i/60 — retrying in 2s..."
+            echo "  attempt $i/90 — retrying in 2s..."
             sleep 2
           done
-          echo "Backend did not start within 120s"
+          echo "Backend did not start within 180s"
           exit 1
 
       # ZAP lee la especificación OpenAPI del backend levantado en memoria
