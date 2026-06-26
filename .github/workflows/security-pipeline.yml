@@ -69,7 +69,7 @@ jobs:
     needs: secret-detection
     runs-on: ubuntu-latest
     # La descarga inicial de la NVD puede tomar ~30 min; el caché la elimina.
-    timeout-minutes: 45
+    timeout-minutes: 90
 
     steps:
       - uses: actions/checkout@v4
@@ -98,9 +98,10 @@ jobs:
         working-directory: Backend
         run: |
           ./mvnw org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=7 \
-            -DsuppressAutoUpdate=false \
-            --no-transfer-progress
+          -DfailBuildOnCVSS=7 \
+          -DsuppressAutoUpdate=false \
+          -DnvdApiKey=${{ secrets.NVD_API_KEY }} \
+          --no-transfer-progress
 
       - name: Upload Dependency Check report
         if: always()
