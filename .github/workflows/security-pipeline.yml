@@ -1,0 +1,374 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Security Pipeline — Sílabus UNS
+#
+# Flujo de ejecución:
+#
+#   secret-detection
+#   ├── sca-backend  ─────────────────────────┐
+#   ├── sca-frontend ─────────────────────────┤
+#   ├── sast         ─────────────────────────┤──► dast
+#   └── iac-scanning ─────────────────────────┘
+#   └── (todos) ──────────────────────────────────► pipeline-summary (always)
+#
+# Secrets requeridos en el repositorio:
+#   JWT_SECRET_TEST  — clave JWT para el backend en modo DAST (puede ser dummy)
+#   GEMINI_API_KEY   — puede ser dummy ("test") para DAST
+#   RESEND_API_KEY   — puede ser dummy ("test") para DAST
+#   GITLEAKS_LICENSE — requerido solo si el repositorio es privado
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Security Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Permisos mínimos a nivel workflow; se amplían por job donde es necesario.
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 1 ─ Secret Detection
+  # ═══════════════════════════════════════════════════════════════════════════
+  secret-detection:
+    name: "1 · Secret Detection (Gitleaks)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout — historial completo
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 trae todos los commits; sin esto gitleaks
+          # solo ve el snapshot del trigger y no puede recorrer el historial.
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE es requerido en repos privados.
+          # En repos públicos puede omitirse o dejarse vacío.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          # log-opts se pasa directamente a `git log`.
+          # "--all" hace que gitleaks recorra TODAS las ramas y tags,
+          # no solo los commits del push/PR actual.
+          log-opts: --all
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 2a ─ SCA Backend (OWASP Dependency Check)
+  # ═══════════════════════════════════════════════════════════════════════════
+  sca-backend:
+    name: "2a · SCA Backend (OWASP Dependency Check)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+    # La descarga inicial de la NVD puede tomar ~30 min; el caché la elimina.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # La base de datos NVD no forma parte del caché de Maven (~/.m2),
+      # por lo que necesita su propia entrada de caché.
+      - name: Cache NVD database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-nvd-${{ runner.os }}
+          restore-keys: owasp-nvd-${{ runner.os }}
+
+      - name: OWASP Dependency Check
+        working-directory: Backend
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7 \
+            -DsuppressAutoUpdate=false \
+            --no-transfer-progress
+
+      - name: Upload Dependency Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: Backend/target/dependency-check-report.html
+          retention-days: 30
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 2b ─ SCA Frontend (npm audit + audit-ci)
+  # ═══════════════════════════════════════════════════════════════════════════
+  sca-frontend:
+    name: "2b · SCA Frontend (npm audit)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      # npm audit: falla si hay vulnerabilidades high o critical.
+      - name: npm audit (high+)
+        working-directory: Frontend
+        run: npm audit --audit-level=high
+
+      # audit-ci: segunda capa con salida más legible en CI y soporte
+      # para configuración de excepciones vía audit-ci.json/.yml.
+      - name: audit-ci (high+)
+        working-directory: Frontend
+        run: npx audit-ci --high
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 3 ─ SAST (Semgrep)
+  # ═══════════════════════════════════════════════════════════════════════════
+  sast:
+    name: "3 · SAST (Semgrep)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+    permissions:
+      # Requerido para subir el SARIF a la pestaña Security del repo.
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/spring-boot
+            p/react
+            p/jwt
+          # Genera semgrep.sarif en la raíz del workspace.
+          generateSarif: "1"
+        # continue-on-error permite que el step siguiente suba el SARIF
+        # incluso cuando Semgrep detecta hallazgos (exit code != 0).
+        continue-on-error: true
+
+      - name: Upload SARIF → GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          # "category" agrupa los resultados en la UI de Code Scanning.
+          category: semgrep
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 4 ─ IaC Scanning (Trivy + Checkov)
+  # ═══════════════════════════════════════════════════════════════════════════
+  iac-scanning:
+    name: "4 · IaC Scanning (Trivy + Checkov)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Trivy escanea todo el repo en modo "config" (IaC): detecta
+      # misconfigs en Dockerfiles, docker-compose, y otros manifiestos.
+      - name: Trivy config scan (repo completo)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+      # Checkov paso 1: docker-compose.yml
+      # Framework "docker_compose" se infiere automáticamente del archivo.
+      - name: Checkov — docker-compose.yml
+        uses: bridgecrewio/checkov-action@master
+        with:
+          file: docker-compose.yml
+          soft_fail: false
+
+      # Checkov paso 2: ambos Dockerfiles (Backend y Frontend).
+      # "framework: dockerfile" limita el scan a reglas de Dockerfile,
+      # evitando solapamiento con el paso anterior.
+      - name: Checkov — Dockerfiles
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile
+          soft_fail: false
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 5 ─ DAST (OWASP ZAP API Scan)
+  # ═══════════════════════════════════════════════════════════════════════════
+  dast:
+    name: "5 · DAST (OWASP ZAP API Scan)"
+    # DAST corre DESPUÉS de que SCA, SAST e IaC terminen (en paralelo entre sí).
+    needs: [sca-backend, sca-frontend, sast, iac-scanning]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # Levanta el backend con perfil "test" para usar H2 en memoria.
+      #
+      # Por qué useTestClasspath=true:
+      #   - La dependencia H2 está declarada con scope=test en pom.xml,
+      #     por lo que NO está disponible en el classpath de producción.
+      #   - Con useTestClasspath=true, Maven agrega las clases y recursos
+      #     de test al classpath de spring-boot:run.
+      #   - src/test/resources/application.properties (que ya tiene H2,
+      #     JWT stub y claves dummy) toma precedencia sobre el de main
+      #     (que requiere PostgreSQL y variables de entorno reales).
+      - name: Start backend (H2 in-memory, test profile)
+        working-directory: Backend
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: dast@example.com
+          SERVER_PORT: '8080'
+        run: |
+          ./mvnw spring-boot:run \
+            -Dspring-boot.run.useTestClasspath=true \
+            -Dspring-boot.run.profiles=test \
+            --no-transfer-progress &
+          echo $! > /tmp/spring_pid
+
+      # Polling a /actuator/health cada 2 segundos, máximo 120 segundos.
+      - name: Wait for backend health (max 120s)
+        run: |
+          echo "Waiting for Spring Boot to start..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Backend healthy after $((i * 2))s"
+              exit 0
+            fi
+            echo "  attempt $i/60 — retrying in 2s..."
+            sleep 2
+          done
+          echo "Backend did not start within 120s"
+          exit 1
+
+      # ZAP lee la especificación OpenAPI del backend levantado en memoria
+      # y genera tráfico de ataque automático contra todos los endpoints.
+      # fail_action: false → el job no falla por alertas ZAP de riesgo medio;
+      # el reporte se sube igualmente como artifact.
+      - name: ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.9.0
+        with:
+          target: 'http://localhost:8080/v3/api-docs'
+          format: openapi
+          fail_action: false
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-api-scan-report
+          path: |
+            report_xml.xml
+            report_html.html
+            report_md.md
+          retention-days: 30
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/spring_pid ]; then
+            kill "$(cat /tmp/spring_pid)" 2>/dev/null || true
+          fi
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 6 ─ Pipeline Summary
+  # ═══════════════════════════════════════════════════════════════════════════
+  pipeline-summary:
+    name: "6 · Pipeline Summary"
+    # Corre siempre, incluso si algún job anterior falló o fue cancelado.
+    if: always()
+    needs:
+      - secret-detection
+      - sca-backend
+      - sca-frontend
+      - sast
+      - iac-scanning
+      - dast
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print summary
+        run: |
+          # Los valores ${{ needs.X.result }} son interpolados por GitHub
+          # Actions antes de que el shell los vea, por lo que son literales
+          # como "success", "failure", "skipped" o "cancelled".
+
+          label() {
+            case "$1" in
+              success)   echo "PASSED"    ;;
+              failure)   echo "FAILED"    ;;
+              skipped)   echo "SKIPPED"   ;;
+              cancelled) echo "CANCELLED" ;;
+              *)         echo "$1"        ;;
+            esac
+          }
+
+          R1="${{ needs.secret-detection.result }}"
+          R2A="${{ needs.sca-backend.result }}"
+          R2B="${{ needs.sca-frontend.result }}"
+          R3="${{ needs.sast.result }}"
+          R4="${{ needs.iac-scanning.result }}"
+          R5="${{ needs.dast.result }}"
+
+          echo "================================================="
+          echo "          SECURITY PIPELINE SUMMARY             "
+          echo "================================================="
+          printf "  %-28s %s\n" "1.  secret-detection"   "$(label "$R1")"
+          printf "  %-28s %s\n" "2a. sca-backend"         "$(label "$R2A")"
+          printf "  %-28s %s\n" "2b. sca-frontend"        "$(label "$R2B")"
+          printf "  %-28s %s\n" "3.  sast (semgrep)"      "$(label "$R3")"
+          printf "  %-28s %s\n" "4.  iac-scanning"        "$(label "$R4")"
+          printf "  %-28s %s\n" "5.  dast (zap)"          "$(label "$R5")"
+          echo "================================================="
+
+          # Escribe la misma tabla en la pestaña "Summary" de la run.
+          {
+            echo "## Security Pipeline Summary"
+            echo ""
+            echo "| Job | Result |"
+            echo "|-----|--------|"
+            echo "| 1. secret-detection   | \`$(label "$R1")\`  |"
+            echo "| 2a. sca-backend       | \`$(label "$R2A")\` |"
+            echo "| 2b. sca-frontend      | \`$(label "$R2B")\` |"
+            echo "| 3. sast (semgrep)     | \`$(label "$R3")\`  |"
+            echo "| 4. iac-scanning       | \`$(label "$R4")\`  |"
+            echo "| 5. dast (zap)         | \`$(label "$R5")\`  |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Test placeholder secrets in test resources"
+regexes = [
+  "test-jwt-secret",
+  "re_test_placeholder",
+  "placeholder",
+  "dummy"
+]
+paths = [
+  "Backend/src/test/resources"
+]
