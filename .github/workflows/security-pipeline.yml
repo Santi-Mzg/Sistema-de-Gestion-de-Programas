@@ -259,15 +259,7 @@ jobs:
       #   - src/test/resources/application.properties (que ya tiene H2,
       #     JWT stub y claves dummy) toma precedencia sobre el de main
       #     (que requiere PostgreSQL y variables de entorno reales).
-      - name: Baixar dependências e compilar
-        working-directory: Backend
-        run: |
-          chmod +x ./mvnw
-          ./mvnw dependency:resolve dependency:resolve-plugins \
-            test-compile compile \
-            -q --no-transfer-progress
-
-      - name: Start backend (H2 in-memory, test profile)
+      - name: Compilar, iniciar backend e aguardar health
         working-directory: Backend
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
@@ -276,24 +268,31 @@ jobs:
           RESEND_FROM_EMAIL: dast@example.com
           SERVER_PORT: '8080'
         run: |
+          chmod +x ./mvnw
+
+          # Pré-baixar plugins e dependências
+          ./mvnw dependency:resolve dependency:resolve-plugins \
+            test-compile compile -q --no-transfer-progress
+
+          # Iniciar Spring Boot em background dentro do mesmo step
           ./mvnw spring-boot:run \
             -Dspring-boot.run.useTestClasspath=true \
             -Dspring-boot.run.profiles=test \
-            --no-transfer-progress &
+            --no-transfer-progress > /tmp/spring.log 2>&1 &
           echo $! > /tmp/spring_pid
 
-      - name: Wait for backend health (max 180s)
-        run: |
-          echo "Waiting for Spring Boot to start..."
+          # Aguardar health check no mesmo processo de shell
+          echo "Aguardando Spring Boot iniciar..."
           for i in $(seq 1 90); do
             if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
-              echo "Backend healthy after $((i * 2))s"
+              echo "Backend saudável após $((i * 2))s"
               exit 0
             fi
-            echo "  attempt $i/90 — retrying in 2s..."
+            echo "  tentativa $i/90 — aguardando 2s..."
             sleep 2
           done
-          echo "Backend did not start within 180s"
+          echo "Backend não iniciou em 180s"
+          cat /tmp/spring.log
           exit 1
 
       # ZAP lee la especificación OpenAPI del backend levantado en memoria
