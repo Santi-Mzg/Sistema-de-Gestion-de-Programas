@@ -69,7 +69,7 @@ jobs:
     needs: secret-detection
     runs-on: ubuntu-latest
     # La descarga inicial de la NVD puede tomar ~30 min; el caché la elimina.
-    timeout-minutes: 90
+    # timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
