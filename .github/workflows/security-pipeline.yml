@@ -73,6 +73,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Pre-aquecer cache Maven
+        working-directory: Backend
+        run: |
+          chmod +x ./mvnw
+          ./mvnw dependency:resolve -q --no-transfer-progress || true
+
       - name: Trivy — scan dependências Backend (pom.xml)
         uses: aquasecurity/trivy-action@master
         with:
