@@ -259,7 +259,7 @@ jobs:
       #   - src/test/resources/application.properties (que ya tiene H2,
       #     JWT stub y claves dummy) toma precedencia sobre el de main
       #     (que requiere PostgreSQL y variables de entorno reales).
-      - name: Compilar, iniciar backend e aguardar health
+      - name: Compile, initiate backend and wait healthcheck
         working-directory: Backend
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
@@ -272,10 +272,13 @@ jobs:
 
           # Pré-baixar plugins e dependências
           ./mvnw dependency:resolve dependency:resolve-plugins \
-            test-compile compile -q --no-transfer-progress
+            test-compile compile \
+            -Pdast \
+            -q --no-transfer-progress
 
           # Iniciar Spring Boot em background dentro do mesmo step
           ./mvnw spring-boot:run \
+            -Pdast \
             -Dspring-boot.run.profiles=dast \
             --no-transfer-progress > /tmp/spring.log 2>&1 &
           echo $! > /tmp/spring_pid
