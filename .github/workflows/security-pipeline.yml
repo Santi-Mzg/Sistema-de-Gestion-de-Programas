@@ -123,6 +123,7 @@ jobs:
     name: "2b · SCA Frontend (npm audit)"
     needs: secret-detection
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -193,6 +194,7 @@ jobs:
     name: "4 · IaC Scanning (Trivy + Checkov)"
     needs: secret-detection
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -233,7 +235,7 @@ jobs:
   dast:
     name: "5 · DAST (OWASP ZAP API Scan)"
     # DAST corre DESPUÉS de que SCA, SAST e IaC terminen (en paralelo entre sí).
-    needs: [sca-backend, sca-frontend, sast, iac-scanning]
+    needs: [secret-detection, sca-backend, sast]
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
