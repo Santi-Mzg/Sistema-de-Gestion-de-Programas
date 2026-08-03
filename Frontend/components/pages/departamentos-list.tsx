@@ -161,7 +161,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
         {/* Table */}
         <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
-          <table className="w-full border-collapse">
+          <table className="w-full table-fixed border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
                 <th className="px-6 py-4 text-left">
@@ -196,7 +196,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     <td className="px-6 py-4 text-foreground/80">{departamento.direccion}</td>
                     <td className="px-6 py-4 text-foreground/80">{departamento.telefono}</td>
                     <td className="px-6 py-4 text-foreground/80">{departamento.email}</td>
-                    <td className="px-6 py-4 text-foreground/80">
+                    <td className="px-6 py-4 text-foreground/80 break-all">
                       {departamento.sitioWeb ? (
                         <a
                           href={departamento.sitioWeb}
