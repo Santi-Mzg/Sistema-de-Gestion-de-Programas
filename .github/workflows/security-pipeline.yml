@@ -143,34 +143,38 @@ jobs:
         run: npm audit --audit-level=high --omit=dev
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 3 ─ SAST (Semgrep)
+  # JOB 3 ─ SAST (CodeQL)
   # ═══════════════════════════════════════════════════════════════════════════
   sast:
-    name: "3 · SAST (Semgrep)"
+    name: "3 · SAST (CodeQL)"
     needs: secret-detection
     runs-on: ubuntu-latest
+
     permissions:
+      actions: read
+      contents: read
       security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - java
+          - javascript-typescript
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v1
-        continue-on-error: true
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
         with:
-          config: >-
-            p/java
-            p/react
-            p/secrets
-            p/owasp-top-ten
+          languages: ${{ matrix.language }}
 
-      - name: Upload SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: semgrep.sarif
-          category: semgrep
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
 
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 4 ─ IaC Scanning — GATE: bloqueia em HIGH+
@@ -225,7 +229,7 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Compilar, iniciar backend e aguardar health
+      - name: Build, start backend and wait for health
         working-directory: Backend
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
@@ -246,21 +250,21 @@ jobs:
             --no-transfer-progress > /tmp/spring.log 2>&1 &
           echo $! > /tmp/spring_pid
 
-          echo "Aguardando Spring Boot iniciar..."
+          echo "Waiting for Spring Boot..."
           for i in $(seq 1 90); do
             if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
-              echo "Backend saudável após $((i * 2))s"
+              echo "Backend ready $((i * 2))s"
               exit 0
             fi
             echo "  tentativa $i/90 — aguardando 2s..."
             sleep 2
           done
-          echo "Backend não iniciou em 180s"
+          echo "Backend failed to start."
           cat /tmp/spring.log
           exit 1
 
       - name: ZAP API Scan
-        uses: zaproxy/action-api-scan@v0.9.0
+        uses: zaproxy/action-api-scan@v0.10.0
         with:
           target: 'http://localhost:8080/v3/api-docs'
           format: openapi
