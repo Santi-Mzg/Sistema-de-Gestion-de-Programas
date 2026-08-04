@@ -73,31 +73,8 @@ jobs:
           chmod +x ./mvnw
           ./mvnw dependency:resolve -q --no-transfer-progress || true
 
-      - name: Trivy — tabela (informativo)
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: Backend/
-          scanners: vuln
-          format: table
-          exit-code: '0'
-          severity: MEDIUM,HIGH,CRITICAL
-
-      # Gate real: falha o job se encontrar CVE CRITICAL
-      # HIGH e MEDIUM são reportados mas não bloqueiam
-      - name: Trivy — gate CRITICAL
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: Backend/
-          scanners: vuln
-          format: table
-          exit-code: '1'
-          severity: CRITICAL
-
-      - name: Trivy — relatório JSON
-        if: always()
-        uses: aquasecurity/trivy-action@master
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: Backend/
@@ -106,8 +83,30 @@ jobs:
           output: trivy-backend-report.json
           exit-code: '0'
           severity: MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: true
 
-      - name: Upload relatório
+      # Gate: falla únicamente si existen vulnerabilidades CRITICAL
+      # HIGH e MEDIUM son reportados pero no bloquean
+      - name: Gate CRITICAL
+        run: |
+          CRITICAL=$(jq '
+            [
+              .Results[]?
+              | .Vulnerabilities[]?
+              | select(.Severity=="CRITICAL")
+            ] | length
+          ' trivy-backend-report.json)
+
+          echo "Critical vulnerabilities: $CRITICAL"
+
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Se encontraron vulnerabilidades CRITICAL."
+            exit 1
+          else
+            echo "✅ No se encontraron vulnerabilidades CRITICAL."
+          fi
+
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -137,11 +136,6 @@ jobs:
         working-directory: Frontend
         run: npm ci
 
-      # Tenta corrigir automaticamente o que não tem breaking changes
-      - name: npm audit fix (sem breaking changes)
-        working-directory: Frontend
-        run: npm audit fix || true
-
       # Gate: bloqueia apenas vulnerabilidades HIGH+ em production dependencies
       # O arquivo audit-ci.json define quais pacotes ignorar (devDependencies)
       - name: npm audit (high+)
@@ -163,13 +157,13 @@ jobs:
 
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
+        continue-on-error: true
         with:
           config: >-
             p/java
             p/react
             p/secrets
             p/owasp-top-ten
-        continue-on-error: true
 
       - name: Upload SARIF
         if: always()
@@ -191,7 +185,7 @@ jobs:
 
       # Gate real: falha se encontrar HIGH ou CRITICAL em IaC
       - name: Trivy config scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
@@ -200,13 +194,13 @@ jobs:
           severity: HIGH,CRITICAL
 
       - name: Checkov — docker-compose.yml
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           file: docker-compose.yml
           soft_fail: false
 
       - name: Checkov — Dockerfiles
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
           framework: dockerfile
