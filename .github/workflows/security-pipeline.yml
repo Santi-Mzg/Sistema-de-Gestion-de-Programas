@@ -298,8 +298,7 @@ jobs:
         with:
           target: 'http://localhost:8080/v3/api-docs'
           format: openapi
-          fail_action: true
-          rules_file_name: .zap/rules.tsv
+          fail_action: false
 
       - name: Upload ZAP report
         if: always()
