@@ -299,6 +299,7 @@ jobs:
           target: 'http://localhost:8080/v3/api-docs'
           format: openapi
           fail_action: false
+          allow_issue_writing: false
 
       - name: Upload ZAP report
         if: always()
@@ -308,6 +309,7 @@ jobs:
           path: |
             report_html.html
             report_md.md
+            report_json.json
           retention-days: 30
 
       - name: Stop backend
