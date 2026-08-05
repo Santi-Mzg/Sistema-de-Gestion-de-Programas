@@ -60,12 +60,6 @@ export function MateriaForm() {
 
   const areas: AreaResponseDTO[] | undefined = areasQuery.data;
 
-  const [formData, setFormData] = useState<MateriaCreateDTO>({
-    codigo: "",
-    nombre: "",
-    areaId: areas?.[0]?.id,
-  })
-
   const { mutate, isPending } = useCreateMateria({
       mutation: {
         onSuccess: () => {
@@ -163,7 +157,7 @@ export function MateriaForm() {
   }
 
   return (
-    <form className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
@@ -173,6 +167,7 @@ export function MateriaForm() {
             <Input
               id="nombre"
               {...register("nombre")}
+              className={`border-2 focus:border-primary ${errors.nombre ? "border-red-500" : "border-border"}`}
             />
             {errors.nombre && <span className="text-red-500 text-sm">{errors.nombre.message}</span>}
           </div>
@@ -184,6 +179,7 @@ export function MateriaForm() {
             <Input
               id="codigo"
               {...register("codigo")}
+              placeholder="1234"
               className={`border-2 focus:border-primary ${errors.codigo ? "border-red-500" : "border-border"}`}
             />
             {errors.codigo && <span className="text-red-500 text-sm">{errors.codigo.message}</span>}
@@ -212,7 +208,7 @@ export function MateriaForm() {
             <Select
               onValueChange={(value) => setValue("areaId", Number(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger className={`border-2 focus:border-primary ${errors.areaId ? "border-red-500" : "border-border"}`}>
                 <SelectValue placeholder="Seleccionar área..." />
               </SelectTrigger>
               <SelectContent>
@@ -228,7 +224,7 @@ export function MateriaForm() {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>

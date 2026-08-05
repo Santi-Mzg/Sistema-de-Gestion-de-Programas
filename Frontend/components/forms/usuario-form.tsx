@@ -129,7 +129,7 @@ export function UsuarioForm() {
 
 
   return (
-   <form className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* INPUT ESTÁNDAR */}
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -212,7 +212,7 @@ export function UsuarioForm() {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>
