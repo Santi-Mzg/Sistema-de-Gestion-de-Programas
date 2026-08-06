@@ -22,39 +22,59 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
+import {
+  Control,
+  UseFormRegister,
+  UseFormSetValue,
+  FieldErrors,
+  useWatch,
+} from "react-hook-form";
+import { ProgramaAdminFormData } from "@/lib/schemas/programa"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface ProgramaCarreraBlockProps {
-  materiaId: number
-  block: ProgramaCarreraCreateDTO
-  index: number
-  carreras: CarreraResponseDTO[]
-  // selectedCarreraPlanIds: number[]
-  onUpdate: (index: number, block: ProgramaCarreraCreateDTO) => void
-  onRemove: (index: number) => void
+  materiaId: number;
+  index: number;
+  carreras: CarreraResponseDTO[];
+  control: Control<ProgramaAdminFormData>;
+  register: UseFormRegister<ProgramaAdminFormData>;
+  setValue: UseFormSetValue<ProgramaAdminFormData>;
+  errors: FieldErrors<ProgramaAdminFormData>;
+  onRemove: (index: number) => void;
 }
 export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlock({
   materiaId,
-  block,
   index,
   carreras,
-  // selectedCarreraPlanIds,
-  onUpdate,
+  control,
+  register,
+  setValue,
+  errors,
   onRemove,
 }: ProgramaCarreraBlockProps) {
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null);
   const [open, setOpen] = useState(false);
 
+  const block = useWatch({
+    control,
+    name: `bloqueMultiple.${index}`,
+  })
+
+  const blockErrors = errors.bloqueMultiple?.[index]
+
   useEffect(() => {
-    if (block.carreraPlanId && carreras.length > 0) {
-      const carreraEncontrada = carreras.find(c => 
-        c.planes?.some(p => p.id === block.carreraPlanId)
-      );
-      
-      if (carreraEncontrada) {
-        setSelectedCarrera(carreraEncontrada);
-      }
+    const carreraPlanId = block?.carreraPlanId
+
+    if (!carreraPlanId || carreras.length === 0) {
+      return
     }
-  }, [block.carreraPlanId, carreras]);
+
+    const carreraEncontrada = carreras.find((carrera) =>
+      carrera.planes?.some((plan) => plan.id === carreraPlanId)
+    )
+
+    setSelectedCarrera(carreraEncontrada ?? null)
+  }, [block?.carreraPlanId, carreras])
 
 
   const materiasQuery = useListMateriasCarreraPlan(selectedCarrera?.id ?? 0, {
@@ -70,15 +90,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
     return materiasQuery.data.filter((m: MateriaResponseDTO) => m.id !== materiaId)
   }, [materiasQuery.data, materiaId])
 
-  const handleFieldChange = (field: keyof ProgramaCarreraCreateDTO, value: any) => {
-    onUpdate(index, {
-      ...block,
-      [field]: value,
-    })
-  }
-
-  console.log("Planes:" + JSON.stringify(selectedCarrera?.planes))
-
   const toggleCorrelativaFuerte = useCallback(
     (id: number) => {
       const nuevosFuertes = block.correlativasFuertesIds?.includes(id)
@@ -89,13 +100,25 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
       ? block.correlativasDebilesIds?.filter((x) => x !== id)
       : block.correlativasDebilesIds
       
-      onUpdate(index, {
-        ...block,
-        correlativasFuertesIds: nuevosFuertes,
-        correlativasDebilesIds: nuevasDebiles
-      })
+      setValue(
+        `bloqueMultiple.${index}.correlativasFuertesIds`,
+        nuevosFuertes,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        }
+      )
+
+      setValue(
+        `bloqueMultiple.${index}.correlativasDebilesIds`,
+        nuevasDebiles,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        }
+      )
     },
-    [block, index, onUpdate]
+    [block, index, setValue]
   )
 
 
@@ -105,18 +128,31 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
         ? block.correlativasDebilesIds.filter((x) => x !== id)
       : [...(block.correlativasDebilesIds || []), id]
 
-    // Si se agrega como débil, remover de fuertes
-    const nuevosFuertes = nuevasDebiles.includes(id)
-      ? block.correlativasFuertesIds?.filter((x) => x !== id)
-      : block.correlativasFuertesIds
+      // Si se agrega como débil, remover de fuertes
+      const nuevosFuertes = nuevasDebiles.includes(id)
+        ? block.correlativasFuertesIds?.filter((x) => x !== id)
+        : block.correlativasFuertesIds
 
-    onUpdate(index, {
-      ...block,
-      correlativasFuertesIds: nuevosFuertes,
-      correlativasDebilesIds: nuevasDebiles,
-    })
+
+      setValue(
+        `bloqueMultiple.${index}.correlativasFuertesIds`,
+        nuevosFuertes,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        }
+      )
+
+      setValue(
+        `bloqueMultiple.${index}.correlativasDebilesIds`,
+        nuevasDebiles,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        }
+      )
     },
-    [block, index, onUpdate]
+    [block, index, setValue]
   )
   
 
@@ -140,10 +176,17 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
+                type="button"
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-full justify-between font-normal border-border"
+                aria-invalid={!!blockErrors?.carreraPlanId}
+                className={cn(
+                  "w-full justify-between font-normal border-2",
+                  blockErrors?.carreraPlanId
+                    ? "border-red-500"
+                    : "border-border"
+                )}
               >
                 {selectedCarrera 
                   ? selectedCarrera.nombre 
@@ -160,10 +203,12 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
                     {carreras.map((carrera) => (
                       <CommandItem
                         key={carrera.id}
-                        value={carrera.nombre} // El buscador filtra por este valor
+                        value={carrera.nombre}
                         onSelect={() => {
                           setSelectedCarrera(carrera)
-                          handleFieldChange("carreraPlanId", 0)
+                          setValue(`bloqueMultiple.${index}.carreraPlanId`, 0, {shouldDirty: true,})
+                          setValue(`bloqueMultiple.${index}.correlativasFuertesIds`, [], {shouldDirty: true,})
+                          setValue(`bloqueMultiple.${index}.correlativasDebilesIds`, [], {shouldDirty: true,})
                           setOpen(false)
                         }}
                       >
@@ -181,6 +226,13 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
               </Command>
             </PopoverContent>
           </Popover>
+          <div className="min-h-5">
+            {blockErrors?.carreraPlanId && !selectedCarrera && (
+              <p className="text-sm text-red-500">
+                Debe seleccionar una carrera.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -190,33 +242,73 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           <select
             id={`plan-${index}`}
             value={block.carreraPlanId?.toString() ?? ""}
-            onChange={(e) => handleFieldChange("carreraPlanId", Number(e.target.value))}
-            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            required
+            onChange={(event) => {
+              setValue(`bloqueMultiple.${index}.carreraPlanId`, Number(event.target.value), {shouldDirty: true})
+            }}
+            aria-invalid={!!blockErrors?.carreraPlanId}
+            className={cn(
+              "w-full px-3 py-2 border-2 rounded-md bg-background text-foreground",
+              "focus:outline-none focus:ring-2 focus:ring-primary",
+              blockErrors?.carreraPlanId
+                ? "border-red-500"
+                : "border-border"
+            )}  
             disabled={!selectedCarrera}
           >
             <option value="">Seleccionar plan...</option>
-            {/* {selectedCarrera?.planes?.filter(plan => !selectedCarreraPlanIds.includes(plan.id!)).map((plan) => ( */}
             {selectedCarrera?.planes?.map((plan) => (
               <option key={plan.id} value={plan.id}>
                 {"Plan "+plan.anio +" - Versión "+plan.version}
               </option>
             ))}
           </select>
+          <div className="min-h-5">
+            {blockErrors?.carreraPlanId && selectedCarrera && (
+              <p className="text-sm text-red-500" role="alert">
+                {blockErrors.carreraPlanId.message}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
-            Ubicación en Plan *
-          </Label>
+          <LabelWithTooltip
+            label="Ubicación en el Plan"
+            required
+            tooltip={
+              <>
+                <p>Indique en qué parte del plan de estudios se ubica la materia.</p>
+
+                <ul className="mt-2 list-disc pl-4">
+                  <li>1° Año - 1° Cuatrimestre</li>
+                  <li>2° Año - 2° Cuatrimestre</li>
+                  <li>5° Semestre</li>
+                </ul>
+              </>
+            }
+          />
           <Input
             id={`ubicacion-${index}`}
-            value={block.ubicacionEnPlan}
-            onChange={(e) => handleFieldChange("ubicacionEnPlan", e.target.value)}
-            placeholder="ej: Segundo semestre"
-            className="border-border focus:border-primary"
-            required
+            {...register(
+              `bloqueMultiple.${index}.ubicacionEnPlan`
+            )}     
+            placeholder="ej: Segundo cuatrimestre"
+            aria-invalid={!!blockErrors?.ubicacionEnPlan}
+            className={cn(
+              "border-2 focus:border-primary",
+              blockErrors?.ubicacionEnPlan
+                ? "border-red-500"
+                : "border-border"
+            )}         
           />
+          
+          <div className="min-h-5">
+            {blockErrors?.ubicacionEnPlan && (
+              <p className="text-sm text-red-500" role="alert">
+                {blockErrors.ubicacionEnPlan.message}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -233,9 +325,14 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
       ) : (
         <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-              Correlativas Fuertes
-            </Label>
+            <LabelWithTooltip
+              label="Correlativas Fuertes"
+              tooltip={
+                <>
+                  <p>Las asignaturas que deben estar aprobadas antes de cursar esta asignatura.</p>
+                </>
+              }
+            />
             <div className="max-h-40 overflow-y-auto space-y-2">
               {filteredMaterias?.map((materia: MateriaResponseDTO) => (
                 <label
@@ -244,9 +341,9 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
                 >
                   <input
                     type="checkbox"
-                    checked={block.correlativasFuertesIds?.includes(materia.id || 0)}
-                    onChange={() => toggleCorrelativaFuerte(materia.id || 0)}
-                    disabled={block.correlativasDebilesIds?.includes(materia.id || 0)}
+                    checked={block.correlativasFuertesIds?.includes(materia.id!)}
+                    onChange={() => toggleCorrelativaFuerte(materia.id!)}
+                    disabled={block.correlativasDebilesIds?.includes(materia.id!)}
                     className="rounded border-border"
                   />
                   <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -256,9 +353,14 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           </div>
 
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-              Correlativas Débiles
-            </Label>
+            <LabelWithTooltip
+              label="Correlativas Débiles"
+              tooltip={
+                <>
+                  <p>Las asignaturas que deben estar cursadas antes de cursar esta asignatura.</p>
+                </>
+              }
+            />
             <div className="max-h-40 overflow-y-auto space-y-2">
               {filteredMaterias?.map((materia: MateriaResponseDTO) => (
                 <label
@@ -267,9 +369,9 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
                 >
                   <input
                     type="checkbox"
-                    checked={block.correlativasDebilesIds?.includes(materia.id || 0)}
-                    onChange={() => toggleCorrelativaDebil(materia.id || 0)}
-                    disabled={block.correlativasFuertesIds?.includes(materia.id || 0)}
+                    checked={block.correlativasDebilesIds?.includes(materia.id!)}
+                    onChange={() => toggleCorrelativaDebil(materia.id!)}
+                    disabled={block.correlativasFuertesIds?.includes(materia.id!)}
                     className="rounded border-border"
                   />
                   <span className="text-sm text-foreground">{materia.nombre}</span>
@@ -297,14 +399,35 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
         <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
           Contenidos Mínimos *
         </Label>
+        <LabelWithTooltip
+          label="Contenidos Mínimos *"
+          tooltip={
+            <>
+              <p>Los contenidos mínimos que tienen que poseer el programa para dicha materia de acuerdo a...</p>
+            </>
+          }
+        />
         <Textarea
           id={`contenidos-${index}`}
-          value={block.contenidosMinimos}
-          onChange={(e) => handleFieldChange("contenidosMinimos", e.target.value)}
+          {...register(
+            `bloqueMultiple.${index}.contenidosMinimos`
+          )}     
           placeholder="Lista los contenidos mínimos requeridos..."
-          className="border-border focus:border-primary min-h-16 resize-none"
-          required
+          aria-invalid={!!blockErrors?.contenidosMinimos}
+          className={cn(
+            "border-2 focus:border-primary min-h-16 resize-none",
+            blockErrors?.contenidosMinimos
+              ? "border-red-500"
+              : "border-border"
+          )}
         />
+        <div className="min-h-5">
+          {blockErrors?.contenidosMinimos && (
+            <p className="text-sm text-red-500" role="alert">
+              {blockErrors.contenidosMinimos.message}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
