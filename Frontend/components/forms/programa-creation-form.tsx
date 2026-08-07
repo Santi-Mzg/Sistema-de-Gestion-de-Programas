@@ -939,7 +939,7 @@ export function SyllabusCreationForm() {
                 label="Créditos *"
                 tooltip={
                   <>
-                    <p>Las correlativas fuertes deben estar aprobadas antes de cursar esta asignatura.</p>
+                    <p>Ingrese la cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
                   </>
                 }
               />
@@ -981,9 +981,14 @@ export function SyllabusCreationForm() {
         {/* Campos de texto largo */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
-              Fundamentación
-            </Label>
+            <LabelWithTooltip
+              label="Fundamentación"
+              tooltip={
+                <>
+                  <p>Indica la inclusión de la asignatura en el plan de estudios, indicando su aporte a la formación del estudiante y su relación con el perfil del egresado.</p>
+                </>
+              }
+            />
             <Textarea
               id="fundamentacion"
               value={programaVigente?.fundamentacion}
@@ -994,9 +999,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
-              Objetivos
-            </Label>
+            <LabelWithTooltip
+              label="Objetivos"
+              tooltip={
+                <>
+                  <p>Los objetivos de aprendizaje que se espera que el estudiante alcance al finalizar la asignatura.</p>
+                </>
+              }
+            />
             <Textarea
               id="objetivos"
               value={programaVigente?.objetivos}
@@ -1007,9 +1017,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
-              Programa Analítico
-            </Label>
+            <LabelWithTooltip
+              label="Programa Analítico"
+              tooltip={
+                <>
+                  <p>Las unidades temáticas y los contenidos que serán desarrollados durante el cursado, organizados de manera lógica y secuencial.</p>
+                </>
+              }
+            />
             <Textarea
               id="programa"
               value={programaVigente?.programaAnalitico}
@@ -1020,9 +1035,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
-              Metodología
-            </Label>
+             <LabelWithTooltip
+               label="Metodología"
+               tooltip={
+                 <>
+                   <p>Las estrategias de enseñanza que se utilizarán, incluyendo clases teóricas, prácticas, laboratorios, trabajos de campo, actividades virtuales u otras modalidades.</p>
+                 </>
+               }
+             />
             <Textarea
               id="metodologia"
               value={programaVigente?.metodologia}
@@ -1036,9 +1056,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
-              Modalidad de Evaluación
-            </Label>
+            <LabelWithTooltip
+              label="Modalidad de Evaluación"
+              tooltip={
+                <>
+                  <p>Los instrumentos y criterios mediante los cuales se evaluará el aprendizaje de los estudiantes, indicando las condiciones de aprobación cuando corresponda.</p>
+                </>
+              }
+            />
             <Textarea
               id="evaluacion"
               value={programaVigente?.modalidadEvaluacion}
@@ -1049,9 +1074,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-              Bibliografía
-            </Label>
+            <LabelWithTooltip
+              label="Bibliografía"
+              tooltip={
+                <>
+                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                </>
+              }
+            />
             <Textarea
               id="bibliografia"
               value={programaVigente?.bibliografia}

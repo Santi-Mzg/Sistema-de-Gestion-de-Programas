@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import React from "react"
 import { MateriaResponseDTO, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraResponseDTO
@@ -44,9 +45,15 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`ubicacion-${index}`} className="text-sm font-semibold text-foreground">
-            Ubicación en Plan
-          </Label>
+          <LabelWithTooltip
+            label="Ubicación en el Plan"
+            required
+            tooltip={
+              <>
+                <p>Indica en qué parte del plan de estudios se ubica la materia.</p>
+              </>
+            }
+          />
           <Input
             id={`ubicacion-${index}`}
             value={block.ubicacionEnPlan}
@@ -58,9 +65,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Fuertes
-          </Label>
+          <LabelWithTooltip
+            label="Correlativas Fuertes"
+            tooltip={
+              <>
+                <p>Las asignaturas que deben estar aprobadas antes de cursar esta asignatura.</p>
+              </>
+            }
+          />
           <div className="max-h-40 overflow-y-auto space-y-2">
             {block.correlativasFuertes?.map((materia: MateriaResponseDTO) => (
               <label
@@ -80,9 +92,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         </div>
 
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Débiles
-          </Label>
+          <LabelWithTooltip
+            label="Correlativas Débiles"
+            tooltip={
+              <>
+                <p>Las asignaturas que deben estar cursadas antes de cursar esta asignatura.</p>
+              </>
+            }
+          />
           <div className="max-h-40 overflow-y-auto space-y-2">
             {block.correlativasDebiles?.map((materia: MateriaResponseDTO) => (
               <label
@@ -103,9 +120,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
-          Contribución
-        </Label>
+        <LabelWithTooltip
+          label="Contribución"
+          tooltip={
+            <>
+              <p>Describe cómo esta asignatura contribuye al desarrollo de las competencias, conocimientos y habilidades previstas en el perfil de egreso de la carrera.</p>
+            </>
+          }
+        />
         <Textarea
           id={`contribucion-${index}`}
           value={block.contribucion}
@@ -115,9 +137,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
-          Contenidos Mínimos
-        </Label>
+        <LabelWithTooltip
+          label="Contenidos Mínimos"
+          tooltip={
+            <>
+              <p>Los contenidos mínimos establecidos en el plan de estudios que deben abordarse obligatoriamente en la asignatura.</p>
+            </>
+          }
+        />
         <Textarea
           id={`contenidos-${index}`}
           value={block.contenidosMinimos}

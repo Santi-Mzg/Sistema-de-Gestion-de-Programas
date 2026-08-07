@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import React from "react"
 import { MateriaResponseDTO, ProgramaCarreraCreateDTO, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface ProgramaCarreraBlockProps {
   block: ProgramaCarreraResponseDTO
@@ -43,9 +44,15 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`ubicacion`} className="text-sm font-semibold text-foreground">
-            Ubicación en Plan
-          </Label>
+          <LabelWithTooltip
+            label="Ubicación en el Plan"
+            required
+            tooltip={
+              <>
+                <p>Indica en qué parte del plan de estudios se ubica la materia.</p>
+              </>
+            }
+          />
           <Input
             id={`ubicacion`}
             value={block.ubicacionEnPlan}
@@ -57,9 +64,14 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Fuertes
-          </Label>
+          <LabelWithTooltip
+            label="Correlativas Fuertes"
+            tooltip={
+              <>
+                <p>Las asignaturas que deben estar aprobadas antes de cursar esta asignatura.</p>
+              </>
+            }
+          />
           <div className="max-h-40 overflow-y-auto space-y-2">
             {block.correlativasFuertes?.map((materia: MateriaResponseDTO) => (
               <label
@@ -79,9 +91,14 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
         </div>
 
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-            Correlativas Débiles
-          </Label>
+          <LabelWithTooltip
+            label="Correlativas Débiles"
+            tooltip={
+              <>
+                <p>Las asignaturas que deben estar cursadas antes de cursar esta asignatura.</p>
+              </>
+            }
+          />
           <div className="max-h-40 overflow-y-auto space-y-2">
             {block.correlativasDebiles?.map((materia: MateriaResponseDTO) => (
               <label
@@ -102,9 +119,14 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contribucion`} className="text-sm font-semibold text-foreground">
-          Contribución
-        </Label>
+        <LabelWithTooltip
+          label="Contribución"
+          tooltip={
+            <>
+              <p>Describa cómo esta asignatura contribuye al desarrollo de las competencias, conocimientos y habilidades previstas en el perfil de egreso de la carrera.</p>
+            </>
+          }
+        />
         <Textarea
           id={`contribucion`}
           value={block.contribucion}
@@ -114,14 +136,18 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
                   })}
           placeholder="Describe la contribución a esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
-          required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contenidos`} className="text-sm font-semibold text-foreground">
-          Contenidos Mínimos
-        </Label>
+        <LabelWithTooltip
+          label="Contenidos Mínimos"
+          tooltip={
+            <>
+              <p>Los contenidos mínimos establecidos en el plan de estudios que deben abordarse obligatoriamente en la asignatura.</p>
+            </>
+          }
+        />
         <Textarea
           id={`contenidos`}
           value={block.contenidosMinimos}

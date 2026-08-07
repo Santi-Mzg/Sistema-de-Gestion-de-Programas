@@ -43,19 +43,13 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
   const {
       register,
-      control,
-      watch,
       setValue,
       getValues,
       reset,
-      setFocus,
       handleSubmit,
       formState: { errors, isDirty }
     } = useForm<ProgramaDocenteFormData>({
         resolver: zodResolver(programaDocenteSchema),
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-        shouldFocusError: false,
         defaultValues: {
             cargaHorariaPractica: undefined,
             fundamentacion: undefined,
@@ -536,6 +530,14 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-foreground">Créditos</Label>
+              <LabelWithTooltip
+                label="Créditos"
+                tooltip={
+                  <>
+                    <p>La cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
+                  </>
+                }
+              />
               <Input defaultValue={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
             </div>
           </div>
@@ -615,7 +617,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
               id="objetivos"
               {...register("objetivos")}              
               className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
-                errors.fundamentacion
+                errors.objetivos
                 ? "border-red-500"
                 : "border-border"
               }`}

@@ -383,9 +383,14 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
       )}
 
       <div className="space-y-2">
-        <Label htmlFor={`contribucion-${index}`} className="text-sm font-semibold text-foreground">
-          Contribución
-        </Label>
+        <LabelWithTooltip
+          label="Contribución"
+          tooltip={
+            <>
+              <p>Describe cómo esta asignatura contribuye al desarrollo de las competencias, conocimientos y habilidades previstas en el perfil de egreso de la carrera.</p>
+            </>
+          }
+        />
         <Textarea
           id={`contribucion-${index}`}
           value={block.contribucion}
@@ -400,7 +405,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           label="Contenidos Mínimos *"
           tooltip={
             <>
-              <p>Los contenidos mínimos que tienen que poseer el programa para dicha materia de acuerdo a...</p>
+              <p>Describa los contenidos mínimos establecidos en el plan de estudios que deben abordarse obligatoriamente en la asignatura.</p>
             </>
           }
         />
