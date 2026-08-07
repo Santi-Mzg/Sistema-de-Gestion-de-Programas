@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-const requiredPositiveNumber = (message: string) =>
+const numeroRequerido = (message: string) =>
   z.preprocess(
     (value) => {
       if (
@@ -23,10 +23,18 @@ const requiredPositiveNumber = (message: string) =>
       .positive(message)
   )
 
+  const textoRequerido = (mensaje: string) =>
+    z.string({
+      required_error: mensaje,
+    })
+    .trim()
+    .min(1, mensaje);
+    
+
 export const programaCarreraSchema = z.object({
   key: z.string().optional(),
 
-  carreraPlanId: requiredPositiveNumber(
+  carreraPlanId: numeroRequerido(
     "Debe seleccionar un plan."
   ),
 
@@ -53,6 +61,9 @@ export const programaCarreraSchema = z.object({
     .trim()
     .min(1, "Los contenidos mínimos son obligatorios."),
 })
+
+export type ProgramaCarreraFormData = z.infer<typeof programaCarreraSchema>;
+
 
 export const programaAdminSchema = z.object({
   materiaId: z
@@ -100,42 +111,37 @@ export const programaAdminSchema = z.object({
 
 });
 
+export type ProgramaAdminFormData = z.infer<typeof programaAdminSchema>;
+
+
 export const programaDocenteSchema = z.object({
-  cargaHorariaPractica: z
-    .number()
-    .optional(),
+  cargaHorariaPractica: numeroRequerido(
+    "La carga horaria práctica es obligatoria"
+  ),
 
-  fundamentacion: z
-    .string()
-    .trim()
-    .optional(),
+  fundamentacion: textoRequerido(
+    "La fundamentación es obligatoria"
+  ),
 
-  objetivos: z
-    .string()
-    .trim()
-    .optional(),
+  objetivos: textoRequerido(
+    "Los objetivos son obligatorios"
+  ),
 
-  programaAnalitico: z
-    .string()
-    .trim()
-    .optional(),
+  programaAnalitico: textoRequerido(
+    "El programa analítico es obligatorio"
+  ),
 
-  metodologia: z
-    .string()
-    .trim()
-    .optional(),
+  metodologia: textoRequerido(
+    "La metodología es obligatoria"
+  ),
 
-  modalidadEvaluacion: z
-    .string()
-    .trim()
-    .optional(),
+  modalidadEvaluacion: textoRequerido(
+    "La modalidad de evaluación es obligatoria"
+  ),
 
-  bibliografia: z
-    .string()
-    .trim()
-    .optional(),
+  bibliografia: textoRequerido(
+    "La bibliografía es obligatoria"
+  ),
 });
 
-export type ProgramaCarreraFormData = z.infer<typeof programaCarreraSchema>;
-export type ProgramaAdminFormData = z.infer<typeof programaAdminSchema>;
 export type ProgramaDocenteFormData = z.infer<typeof programaDocenteSchema>;
