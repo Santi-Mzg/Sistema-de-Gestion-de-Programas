@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,7 +20,7 @@ import { useRole } from "@/context/role-context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import {
   Command,
-  CommandEmpty,
+  CommandEmpty, 
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -34,6 +34,10 @@ import {
 import { cn } from "@/lib/utils"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
+import { FieldErrors, useFieldArray, useForm } from "react-hook-form"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 interface SyllabusFormProps {
   id: number,
 }
@@ -44,22 +48,57 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const { activeRole } = useRole();
   const queryClient = useQueryClient();
   const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
-  const [loadingPrograma, setLoadingPrograma] = useState(false)
   const [showDraft, setShowDraft] = useState(false)
-  const [loadingDraft, setLoadingDraft] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const actualYear = new Date().getFullYear()
-  
-  const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    profesorResponsableId: undefined,
-    bloqueMultiple: [],
-    cargaHorariaTotal: undefined,
-    cargaHorariaSemanal: undefined,
-    creditos: undefined,
-    cantidadSemanas: undefined
+  const [openProfesorSelector, setOpenProfesorSelector] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(false);
+  const [loadingPrograma, setLoadingPrograma] = useState(false)
+
+  const materiaButtonRef = useRef<HTMLButtonElement>(null)
+  const profesorButtonRef = useRef<HTMLButtonElement>(null)
+  const bloqueMultipleRef = useRef<HTMLDivElement>(null)
+
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    getValues,
+    reset,
+    setFocus,
+    handleSubmit,
+    formState: { errors, isDirty }
+  } = useForm<ProgramaAdminFormData>({
+      resolver: zodResolver(programaAdminSchema),
+      mode: "onSubmit",
+      reValidateMode: "onChange",
+      shouldFocusError: false,
+      defaultValues: {
+          materiaId: undefined,
+          profesorResponsableId: undefined,
+          bloqueMultiple: [],
+          cantidadSemanas: undefined, 
+          cargaHorariaSemanal: undefined,
+          cargaHorariaTotal: undefined,
+          creditos: undefined,
+      }
   })
 
-  const [openProfesorSelector, setOpenProfesorSelector] = useState(false)
+  const {
+    fields,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: "bloqueMultiple",
+  })
+
+  const materiaId = watch("materiaId");
+  const bloqueMultiple = watch("bloqueMultiple");
+  const semanas = watch("cantidadSemanas");
+  const cargaSemanal = watch("cargaHorariaSemanal");
+  const cargaTotal = watch("cargaHorariaTotal");
+
 
   const deptId = activeDepartamento?.departamentoId
   
@@ -133,14 +172,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           }
         });
 
-        setFormData({
-          profesorResponsableId: undefined,
-          bloqueMultiple: [],
-          cargaHorariaTotal: undefined,
-          cargaHorariaSemanal: undefined,
-          creditos: undefined,
-          cantidadSemanas: undefined,
-        })
+        reset()
 
         queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
@@ -179,51 +211,60 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.profesorResponsableId || formData.profesorResponsableId === 0) {
-      toast({
-        title: "Error de validación",
-        description: "Por favor, selecciona un docente responsable antes de continuar.",
-        variant: "destructive",
-      });
-      return; // Evita que se ejecute la mutación
-    }
-
-    if (!formData.bloqueMultiple || formData.bloqueMultiple.length === 0) {
-      toast({
-        title: "Error",
-        description: "Debe agregar al menos una carrera",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const bloquesInvalidos = formData.bloqueMultiple?.some(
-      (b) =>
-        !b.carreraPlanId ||
-        !b.ubicacionEnPlan ||
-        !b.contenidosMinimos
-    )
-
-    if (bloquesInvalidos) {
-      toast({
-        title: "Error",
-        description: "Todos los campos de cada carrera son obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
-
-    console.log("Datos a enviar:", formData)
-
+  const onSubmit = (data: ProgramaAdminFormData) => {
     mutate({ 
       deptId: activeDepartamento!.departamentoId!,
       id,
-      data: formData 
+      data: data 
     });
+  }
+
+  const focusPopover = (ref: React.RefObject<HTMLButtonElement | null>) => {
+    ref.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    })
+
+    requestAnimationFrame(() => {
+      ref.current?.focus()
+    })
+  }
+
+  const onInvalid = (
+    formErrors: FieldErrors<ProgramaAdminFormData>
+  ) => {
+    if (formErrors.materiaId) {
+      focusPopover(materiaButtonRef)
+      return
+    }
+
+    if (formErrors.profesorResponsableId) {
+      focusPopover(profesorButtonRef)
+      return
+    }
+
+    if (formErrors.bloqueMultiple) {
+      bloqueMultipleRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+      return
+    }
+
+    if (formErrors.cantidadSemanas) {
+      setFocus("cantidadSemanas")
+      return
+    }
+
+    if (formErrors.cargaHorariaSemanal) {
+      setFocus("cargaHorariaSemanal")
+      return
+    }
+
+    if (formErrors.creditos) {
+      setFocus("creditos")
+      return
+    }
   }
 
   const draftQuery = useGetDraft(
@@ -264,7 +305,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
       setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
-      setFormData(draftData)
+      reset(draftData)
       setShowDraft(false)
 
       toast({
@@ -290,18 +331,18 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
         data: {
-          payloadJson: JSON.stringify(formData),
+          payloadJson: JSON.stringify(getValues()),
         },
       });
-  
-      setIsDirty(false);
+
+      reset(getValues())
   
       toast({
         description: "✓ Guardado",
         variant: "draft",
       })    
 
-  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
+  }, [getValues(), activeDepartamento, activeRole, mutateSaveDraft]);
   
   
   const debouncedSave = useCallback(() => {
@@ -345,7 +386,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         creditos: programa.creditos || 0,
         cantidadSemanas: programa.cantidadSemanas || 0,
       }
-      setFormData(mappedData)
+      reset(mappedData)
 
 
       if (programa.profesorResponsable?.id) {
@@ -397,66 +438,32 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
   useEffect(() => {
     const total =
-      (formData.cantidadSemanas || 0) *
-      (formData.cargaHorariaSemanal || 0)
+      (Number.isFinite(semanas) ? semanas : 0) *
+      (Number.isFinite(cargaSemanal)
+        ? cargaSemanal
+        : 0)
 
-    setFormData((prev) => ({
-      ...prev,
-      cargaHorariaTotal: total,
-    }))
-  }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
+    setValue("cargaHorariaTotal", total)
+  }, [semanas, cargaSemanal, setValue]);
 
   const handleAddProgramaCarrera = () => {
-    const newBlock: ProgramaCarreraCreateDTO = {
-      key: Date.now().toString(),
-      carreraPlanId: 0,
-      ubicacionEnPlan: "",
-      correlativasFuertesIds: [],
-      correlativasDebilesIds: [],
-      contribucion: "",
-      contenidosMinimos: "",
-    }
-
-    setFormData((prev) => ({
-        ...prev,
-        bloqueMultiple: [newBlock, ...(prev.bloqueMultiple || [])]
-    }));
-
-    setIsDirty(true);
-  }
-
-  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
-    setFormData((prev) => ({
-      ...prev,
-      bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
-    }))
-    setIsDirty(true);
+    append({
+        carreraPlanId: 0,
+        ubicacionEnPlan: "",
+        correlativasFuertesIds: [],
+        correlativasDebilesIds: [],
+        contribucion: "",
+        contenidosMinimos: "",
+    })
   }
 
   const handleRemoveProgramaCarrera = () => {
-    if (removeProgramaCarreraIndex === null) return
+    if(removeProgramaCarreraIndex == null) return
 
-    const updatedBlocks = [...formData.bloqueMultiple || []]
-    updatedBlocks.splice(removeProgramaCarreraIndex, 1)
-    setFormData((prev) => ({
-      ...prev,
-      bloqueMultiple: updatedBlocks,
-    }))
+    remove(removeProgramaCarreraIndex)
 
     setRemoveProgramaCarreraIndex(null)
-    setIsDirty(true);
-  }
-
-  const handleSingleFieldChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-
-    if(field !== "materiaId")
-      setIsDirty(true);
-  }
-
+  } 
 
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
@@ -695,9 +702,17 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
               <PopoverTrigger asChild>
                 <Button
+                  ref={profesorButtonRef}
+                  type="button"
                   variant="outline"
                   role="combobox"
                   aria-expanded={openProfesorSelector}
+                  aria-invalid={!!errors.profesorResponsableId}
+                  aria-describedby={
+                    errors.profesorResponsableId
+                      ? "profesor-error"
+                      : undefined
+                  }
                   className="w-full justify-between font-normal border-border"
                 >
                   {selectedProfesor?.id 
@@ -718,7 +733,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
                           value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
                           onSelect={() => {
                             setSelectedProfesor(profesor)
-                            handleSingleFieldChange("profesorResponsableId", profesor.id)
+                            setValue("profesorResponsableId", profesor.id!, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                            })
                             setOpenProfesorSelector(false)
                           }}
                         >
@@ -736,11 +754,18 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
                 </Command>
               </PopoverContent>
             </Popover>
+            <div className="min-h-5">
+              {errors.profesorResponsableId && (
+                <p className="text-sm text-red-500">
+                  {errors.profesorResponsableId.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
         {/* BLOQUE MÚLTIPLE */}
-        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+        <div ref={bloqueMultipleRef} className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
             <Button
@@ -754,25 +779,23 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </Button>
           </div>
 
-          {formData.bloqueMultiple?.length === 0 ? (
+          {bloqueMultiple.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground bg-background rounded-lg border-2 border-dashed border-accent/20">
               <p>No hay carreras agregadas aún</p>
               <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
             </div>
           ) : (
-            <div className={formData.bloqueMultiple && formData.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-              {formData.bloqueMultiple?.map((block, index) => (
+            <div className={bloqueMultiple && bloqueMultiple.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
+              {fields.map((block, index) => (
                 <ProgramaCarreraCreateBlock
-                  key={block.key}
-                  materiaId={formData.materiaId || 0}
-                  block={block}
+                  key={block.id}
+                  materiaId={materiaId || 0}
                   index={index}
                   carreras={carreras}
-                  // selectedCarreraPlanIds={formData.bloqueMultiple
-                  //   ?.map((b) => b.carreraPlanId)
-                  //   .filter((id) => id !== undefined && id !== null)
-                  //   ?? []}
-                  onUpdate={handleUpdateProgramaCarrera}
+                  control={control}
+                  register={register}
+                  setValue={setValue}
+                  errors={errors}
                   onRemove={setRemoveProgramaCarreraIndex}
                 />
               ))}
@@ -793,12 +816,23 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="semanas"
                 type="number"
-                value={formData.cantidadSemanas}
-                onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
+                {...register("cantidadSemanas", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 16"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
+                className={`border-2 focus:border-primary ${
+                  errors.cantidadSemanas
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
               />
+              <div className="min-h-5">
+                {errors.cantidadSemanas && (
+                  <p className="text-sm text-red-500">
+                    {errors.cantidadSemanas.message}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
@@ -807,12 +841,23 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="cargaSemanal"
                 type="number"
-                value={formData.cargaHorariaSemanal}
-                onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
+                {...register("cargaHorariaSemanal", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 8"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
-             />
+                className={`border-2 focus:border-primary ${
+                  errors.cargaHorariaSemanal
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
+              />
+              <div className="min-h-5">
+                {errors.cargaHorariaSemanal && (
+                  <p className="text-sm text-red-500">
+                    {errors.cargaHorariaSemanal.message}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
@@ -821,25 +866,40 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="cargaTotal"
                 type="number"
-                value={formData.cargaHorariaTotal}
+                value={cargaTotal ?? 0}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 disabled
               />
+              <div className="min-h-5">
+                {errors.cargaHorariaTotal && <span className="text-red-500 text-sm">{errors.cargaHorariaTotal.message}</span>}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="creditos" className="text-sm font-semibold text-foreground">
-                Créditos *
-              </Label>
+              <LabelWithTooltip
+                label="Créditos *"
+                tooltip={
+                  <>
+                    <p>Las correlativas fuertes deben estar aprobadas antes de cursar esta asignatura.</p>
+                  </>
+                }
+              />
               <Input
                 id="creditos"
                 type="number"
-                value={formData.creditos}
-                onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
+                {...register("creditos", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 4"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
+                className={`border-2 focus:border-primary ${
+                  errors.creditos
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
               />
+              <div className="min-h-5">
+                {errors.creditos && <span className="text-red-500 text-sm">{errors.creditos.message}</span>}
+              </div>
             </div>
           </div>
 
@@ -852,7 +912,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               id="cargaPractica"
               type="number"
               value={programa.cargaHorariaPractica}
-              onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               disabled
@@ -869,7 +928,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="fundamentacion"
               value={programa.fundamentacion}
-              onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
               placeholder="Justifica la importancia de esta Materia..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
@@ -883,7 +941,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="objetivos"
               value={programa.objetivos}
-              onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
               placeholder="Define los objetivos de aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
@@ -897,7 +954,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="programa"
               value={programa.programaAnalitico}
-              onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
               placeholder="Detalla el contenido temático del curso..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
@@ -911,7 +967,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="metodologia"
               value={programa.metodologia}
-              onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
               placeholder="Describe los métodos de enseñanza..."
               className="border-border focus:border-primary min-h-20 resize-none" 
               disabled
@@ -925,7 +980,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="evaluacion"
               value={programa.modalidadEvaluacion}
-              onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
@@ -939,7 +993,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="bibliografia"
               value={programa.bibliografia}
-              onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
@@ -951,7 +1004,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           <div className="flex gap-3 pt-4 border-t border-border">
             <Button
               type="button"
-              onClick={handleSubmit}
+              onClick={handleSubmit(onSubmit, onInvalid)}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >

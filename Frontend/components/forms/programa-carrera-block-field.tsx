@@ -396,9 +396,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`contenidos-${index}`} className="text-sm font-semibold text-foreground">
-          Contenidos Mínimos *
-        </Label>
         <LabelWithTooltip
           label="Contenidos Mínimos *"
           tooltip={
