@@ -444,6 +444,7 @@ export function SyllabusCreationForm() {
   }, [selectedMateria])
 
   const guardarBorrador = useCallback(() => {
+    const values = getValues()
 
     mutateSaveDraft({
       deptId: activeDepartamento!.departamentoId!,
@@ -452,18 +453,18 @@ export function SyllabusCreationForm() {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
       data: {
-        payloadJson: JSON.stringify(getValues()),
+        payloadJson: JSON.stringify(values),
       },
     });
 
-    reset(getValues())
+    reset(values)
 
     toast({
       description: "✓ Guardado",
       variant: "draft",
     })    
-  }, [getValues(), activeDepartamento, activeRole, mutateSaveDraft]);
-
+  }, [getValues, reset, activeDepartamento, materiaId, activeRole, mutateSaveDraft]);
+  
   const debouncedSave = useCallback(() => {
     const handler = setTimeout(() => {
       guardarBorrador();
@@ -937,6 +938,7 @@ export function SyllabusCreationForm() {
             <div className="space-y-2">
               <LabelWithTooltip
                 label="Créditos *"
+                htmlFor="creditos"
                 tooltip={
                   <>
                     <p>Ingrese la cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
@@ -983,9 +985,10 @@ export function SyllabusCreationForm() {
           <div className="space-y-2">
             <LabelWithTooltip
               label="Fundamentación"
+              htmlFor="fundamentacion"
               tooltip={
                 <>
-                  <p>Indica la inclusión de la asignatura en el plan de estudios, indicando su aporte a la formación del estudiante y su relación con el perfil del egresado.</p>
+                  <p>Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento.</p>
                 </>
               }
             />
@@ -1001,9 +1004,10 @@ export function SyllabusCreationForm() {
           <div className="space-y-2">
             <LabelWithTooltip
               label="Objetivos"
+              htmlFor="objetivos"
               tooltip={
                 <>
-                  <p>Los objetivos de aprendizaje que se espera que el estudiante alcance al finalizar la asignatura.</p>
+                  <p>Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico.</p>
                 </>
               }
             />
@@ -1019,9 +1023,10 @@ export function SyllabusCreationForm() {
           <div className="space-y-2">
             <LabelWithTooltip
               label="Programa Analítico"
+              htmlFor="programa"
               tooltip={
                 <>
-                  <p>Las unidades temáticas y los contenidos que serán desarrollados durante el cursado, organizados de manera lógica y secuencial.</p>
+                  <p>Indique la nómina de unidades temáticas y su desarrollo.</p>
                 </>
               }
             />
@@ -1037,9 +1042,13 @@ export function SyllabusCreationForm() {
           <div className="space-y-2">
              <LabelWithTooltip
                label="Metodología"
+                htmlFor="metodologia"
                tooltip={
                  <>
-                   <p>Las estrategias de enseñanza que se utilizarán, incluyendo clases teóricas, prácticas, laboratorios, trabajos de campo, actividades virtuales u otras modalidades.</p>
+                    <p>
+                      Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de prácticas de
+                      gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o visitas, trabajos de campo, etc.
+                    </p>
                  </>
                }
              />
@@ -1058,9 +1067,12 @@ export function SyllabusCreationForm() {
           <div className="space-y-2">
             <LabelWithTooltip
               label="Modalidad de Evaluación"
+              htmlFor="modalidadEvaluacion"
               tooltip={
                 <>
-                  <p>Los instrumentos y criterios mediante los cuales se evaluará el aprendizaje de los estudiantes, indicando las condiciones de aprobación cuando corresponda.</p>
+                  <p>
+                    Describa el proceso de evaluación que aplica: parciales, entregas, trabajos prácticos, presentaciones orales, trabajos integradores, proyectos, etc. Incluya el sistema de Promoción adoptado (obligatorio según CSU 546/21)
+                  </p>
                 </>
               }
             />
