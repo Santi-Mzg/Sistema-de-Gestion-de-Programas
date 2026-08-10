@@ -1,0 +1,480 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DevSecOps Pipeline — Sílabus UNS
+#
+# Execution flow:
+#
+#   secret-detection (gate: blocks if secrets are detected)
+#   ├── test-backend  (gate: all backend tests must pass)
+#   ├── test-frontend (gate: all frontend tests must pass)
+#   ├── sca-backend   (gate: blocks on CRITICAL)
+#   ├── sca-frontend  (gate: blocks on HIGH+ production vulnerabilities)
+#   ├── sast          (informational findings; analysis job must complete)
+#   └── iac-scanning  (gate: blocks on HIGH+)
+#          │
+#          └── dast   (gate: runs only if all required jobs pass)
+#                 │
+#                 └── pipeline-summary (always)
+#
+# Gate policy:
+#   Secret Detection → blocks if Gitleaks detects a secret
+#   Backend Tests    → blocks if any Maven/JUnit test fails
+#   Frontend Tests   → blocks if any Vitest test fails
+#   SCA Backend      → blocks on CRITICAL vulnerabilities
+#   SCA Frontend     → blocks on HIGH or CRITICAL production vulnerabilities
+#   SAST             → CodeQL findings are reported through GitHub Code Scanning
+#   IaC              → blocks on HIGH or CRITICAL misconfigurations
+#   DAST             → blocks on non-accepted OWASP ZAP alerts
+#
+# Required repository secrets:
+#   JWT_SECRET_TEST  — JWT key for backend in DAST mode (can be dummy)
+#   GEMINI_API_KEY   — can be dummy ("test") for DAST
+#   RESEND_API_KEY   — can be dummy ("test") for DAST
+#   GITLEAKS_LICENSE — required only for private repositories
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 1 ─ Secret Detection — GATE: blocks if secrets are detected
+  # ═══════════════════════════════════════════════════════════════════════════
+  secret-detection:
+    name: "1 · Secret Detection (Gitleaks)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout — full history
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 fetches all commits; without this gitleaks
+          # only sees the trigger snapshot and cannot scan history.
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE is required for private repos.
+          # For public repos it can be omitted or left empty.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          # log-opts is passed directly to `git log`.
+          # "--all" makes gitleaks scan ALL branches and tags,
+          # not just the commits from the current push/PR.
+          log-opts: --all
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 2a ─ Backend Tests — GATE
+  #
+  # Runs the complete Maven test suite.
+  # Any failing test blocks DAST.
+  # ═══════════════════════════════════════════════════════════════════════════
+  test-backend:
+    name: "2a · Backend Tests"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Run backend tests
+        working-directory: Backend
+        run: |
+          chmod +x ./mvnw
+          ./mvnw test --no-transfer-progress
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 2b ─ Frontend Tests — GATE
+  #
+  # Installs dependencies from package-lock.json and runs the complete
+  # Vitest test suite in non-interactive CI mode.
+  # Any failing test blocks DAST.
+  # ═══════════════════════════════════════════════════════════════════════════
+  test-frontend:
+    name: "2b · Frontend Tests (Vitest)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: Frontend
+        run: npx vitest run --passWithNoTests
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 3a ─ SCA Backend — GATE: blocks on CRITICAL
+  # ═══════════════════════════════════════════════════════════════════════════
+  sca-backend:
+    name: "3a · SCA Backend (Trivy)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Pre-warm Maven cache
+        working-directory: Backend
+        run: |
+          chmod +x ./mvnw
+          ./mvnw dependency:resolve -q --no-transfer-progress || true
+
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: Backend/
+          scanners: vuln
+          format: json
+          output: trivy-backend-report.json
+          exit-code: '0'
+          severity: MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: true
+
+      # Gate: fails only if CRITICAL vulnerabilities are found.
+      # HIGH and MEDIUM are reported but do not block the pipeline.
+      - name: Gate CRITICAL
+        run: |
+          CRITICAL=$(jq '
+            [
+              .Results[]?
+              | .Vulnerabilities[]?
+              | select(.Severity=="CRITICAL")
+            ] | length
+          ' trivy-backend-report.json)
+
+          echo "Critical vulnerabilities: $CRITICAL"
+
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found. Blocking pipeline."
+            exit 1
+          else
+            echo "✅ No critical vulnerabilities found."
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-sca-report
+          path: trivy-backend-report.json
+          retention-days: 30
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 3b ─ SCA Frontend — GATE: blocks on real HIGH+
+  # ═══════════════════════════════════════════════════════════════════════════
+  sca-frontend:
+    name: "3b · SCA Frontend (npm audit)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      # Gate: blocks on HIGH or CRITICAL vulnerabilities in production
+      # dependencies. Development dependencies are excluded from the audit
+      # using --omit=dev.
+      - name: npm audit (high+ production)
+        working-directory: Frontend
+        run: npm audit --audit-level=high --omit=dev
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 4 ─ SAST (CodeQL) — findings are informational
+  #
+  # CodeQL uploads detected vulnerabilities to GitHub Code Scanning.
+  # Security findings do not directly fail this workflow, but the analysis
+  # job itself must complete successfully before DAST can run.
+  # ═══════════════════════════════════════════════════════════════════════════
+  sast:
+    name: "4 · SAST (CodeQL)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - java
+          - javascript-typescript
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 5 ─ IaC Scanning — GATE: blocks on HIGH+
+  #  
+  # Both Trivy and Checkov report infrastructure misconfigurations.
+  # HIGH and CRITICAL findings block the pipeline.
+  # Lower-severity findings remain informational.
+  # ═══════════════════════════════════════════════════════════════════════════
+  iac-scanning:
+    name: "5 · IaC Scanning (Trivy + Checkov)"
+    needs: secret-detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Real gate: fails if HIGH or CRITICAL misconfigurations are found
+      # in Dockerfiles or docker-compose.yml
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+      # Checkov uses the same HIGH+ blocking policy as Trivy.
+      # LOW and MEDIUM findings are reported but do not fail the job.
+      - name: Checkov — docker-compose.yml
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          file: docker-compose.yml
+          hard_fail_on: HIGH
+
+      - name: Checkov — Dockerfiles
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: dockerfile
+          hard_fail_on: HIGH
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 6 ─ DAST (OWASP ZAP) — GATE
+  #
+  # Runs only after all previous jobs complete successfully.
+  # ZAP reads the OpenAPI specification exposed by the running backend and
+  # performs automated dynamic security testing against the API.
+  #
+  # ZAP findings can fail this job, making DAST a security gate.
+  # Accepted/known alerts can be managed through ZAP rules if needed.
+  # ═══════════════════════════════════════════════════════════════════════════
+  dast:
+    name: "6 · DAST (OWASP ZAP)"
+    needs: [secret-detection, test-backend, test-frontend, sca-backend, sca-frontend, sast, iac-scanning]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Build, start backend and wait for health
+        working-directory: Backend
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: dast@example.com
+          SERVER_PORT: '8080'
+        run: |
+          chmod +x ./mvnw
+
+          # Pre-download plugins and dependencies before starting Spring Boot
+          ./mvnw dependency:resolve dependency:resolve-plugins \
+            test-compile compile \
+            -Pdast \
+            -q --no-transfer-progress
+
+          # Start Spring Boot in background within the same shell step
+          # so the health check loop can reach the background process
+          ./mvnw spring-boot:run \
+            -Pdast \
+            -Dspring-boot.run.profiles=dast \
+            --no-transfer-progress > /tmp/spring.log 2>&1 &
+          echo $! > /tmp/spring_pid
+
+          echo "Waiting for Spring Boot to start..."
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Backend healthy after $((i * 2))s"
+              exit 0
+            fi
+            echo "  attempt $i/90 — retrying in 2s..."
+            sleep 2
+          done
+          echo "Backend did not start within 180s"
+          cat /tmp/spring.log
+          exit 1
+
+      # ZAP reads the OpenAPI spec from the running backend and generates
+      # automated attack traffic against the exposed API endpoints.
+      #
+      # fail_action=true makes DAST a pipeline gate: non-accepted ZAP alerts
+      # cause the job, and therefore the workflow, to fail.
+      - name: ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.10.0
+        with:
+          target: 'http://localhost:8080/v3/api-docs'
+          format: openapi
+          fail_action: true
+          allow_issue_writing: false
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-api-scan-report
+          path: |
+            report_html.html
+            report_md.md
+            report_json.json
+          retention-days: 30
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/spring_pid ]; then
+            kill "$(cat /tmp/spring_pid)" 2>/dev/null || true
+          fi
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 7 ─ Pipeline Summary
+  # ═══════════════════════════════════════════════════════════════════════════
+  pipeline-summary:
+    name: "7 · Pipeline Summary"
+    # Always runs, even if a previous job failed or was cancelled.
+    if: always()
+    needs:
+      - secret-detection
+      - test-backend
+      - test-frontend
+      - sca-backend
+      - sca-frontend
+      - sast
+      - iac-scanning
+      - dast
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print summary
+        run: |
+          label() {
+            case "$1" in
+              success)   echo "✅ PASSED"    ;;
+              failure)   echo "❌ FAILED"    ;;
+              skipped)   echo "⏭️ SKIPPED"   ;;
+              cancelled) echo "🚫 CANCELLED" ;;
+              *)         echo "$1"           ;;
+            esac
+          }
+
+          R1="${{ needs.secret-detection.result }}"
+          R2A="${{ needs.test-backend.result }}"
+          R2B="${{ needs.test-frontend.result }}"
+          R3A="${{ needs.sca-backend.result }}"
+          R3B="${{ needs.sca-frontend.result }}"
+          R4="${{ needs.sast.result }}"
+          R5="${{ needs.iac-scanning.result }}"
+          R6="${{ needs.dast.result }}"
+
+          echo "================================================="
+          echo "       DEVSECOPS PIPELINE — SÍLABUS UNS          "
+          echo "================================================="
+          printf "  %-32s %s\n" "1.  Secret Detection [GATE]" "$(label "$R1")"
+          printf "  %-32s %s\n" "2a. Backend Tests [GATE]"     "$(label "$R2A")"
+          printf "  %-32s %s\n" "2b. Frontend Tests [GATE]"    "$(label "$R2B")"
+          printf "  %-32s %s\n" "3a. SCA Backend [GATE]"       "$(label "$R3A")"
+          printf "  %-32s %s\n" "3b. SCA Frontend [GATE]"      "$(label "$R3B")"
+          printf "  %-32s %s\n" "4.  SAST (CodeQL)"            "$(label "$R4")"
+          printf "  %-32s %s\n" "5.  IaC Scanning [GATE]"     "$(label "$R5")"
+          printf "  %-32s %s\n" "6.  DAST (ZAP) [GATE]"       "$(label "$R6")"
+          echo "================================================="
+
+          {
+            echo "## 🔒 DevSecOps Pipeline — Sílabus UNS"
+            echo ""
+            echo "| Job | Type | Result |"
+            echo "|-----|------|--------|"
+            echo "| 1. Secret Detection | **GATE** | $(label "$R1") |"
+            echo "| 2a. Backend Tests | **GATE** | $(label "$R2A") |"
+            echo "| 2b. Frontend Tests | **GATE** | $(label "$R2B") |"
+            echo "| 3a. SCA Backend | **GATE** | $(label "$R3A") |"
+            echo "| 3b. SCA Frontend | **GATE** | $(label "$R3B") |"
+            echo "| 4. SAST (CodeQL) | Informational | $(label "$R4") |"
+            echo "| 5. IaC Scanning | **GATE** | $(label "$R5") |"
+            echo "| 6. DAST (ZAP) | **GATE** | $(label "$R6") |"
+            echo ""
+            echo "> Jobs marked as **GATE** enforce the pipeline quality/security policy."
+            echo "> DAST runs only when all required previous jobs complete successfully."
+          } >> "$GITHUB_STEP_SUMMARY"

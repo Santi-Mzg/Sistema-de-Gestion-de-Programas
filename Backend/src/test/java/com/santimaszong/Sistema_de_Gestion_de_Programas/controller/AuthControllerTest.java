@@ -106,7 +106,7 @@ class AuthControllerTest {
 
     // ═════════════════════════════════════════════════════════════════════
     // TEST 2 – POST /auth/login con contraseña incorrecta
-    //          → 5xx (BadCredentialsException capturado por handleGeneralException)
+    //          → 401 Unauthorized
     // ═════════════════════════════════════════════════════════════════════
 
     @Test
@@ -118,8 +118,9 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().is5xxServerError());
-    }
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication failed"))
+                .andExpect(jsonPath("$.errors.Error").value("Credenciales inválidas"));    }
 
     // ═════════════════════════════════════════════════════════════════════
     // TEST 3 – GET /auth/me con usuario autenticado → 200 + datos del usuario

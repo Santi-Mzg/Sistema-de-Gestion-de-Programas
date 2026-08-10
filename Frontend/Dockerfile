@@ -20,5 +20,11 @@ COPY --from=builder /app/public ./public
 # Asume que Next.js correrá en 3000 por defecto
 EXPOSE 3000
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+RUN addgroup --system nextjs && adduser --system nextjs --ingroup nextjs
+USER nextjs:nextjs
+
 # Comando para iniciar el servidor de Next.js
 CMD ["npm", "start"]

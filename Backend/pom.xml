@@ -5,9 +5,10 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.6</version>
+		<version>3.5.15</version>
 		<relativePath/>
 	</parent>
+
 	<groupId>com.santimaszong</groupId>
 	<artifactId>Sistema_de_Gestion_de_Programas</artifactId>
 	<version>0.9.0-SNAPSHOT</version>
@@ -77,7 +78,7 @@
         <dependency>
             <groupId>com.resend</groupId>
             <artifactId>resend-java</artifactId>
-            <version>LATEST</version>
+            <version>4.13.0</version>
         </dependency>
 
         <dependency>
@@ -183,6 +184,19 @@
         </dependency>
 	</dependencies>
 
+    <profiles>
+        <profile>
+            <id>dast</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -222,8 +236,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>11.17.0</version>
                 <configuration>
-                    <user>avnadmin</user>
-                    <password>AVNS_8Sg9XbhenAVT1GYIfrK</password>
+                    <url>${env.SPRING_DATASOURCE_URL}</url>
+                    <user>${env.SPRING_DATASOURCE_USERNAME}</user>
+                    <password>${env.SPRING_DATASOURCE_PASSWORD}</password>
                     <schemas>
                         <schema>public</schema>
                     </schemas>
@@ -231,5 +246,20 @@
             </plugin>
 		</plugins>
 	</build>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-core</artifactId>
+				<version>10.1.55</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-websocket</artifactId>
+				<version>10.1.55</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 </project>
