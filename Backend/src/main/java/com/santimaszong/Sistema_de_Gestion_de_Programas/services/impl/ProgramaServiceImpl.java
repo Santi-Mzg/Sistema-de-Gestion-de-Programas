@@ -131,8 +131,8 @@ public class ProgramaServiceImpl implements ProgramaService {
         ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
 
         // EMAIL SEND
-        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
-        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesor.getEmail(), profesorResponsable, materia);
+//        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
+        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesor.getEmail(), udeProfesor.getUsuario(), materia);
 
         return responseMapper.toDTO(createdProgramaEntity);
     }
@@ -224,7 +224,6 @@ public class ProgramaServiceImpl implements ProgramaService {
         // EMAIL SEND
         UsuarioDepartamentoEntity udeProfesorResponsable = existingProgram.getProfesorResponsable();
         emailService.sendEmailNotificacionCargaAdministrativo(udeProfesorResponsable.getEmail(), udeProfesorResponsable.getUsuario(), existingProgram.getMateria());
-
 
         return responseMapper.toDTO(saved);
     }

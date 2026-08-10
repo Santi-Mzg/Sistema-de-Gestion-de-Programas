@@ -3,8 +3,8 @@ import { z } from "zod"
 
 export const createUserSchema = z
   .object({
-    nombre: z.string().min(1, "El nombre es requerido").min(3, "El nombre debe tener al menos 2 caracteres"),
-    apellido: z.string().min(1, "El apellido es requerido").min(2, "El apellido debe tener al menos 2 caracteres"),
+    nombre: z.string().min(1, "El nombre es requerido").min(3, "El nombre debe tener al menos 2 caracteres").max(100, "El nombre no puede superar los 100 caracteres"),
+    apellido: z.string().min(1, "El apellido es requerido").min(2, "El apellido debe tener al menos 2 caracteres").max(100, "El apellido no puede superar los 100 caracteres"),
     legajo: z.string().min(1, "El legajo es requerido").regex(/^\d+$/, "El legajo solo debe contener números"),
     email: z.string().min(1, "El correo electrónico es requerido").email("Ingresa un correo electrónico válido"),
     roles: z.array(z.enum([

@@ -21,6 +21,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { cn } from "@/lib/utils"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { ProgramaDocenteFormData, programaDocenteSchema } from "@/lib/schemas/programa"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useFieldArray, useForm } from "react-hook-form"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface SyllabusFormProps {
   id: number,
@@ -35,8 +39,28 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   const [loadingPrograma, setLoadingPrograma] = useState(false)
   const [showDraft, setShowDraft] = useState(false)
   const [loadingDraft, setLoadingDraft] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  
+  const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
+
+  const {
+      register,
+      setValue,
+      getValues,
+      reset,
+      handleSubmit,
+      formState: { errors, isDirty }
+    } = useForm<ProgramaDocenteFormData>({
+        resolver: zodResolver(programaDocenteSchema),
+        defaultValues: {
+            cargaHorariaPractica: undefined,
+            fundamentacion: undefined,
+            objetivos: undefined,
+            programaAnalitico: undefined,
+            metodologia: undefined,
+            modalidadEvaluacion: undefined,
+            bibliografia: undefined,
+        }
+    })
+
   const programaQuery = useGetPrograma(id,
     {
       query: {
@@ -48,30 +72,8 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
 
-  // const programaVigenteQuery = useGetProgramaVigente(id, {
-  //   query: {
-  //     enabled: !!id,
-  //     staleTime: Infinity,
-  //     queryKey: getGetProgramaVigenteQueryKey(id),
-  //   },
-  // });
-  
-  // const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
-
   const ultimoEstado = programa?.historialEstados?.at(-1);
   const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;
-  
-  const [formData, setFormData] = useState<ProgramaCargaDTO>({
-      cargaHorariaPractica: undefined,
-      fundamentacion: undefined,
-      objetivos: undefined,
-      programaAnalitico: undefined,
-      metodologia: undefined,
-      modalidadEvaluacion: undefined,
-      bibliografia: undefined,
-  })
-
-  const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
 
   const { mutate: mutateSaveDraft } = useSaveDraft()
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
@@ -93,15 +95,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           }
         });
 
-        setFormData({
-          cargaHorariaPractica: undefined,
-          fundamentacion: undefined,
-          objetivos: undefined,
-          programaAnalitico: undefined,
-          metodologia: undefined,
-          modalidadEvaluacion: undefined,
-          bibliografia: undefined,
-        })
+        reset()
 
         queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
@@ -179,7 +173,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
   useEffect(() => {
       if (programa) {
-          setFormData({
+          reset({
               cargaHorariaPractica: programa.cargaHorariaPractica || 0,
               fundamentacion: programa.fundamentacion || "",
               objetivos: programa.objetivos || "",
@@ -221,28 +215,10 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
       })
     }, [programa]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault() 
-
-    if (
-      formData.cargaHorariaPractica && formData.cargaHorariaTotal &&
-      (
-        formData.cargaHorariaPractica <= 0 ||
-        formData.cargaHorariaPractica >= formData.cargaHorariaTotal
-      )
-     ) {
-      toast({
-        title: "Error",
-        description:
-          "La carga horaria práctica debe estar entre 0 y la carga horaria total",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const onSubmit = (data: ProgramaDocenteFormData) => {
     mutateProfesor({
       deptId: activeDepartamento!.departamentoId!,
-      data: formData,
+      data: data,
       id: id
     });
   }
@@ -283,7 +259,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     setLoadingDraft(true)
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
-      setFormData(draftData)
+      reset(draftData)
       setShowDraft(false)
 
       toast({
@@ -300,7 +276,8 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
 
   const guardarBorrador = useCallback(() => {
-  
+      const values = getValues()
+      
       mutateSaveDraft({
         deptId: activeDepartamento!.departamentoId!,
         materiaId: programa?.materia?.id!,
@@ -308,18 +285,18 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
         data: {
-          payloadJson: JSON.stringify(formData),
+          payloadJson: JSON.stringify(values),
         },
       });
-  
-      setIsDirty(false);
+      
+      reset(values)
   
       toast({
         description: "✓ Guardado",
         variant: "draft",
       })    
 
-  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
+  }, [getValues, reset, activeDepartamento, programa?.materia?.id, activeRole, mutateSaveDraft]);
   
   
   const debouncedSave = useCallback(() => {
@@ -339,16 +316,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
       return cancel;
   }, [isDirty, debouncedSave]);
 
-  const handleSingleFieldChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-
-    setIsDirty(true);
-  }
-
-
+  
   const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
     const data = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
@@ -369,7 +337,11 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   const {mutate, isPending: isPendingFormatoAPA} = useFormatearAPA({
     mutation: {
       onSuccess: (data) => {
-        handleSingleFieldChange("bibliografia", data);
+        setValue("bibliografia", data, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });       
+
         toast({
           title: "✓ Formateo exitoso",
           description: "Formateo APA aplicado a la bibliografía",
@@ -387,10 +359,12 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   })
 
   const handleFormatoAPA = async () => {
-    if(!formData.bibliografia?.trim()) 
+    const bibliografia = getValues("bibliografia");
+
+    if(!bibliografia.trim()) 
       return
     
-    mutate({ data: formData.bibliografia })
+    mutate({ data: bibliografia })
   };
 
   if (programaQuery.isLoading) {
@@ -557,6 +531,15 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-foreground">Créditos</Label>
+              <LabelWithTooltip
+                label="Créditos"
+                htmlFor="creditos"
+                tooltip={
+                  <>
+                    <p>La cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
+                  </>
+                }
+              />
               <Input defaultValue={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
             </div>
           </div>
@@ -569,14 +552,25 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             <Input
               id="cargaPractica"
               type="number"
-              value={formData.cargaHorariaPractica}
-              onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
+              {...register("cargaHorariaPractica", {
+                valueAsNumber: true,
+              })}
               placeholder="ej: 64"
               min={0}
-              max={formData.cargaHorariaTotal}
-              className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              required
-            />
+              max={programa.cargaHorariaTotal}
+              className={`border-2 focus:border-primary ${
+                errors.cargaHorariaPractica
+                  ? "border-red-500"
+                  : "border-border"
+              }`}  
+              />
+              <div className="min-h-5">
+                {errors.cargaHorariaPractica && (
+                  <p className="text-sm text-red-500">
+                    {errors.cargaHorariaPractica.message}
+                  </p>
+                )}
+              </div>
           </div>
         </div>
 
@@ -585,84 +579,169 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
 
           <div className="space-y-2">
-            <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
-              Fundamentación *
-            </Label>
+            <LabelWithTooltip
+              label="Fundamentación *"
+              htmlFor="fundamentacion"
+              tooltip={
+                <>
+                  <p>Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento.</p>
+                </>
+              }
+            />
             <Textarea
               id="fundamentacion"
-              value={formData.fundamentacion}
-              onChange={(e) => handleSingleFieldChange("fundamentacion", e.target.value)}
-              placeholder="Justifica la importancia de esta Materia..."
-              className="border-border focus:border-primary min-h-24 resize-none bg-background"
-              required
+              {...register("fundamentacion")}
+              placeholder="Justifica la importancia de esta materia..."
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                  errors.fundamentacion
+                    ? "border-red-500"
+                    : "border-border"
+              }`}
             />
+            <div className="min-h-5">
+              {errors.fundamentacion && (
+                <p className="text-sm text-red-500">
+                  {errors.fundamentacion.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
-              Objetivos *
-            </Label>
+            <LabelWithTooltip
+              label="Objetivos *"
+              htmlFor="objetivos"
+              tooltip={
+                <>
+                  <p>Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico.</p>
+                </>
+              }
+            />
             <Textarea
               id="objetivos"
-              value={formData.objetivos}
-              onChange={(e) => handleSingleFieldChange("objetivos", e.target.value)}
+              {...register("objetivos")}              
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                errors.objetivos
+                ? "border-red-500"
+                : "border-border"
+              }`}
               placeholder="Define los objetivos de aprendizaje..."
-              className="border-border focus:border-primary min-h-24 resize-none bg-background"
-              required
             />
+            <div className="min-h-5">
+              {errors.objetivos && (
+                <p className="text-sm text-red-500">
+                  {errors.objetivos.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
-              Programa Analítico *
-            </Label>
+            <LabelWithTooltip
+              label="Programa Analítico *"
+              htmlFor="programa"
+              tooltip={
+                <>
+                  <p>Indique la nómina de unidades temáticas y su desarrollo.</p>
+                </>
+              }
+            />
             <Textarea
               id="programa"
-              value={formData.programaAnalitico}
-              onChange={(e) => handleSingleFieldChange("programaAnalitico", e.target.value)}
+              {...register("programaAnalitico")}              
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                errors.programaAnalitico
+                ? "border-red-500"
+                : "border-border"
+              }`}
               placeholder="Detalla el contenido temático del curso..."
-              className="border-border focus:border-primary min-h-32 resize-none bg-background"
-              required
             />
+            <div className="min-h-5">
+              {errors.programaAnalitico && (
+                <p className="text-sm text-red-500">
+                  {errors.programaAnalitico.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
-              Metodología *
-            </Label>
+            <LabelWithTooltip
+              label="Metodología *"
+              htmlFor="metodologia"
+              tooltip={
+                <>
+                  <p>
+                    Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de prácticas de
+                    gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o visitas, trabajos de campo, etc.
+                  </p>
+                </>
+              }
+            />
             <Textarea
               id="metodologia"
-              value={formData.metodologia}
-              onChange={(e) => handleSingleFieldChange("metodologia", e.target.value)}
+              {...register("metodologia")}              
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                errors.metodologia
+                ? "border-red-500"
+                : "border-border"
+              }`}
               placeholder="Describe los métodos de enseñanza..."
-              className="border-border focus:border-primary min-h-24 resize-none bg-background"
-              required
             />
+            <div className="min-h-5">
+              {errors.metodologia && (
+                <p className="text-sm text-red-500">
+                  {errors.metodologia.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
-              Modalidad de Evaluación *
-            </Label>
-            <Textarea
-              id="evaluacion"
-              value={formData.modalidadEvaluacion}
-              onChange={(e) => handleSingleFieldChange("modalidadEvaluacion", e.target.value)}
-              placeholder="Especifica cómo se evaluará el aprendizaje..."
-              className="border-border focus:border-primary min-h-24 resize-none bg-background"
-              required
+            <LabelWithTooltip
+              label="Modalidad de Evaluación *"
+              htmlFor="modalidadEvaluacion"
+              tooltip={
+                <>
+                  <p>
+                    Describa el proceso de evaluación que aplica: parciales, entregas, trabajos prácticos, presentaciones orales, trabajos integradores, proyectos, etc. Incluya el sistema de Promoción adoptado (obligatorio según CSU 546/21)
+                  </p>
+                </>
+              }
             />
+            <Textarea
+              {...register("modalidadEvaluacion")}              
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                errors.modalidadEvaluacion
+                ? "border-red-500"
+                : "border-border"
+              }`}
+              placeholder="Especifica cómo se evaluará el aprendizaje..."
+            />
+            <div className="min-h-5">
+              {errors.modalidadEvaluacion && (
+                <p className="text-sm text-red-500">
+                  {errors.modalidadEvaluacion.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-                Bibliografía *
-              </Label>
+              <LabelWithTooltip
+                label="Bibliografía *"
+                htmlFor="bibliografia"
+                tooltip={
+                  <>
+                    <p>Ingrese la bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                  </>
+                }
+              />
               <Button 
                 type="button" 
                 onClick={handleFormatoAPA}
-                disabled={isPendingFormatoAPA || !formData.bibliografia?.trim()}
+                disabled={isPendingFormatoAPA || !getValues('bibliografia')?.trim()}
                 className="flex bg-primary hover:bg-accent text-primary-foreground font-medium"
                 title="Formatear bibliografía al estilo APA con AI"
               >
@@ -672,13 +751,22 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             </div>
             <Textarea
               id="bibliografia"
-              value={formData.bibliografia}
-              onChange={(e) => handleSingleFieldChange("bibliografia", e.target.value)}
-              placeholder="Referencias bibliográficas recomendadas..."
-              className="border-border focus:border-primary min-h-32 resize-none bg-background"
+              {...register("bibliografia")}              
+              className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
+                errors.bibliografia
+                ? "border-red-500"
+                : "border-border"
+              }`}
+              placeholder="Sommerville, I. (2015)..."
               disabled={isPendingFormatoAPA}
-              required
             />
+            <div className="min-h-5">
+              {errors.bibliografia && (
+                <p className="text-sm text-red-500">
+                  {errors.bibliografia.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -686,8 +774,8 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
         <div className="flex gap-3 pt-4 border-t border-border">
           <Button 
             type="button"
-            onClick={handleSubmit}
-            disabled={isPendingProfesor}
+            onClick={handleSubmit(onSubmit)}
+            disabled={isPendingProfesor || isPendingFormatoAPA}
             className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
           >
             {isPendingProfesor ? "Cargando..." : "Cargar Datos"}

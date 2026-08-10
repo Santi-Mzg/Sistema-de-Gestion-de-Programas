@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -36,6 +36,10 @@ import {
 import { cn } from "@/lib/utils"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
+import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { FieldErrors, useFieldArray, useForm } from "react-hook-form"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 export function SyllabusCreationForm() {
   const router = useRouter();
@@ -71,18 +75,51 @@ export function SyllabusCreationForm() {
 
   // const [step, setStep] = useState<ProgramaLoadStep>("IDLE");
 
-  const [isDirty, setIsDirty] = useState(false);
   const [showCreationWarning, setShowCreationWarning] = useState(false);
+  const materiaButtonRef = useRef<HTMLButtonElement>(null)
+  const profesorButtonRef = useRef<HTMLButtonElement>(null)
+  const bloqueMultipleRef = useRef<HTMLDivElement>(null)
 
-  const [formData, setFormData] = useState<ProgramaCargaDTO>({
-    materiaId: undefined,
-    profesorResponsableId: undefined,
-    bloqueMultiple: [],
-    cargaHorariaTotal: undefined,
-    cargaHorariaSemanal: undefined,
-    creditos: undefined,
-    cantidadSemanas: undefined
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    getValues,
+    reset,
+    setFocus,
+    handleSubmit,
+    formState: { errors, isDirty }
+  } = useForm<ProgramaAdminFormData>({
+      resolver: zodResolver(programaAdminSchema),
+      mode: "onSubmit",
+      reValidateMode: "onChange",
+      shouldFocusError: false,
+      defaultValues: {
+          materiaId: undefined,
+          profesorResponsableId: undefined,
+          bloqueMultiple: [],
+          cantidadSemanas: undefined, 
+          cargaHorariaSemanal: undefined,
+          cargaHorariaTotal: undefined,
+          creditos: undefined,
+      }
   })
+
+  const {
+    fields,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: "bloqueMultiple",
+  })
+
+  const materiaId = watch("materiaId");
+  const bloqueMultiple = watch("bloqueMultiple");
+  const semanas = watch("cantidadSemanas");
+  const cargaSemanal = watch("cargaHorariaSemanal");
+  const cargaTotal = watch("cargaHorariaTotal");
 
   const deptId = activeDepartamento?.departamentoId
 
@@ -121,15 +158,13 @@ export function SyllabusCreationForm() {
   
   useEffect(() => {
     const total =
-      (formData.cantidadSemanas || 0) *
-      (formData.cargaHorariaSemanal || 0)
+      (Number.isFinite(semanas) ? semanas : 0) *
+      (Number.isFinite(cargaSemanal)
+        ? cargaSemanal
+        : 0)
 
-    setFormData((prev) => ({
-      ...prev,
-      cargaHorariaTotal: total,
-    }))
-
-  }, [formData.cantidadSemanas, formData.cargaHorariaSemanal])
+    setValue("cargaHorariaTotal", total)
+  }, [semanas, cargaSemanal, setValue]);
 
   const { mutate: mutateSaveDraft } = useSaveDraft()
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
@@ -146,21 +181,13 @@ export function SyllabusCreationForm() {
 
         mutateDeleteDraft({
           deptId: activeDepartamento!.departamentoId!,
-          materiaId: selectedMateria?.id!,
+          materiaId: materiaId!,
           params:{
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
         });
 
-        setFormData({
-          materiaId: undefined,
-          profesorResponsableId: undefined,
-          bloqueMultiple: [],
-          cargaHorariaTotal: undefined,
-          cargaHorariaSemanal: undefined,
-          creditos: undefined,
-          cantidadSemanas: undefined,
-        })
+        reset()
 
         queryClient.invalidateQueries({
           queryKey: getListProgramasQueryKey(
@@ -195,61 +222,58 @@ export function SyllabusCreationForm() {
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!selectedMateria) {
-      toast({
-        title: "Error de validación",
-        description: "Por favor, selecciona una materia antes de continuar.",
-        variant: "destructive",
+  const onSubmit = (data: ProgramaAdminFormData) => {
+      mutate({
+          deptId: activeDepartamento!.departamentoId!,
+          data
       });
-      return; // Evita que se ejecute la mutación
+  };
+  
+  const focusPopover = (ref: React.RefObject<HTMLButtonElement | null>) => {
+    ref.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    })
+
+    requestAnimationFrame(() => {
+      ref.current?.focus()
+    })
+  }
+
+  const onInvalid = (
+    formErrors: FieldErrors<ProgramaAdminFormData>
+  ) => {
+    if (formErrors.materiaId) {
+      focusPopover(materiaButtonRef)
+      return
     }
 
-    if (!formData.profesorResponsableId || formData.profesorResponsableId === 0) {
-      toast({
-        title: "Error de validación",
-        description: "Por favor, selecciona un docente responsable antes de continuar.",
-        variant: "destructive",
-      });
-      return; // Evita que se ejecute la mutación
+    if (formErrors.profesorResponsableId) {
+      focusPopover(profesorButtonRef)
+      return
     }
 
-
-    if (!formData.bloqueMultiple || formData.bloqueMultiple.length === 0) {
-      toast({
-        title: "Error",
-        description: "Debe agregar al menos una carrera",
-        variant: "destructive",
+    if (formErrors.bloqueMultiple) {
+      bloqueMultipleRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
       })
       return
     }
 
-    const bloquesInvalidos = formData.bloqueMultiple?.some(
-      (b) =>
-        !b.carreraPlanId ||
-        !b.ubicacionEnPlan ||
-        !b.contenidosMinimos
-    )
-
-    if (bloquesInvalidos) {
-      toast({
-        title: "Error",
-        description: "Todos los campos de cada carrera son obligatorios",
-        variant: "destructive",
-      })
+    if (formErrors.cantidadSemanas) {
+      setFocus("cantidadSemanas")
       return
     }
 
+    if (formErrors.cargaHorariaSemanal) {
+      setFocus("cargaHorariaSemanal")
+      return
+    }
 
-    if (programaAnioExistente) {
-      setShowCreationWarning(true);
-    } else {
-      mutate({ 
-        deptId: activeDepartamento!.departamentoId!,
-        data: formData 
-      });
+    if (formErrors.creditos) {
+      setFocus("creditos")
+      return
     }
   }
 
@@ -264,12 +288,12 @@ export function SyllabusCreationForm() {
     }   
   }, [selectedMateria]); 
 
-  const programaAnioExistenteQuery = useGetProgramaMateriaAnio(formData.materiaId ?? 0, {
+  const programaAnioExistenteQuery = useGetProgramaMateriaAnio(materiaId ?? 0, {
     query: {
-      enabled: !!formData.materiaId, 
+      enabled: !!materiaId, 
       staleTime: Infinity, 
       retry: false,
-      queryKey: getGetProgramaMateriaAnioQueryKey(formData.materiaId)
+      queryKey: getGetProgramaMateriaAnioQueryKey(materiaId)
     }
   });
 
@@ -290,20 +314,20 @@ export function SyllabusCreationForm() {
 
   const draftQuery = useGetDraft(
     activeDepartamento?.departamentoId ?? 0,
-    selectedMateria?.id ?? 0,
+    materiaId ?? 0,
     {
       rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
     },
     {
       query: {
-        enabled: !!activeDepartamento?.departamentoId && !!formData.materiaId && loadDraft,
+        enabled: !!activeDepartamento?.departamentoId && !!materiaId && loadDraft,
         staleTime: Infinity,
         refetchOnWindowFocus: false,
         gcTime: 0,
         retry: false, 
         queryKey: getGetDraftQueryKey(
           activeDepartamento!.departamentoId!,
-          formData.materiaId!,
+          materiaId!,
           {
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
           }
@@ -332,7 +356,7 @@ export function SyllabusCreationForm() {
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
       setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
-      setFormData(draftData)
+      reset(draftData)
       setShowDraft(false)
 
       toast({
@@ -347,12 +371,12 @@ export function SyllabusCreationForm() {
     }
   }
 
-  const programaVigenteQuery = useGetProgramaVigente(formData.materiaId ?? 0, {
+  const programaVigenteQuery = useGetProgramaVigente(materiaId ?? 0, {
     query: {
-      enabled: !!formData.materiaId && loadProgramaVigente,
+      enabled: !!materiaId && loadProgramaVigente,
       staleTime: Infinity,
       retry: false,
-      queryKey: getGetProgramaVigenteQueryKey(formData.materiaId),
+      queryKey: getGetProgramaVigenteQueryKey(materiaId),
     },
   });
 
@@ -376,7 +400,7 @@ export function SyllabusCreationForm() {
     console.log("bloques vigentes:", programaVigente?.bloqueMultiple);
     try {
       const mappedData: ProgramaCargaDTO = {
-        materiaId: formData.materiaId,
+        materiaId: materiaId,
         profesorResponsableId: programaVigente.profesorResponsable?.id || undefined,
         bloqueMultiple:
           programaVigente.bloqueMultiple?.map((c, idx) => ({
@@ -393,7 +417,7 @@ export function SyllabusCreationForm() {
         creditos: programaVigente.creditos || undefined,
         cantidadSemanas: programaVigente.cantidadSemanas || undefined,
       }
-      setFormData(mappedData)
+      reset(mappedData)
       setLoadProgramaVigente(false)
       setShowProgramaVigente(false)
     } catch (error) {
@@ -420,26 +444,27 @@ export function SyllabusCreationForm() {
   }, [selectedMateria])
 
   const guardarBorrador = useCallback(() => {
+    const values = getValues()
 
     mutateSaveDraft({
       deptId: activeDepartamento!.departamentoId!,
-      materiaId: selectedMateria?.id!,
+      materiaId: materiaId!,
       params: {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
       },
       data: {
-        payloadJson: JSON.stringify(formData),
+        payloadJson: JSON.stringify(values),
       },
     });
 
-    setIsDirty(false);
+    reset(values)
 
     toast({
       description: "✓ Guardado",
       variant: "draft",
     })    
-  }, [formData, activeDepartamento, activeRole, mutateSaveDraft]);
-
+  }, [getValues, reset, activeDepartamento, materiaId, activeRole, mutateSaveDraft]);
+  
   const debouncedSave = useCallback(() => {
     const handler = setTimeout(() => {
       guardarBorrador();
@@ -458,55 +483,23 @@ export function SyllabusCreationForm() {
 
 
   const handleAddProgramaCarrera = () => {
-    const newBlock: ProgramaCarreraCreateDTO = {
-      key: Date.now().toString(),
-      carreraPlanId: 0,
-      ubicacionEnPlan: "",
-      correlativasFuertesIds: [],
-      correlativasDebilesIds: [],
-      contribucion: "",
-      contenidosMinimos: "",
-    }
-
-    setFormData((prev) => ({
-        ...prev,
-        bloqueMultiple: [newBlock, ...(prev.bloqueMultiple || [])]
-    }));
-    setIsDirty(true);
+    append({
+        carreraPlanId: 0,
+        ubicacionEnPlan: "",
+        correlativasFuertesIds: [],
+        correlativasDebilesIds: [],
+        contribucion: "",
+        contenidosMinimos: "",
+    })
   }
-
-  const handleUpdateProgramaCarrera = (index: number, block: ProgramaCarreraCreateDTO) => {
-    setFormData((prev) => ({
-      ...prev,
-      bloqueMultiple: prev.bloqueMultiple?.map((c, i) => (i === index ? block : c)),
-    }))
-    setIsDirty(true);
-  }
-
 
   const handleRemoveProgramaCarrera = () => {
-    if(removeProgramaCarreraIndex === null) return
-    
-    const updatedBlocks = [...formData.bloqueMultiple || []]
-    updatedBlocks.splice(removeProgramaCarreraIndex, 1)
-    setFormData((prev) => ({
-      ...prev,
-      bloqueMultiple: updatedBlocks,
-    }))
-    setIsDirty(true);
+    if(removeProgramaCarreraIndex == null) return
 
-    setRemoveProgramaCarreraIndex(null);
-  }
+    remove(removeProgramaCarreraIndex)
 
-  const handleSingleFieldChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    
-    if(field !== "materiaId")
-      setIsDirty(true);
-  }
+    setRemoveProgramaCarreraIndex(null)
+  } 
 
 
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
@@ -676,9 +669,17 @@ export function SyllabusCreationForm() {
               <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={materiaButtonRef}
+                    type="button"
                     variant="outline"
                     role="combobox"
                     aria-expanded={openMateriaSelector}
+                    aria-invalid={!!errors.materiaId}
+                    aria-describedby={
+                      errors.materiaId
+                        ? "materia-error"
+                        : undefined
+                    }
                     className="w-full justify-between font-normal border-border"
                   >
                     {selectedMateria 
@@ -699,7 +700,10 @@ export function SyllabusCreationForm() {
                             value={materia.nombre}
                             onSelect={() => {
                               setSelectedMateria(materia)
-                              handleSingleFieldChange("materiaId", materia.id)
+                              setValue("materiaId", materia.id!, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                              })
                               setOpenMateriaSelector(false)
                             }}
                           >
@@ -717,6 +721,13 @@ export function SyllabusCreationForm() {
                   </Command>
                 </PopoverContent>
               </Popover>
+              <div className="min-h-5">
+                {errors.materiaId && (
+                  <p className="text-sm text-red-500">
+                    {errors.materiaId.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -753,9 +764,15 @@ export function SyllabusCreationForm() {
             <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
               <PopoverTrigger asChild>
                 <Button
+                  ref={profesorButtonRef}
+                  type="button"
                   variant="outline"
                   role="combobox"
                   aria-expanded={openProfesorSelector}
+                  aria-invalid={!!errors.profesorResponsableId}
+                  aria-describedby={
+                    errors.profesorResponsableId ? "profesor-error" : undefined
+                  }
                   className="w-full justify-between font-normal border-border"
                 >
                   {selectedProfesor 
@@ -776,7 +793,10 @@ export function SyllabusCreationForm() {
                           value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
                           onSelect={() => {
                             setSelectedProfesor(profesor)
-                            handleSingleFieldChange("profesorResponsableId", profesor.id)
+                            setValue("profesorResponsableId", profesor.id!, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                            })
                             setOpenProfesorSelector(false)
                           }}
                         >
@@ -794,11 +814,19 @@ export function SyllabusCreationForm() {
                 </Command>
               </PopoverContent>
             </Popover>
+
+            <div className="min-h-5">
+              {errors.profesorResponsableId && (
+                <p className="text-sm text-red-500">
+                  {errors.profesorResponsableId.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
         {/* BLOQUE MÚLTIPLE */}
-        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+        <div ref={bloqueMultipleRef} className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
             <Button
@@ -812,25 +840,26 @@ export function SyllabusCreationForm() {
             </Button>
           </div>
 
-          {formData.bloqueMultiple?.length === 0 ? (
+          {bloqueMultiple.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground bg-background rounded-lg border-2 border-dashed border-accent/20">
-              <p>No hay carreras agregadas aún</p>
+              {errors.bloqueMultiple && (
+                <p className="text-red-500">{errors.bloqueMultiple.message}</p>) || 
+                (<p>No hay carreras agregadas aún</p>)
+              }
               <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
             </div>
           ) : (
-            <div className={formData.bloqueMultiple && formData.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-              {formData.bloqueMultiple?.map((block, index) => (
+            <div className={bloqueMultiple && bloqueMultiple.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
+              {fields.map((block, index) => (
                 <ProgramaCarreraCreateBlock
-                  key={block.key}
-                  materiaId={formData.materiaId || 0}
-                  block={block}
+                  key={block.id}
+                  materiaId={materiaId || 0}
                   index={index}
                   carreras={carreras}
-                  // selectedCarreraPlanIds={formData.bloqueMultiple
-                  //   ?.map((b) => b.carreraPlanId)
-                  //   .filter((id) => id !== undefined && id !== null)
-                  //   ?? []}
-                  onUpdate={handleUpdateProgramaCarrera}
+                  control={control}
+                  register={register}
+                  setValue={setValue}
+                  errors={errors}
                   onRemove={setRemoveProgramaCarreraIndex}
                 />
               ))}
@@ -851,12 +880,23 @@ export function SyllabusCreationForm() {
               <Input
                 id="semanas"
                 type="number"
-                value={formData.cantidadSemanas}
-                onChange={(e) => handleSingleFieldChange("cantidadSemanas", Number.parseInt(e.target.value))}
+                {...register("cantidadSemanas", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 16"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
+                className={`border-2 focus:border-primary ${
+                  errors.cantidadSemanas
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
               />
+              <div className="min-h-5">
+                {errors.cantidadSemanas && (
+                  <p className="text-sm text-red-500">
+                    {errors.cantidadSemanas.message}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
@@ -865,12 +905,19 @@ export function SyllabusCreationForm() {
               <Input
                 id="cargaSemanal"
                 type="number"
-                value={formData.cargaHorariaSemanal}
-                onChange={(e) => handleSingleFieldChange("cargaHorariaSemanal", Number.parseInt(e.target.value))}
+                {...register("cargaHorariaSemanal", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 8"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
-             />
+                className={`border-2 focus:border-primary ${
+                  errors.cargaHorariaSemanal
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
+              />
+              <div className="min-h-5">
+                {errors.cargaHorariaSemanal && <span className="text-red-500 text-sm">{errors.cargaHorariaSemanal.message}</span>}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
@@ -879,25 +926,41 @@ export function SyllabusCreationForm() {
               <Input
                 id="cargaTotal"
                 type="number"
-                value={formData.cargaHorariaTotal}
+                value={cargaTotal ?? 0}
                 placeholder="ej: 128"
                 className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 disabled
               />
+              <div className="min-h-5">
+                {errors.cargaHorariaTotal && <span className="text-red-500 text-sm">{errors.cargaHorariaTotal.message}</span>}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="creditos" className="text-sm font-semibold text-foreground">
-                Créditos *
-              </Label>
+              <LabelWithTooltip
+                label="Créditos *"
+                htmlFor="creditos"
+                tooltip={
+                  <>
+                    <p>Ingrese la cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
+                  </>
+                }
+              />
               <Input
                 id="creditos"
                 type="number"
-                value={formData.creditos}
-                onChange={(e) => handleSingleFieldChange("creditos", Number.parseInt(e.target.value))}
+                {...register("creditos", {
+                  valueAsNumber: true,
+                })}
                 placeholder="ej: 4"
-                className="border-border focus:border-primary bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
+                className={`border-2 focus:border-primary ${
+                  errors.creditos
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
               />
+              <div className="min-h-5">
+                {errors.creditos && <span className="text-red-500 text-sm">{errors.creditos.message}</span>}
+              </div>
             </div>
           </div>
 
@@ -910,7 +973,6 @@ export function SyllabusCreationForm() {
               id="cargaPractica"
               type="number"
               value={programaVigente?.cargaHorariaPractica}
-              onChange={(e) => handleSingleFieldChange("cargaHorariaPractica", Number.parseInt(e.target.value))}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               readOnly
@@ -921,9 +983,15 @@ export function SyllabusCreationForm() {
         {/* Campos de texto largo */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="fundamentacion" className="text-sm font-semibold text-foreground">
-              Fundamentación
-            </Label>
+            <LabelWithTooltip
+              label="Fundamentación"
+              htmlFor="fundamentacion"
+              tooltip={
+                <>
+                  <p>Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento.</p>
+                </>
+              }
+            />
             <Textarea
               id="fundamentacion"
               value={programaVigente?.fundamentacion}
@@ -934,9 +1002,15 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="objetivos" className="text-sm font-semibold text-foreground">
-              Objetivos
-            </Label>
+            <LabelWithTooltip
+              label="Objetivos"
+              htmlFor="objetivos"
+              tooltip={
+                <>
+                  <p>Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico.</p>
+                </>
+              }
+            />
             <Textarea
               id="objetivos"
               value={programaVigente?.objetivos}
@@ -947,9 +1021,15 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="programa" className="text-sm font-semibold text-foreground">
-              Programa Analítico
-            </Label>
+            <LabelWithTooltip
+              label="Programa Analítico"
+              htmlFor="programa"
+              tooltip={
+                <>
+                  <p>Indique la nómina de unidades temáticas y su desarrollo.</p>
+                </>
+              }
+            />
             <Textarea
               id="programa"
               value={programaVigente?.programaAnalitico}
@@ -960,9 +1040,18 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="metodologia" className="text-sm font-semibold text-foreground">
-              Metodología
-            </Label>
+             <LabelWithTooltip
+               label="Metodología"
+                htmlFor="metodologia"
+               tooltip={
+                 <>
+                    <p>
+                      Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de prácticas de
+                      gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o visitas, trabajos de campo, etc.
+                    </p>
+                 </>
+               }
+             />
             <Textarea
               id="metodologia"
               value={programaVigente?.metodologia}
@@ -976,9 +1065,17 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="evaluacion" className="text-sm font-semibold text-foreground">
-              Modalidad de Evaluación
-            </Label>
+            <LabelWithTooltip
+              label="Modalidad de Evaluación"
+              htmlFor="modalidadEvaluacion"
+              tooltip={
+                <>
+                  <p>
+                    Describa el proceso de evaluación que aplica: parciales, entregas, trabajos prácticos, presentaciones orales, trabajos integradores, proyectos, etc. Incluya el sistema de Promoción adoptado (obligatorio según CSU 546/21)
+                  </p>
+                </>
+              }
+            />
             <Textarea
               id="evaluacion"
               value={programaVigente?.modalidadEvaluacion}
@@ -989,9 +1086,14 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bibliografia" className="text-sm font-semibold text-foreground">
-              Bibliografía
-            </Label>
+            <LabelWithTooltip
+              label="Bibliografía"
+              tooltip={
+                <>
+                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                </>
+              }
+            />
             <Textarea
               id="bibliografia"
               value={programaVigente?.bibliografia}
@@ -1006,7 +1108,7 @@ export function SyllabusCreationForm() {
           <div className="flex gap-3 pt-4 border-t border-border">
             <Button
               type="button"
-              onClick={handleSubmit}
+              onClick={handleSubmit(onSubmit, onInvalid)}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
@@ -1034,7 +1136,10 @@ export function SyllabusCreationForm() {
         onCancel={() => {
           setShowProgramaAnioExistente(false)
           setSelectedMateria(undefined)
-          handleSingleFieldChange("materiaId", undefined)
+          setValue("materiaId", 0, {
+              shouldDirty: true,
+              shouldValidate: true,
+          })
         }}
         isLoading={loadingProgramaAnioExistente}
       />
@@ -1074,7 +1179,7 @@ export function SyllabusCreationForm() {
                 setShowCreationWarning(false)
                 mutate({ 
                   deptId: activeDepartamento!.departamentoId!,
-                  data: formData 
+                  data: getValues()
                 })
               }}
               className="bg-destructive"

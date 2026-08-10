@@ -18,6 +18,9 @@ import { useRole } from "@/context/role-context"
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios"
 import { useHeader } from "@/context/header-context"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { CreateMateriaFormData, createMateriaSchema } from "@/lib/schemas/materia"
 
 
 export function MateriaForm() {
@@ -36,6 +39,16 @@ export function MateriaForm() {
     })
   }, [])
 
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors }, 
+    reset,
+    setValue
+  } = useForm<CreateMateriaFormData>({
+    resolver: zodResolver(createMateriaSchema)
+  })
+
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
     {
       query: {
@@ -47,12 +60,6 @@ export function MateriaForm() {
 
   const areas: AreaResponseDTO[] | undefined = areasQuery.data;
 
-  const [formData, setFormData] = useState<MateriaCreateDTO>({
-    codigo: "",
-    nombre: "",
-    areaId: areas?.[0]?.id,
-  })
-
   const { mutate, isPending } = useCreateMateria({
       mutation: {
         onSuccess: () => {
@@ -61,11 +68,8 @@ export function MateriaForm() {
             description: "Materia creada exitosamente",
             variant: "success",
           })
-          setFormData({
-            codigo: "",
-            nombre: "",
-            areaId: areas?.[0]?.id,
-          })
+
+          reset()
 
           queryClient.invalidateQueries({
             queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
@@ -97,19 +101,10 @@ export function MateriaForm() {
       }
   });
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = (formData: CreateMateriaFormData) => {
     mutate({ 
       data: formData
     }); 
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "departamentoId" ? (value ? Number.parseInt(value) : undefined) : value,
-    }))
   }
   
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
@@ -162,8 +157,8 @@ export function MateriaForm() {
   }
 
   return (
-    <form className="space-y-6">
-      <div className="border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-lg">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
@@ -171,13 +166,10 @@ export function MateriaForm() {
             </Label>
             <Input
               id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              placeholder="Ej: Cálculo Diferencial"
-              required
-              className="border-2 border-border focus:border-primary"
+              {...register("nombre")}
+              className={`border-2 focus:border-primary ${errors.nombre ? "border-red-500" : "border-border"}`}
             />
+            {errors.nombre && <span className="text-red-500 text-sm">{errors.nombre.message}</span>}
           </div>
 
           <div className="space-y-2">
@@ -186,62 +178,53 @@ export function MateriaForm() {
             </Label>
             <Input
               id="codigo"
-              name="codigo"
-              value={formData.codigo}
-              onChange={handleChange}
-              placeholder="Ej: MAT-101"
-              required
-              className="border-2 border-border focus:border-primary"
+              {...register("codigo")}
+              placeholder="1234"
+              className={`border-2 focus:border-primary ${errors.codigo ? "border-red-500" : "border-border"}`}
             />
+            {errors.codigo && <span className="text-red-500 text-sm">{errors.codigo.message}</span>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="departamentoId" className="text-sm font-semibold">
-              Departamento *
+            <Label htmlFor="departamento" className="text-sm font-semibold">
+              Departamento
             </Label>
-            <Select
-              value={activeDepartamento.departamentoId.toString()}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={activeDepartamento.departamentoNombre} />
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem key={activeDepartamento.departamentoId} value={activeDepartamento.departamentoId!.toString()}>
-                    {activeDepartamento?.departamentoNombre}
-                  </SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="departamento"
+              name="departamento"
+              value={activeDepartamento?.departamentoNombre}
+              className="border-border focus:border-primary bg-background text-lg font-medium"
+              disabled
+              required
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="areaId" className="text-sm font-semibold">
               Area *
             </Label>
-            <select
-              value={formData.areaId?.toString() ?? ""}
-              onChange={(e) => setFormData((prev) => ({
-                ...prev,
-                areaId: Number(e.target.value),
-              }))}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
+            <Select
+              onValueChange={(value) => setValue("areaId", Number(value))}
             >
-              <option value="">Seleccionar área...</option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.nombre}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className={`border-2 focus:border-primary ${errors.areaId ? "border-red-500" : "border-border"}`}>
+                <SelectValue placeholder="Seleccionar área..." />
+              </SelectTrigger>
+              <SelectContent>
+                {areas.map((area) => (
+                  <SelectItem key={area.id} value={area.id?.toString() || ''}>
+                    {area.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.areaId && <span className="text-red-500 text-sm">{errors.areaId.message}</span>}
           </div>
-
-
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="button" onClick={handleSubmit} disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
+          <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>
         </div>

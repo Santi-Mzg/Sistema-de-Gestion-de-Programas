@@ -4,7 +4,7 @@ import { LogOut, ChevronRight, Building2, Contact, UserRoundCog, Home, FileText,
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useDept } from "@/context/dept-context"
 import { DepartamentoSelectorDialog } from "@/components/modals/departamento-selector-dialog"
 import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
@@ -22,6 +22,11 @@ export function Sidebar() {
   const [isDeptDialogOpen, setIsDeptDialogOpen] = useState(false)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
 
   const menuConfig = {
@@ -80,7 +85,9 @@ export function Sidebar() {
     ],
   }
 
-  const options = menuConfig[activeRole as keyof typeof menuConfig] ?? []
+  const options = mounted
+    ? menuConfig[activeRole as keyof typeof menuConfig] ?? []
+    : []
 
   const handleDptoChange = (deptName: string) => {
     if (deptName)
@@ -147,7 +154,9 @@ export function Sidebar() {
               <div className="flex-1 text-left min-w-0">
                 <p className="text-xs text-sidebar-foreground/60">Departamento Activo</p>
                 <p className="text-sm font-medium text-sidebar-foreground">
-                  {activeDepartamento?.departamentoNombre || "Seleccionar"}
+                  {mounted
+                  ? activeDepartamento?.departamentoNombre || "Seleccionar"
+                  : "Seleccionar"}
                 </p>
               </div>
               <ChevronRight size={16} className="text-sidebar-foreground/50 shrink-0" />
@@ -167,7 +176,9 @@ export function Sidebar() {
               <div className="flex-1 text-left min-w-0">
                 <p className="text-xs text-sidebar-foreground/60">Rol Activo</p>
                 <p className="text-sm font-medium text-sidebar-foreground">
-                  {getRoleLabel(activeRole as UsuarioDepartamentoDTORolesItem) || "Seleccionar"}
+                  {mounted
+                  ? getRoleLabel(activeRole as UsuarioDepartamentoDTORolesItem) || "Seleccionar"
+                  : "Seleccionar"}
                 </p>
               </div>
               <ChevronRight size={16} className="text-sidebar-foreground/50 shrink-0" />

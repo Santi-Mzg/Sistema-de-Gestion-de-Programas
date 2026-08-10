@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useHeader } from "@/context/header-context"
 import { ProgramaCarreraBlockFieldCoord } from "./programa-carrera-block-field-coord"
 import axios from "axios"
+import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface SyllabusFormProps {
   id: number,
@@ -310,7 +311,15 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
             <Input defaultValue={programa.cargaHorariaTotal || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Créditos</Label>
+            <LabelWithTooltip
+              label="Créditos"
+              htmlFor="creditos"
+              tooltip={
+                <>
+                  <p>La cantidad de créditos de la asignatura conforme a la normativa vigente y su carga horaria.</p>
+                </>
+              }
+            />
             <Input defaultValue={programa.creditos || ""} disabled className="bg-background" />
           </div>
         </div>
@@ -326,32 +335,85 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
+          <LabelWithTooltip
+            label="Fundamentación"
+            htmlFor="fundamentacion"
+            tooltip={
+              <>
+                  <p>Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento.</p>
+              </>
+            }
+          />
           <Textarea defaultValue={programa.fundamentacion || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Objetivos</Label>
+          <LabelWithTooltip
+            label="Objetivos"
+            htmlFor="objetivos"
+            tooltip={
+              <>
+                <p>Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico.</p>
+              </>
+            }
+          />   
           <Textarea defaultValue={programa.objetivos || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Programa Analítico</Label>
+          <LabelWithTooltip
+            label="Programa Analítico"
+            htmlFor="programa"
+            tooltip={
+              <>
+                <p>Indique la nómina de unidades temáticas y su desarrollo.</p>
+              </>
+            }
+          />        
           <Textarea defaultValue={programa.programaAnalitico || ""} disabled className="bg-background min-h-32" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Metodología</Label>
+          <LabelWithTooltip
+            label="Metodología"
+            htmlFor="metodologia"
+            tooltip={
+              <>
+                <p>
+                  Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de prácticas de
+                  gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o visitas, trabajos de campo, etc.
+                </p>
+              </>
+            }
+          />
           <Textarea defaultValue={programa.metodologia || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
+          <LabelWithTooltip
+            label="Modalidad de Evaluación"
+            htmlFor="modalidadEvaluacion"
+            tooltip={
+              <>
+                <p>
+                  Describa el proceso de evaluación que aplica: parciales, entregas, trabajos prácticos, presentaciones orales, trabajos integradores, proyectos, etc. Incluya el sistema de Promoción adoptado (obligatorio según CSU 546/21)
+                </p>
+              </>
+            }
+          />
           <Textarea defaultValue={programa.modalidadEvaluacion || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Bibliografía</Label>
+          <LabelWithTooltip
+            label="Bibliografía"
+            htmlFor="bibliografia"
+            tooltip={
+              <>
+                <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+              </>
+            }
+          />
           <Textarea defaultValue={programa.bibliografia || ""} disabled className="bg-background min-h-32" />
         </div>
       </div>
