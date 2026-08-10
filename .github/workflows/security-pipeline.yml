@@ -3,22 +3,29 @@
 #
 # Execution flow:
 #
-#   secret-detection
+#   secret-detection (gate: blocks if secrets are detected)
 #   ├── sca-backend  (gate: blocks on CRITICAL)
-#   ├── sca-frontend (gate: blocks on real HIGH+)
-#   ├── sast
+#   ├── sca-frontend (gate: blocks on HIGH+ production vulnerabilities)
+#   ├── sast         (informational findings; analysis job must complete)
 #   └── iac-scanning (gate: blocks on HIGH+)
-#        └── dast (runs only if all gates pass)
+#        └── dast     (gate: runs only if all previous jobs complete successfully)
 #             └── pipeline-summary (always)
+#
+# Gate policy:
+#   Secret Detection  → blocks if Gitleaks detects a secret
+#   SCA Backend       → blocks on CRITICAL vulnerabilities
+#   SCA Frontend      → blocks on HIGH or CRITICAL production vulnerabilities
+#   SAST              → CodeQL findings are reported through GitHub Code Scanning;
+#                       findings do not directly fail this workflow
+#   IaC               → blocks on HIGH or CRITICAL misconfigurations
+#   DAST              → blocks if ZAP reports non-accepted alerts
 #
 # Required repository secrets:
 #   JWT_SECRET_TEST  — JWT key for backend in DAST mode (can be dummy)
 #   GEMINI_API_KEY   — can be dummy ("test") for DAST
 #   RESEND_API_KEY   — can be dummy ("test") for DAST
 #   GITLEAKS_LICENSE — required only for private repositories
-# ─────────────────────────────────────────────────────────────────────────────
-
-name: Security Pipeline
+# ─────────────────────────────────────────────────────────────────────────────name: Security Pipeline
 
 on:
   push:
@@ -33,7 +40,7 @@ permissions:
 jobs:
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 1 ─ Secret Detection
+  # JOB 1 ─ Secret Detection — GATE: blocks if secrets are detected
   # ═══════════════════════════════════════════════════════════════════════════
   secret-detection:
     name: "1 · Secret Detection (Gitleaks)"
@@ -150,19 +157,20 @@ jobs:
         working-directory: Frontend
         run: npm ci
 
-      # Gate: blocks only on HIGH+ vulnerabilities in production dependencies.
-      # --omit=dev excludes devDependencies automatically.
-      # postcss, sharp and next are not blocked because the fix proposed
-      # by npm audit (downgrade to next@9.3.3) is a breaking change that
-      # would introduce more vulnerabilities than it fixes. Production
-      # deployments on Vercel receive security patches automatically.
+      # Gate: blocks on HIGH or CRITICAL vulnerabilities in production
+      # dependencies. Development dependencies are excluded from the audit
+      # using --omit=dev.
       - name: npm audit (high+ production)
         working-directory: Frontend
         run: npm audit --audit-level=high --omit=dev
 
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 3 ─ SAST (CodeQL)
+  # JOB 3 ─ SAST (CodeQL) — findings are informational
+  #
+  # CodeQL uploads detected vulnerabilities to GitHub Code Scanning.
+  # Security findings do not directly fail this workflow, but the analysis
+  # job itself must complete successfully before DAST can run.
   # ═══════════════════════════════════════════════════════════════════════════
   sast:
     name: "3 · SAST (CodeQL)"
@@ -198,6 +206,10 @@ jobs:
 
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 4 ─ IaC Scanning — GATE: blocks on HIGH+
+  #  
+  # Both Trivy and Checkov report infrastructure misconfigurations.
+  # HIGH and CRITICAL findings block the pipeline.
+  # Lower-severity findings remain informational.
   # ═══════════════════════════════════════════════════════════════════════════
   iac-scanning:
     name: "4 · IaC Scanning (Trivy + Checkov)"
@@ -218,22 +230,31 @@ jobs:
           exit-code: '1'
           severity: HIGH,CRITICAL
 
+      # Checkov uses the same HIGH+ blocking policy as Trivy.
+      # LOW and MEDIUM findings are reported but do not fail the job.
       - name: Checkov — docker-compose.yml
         uses: bridgecrewio/checkov-action@v12
         with:
           file: docker-compose.yml
-          soft_fail: false
+          hard_fail_on: HIGH
 
       - name: Checkov — Dockerfiles
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
           framework: dockerfile
-          soft_fail: false
+          hard_fail_on: HIGH
 
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 5 ─ DAST — runs only if all gates passed
+  # JOB 5 ─ DAST (OWASP ZAP) — GATE
+  #
+  # Runs only after all previous jobs complete successfully.
+  # ZAP reads the OpenAPI specification exposed by the running backend and
+  # performs automated dynamic security testing against the API.
+  #
+  # ZAP findings can fail this job, making DAST a security gate.
+  # Accepted/known alerts can be managed through ZAP rules if needed.
   # ═══════════════════════════════════════════════════════════════════════════
   dast:
     name: "5 · DAST (OWASP ZAP)"
@@ -290,15 +311,16 @@ jobs:
           exit 1
 
       # ZAP reads the OpenAPI spec from the running backend and generates
-      # automated attack traffic against all endpoints.
-      # rules_file_name defines which alerts are accepted false positives
-      # and which should fail the job.
+      # automated attack traffic against the exposed API endpoints.
+      #
+      # fail_action=true makes DAST a pipeline gate: non-accepted ZAP alerts
+      # cause the job, and therefore the workflow, to fail.
       - name: ZAP API Scan
         uses: zaproxy/action-api-scan@v0.10.0
         with:
           target: 'http://localhost:8080/v3/api-docs'
           format: openapi
-          fail_action: false
+          fail_action: true
           allow_issue_writing: false
 
       - name: Upload ZAP report
@@ -372,12 +394,13 @@ jobs:
             echo ""
             echo "| Job | Type | Result |"
             echo "|-----|------|--------|"
-            echo "| 1. Secret Detection    | Informational | $(label "$R1") |"
+            echo "| 1. Secret Detection    | **GATE**      | $(label "$R1") |"
             echo "| 2a. SCA Backend        | **GATE**      | $(label "$R2A") |"
             echo "| 2b. SCA Frontend       | **GATE**      | $(label "$R2B") |"
             echo "| 3. SAST (CodeQL)       | Informational | $(label "$R3") |"
             echo "| 4. IaC Scanning        | **GATE**      | $(label "$R4") |"
-            echo "| 5. DAST (ZAP)          | Informational | $(label "$R5") |"
+            echo "| 5. DAST (ZAP)          | **GATE**      | $(label "$R5") |"
             echo ""
-            echo "> Jobs marked as **GATE** will block the DAST step if they fail."
+            echo "> Jobs marked as **GATE** can fail the security pipeline when their configured security policy is violated."
+            echo "> CodeQL findings are reported through GitHub Code Scanning and do not directly fail the pipeline."
           } >> "$GITHUB_STEP_SUMMARY"
