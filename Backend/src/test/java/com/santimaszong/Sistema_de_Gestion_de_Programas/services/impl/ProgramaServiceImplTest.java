@@ -1,26 +1,57 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.AccionPrograma;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.EstadoUpdateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCargaDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.ProgramaCarreraCreateDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraPlanEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DecisionComisionEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.EstadoHistoricoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaCarreraEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.AccionPrograma;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseReducedMapper;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DecisionComisionRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaCarreraRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaDraftRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.ProgramaRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 
 /**
  * Tests unitarios para ProgramaServiceImpl.
@@ -225,7 +256,6 @@ class ProgramaServiceImplTest {
         when(carreraService.getPlanEntityById(1L)).thenReturn(plan);
         when(materiaService.listEntities(anyList())).thenReturn(List.of());
         when(programaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(userService.getEntityById(profesorId)).thenReturn(profesorUser);
 
         // When
         service.create(deptId, dto, adminUser);
@@ -283,7 +313,6 @@ class ProgramaServiceImplTest {
         when(udeService.findByUsuarioIdAndDepartamentoId(adminUser.getId(), deptId)).thenReturn(udeAdmin);
         when(udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId)).thenReturn(udeProfesor);
         when(programaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(userService.getEntityById(profesorId)).thenReturn(profesorUser);
 
         // When
         service.create(deptId, dto, adminUser);
