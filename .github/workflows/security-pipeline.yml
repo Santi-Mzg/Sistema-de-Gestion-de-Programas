@@ -34,9 +34,9 @@
 
 on:
   push:
-    branches: [devsecops]
+    branches: [main]
   pull_request:
-    branches: [devsecops]
+    branches: [main]
 
 permissions:
   contents: read
