@@ -5,7 +5,12 @@
  * OpenAPI spec version: v0
  */
 import type { ListProgramasRolActivo } from './listProgramasRolActivo';
+import type { ListProgramasEstado } from './listProgramasEstado';
 
 export type ListProgramasParams = {
 rolActivo: ListProgramasRolActivo;
+estado?: ListProgramasEstado;
+search?: string;
+page?: number;
+size?: number;
 };

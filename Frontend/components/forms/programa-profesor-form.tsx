@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useFormatearAPA, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
+import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useFormatearAPA, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
 import { AlertCircle, CheckCircle2, Sparkles, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -101,6 +101,34 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasCoordinacionQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesCoordinadorQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           ),
         });
 
@@ -149,6 +177,38 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasCoordinacionQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesCoordinadorQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetProgramaQueryKey(id)
         });
 
         mutateDeleteDraft({

@@ -3,11 +3,15 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UsuarioDepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +67,16 @@ public class UsuarioDepartamentoServiceImpl implements UsuarioDepartamentoServic
     @Override
     public List<UsuarioDepartamentoEntity> findFullByDepartamentoId(Long deptId) {
         return udeRepo.findFullByDepartamentoId(deptId);
+    }
+
+    @Override
+    public long countByDepartamentoId(Long deptId) {
+        return udeRepo.countByDepartamentoId(deptId);
+    }
+
+    @Override
+    public long countByDepartamentoIdAndRolesContaining(Long deptId, Rol rol){
+        return udeRepo.countByDepartamentoIdAndRol(deptId, rol);
     }
 
 

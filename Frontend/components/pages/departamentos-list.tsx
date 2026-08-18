@@ -160,43 +160,43 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
           <table className="w-full table-fixed border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Nombre
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
 
                     Dirección
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Teléfono
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Email
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Sitio Web
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left w-40">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y">
               {filteredDepartamentos.length > 0 ? (
                 filteredDepartamentos.map((departamento) => (
                   <tr
                     key={departamento.id}
-                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{departamento.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{departamento.direccion}</td>
-                    <td className="px-6 py-4 text-foreground/80">{departamento.telefono}</td>
-                    <td className="px-6 py-4 text-foreground/80">{departamento.email}</td>
-                    <td className="px-6 py-4 text-foreground/80 break-all">
+                    <td className="px-3 py-1.5 font-medium text-foreground wrap-break-word">{departamento.nombre}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 wrap-break-word">{departamento.direccion}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{departamento.telefono}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 wrap-break-word">{departamento.email}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 break-all">
                       {departamento.sitioWeb ? (
                         <a
                           href={departamento.sitioWeb}
@@ -211,8 +211,8 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                       )}
                     </td>
 
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
                           size="sm"
                           variant="outline"
@@ -229,8 +229,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                             onClick={() => handleDeleteClick(departamento)}
                             className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                           >
-                            <Trash2 size={16} className="mr-1" />
-                            Eliminar
+                            <Trash2 size={16} />
                           </Button>
                         )}
                       </div>
@@ -240,7 +239,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron departamentos</p>

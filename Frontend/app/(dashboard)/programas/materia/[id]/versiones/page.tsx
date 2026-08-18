@@ -4,9 +4,12 @@ import { getListProgramasMateriaQueryKey, useListProgramasMateria } from "@/app/
 import { ProgramaResponseDTO } from "@/app/api/generated/model";
 import { ProgramasList } from "@/components/pages/programas-list";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 
 export default function Programas() {
     const { id } = useParams<{ id: string }>()
+    const [page, setPage] = useState(0)
+    const pageSize = 10
 
   // props: {
   //   searchParams?: Promise<{
@@ -97,7 +100,15 @@ export default function Programas() {
     // }
 
     return (
-      <ProgramasList programas={programas} />
+      <ProgramasList 
+        programas={programas} 
+        page={page}
+        pageSize={pageSize}
+        totalPages={1}
+        totalElements={programas.length}
+        esVistaVersiones={true}
+        onPageChange={setPage} 
+      />
       // <ProgramasList programas={programas} totalPages={totalPages} />
     );
 }

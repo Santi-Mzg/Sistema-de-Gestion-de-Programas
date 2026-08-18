@@ -2,6 +2,9 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 
 import java.util.List;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
@@ -15,16 +18,16 @@ public interface ProgramaService {
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
-    List<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo);
-    List<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo);
+    Page<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String search, Pageable pageable);
+    Page<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable);
     List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId);
     List<ProgramaResponseReducedDTO> listAll();
     void delete(Long id);
     void saveDraft(Long departamentoId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo);
     ProgramaDraftDTO getDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
     void deleteDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
-    List<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo);
-    List<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo);
-
+    Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
+    Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
+    DashboardResumenDTO getDashboardResumen(Authentication auth, Long deptId, Rol rolActivo);
 
 }

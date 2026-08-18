@@ -2,6 +2,7 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.CarreraResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.AreaMapper;
@@ -9,6 +10,8 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.AreaReposit
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,13 +75,14 @@ public class AreaServiceImpl implements AreaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AreaResponseDTO> listAreasDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoService.findEntityWithAreasById(id);
+    public Page<AreaResponseDTO> listAreasDepartamento(Long id, String search, Pageable pageable) {
+        String normalizedSearch =
+                search == null || search.isBlank()
+                        ? ""
+                        : search.trim();
 
-        return departamento.getAreas()
-                .stream()
-                .map(areaMapper::toDTO)
-                .toList();
+        return areaRepository.findAllByDepartamentoId(id, normalizedSearch, pageable)
+                .map(areaMapper::toDTO);
     };
 
     @Override
@@ -99,4 +103,11 @@ public class AreaServiceImpl implements AreaService {
     public void deleteArea(Long id) {
         areaRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByDepartamentoId(Long deptId) {
+        return areaRepository.countByDepartamentoId(deptId);
+    }
+
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { Search, Edit2, Trash2, Plus, Layers } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { AreaCreateDTO, AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { getGetAreaQueryKey, getListAreasDepartamentoQueryKey, useDeleteArea } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
@@ -15,13 +15,26 @@ import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { useDept } from "@/context/dept-context"
 import { useQueryClient } from "@tanstack/react-query";
+import { PageNavigation } from "../nav/page-nav"
 
 interface AreasListProps {
   areas?: AreaResponseDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  onPageChange: (page: number) => void
 }
 
 
-export function AreasList({ areas = [] }: AreasListProps) {
+export function AreasList({ 
+  areas = [],
+  page,
+  pageSize,
+  totalPages,
+  totalElements,
+  onPageChange  
+}: AreasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const [searchTerm, setSearchTerm] = useState("")
@@ -45,19 +58,6 @@ export function AreasList({ areas = [] }: AreasListProps) {
       icon: Layers,
     })
   }, [])
-
-  // Filter and sort data
-  const filteredAreas = useMemo(() => {
-    const filtered = areas.filter((area) => {
-      return (
-        !searchTerm ||
-        area.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })
-
-    return filtered
-  }, [areas, searchTerm,])
-
 
   const handleDeleteClick = (area: AreaResponseDTO) => {
     setSelectedArea(area)
@@ -139,64 +139,54 @@ export function AreasList({ areas = [] }: AreasListProps) {
   return (
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
-        {/* Search and Filters Section */}
-        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-            />
-          </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-            activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-            <Button size="lg"
-                    variant="outline"
-                    onClick={() => router.push(`/areas/crear`)}
-                    className="border-2 hover:bg-primary hover:text-primary-foreground">
-              <Plus size={16} className="mr-1" />
-              Crear Área
-            </Button>
-          }
-        </div>
-
         {/* Results Count */}
-        <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAreas.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{areas.length}</span> área{areas.length === 1 ? "" : "s"}
+<div className="mb-4 text-sm text-muted-foreground">
+            {areas.length > 0 && (
+              <span>
+                Mostrando{" "}
+                <span className="font-medium text-foreground">
+                  {page * pageSize + 1}
+                </span>
+                {" – "}
+                <span className="font-medium text-foreground">
+                  {Math.min((page + 1) * pageSize, totalElements)}
+                </span>
+                {" de "}
+                <span className="font-medium text-foreground">
+                  {totalElements}
+                </span>{" "}
+                áreas
+              </span>
+            )}
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
           <table className="w-full border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left"
+                <th className="px-3 py-2 text-left font-semibold"
                     colSpan={hasPermission ? 1 : 2}>
                     Nombre
                 </th>
                 {hasPermission && (
-                  <th className="px-6 py-4 text-center">
+                  <th className="px-3 py-2 text-left w-40">
                       Acciones
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filteredAreas.length > 0 ? (
-                filteredAreas.map((area) => (
+            <tbody className="divide-y">
+              {areas.length > 0 ? (
+                areas.map((area) => (
                   <tr
                     key={area.id}
                     className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{area.nombre}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-1.5 font-medium text-foreground">{area.nombre}</td>
+                    <td className="px-3 py-1.5">
                       {hasPermission && (
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
                           size="sm"
                           variant="outline"
@@ -222,8 +212,8 @@ export function AreasList({ areas = [] }: AreasListProps) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={2} className="px-6 py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center gap-3">
+                  <td colSpan={2} className="px-3 py-6 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center gap-1">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron áreas</p>
                         {hasPermission && 
@@ -237,6 +227,14 @@ export function AreasList({ areas = [] }: AreasListProps) {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "áreas"
+          />
         </div>
       </div>
 

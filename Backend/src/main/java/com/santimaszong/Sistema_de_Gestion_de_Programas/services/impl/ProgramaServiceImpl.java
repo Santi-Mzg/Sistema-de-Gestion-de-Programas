@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.utils.ProgramaSpecifications;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCargaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaCarreraMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.ProgramaResponseMapper;
@@ -12,11 +13,16 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.net.ssl.ExtendedSSLSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -32,7 +38,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     private final ProgramaDraftRepository draftRepository;
     private final DecisionComisionRepository decisionRepository;
     private final MateriaService materiaService;
-    private final UserService userService;
+    private final AreaService areaService;
     private final CarreraService carreraService;
     private final UsuarioDepartamentoService udeService;
     private final EmailService emailService;
@@ -50,7 +56,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                ProgramaDraftRepository draftRepository,
                                DecisionComisionRepository decisionRepository,
                                MateriaService materiaService,
-                               UserService userService,
+                               AreaService areaService,
                                CarreraService carreraService,
                                UsuarioDepartamentoService udeService,
                                ProgramaResponseMapper responseMapper,
@@ -64,7 +70,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.draftRepository = draftRepository;
         this.decisionRepository = decisionRepository;
         this.materiaService = materiaService;
-        this.userService = userService;
+        this.areaService = areaService;
         this.carreraService = carreraService;
         this.udeService = udeService;
         this.responseMapper = responseMapper;
@@ -377,7 +383,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo) {
+    public Page<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -385,30 +391,40 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         Integer anioActual = LocalDate.now().getYear();
-        List<ProgramaEntity> programs = new ArrayList<>();
+
+        Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual);
 
         // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
         if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
-            programs = programaRepository.findByMateriaDepartamentoIdAndAnio(deptId, anioActual);
+            spec = spec.and(
+                    ProgramaSpecifications.departamento(deptId)
+            );
         }
-
-        // 2. Si es coordinador ve los programas de la carrera
-        else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
-            programs = programaRepository.findProgramasByCoordinadorLegajoAndAnio(auth.getName(), anioActual);
-        }
-        // 3. Si es profesor ve los programas que tiene asignados
+        // 2. Si es profesor ve los programas que tiene asignados
         else if (rolActivo.equals(Rol.DOCENTE) ) {
-            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(auth.getName(), deptId, anioActual);
+            spec = spec
+                    .and(ProgramaSpecifications.departamento(deptId))
+                    .and(ProgramaSpecifications.docente(auth.getName()));
+        }
+        else {
+            throw new AccessDeniedException(
+                    "Rol no soportado por este listado"
+            );
         }
 
-        return programs.stream()
-                .map(responseReducedMapper::toDTO)
-                .collect(Collectors.toList());
+        spec = spec
+                .and(ProgramaSpecifications.estado(estado))
+                .and(ProgramaSpecifications.search(search));
+
+        Page<ProgramaEntity> programs =
+                programaRepository.findAll(spec, pageable);
+
+        return programs.map(responseReducedMapper::toDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo) {
+    public Page<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -416,43 +432,72 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         Integer anioActual = LocalDate.now().getYear();
-        List<ProgramaEntity> programs = programaRepository.findProgramasByCoordinadorLegajoAndAnio(auth.getName(), anioActual);
 
-        return programs.stream()
-                .map(responseMapper::toDTO)
-                .collect(Collectors.toList());
+        Specification<ProgramaEntity> spec = Specification.allOf(
+                ProgramaSpecifications.anio(anioActual),
+
+                ProgramaSpecifications.coordinador(
+                        auth.getName(),
+                        nombreCarrera
+                ),
+
+                ProgramaSpecifications.estado(estado)
+        );
+
+        Page<ProgramaEntity> programs =
+                programaRepository.findAll(spec, pageable);
+
+        return programs.map(responseMapper::toDTO);
     }
+
+     @Override
+     @Transactional(readOnly = true)
+     public Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
+         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
+
+         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
+             throw new AccessDeniedException("No autorizado");
+         }
+
+         Integer anioActual = LocalDate.now().getYear();
+
+         Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual);
+
+
+         if (rolActivo.equals(Rol.ADMINISTRACION)) {
+             spec = spec
+                     .and(ProgramaSpecifications.departamento(deptId))
+                     .and(ProgramaSpecifications.estadoIn(List.of(
+                        EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
+                        EstadoPrograma.RECHAZADO_A_ADMINISTRACION
+                     )));
+         }
+         else if (rolActivo.equals(Rol.DOCENTE) ) {
+             spec = spec
+                     .and(ProgramaSpecifications.departamento(deptId))
+                     .and(ProgramaSpecifications.estadoIn(List.of(
+                             EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
+                             EstadoPrograma.INCOMPLETO_POR_PROFESOR,
+                             EstadoPrograma.RECHAZADO_A_PROFESOR
+                     )));
+         }
+         else if (rolActivo.equals(Rol.SECRETARIA) ) {
+             spec = spec
+                     .and(ProgramaSpecifications.departamento(deptId))
+                     .and(ProgramaSpecifications.estado(
+                             EstadoPrograma.APROBADO_POR_COMISION
+                     ));
+         }
+
+         Page<ProgramaEntity> programs =
+                 programaRepository.findAll(spec, pageable);
+
+         return programs.map(responseReducedMapper::toDTO);
+     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo) {
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
-        if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
-
-        Integer anioActual = LocalDate.now().getYear();
-        List<ProgramaEntity> programs = new ArrayList<>();
-
-        if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
-//            programs = programaRepository.findByMateriaDepartamentoIdAndAnio(deptId, anioActual);
-        }
-        else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
-            programs = programaRepository.findProgramasPendientesCoordinador(auth.getName(), anioActual, EstadoPrograma.COMPLETO_POR_PROFESOR);
-        }
-        else if (rolActivo.equals(Rol.DOCENTE) ) {
-//            programs = programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(auth.getName(), deptId, anioActual);
-        }
-
-        return programs.stream()
-                .map(responseReducedMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo) {
+    public Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
 
         if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
@@ -460,11 +505,23 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         Integer anioActual = LocalDate.now().getYear();
-        List<ProgramaEntity> programs = programaRepository.findProgramasPendientesCoordinador(auth.getName(), anioActual, EstadoPrograma.COMPLETO_POR_PROFESOR);
 
-        return programs.stream()
-                .map(responseMapper::toDTO)
-                .collect(Collectors.toList());
+        Specification<ProgramaEntity> spec = Specification.allOf(
+                ProgramaSpecifications.anio(anioActual),
+
+                ProgramaSpecifications.coordinador(
+                        auth.getName(),
+                        null
+                ),
+
+                ProgramaSpecifications.estado(EstadoPrograma.COMPLETO_POR_PROFESOR)
+        );
+
+        Page<ProgramaEntity> programs =
+                programaRepository.findAll(spec, pageable);
+
+        return programs.map(responseMapper::toDTO);
+
     }
 
     @Override
@@ -485,6 +542,325 @@ public class ProgramaServiceImpl implements ProgramaService {
                 .map(responseReducedMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardResumenDTO getDashboardResumen(
+            Authentication auth,
+            Long deptId,
+            Rol rolActivo
+    ) {
+        UsuarioDepartamentoEntity ude =
+                udeService.findByUsuarioLegajoAndDepartamentoId(
+                        auth.getName(),
+                        deptId
+                );
+
+        if (!ude.hasRole(rolActivo)) {
+            throw new AccessDeniedException("No autorizado");
+        }
+
+        Integer anioActual = LocalDate.now().getYear();
+
+        if (rolActivo.equals(Rol.DOCENTE)) {
+            return getDashboardDocenteResumen(deptId, auth, anioActual);
+
+        } else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
+            return getDashboardCoordResumen(deptId, auth, anioActual);
+
+        } else {
+            return getDashboardAdminResumen(deptId, anioActual);
+        }
+    }
+
+    private DashboardResumenDTO getDashboardAdminResumen(
+            Long deptId,
+            Integer anioActual
+    ) {
+        Specification<ProgramaEntity> baseSpec = Specification.allOf(
+                ProgramaSpecifications.anio(anioActual),
+                ProgramaSpecifications.departamento(deptId)
+        );
+
+        long programasTotales =
+                programaRepository.count(baseSpec);
+
+        long programasVigentes =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_SECRETARIA
+                                )
+                        )
+                );
+
+        long pendienteAdministracion =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
+                                        )
+                                )
+                        )
+                );
+
+        long pendienteDocente =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
+                                                EstadoPrograma.RECHAZADO_A_PROFESOR
+                                        )
+                                )
+                        )
+                );
+
+        long pendienteComisiones =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.COMPLETO_POR_PROFESOR
+                                )
+                        )
+                );
+
+        long pendienteSecretaria =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_COMISION
+                                )
+                        )
+                );
+
+        long areas =
+                areaService.countByDepartamentoId(deptId);
+
+        long carreras =
+                carreraService.countByDepartamentoId(deptId);
+
+        long materias =
+                materiaService.countByDepartamentoId(deptId);
+
+        long usuarios =
+                udeService.countByDepartamentoId(deptId);
+
+        long docentes =
+                udeService.countByDepartamentoIdAndRolesContaining(
+                        deptId,
+                        Rol.DOCENTE
+                );
+
+        long administrativos =
+                udeService.countByDepartamentoIdAndRolesContaining(
+                        deptId,
+                        Rol.ADMINISTRACION
+                );
+
+        return new DashboardResumenDTO(
+                areas,
+                carreras,
+                materias,
+                usuarios,
+                docentes,
+                administrativos,
+                programasTotales,
+                programasVigentes,
+                pendienteAdministracion,
+                pendienteDocente,
+                null,
+                pendienteComisiones,
+                pendienteSecretaria
+        );
+    }
+
+
+    private DashboardResumenDTO getDashboardDocenteResumen(
+            Long deptId,
+            Authentication auth,
+            Integer anioActual
+    ) {
+        Specification<ProgramaEntity> baseSpec = Specification.allOf(
+                ProgramaSpecifications.anio(anioActual),
+                ProgramaSpecifications.departamento(deptId),
+                ProgramaSpecifications.docente(
+                        auth.getName()
+                )
+        );
+
+        long programasTotales =
+                programaRepository.count(baseSpec);
+
+        long programasVigentes =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_SECRETARIA
+                                )
+                        )
+                );
+
+        long pendienteAdministracion =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
+                                        )
+                                )
+                        )
+                );
+
+        long pendienteDocente =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
+                                                EstadoPrograma.RECHAZADO_A_PROFESOR
+                                        )
+                                )
+                        )
+                );
+
+        long rechazadoDocente =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.RECHAZADO_A_PROFESOR
+                                )
+                        )
+                );
+
+        long pendienteComisiones =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.COMPLETO_POR_PROFESOR
+                                )
+                        )
+                );
+
+        long pendienteSecretaria =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_COMISION
+                                )
+                        )
+                );
+
+        return new DashboardResumenDTO(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                programasTotales,
+                programasVigentes,
+                pendienteAdministracion,
+                pendienteDocente,
+                rechazadoDocente,
+                pendienteComisiones,
+                pendienteSecretaria
+        );
+    }
+
+    private DashboardResumenDTO getDashboardCoordResumen(
+            Long deptId,
+            Authentication auth,
+            Integer anioActual
+    ) {
+        Specification<ProgramaEntity> baseSpec = Specification.allOf(
+                ProgramaSpecifications.anio(anioActual),
+                ProgramaSpecifications.departamento(deptId),
+                ProgramaSpecifications.coordinador(
+                        auth.getName(),
+                        null
+                )
+        );
+
+        long totalProgramas =
+                programaRepository.count(baseSpec);
+
+        long programasVigentes =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_SECRETARIA
+                                )
+                        )
+                );
+
+        long pendienteAdministracion =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
+                                        )
+                                )
+                        )
+                );
+
+        long pendienteDocente =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estadoIn(
+                                        List.of(
+                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
+                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
+                                                EstadoPrograma.RECHAZADO_A_PROFESOR
+                                        )
+                                )
+                        )
+                );
+
+        long pendienteComisiones =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.COMPLETO_POR_PROFESOR
+                                )
+                        )
+                );
+
+        long pendienteSecretaria =
+                programaRepository.count(
+                        baseSpec.and(
+                                ProgramaSpecifications.estado(
+                                        EstadoPrograma.APROBADO_POR_COMISION
+                                )
+                        )
+                );
+
+        return new DashboardResumenDTO(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                totalProgramas,
+                programasVigentes,
+                pendienteAdministracion,
+                pendienteDocente,
+                null,
+                pendienteComisiones,
+                pendienteSecretaria
+        );
+    }
+
+
+
 
     @Override
     @Transactional

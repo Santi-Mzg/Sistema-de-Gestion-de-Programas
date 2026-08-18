@@ -5,6 +5,9 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResp
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,8 +49,15 @@ public class UserController {
     }
 
     @GetMapping("/departamentos/{deptId}/usuarios")
-    public List<UserResponseDTO> listUsersDepartamento(@PathVariable Long deptId, @AuthenticationPrincipal UserEntity auth) {
-        return userService.listUsersDepartamento(deptId, auth);
+    public ResponseEntity<Page<UserResponseDTO>> listUsersDepartamento(
+            @PathVariable Long deptId,
+            @AuthenticationPrincipal UserEntity auth,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(userService.listUsersDepartamento(deptId, auth, search, pageable));
     }
 
     @GetMapping("/departamentos/{deptId}/usuarios/docentes")

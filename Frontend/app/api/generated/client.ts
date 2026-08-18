@@ -30,6 +30,7 @@ import type {
   CarreraPlanResponseDTO,
   CarreraResponseDTO,
   CarreraUpdateComisionDTO,
+  DashboardResumenDTO,
   DeleteDraftParams,
   DepartamentoCreateDTO,
   DepartamentoResponseDTO,
@@ -37,15 +38,26 @@ import type {
   EstadoUpdateDTO,
   ForgotPassword200,
   ForgotPasswordRequest,
+  GetDashboardResumenParams,
   GetDraftParams,
+  ListAreasDepartamentoParams,
+  ListCarrerasDepartamentoParams,
+  ListMateriasDepartamentoParams,
   ListProgramasCoordinacionParams,
   ListProgramasParams,
   ListProgramasPendientesCoordinadorParams,
   ListProgramasPendientesParams,
+  ListUsersDepartamentoParams,
   Login200,
   LoginRequest,
   MateriaCreateDTO,
   MateriaResponseDTO,
+  PageAreaResponseDTO,
+  PageCarreraResponseDTO,
+  PageMateriaResponseDTO,
+  PageProgramaResponseDTO,
+  PageProgramaResponseReducedDTO,
+  PageUserResponseDTO,
   ProgramaCargaDTO,
   ProgramaDraftDTO,
   ProgramaResponseDTO,
@@ -836,12 +848,14 @@ const {mutation: mutationOptions} = options ?
     
 export const listUsersDepartamento = (
     deptId: number,
+    params?: ListUsersDepartamentoParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<UserResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/usuarios`, method: 'GET', signal
+      return customInstance<PageUserResponseDTO>(
+      {url: `/api/departamentos/${deptId}/usuarios`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -849,23 +863,25 @@ export const listUsersDepartamento = (
 
 
 
-export const getListUsersDepartamentoQueryKey = (deptId?: number,) => {
+export const getListUsersDepartamentoQueryKey = (deptId?: number,
+    params?: ListUsersDepartamentoParams,) => {
     return [
-    `/api/departamentos/${deptId}/usuarios`
+    `/api/departamentos/${deptId}/usuarios`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListUsersDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
+export const getListUsersDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListUsersDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListUsersDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListUsersDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersDepartamento>>> = ({ signal }) => listUsersDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersDepartamento>>> = ({ signal }) => listUsersDepartamento(deptId,params, signal);
 
       
 
@@ -880,11 +896,12 @@ export type ListUsersDepartamentoQueryError = unknown
 
 
 export function useListUsersDepartamento<TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListUsersDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListUsersDepartamentoQueryOptions(deptId,options)
+  const queryOptions = getListUsersDepartamentoQueryOptions(deptId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -896,16 +913,17 @@ export function useListUsersDepartamento<TData = Awaited<ReturnType<typeof listU
 
 
 
-export const getListUsersDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
+export const getListUsersDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListUsersDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListUsersDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListUsersDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersDepartamento>>> = ({ signal }) => listUsersDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsersDepartamento>>> = ({ signal }) => listUsersDepartamento(deptId,params, signal);
 
       
 
@@ -920,11 +938,12 @@ export type ListUsersDepartamentoSuspenseQueryError = unknown
 
 
 export function useListUsersDepartamentoSuspense<TData = Awaited<ReturnType<typeof listUsersDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListUsersDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listUsersDepartamento>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListUsersDepartamentoSuspenseQueryOptions(deptId,options)
+  const queryOptions = getListUsersDepartamentoSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1004,7 +1023,7 @@ export const listProgramas = (
 ) => {
       
       
-      return customInstance<ProgramaResponseReducedDTO[]>(
+      return customInstance<PageProgramaResponseReducedDTO>(
       {url: `/api/departamentos/${deptId}/programas`, method: 'GET',
         params, signal
     },
@@ -1407,12 +1426,14 @@ const {mutation: mutationOptions} = options ?
     
 export const listCarrerasDepartamento = (
     deptId: number,
+    params?: ListCarrerasDepartamentoParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<CarreraResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/carreras`, method: 'GET', signal
+      return customInstance<PageCarreraResponseDTO>(
+      {url: `/api/departamentos/${deptId}/carreras`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -1420,23 +1441,25 @@ export const listCarrerasDepartamento = (
 
 
 
-export const getListCarrerasDepartamentoQueryKey = (deptId?: number,) => {
+export const getListCarrerasDepartamentoQueryKey = (deptId?: number,
+    params?: ListCarrerasDepartamentoParams,) => {
     return [
-    `/api/departamentos/${deptId}/carreras`
+    `/api/departamentos/${deptId}/carreras`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListCarrerasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
+export const getListCarrerasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListCarrerasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCarrerasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasDepartamento>>> = ({ signal }) => listCarrerasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasDepartamento>>> = ({ signal }) => listCarrerasDepartamento(deptId,params, signal);
 
       
 
@@ -1451,11 +1474,12 @@ export type ListCarrerasDepartamentoQueryError = unknown
 
 
 export function useListCarrerasDepartamento<TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListCarrerasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListCarrerasDepartamentoQueryOptions(deptId,options)
+  const queryOptions = getListCarrerasDepartamentoQueryOptions(deptId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1467,16 +1491,17 @@ export function useListCarrerasDepartamento<TData = Awaited<ReturnType<typeof li
 
 
 
-export const getListCarrerasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
+export const getListCarrerasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListCarrerasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCarrerasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasDepartamento>>> = ({ signal }) => listCarrerasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasDepartamento>>> = ({ signal }) => listCarrerasDepartamento(deptId,params, signal);
 
       
 
@@ -1491,11 +1516,12 @@ export type ListCarrerasDepartamentoSuspenseQueryError = unknown
 
 
 export function useListCarrerasDepartamentoSuspense<TData = Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListCarrerasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasDepartamento>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListCarrerasDepartamentoSuspenseQueryOptions(deptId,options)
+  const queryOptions = getListCarrerasDepartamentoSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1570,12 +1596,14 @@ const {mutation: mutationOptions} = options ?
     
 export const listAreasDepartamento = (
     deptId: number,
+    params?: ListAreasDepartamentoParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<AreaResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/areas`, method: 'GET', signal
+      return customInstance<PageAreaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/areas`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -1583,23 +1611,25 @@ export const listAreasDepartamento = (
 
 
 
-export const getListAreasDepartamentoQueryKey = (deptId?: number,) => {
+export const getListAreasDepartamentoQueryKey = (deptId?: number,
+    params?: ListAreasDepartamentoParams,) => {
     return [
-    `/api/departamentos/${deptId}/areas`
+    `/api/departamentos/${deptId}/areas`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListAreasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
+export const getListAreasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListAreasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAreasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListAreasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreasDepartamento>>> = ({ signal }) => listAreasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreasDepartamento>>> = ({ signal }) => listAreasDepartamento(deptId,params, signal);
 
       
 
@@ -1614,11 +1644,12 @@ export type ListAreasDepartamentoQueryError = unknown
 
 
 export function useListAreasDepartamento<TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListAreasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListAreasDepartamentoQueryOptions(deptId,options)
+  const queryOptions = getListAreasDepartamentoQueryOptions(deptId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1630,16 +1661,17 @@ export function useListAreasDepartamento<TData = Awaited<ReturnType<typeof listA
 
 
 
-export const getListAreasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
+export const getListAreasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListAreasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAreasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListAreasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreasDepartamento>>> = ({ signal }) => listAreasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAreasDepartamento>>> = ({ signal }) => listAreasDepartamento(deptId,params, signal);
 
       
 
@@ -1654,11 +1686,12 @@ export type ListAreasDepartamentoSuspenseQueryError = unknown
 
 
 export function useListAreasDepartamentoSuspense<TData = Awaited<ReturnType<typeof listAreasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListAreasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listAreasDepartamento>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListAreasDepartamentoSuspenseQueryOptions(deptId,options)
+  const queryOptions = getListAreasDepartamentoSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -3402,109 +3435,6 @@ export function useGenerarPDFSuspense<TData = Awaited<ReturnType<typeof generarP
 
 
 
-export const ping = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<string>(
-      {url: `/api/ping`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
-
-export const getPingQueryKey = () => {
-    return [
-    `/api/ping`
-    ] as const;
-    }
-
-    
-export const getPingQueryOptions = <TData = Awaited<ReturnType<typeof ping>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getPingQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof ping>>> = ({ signal }) => ping(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type PingQueryResult = NonNullable<Awaited<ReturnType<typeof ping>>>
-export type PingQueryError = unknown
-
-
-
-export function usePing<TData = Awaited<ReturnType<typeof ping>>, TError = unknown>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getPingQueryOptions(options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
-export const getPingSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof ping>>, TError = unknown>( options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getPingQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof ping>>> = ({ signal }) => ping(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type PingSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof ping>>>
-export type PingSuspenseQueryError = unknown
-
-
-
-export function usePingSuspense<TData = Awaited<ReturnType<typeof ping>>, TError = unknown>(
-  options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof ping>>, TError, TData>, }
-  
- ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getPingSuspenseQueryOptions(options)
-
-  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
-
 export const listProgramasMateria = (
     materiaId: number,
  signal?: AbortSignal
@@ -4233,7 +4163,7 @@ export const listProgramasPendientes = (
 ) => {
       
       
-      return customInstance<ProgramaResponseReducedDTO[]>(
+      return customInstance<PageProgramaResponseReducedDTO>(
       {url: `/api/departamentos/${deptId}/programas/pendientes`, method: 'GET',
         params, signal
     },
@@ -4343,7 +4273,7 @@ export const listProgramasCoordinacion = (
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
+      return customInstance<PageProgramaResponseDTO>(
       {url: `/api/departamentos/${deptId}/programas-coordinacion`, method: 'GET',
         params, signal
     },
@@ -4453,7 +4383,7 @@ export const listProgramasPendientesCoordinador = (
 ) => {
       
       
-      return customInstance<ProgramaResponseDTO[]>(
+      return customInstance<PageProgramaResponseDTO>(
       {url: `/api/departamentos/${deptId}/programas-coordinacion/pendientes`, method: 'GET',
         params, signal
     },
@@ -4558,12 +4488,14 @@ export function useListProgramasPendientesCoordinadorSuspense<TData = Awaited<Re
 
 export const listMateriasDepartamento = (
     deptId: number,
+    params?: ListMateriasDepartamentoParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<MateriaResponseDTO[]>(
-      {url: `/api/departamentos/${deptId}/materias`, method: 'GET', signal
+      return customInstance<PageMateriaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/materias`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -4571,23 +4503,25 @@ export const listMateriasDepartamento = (
 
 
 
-export const getListMateriasDepartamentoQueryKey = (deptId?: number,) => {
+export const getListMateriasDepartamentoQueryKey = (deptId?: number,
+    params?: ListMateriasDepartamentoParams,) => {
     return [
-    `/api/departamentos/${deptId}/materias`
+    `/api/departamentos/${deptId}/materias`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getListMateriasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
+export const getListMateriasDepartamentoQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListMateriasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId,params, signal);
 
       
 
@@ -4602,11 +4536,12 @@ export type ListMateriasDepartamentoQueryError = unknown
 
 
 export function useListMateriasDepartamento<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListMateriasDepartamentoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
   
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListMateriasDepartamentoQueryOptions(deptId,options)
+  const queryOptions = getListMateriasDepartamentoQueryOptions(deptId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -4618,16 +4553,17 @@ export function useListMateriasDepartamento<TData = Awaited<ReturnType<typeof li
 
 
 
-export const getListMateriasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
+export const getListMateriasDepartamentoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(deptId: number,
+    params?: ListMateriasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId);
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasDepartamentoQueryKey(deptId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasDepartamento>>> = ({ signal }) => listMateriasDepartamento(deptId,params, signal);
 
       
 
@@ -4642,11 +4578,122 @@ export type ListMateriasDepartamentoSuspenseQueryError = unknown
 
 
 export function useListMateriasDepartamentoSuspense<TData = Awaited<ReturnType<typeof listMateriasDepartamento>>, TError = unknown>(
- deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
+ deptId: number,
+    params?: ListMateriasDepartamentoParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasDepartamento>>, TError, TData>, }
   
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListMateriasDepartamentoSuspenseQueryOptions(deptId,options)
+  const queryOptions = getListMateriasDepartamentoSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const getDashboardResumen = (
+    deptId: number,
+    params: GetDashboardResumenParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DashboardResumenDTO>(
+      {url: `/api/departamentos/${deptId}/dashboard/resumen`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetDashboardResumenQueryKey = (deptId?: number,
+    params?: GetDashboardResumenParams,) => {
+    return [
+    `/api/departamentos/${deptId}/dashboard/resumen`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetDashboardResumenQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardResumen>>, TError = unknown>(deptId: number,
+    params: GetDashboardResumenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardResumenQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardResumen>>> = ({ signal }) => getDashboardResumen(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardResumenQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardResumen>>>
+export type GetDashboardResumenQueryError = unknown
+
+
+
+export function useGetDashboardResumen<TData = Awaited<ReturnType<typeof getDashboardResumen>>, TError = unknown>(
+ deptId: number,
+    params: GetDashboardResumenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardResumenQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetDashboardResumenSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardResumen>>, TError = unknown>(deptId: number,
+    params: GetDashboardResumenParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardResumenQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardResumen>>> = ({ signal }) => getDashboardResumen(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardResumenSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardResumen>>>
+export type GetDashboardResumenSuspenseQueryError = unknown
+
+
+
+export function useGetDashboardResumenSuspense<TData = Awaited<ReturnType<typeof getDashboardResumen>>, TError = unknown>(
+ deptId: number,
+    params: GetDashboardResumenParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getDashboardResumen>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardResumenSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

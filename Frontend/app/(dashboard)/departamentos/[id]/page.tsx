@@ -58,13 +58,28 @@ export default function EditDepartamentoPage() {
         sitioWeb: departamento?.sitioWeb,
   })
 
-  const { data: usuarios = [], isLoading: isLoadingUsers } = useListUsersDepartamento(Number(id), {
+  const usuariosQuery = useListUsersDepartamento(Number(id),
+    {
+      page: 0,
+      size: 1000,
+      search: undefined
+    },
+    {
     query: {
       enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA'),
       staleTime: 1000 * 60 * 5,
-      queryKey: getListUsersDepartamentoQueryKey(Number(id))
+      queryKey: getListUsersDepartamentoQueryKey(Number(id),
+        {
+          page: 0,
+          size: 1000,
+          search: undefined
+        },
+      )
     },
   })
+
+  const usuarios: UserResponseDTO[] | undefined = usuariosQuery.data?.content;
+
 
 
   useEffect(() => {
@@ -547,7 +562,7 @@ export default function EditDepartamentoPage() {
           description="Elige un usuario para asignar como Dirección Administrativa"
           roleLabel="Dirección Actual"
           confirmLabel="Asignar Dirección"
-          isLoading={isLoading || isLoadingUsers}
+          isLoading={isLoading || usuariosQuery.isLoading}
         />
       )}
 
@@ -563,7 +578,7 @@ export default function EditDepartamentoPage() {
           description="Elige un usuario para asignar como Secretaría Académica"
           roleLabel="Secretaría Actual"
           confirmLabel="Asignar Secretaría"
-          isLoading={isLoading || isLoadingUsers}
+          isLoading={isLoading || usuariosQuery.isLoading}
         />
       )}
     </div>

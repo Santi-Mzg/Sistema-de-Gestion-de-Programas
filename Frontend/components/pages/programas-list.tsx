@@ -1,35 +1,45 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Plus, Eye, FileText, History, FolderClock } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { ProgramaResponseDTO, ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { Search, ChevronUp, ChevronDown, Eye, FileText, History, FolderClock } from "lucide-react"
+import { ProgramaResponseDTOEstado, ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { usePathname, useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
 import { useHeader } from "@/context/header-context"
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils"
+import { PageNavigation } from "../nav/page-nav"
+import { useRouter } from "next/navigation"
 
 interface ProgramasListProps {
-  programas?: ProgramaResponseDTO[]
+  programas?: ProgramaResponseReducedDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  esVistaVersiones: boolean
+  onPageChange: (page: number) => void
 }
 
 
 type SortField = "anio" | "nombreMateria" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
-export function ProgramasList({ programas = [] }: ProgramasListProps) {
+export function ProgramasList({ 
+    programas = [],
+    page,
+    pageSize,
+    totalPages,
+    totalElements,
+    esVistaVersiones,
+    onPageChange 
+  }: ProgramasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState<SortField>("nombreMateria")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
 
-  const pathname = usePathname() // 2. Obtener la ruta actual
-  const esVistaVersiones = pathname.includes("/versiones")
   const actualYear = new Date().getFullYear()
   
   useEffect(() => {
@@ -47,29 +57,11 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         })
   }, [])
 
-  // Get unique values for filters
-  const uniqueEstados = useMemo(() => {
-    return [...new Set(programas.map((s) => getProgramStateLabel(s.estado as ProgramaResponseDTOEstado)).filter(Boolean))]
-  }, [programas])
 
 
   // Filter and sort data
-  const filteredAndSortedSyllabuses = useMemo(() => {
-    const filtered = programas.filter((programa) => {
-      const matchesSearch =
-        !searchTerm ||
-        programa.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        programa.profesorResponsable?.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
-
-      const matchesEstado = filterEstado === "todos" || getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado) === filterEstado
-
-      return matchesSearch && matchesEstado
-    })
-
-    const getSortValue = (programa: ProgramaResponseDTO, field: SortField): string => {
+  const sortedPrograms = useMemo(() => {
+    const getSortValue = (programa: ProgramaResponseReducedDTO, field: SortField): string => {
       switch (field) {
         case "anio":
           return String(programa.anio ?? "")
@@ -93,7 +85,7 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
       }
     }
 
-    filtered.sort((a, b) => {
+    const sorted = programas.sort((a, b) => {
       const aValue = getSortValue(a, sortField)
       const bValue = getSortValue(b, sortField)
 
@@ -102,8 +94,8 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
         : bValue.localeCompare(aValue)
     })
 
-    return filtered
-  }, [programas, searchTerm, sortField, sortOrder, filterEstado])
+    return sorted
+  }, [programas, sortField, sortOrder])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -126,44 +118,26 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
   return (
     <div className="w-full bg-background">
       <div className="max-w-full mx-auto">
-        {/* Search and Filters Section */}
-          {/* Search Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-muted/30 p-3 rounded-lg border">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input
-              placeholder="Buscar por nombre, código, docente o departamento..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 text-sm rounded-md" // h-9 para hacerlo más bajo
-            />
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Filter size={16} />
-            <select
-              value={filterEstado}
-              onChange={(e) => setFilterEstado(e.target.value)}
-              className="h-9 px-3 py-1 text-sm border rounded-md bg-background"
-            >
-              <option value="todos">Todos los estados</option>
-              {uniqueEstados.map((estado) => (
-                <option key={estado} value={estado || ""}>{estado}</option>
-              ))}
-            </select>
-            {!esVistaVersiones && (activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-              <Button size="sm" onClick={() => router.push(`/programas/crear`)} className="h-9">
-                <Plus size={16} className="mr-1" /> Nuevo Programa
-              </Button>
-            }
-          </div>
-        </div>
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredAndSortedSyllabuses.length}</span> de {" "}
-          <span className="font-semibold text-foreground">{programas.length}</span> programa{programas.length === 1 ? "" : "s"}
+            {programas.length > 0 && (
+              <span>
+                Mostrando{" "}
+                <span className="font-medium text-foreground">
+                  {page * pageSize + 1}
+                </span>
+                {" – "}
+                <span className="font-medium text-foreground">
+                  {Math.min((page + 1) * pageSize, totalElements)}
+                </span>
+                {" de "}
+                <span className="font-medium text-foreground">
+                  {totalElements}
+                </span>{" "}
+                programas
+              </span>
+            )}
         </div>
 
         {/* Table */}
@@ -229,8 +203,8 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredAndSortedSyllabuses.length > 0 ? (
-                filteredAndSortedSyllabuses.map((programa) => (
+              {sortedPrograms.length > 0 ? (
+                sortedPrograms.map((programa) => (
                   <tr
                     key={programa.id}
                     className="hover:bg-muted/30 transition-colors"
@@ -316,6 +290,14 @@ export function ProgramasList({ programas = [] }: ProgramasListProps) {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "programas"
+          />
         </div>
       </div>
     </div>

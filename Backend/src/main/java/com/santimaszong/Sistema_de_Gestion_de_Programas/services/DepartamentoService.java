@@ -24,8 +24,4 @@ public interface DepartamentoService {
     void updateDireccionAdministrativa(Long id, DepartamentoUpdateCargoDTO departamentoDTO);
     DepartamentoResponseDTO updateAdministracionDepartamento(Long id, DepartamentoCreateDTO departamentoDTO);
     void deleteDepartamento(Long id);
-
-    DepartamentoEntity findEntityWithAreasById(Long id);
-    DepartamentoEntity findEntityWithCarrerasById(Long id);
-    DepartamentoEntity findEntityWithMateriasById(Long id);
 }

@@ -63,27 +63,6 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
     @Override
     @Transactional(readOnly = true)
-    public DepartamentoEntity findEntityWithAreasById(Long id) {
-        return departamentoRepository.findWithAreasById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public DepartamentoEntity findEntityWithCarrerasById(Long id) {
-            return departamentoRepository.findWithCarrerasById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public DepartamentoEntity findEntityWithMateriasById(Long id) {
-        return departamentoRepository.findWithMateriasById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Departamento no existente"));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<DepartamentoResponseDTO> listDepartamentos() {
         List<DepartamentoEntity> departamentos = departamentoRepository.findAll();
         return departamentos.stream()
