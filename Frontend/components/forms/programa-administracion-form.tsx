@@ -10,7 +10,7 @@ import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
 import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDraftQueryKey, getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useAdministrativoCarga, useDeleteDraft, useGetDraft, useGetPrograma, useListCarreras, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
+import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useAdministrativoCarga, useDeleteDraft, useGetDraft, useGetPrograma, useListCarreras, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -179,6 +179,34 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasCoordinacionQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesCoordinadorQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
         });
 
         queryClient.invalidateQueries({

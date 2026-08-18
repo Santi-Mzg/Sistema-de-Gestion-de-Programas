@@ -26,8 +26,8 @@ export default function Dashboard() {
   }
 
   switch (activeRole) {
-    case UsuarioDepartamentoDTORolesItem.DOCENTE:
-      return <ProfesorDashboard />;
+    case UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN:
+      return <DirAdminDashboard />;
 
     case UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA:
       return <DirAdminDashboard />;
@@ -40,6 +40,9 @@ export default function Dashboard() {
 
     case UsuarioDepartamentoDTORolesItem.ADMINISTRACION:
       return <AdministracionDashboard />;
+
+    case UsuarioDepartamentoDTORolesItem.DOCENTE:
+      return <ProfesorDashboard />;
     default:
       return <div className="p-8 max-w-7xl mx-auto">Seleccione un rol para ver el panel correspondiente.</div>;
   }

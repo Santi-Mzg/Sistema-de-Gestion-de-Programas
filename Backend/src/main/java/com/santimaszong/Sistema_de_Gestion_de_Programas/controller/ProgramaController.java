@@ -2,18 +2,22 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini.GeminiService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
 import lombok.extern.java.Log;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
-import java.util.Map;
 
 @Log
 @RestController
@@ -106,39 +110,56 @@ public class ProgramaController {
     }
 
     @GetMapping("/departamentos/{deptId}/programas")
-    public List<ProgramaResponseReducedDTO> listProgramas(
+    public ResponseEntity<Page<ProgramaResponseReducedDTO>> listProgramas(
+            Authentication auth,
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
-            Authentication auth
+            @RequestParam(required = false) EstadoPrograma estado,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return programaService.getListAnioActual(auth, deptId, rolActivo);
+        Pageable pageable = PageRequest.of(page, size);        
+        return ResponseEntity.ok(programaService.getListAnioActual(auth, deptId, rolActivo, estado, search, pageable));
     }
 
     @GetMapping("/departamentos/{deptId}/programas-coordinacion")
-    public List<ProgramaResponseDTO> listProgramasCoordinacion(
+    public ResponseEntity<Page<ProgramaResponseDTO>> listProgramasCoordinacion(
+            Authentication auth,
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
-            Authentication auth
+            @RequestParam(required = false) EstadoPrograma estado,
+            @RequestParam(required = false) String carrera,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return programaService.getListAnioActualCoordinador(auth, deptId, rolActivo);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(programaService.getListAnioActualCoordinador(auth, deptId, rolActivo, estado, carrera, search, pageable));
     }
 
-    @GetMapping("/departamentos/{deptId}/programas/pendientes")
-    public List<ProgramaResponseReducedDTO> listProgramasPendientes(
-            @PathVariable Long deptId,
-            @RequestParam Rol rolActivo,
-            Authentication auth
-    ) {
-        return programaService.getListPendientes(auth, deptId, rolActivo);
-    }
+     @GetMapping("/departamentos/{deptId}/programas/pendientes")
+     public ResponseEntity<Page<ProgramaResponseReducedDTO>> listProgramasPendientes(
+             Authentication auth,
+             @PathVariable Long deptId,
+             @RequestParam Rol rolActivo,
+             @RequestParam(defaultValue = "0") int page,
+             @RequestParam(defaultValue = "10") int size
+     ) {
+         Pageable pageable = PageRequest.of(page, size);
+         return ResponseEntity.ok(programaService.getListPendientes(auth, deptId, rolActivo, pageable));
+     }
 
     @GetMapping("/departamentos/{deptId}/programas-coordinacion/pendientes")
-    public List<ProgramaResponseDTO> listProgramasPendientesCoordinador(
+    public ResponseEntity<Page<ProgramaResponseDTO>> listProgramasPendientesCoordinador(
+            Authentication auth,
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
-            Authentication auth
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return programaService.getListPendientesCoordinador(auth, deptId, rolActivo);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(programaService.getListPendientesCoordinador(auth, deptId, rolActivo, pageable));
     }
 
 
@@ -188,7 +209,21 @@ public class ProgramaController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-
+    // DASHBOARD
+    @GetMapping("/departamentos/{deptId}/dashboard/resumen")
+    public ResponseEntity<DashboardResumenDTO> getDashboardResumen(
+            Authentication auth,
+            @PathVariable Long deptId,
+            @RequestParam Rol rolActivo
+    ) {
+        return ResponseEntity.ok(
+                programaService.getDashboardResumen(
+                        auth,
+                        deptId,
+                        rolActivo
+                )
+        );
+    }
 
 
     // PDF

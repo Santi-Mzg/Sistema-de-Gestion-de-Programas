@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Eye, FileText } from "lucide-react"
 import { ProgramaResponseDTO, EstadoUpdateDTOAccion, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import {  useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey, getListProgramasPendientesQueryKey } from "@/app/api/generated/client"
+import {  useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey, getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -55,14 +55,39 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
           queryKey: getListProgramasQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          ),
+          )
         });
-        
+
         queryClient.invalidateQueries({
           queryKey: getListProgramasPendientesQueryKey(
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasCoordinacionQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesCoordinadorQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetProgramaQueryKey(id)
         });
 
         router.push('/'); 

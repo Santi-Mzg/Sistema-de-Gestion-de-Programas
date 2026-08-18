@@ -10,7 +10,7 @@ import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
 import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDraftQueryKey, getGetProgramaMateriaAnioQueryKey, getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasQueryKey, useCreatePrograma, useDeleteDraft, useGetDraft, useGetProgramaMateriaAnio, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
+import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaMateriaAnioQueryKey, getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useCreatePrograma, useDeleteDraft, useGetDraft, useGetProgramaMateriaAnio, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
@@ -194,6 +194,20 @@ export function SyllabusCreationForm() {
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          ),
         });
 
         router.push('/'); 

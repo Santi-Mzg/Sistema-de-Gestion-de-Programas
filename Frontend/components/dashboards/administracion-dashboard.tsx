@@ -1,19 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Plus, BookOpen, Eye, Trash2, AlertCircle, User, Home, Clock } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Plus, AlertCircle, User, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
-import { useRouter } from "next/navigation"
-import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { EstadoHistoricoResponseDTOEstado, ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { useRole } from "@/context/role-context"
 import { useDept } from "@/context/dept-context"
-import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client"
-import { JSX } from "react/jsx-runtime"
+import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useGetDashboardResumen, useListProgramas, useListProgramasPendientes } from "@/app/api/generated/client"
 import { useAuth } from "@/context/auth-context"
 import { useHeader } from "@/context/header-context"
+import { useRouter } from "next/navigation"
+import { DashboardStats } from "../ui/cardsStatsAdmin"
 
 
 export function AdministracionDashboard() {
@@ -22,6 +22,13 @@ export function AdministracionDashboard() {
   const { activeRole } = useRole();
   const { user } = useAuth();
   const {setHeader} = useHeader();
+  const [page, setPage] = useState(0)
+  const pageSize = 2
+  const router = useRouter()
+
+  const handleNavigate = (id: number) => {
+    router.push(`/programas/${id}/carga/administracion`);
+  };
 
   useEffect(() => {
     setHeader({
@@ -37,16 +44,43 @@ export function AdministracionDashboard() {
     })
   }, [user]);
   
-  const programasQuery = useListProgramas(
+  const programasQuery = useListProgramasPendientes(
       activeDepartamento!.departamentoId!,
       {
         rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        page,
+        size: pageSize,
       },
+      {
+        query: {
+          enabled: !!activeDepartamento?.departamentoId && !!activeRole,
+          staleTime: 1000 * 60 * 5,
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            {
+              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+              page,
+              size: pageSize,
+            }
+          ),
+        }, 
+      }
+  );
+
+  const programas: ProgramaResponseReducedDTO[] = programasQuery.data?.content ?? []
+  const totalPages = programasQuery.data?.totalPages ?? 0
+  const totalElements = programasQuery.data?.totalElements ?? 0
+
+  const dashboardStatsQuery = useGetDashboardResumen(
+    activeDepartamento!.departamentoId!,
+    {
+      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+    },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListProgramasQueryKey(
+        queryKey: getGetDashboardResumenQueryKey(
           activeDepartamento!.departamentoId!,
           {
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
@@ -56,18 +90,32 @@ export function AdministracionDashboard() {
     }
   );
 
-  const programas: ProgramaResponseDTO[] = programasQuery.data || [];
+  const stats = dashboardStatsQuery.data ?? undefined
 
-  const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
-  const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_ADMINISTRACION);
-  const programasRechazados = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION);
+  const programasOrdenados = [...programas].sort((a, b) => {
+    const aDevuelto =
+      a.estado ===
+      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
 
+    const bDevuelto =
+      b.estado ===
+      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
 
-  const router = useRouter();
+    if (aDevuelto === bDevuelto) {
+      return 0
+    }
 
-  const handleNavigate = (id: number) => {
-    router.push(`/programas/${id}/carga/administracion`);
-  };
+    return aDevuelto ? -1 : 1
+  })
+
+  const pendientesRef = useRef<HTMLDivElement>(null)
+
+  const handlePendingClick = () => {
+    pendientesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }
 
 
      if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
@@ -75,29 +123,29 @@ export function AdministracionDashboard() {
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando datos de los programas...</p>
+            <p className="text-yellow-700">Cargando datos...</p>
           </div>  
         </div>
       )
     }
 
-    if (programasQuery.isLoading) {
+    if (programasQuery.isLoading || dashboardStatsQuery.isLoading) {
         return (
             <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Cargando datos de los programas...</p>
+                    <p className="text-muted-foreground">Cargando...</p>
                 </div>
             </div>
         )
     }
 
-    if (programasQuery.error) {
+    if (programasQuery.error || dashboardStatsQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="text-red-600" size={24} />
-            <p className="text-red-700">Error al obtener los programas</p>
+            <p className="text-red-700">Error al cargar los programas</p>
           </div>
         </div>
       )
@@ -105,48 +153,10 @@ export function AdministracionDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock size={16} className="text-accent" />
-                    Programas en Proceso
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-accent">{programas.length - programasVigentes.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">En el departamento</p>
-                </CardContent>
-              </Card>
-      
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock size={16} className="text-accent" />
-                    Programas Pendientes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-accent">{programasPendientes.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Por completar</p>
-                </CardContent>
-              </Card>
-      
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <AlertCircle size={16} className="text-orange-600" />
-                    Programas Rechazados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">{programasRechazados.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Por corregir</p>
-                </CardContent>
-              </Card>
-            </div>
-
-      <div className="mb-6">
+      {stats &&
+        <DashboardStats stats={stats} onPendingClick={handlePendingClick}/>
+      }
+      <div className="mb-6 mt-6">
         <Link href={"/programas/crear"}>
           <Button
             className="gap-2 bg-primary hover:bg-accent text-primary-foreground"
@@ -158,24 +168,21 @@ export function AdministracionDashboard() {
         </Link>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Pendientes</CardTitle>
-          <CardDescription></CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Rechazados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProgramasListReduced programas={programasRechazados} onRowClick={handleNavigate} />
-        </CardContent>
-      </Card>
+      <div
+        ref={pendientesRef}
+        className="scroll-mt-24"
+      >
+        <Card className="mb-6 mt-6">
+          <CardHeader>
+            <CardTitle>
+              Pendientes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProgramasListReduced programas={programasOrdenados} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

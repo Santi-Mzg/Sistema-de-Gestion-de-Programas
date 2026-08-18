@@ -8,4 +8,6 @@ import type { ListProgramasPendientesCoordinadorRolActivo } from './listPrograma
 
 export type ListProgramasPendientesCoordinadorParams = {
 rolActivo: ListProgramasPendientesCoordinadorRolActivo;
+page?: number;
+size?: number;
 };

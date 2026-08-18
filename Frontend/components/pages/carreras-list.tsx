@@ -15,14 +15,27 @@ import { useHeader } from "@/context/header-context"
 import { useDept } from "@/context/dept-context"
 import axios from "axios"
 import { useQueryClient } from "@tanstack/react-query";
+import { PageNavigation } from "../nav/page-nav"
 
 
 interface CarrerasListProps {
   carreras?: CarreraResponseDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  onPageChange: (page: number) => void
 }
 
 
-export function CarrerasList({ carreras = [] }: CarrerasListProps) {
+export function CarrerasList({ 
+  carreras = [],
+  page,
+  pageSize,
+  totalPages,
+  totalElements,
+  onPageChange  
+ }: CarrerasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
@@ -49,25 +62,6 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
       })
     }
   }, [])
-
-  // Filter and sort data
-  const filteredCarreras = useMemo(() => {
-    if(activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR) {
-      return carreras.filter(carrera => 
-        activeDepartamento?.carrerasComoComision?.includes(carrera.nombre!)
-      )
-    }
-    else {
-      const filtered = carreras.filter((carrera) => {
-        return (
-          !searchTerm ||
-          carrera.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      })
-
-      return filtered
-    }
-  }, [carreras, searchTerm])
 
 
   const handleDeleteClick = (carrera: CarreraResponseDTO) => {
@@ -151,72 +145,57 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
-        {activeRole !== UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR && (
-          <>
-            <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-              {/* Search Bar */}
-              <div className="relative w-full">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-                />
-              </div>
-              {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                  activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-                  activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                  activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-                <Button size="lg"
-                        variant="outline"
-                        onClick={() => router.push(`/carreras/crear`)}
-                        className="border-2 hover:bg-primary hover:text-primary-foreground">
-                  <Plus size={16} className="mr-1" />
-                  Crear Carrera
-                </Button>
-              }
-            </div>
-
-            {/* Results Count */}
-            <div className="mb-4 text-sm text-muted-foreground">
-              Mostrando <span className="font-semibold text-foreground">{filteredCarreras.length}</span> de{" "}
-              <span className="font-semibold text-foreground">{carreras.length}</span> carrera{carreras.length === 1 ? "" : "s"}
-            </div>
-          </>
-        )}
+          <div className="mb-4 text-sm text-muted-foreground">
+              {carreras.length > 0 && (
+                <span>
+                  Mostrando{" "}
+                  <span className="font-medium text-foreground">
+                    {page * pageSize + 1}
+                  </span>
+                  {" – "}
+                  <span className="font-medium text-foreground">
+                    {Math.min((page + 1) * pageSize, totalElements)}
+                  </span>
+                  {" de "}
+                  <span className="font-medium text-foreground">
+                    {totalElements}
+                  </span>{" "}
+                  usuarios
+                </span>
+              )}
+          </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
           <table className="w-full border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Nombre
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Duración
                 </th>
-                {/* <th className="px-6 py-4 text-left">
+                {/* <th className="px-3 py-2 text-left font-semibold">
                     Cantidad de Materias
                 </th> */}
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold w-40">
                     Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filteredCarreras.length > 0 ? (
-                filteredCarreras.map((carrera) => (
+            <tbody className="divide-y">
+              {carreras.length > 0 ? (
+                carreras.map((carrera) => (
                   <tr
                     key={carrera.id}
-                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{carrera.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{carrera.duracion}</td>
-                    {/* <td className="px-6 py-4 text-foreground/80">{carrera.cantidadMaterias}</td> */}
+                    <td className="px-3 py-1.5 font-medium text-foreground">{carrera.nombre}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{carrera.duracion}</td>
+                    {/* <td className="px-3 py-2 text-foreground/80">{carrera.cantidadMaterias}</td> */}
 
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-1.5">
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"
@@ -247,7 +226,7 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron carreras</p>
@@ -265,6 +244,14 @@ export function CarrerasList({ carreras = [] }: CarrerasListProps) {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "carreras"
+          />
         </div>
       </div>
 

@@ -5,7 +5,13 @@
  * OpenAPI spec version: v0
  */
 import type { ListProgramasCoordinacionRolActivo } from './listProgramasCoordinacionRolActivo';
+import type { ListProgramasCoordinacionEstado } from './listProgramasCoordinacionEstado';
 
 export type ListProgramasCoordinacionParams = {
 rolActivo: ListProgramasCoordinacionRolActivo;
+estado?: ListProgramasCoordinacionEstado;
+carrera?: string;
+search?: string;
+page?: number;
+size?: number;
 };

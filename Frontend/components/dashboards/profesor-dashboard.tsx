@@ -1,24 +1,28 @@
 "use client"
 
-import { BookOpen, BarChart3, Clock, AlertCircle, Home, User } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertCircle, Home, User } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
-import { getListProgramasQueryKey, useListProgramas } from "@/app/api/generated/client";
+import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useGetDashboardResumen, useListProgramas, useListProgramasPendientes } from "@/app/api/generated/client";
 import { EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
 import { useHeader } from "@/context/header-context";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
+import { DashboardStats } from "../ui/cardsStatsDocente";
 
 export function ProfesorDashboard() {
   const { activeDepartamento } = useDept();
   const { activeRole } = useRole();
   const { user } = useAuth();
   const {setHeader} = useHeader();
-  
+  const router = useRouter();
+  const [page, setPage] = useState(0)
+  const pageSize = 10
+
   useEffect(() => {
     setHeader({
       title: "Panel de Docente",
@@ -33,16 +37,16 @@ export function ProfesorDashboard() {
     })
   }, [user]);
 
-  const programasQuery = useListProgramas(
-      activeDepartamento!.departamentoId!,
-      {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-      },
+  const dashboardStatsQuery = useGetDashboardResumen(
+    activeDepartamento!.departamentoId!,
+    {
+      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+    },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListProgramasQueryKey(
+        queryKey: getGetDashboardResumenQueryKey(
           activeDepartamento!.departamentoId!,
           {
             rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
@@ -52,47 +56,94 @@ export function ProfesorDashboard() {
     }
   );
 
-  const programas: ProgramaResponseDTO[] = programasQuery.data || [];
+  const stats = dashboardStatsQuery.data ?? undefined
 
-  
-  const programasVigentes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.APROBADO_POR_SECRETARIA);
-  const programasPendientes = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.INCOMPLETO_POR_PROFESOR || programa.estado === EstadoHistoricoResponseDTOEstado.COMPLETO_POR_ADMINISTRACION);
-  const programasRechazados = programas.filter((programa) => programa.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR);
 
-  const router = useRouter();
+  const programasQuery = useListProgramasPendientes(
+      activeDepartamento!.departamentoId!,
+      {
+        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        page,
+        size: pageSize
+      },
+    {
+      query: {
+        enabled: !!activeDepartamento?.departamentoId && !!activeRole,
+        staleTime: 1000 * 60 * 5,
+        queryKey: getListProgramasPendientesQueryKey(
+          activeDepartamento!.departamentoId!,
+          {
+            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            page,
+            size: pageSize
+          }
+        ),
+      }, 
+    }
+  );
+
+  const programas: ProgramaResponseDTO[] = programasQuery.data?.content || [];
+  const totalPages = programasQuery.data?.totalPages ?? 0
+  const totalElements = programasQuery.data?.totalElements ?? 0
+
+  const programasOrdenados = [...programas].sort((a, b) => {
+    const aDevuelto =
+      a.estado ===
+      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
+
+    const bDevuelto =
+      b.estado ===
+      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
+
+    if (aDevuelto === bDevuelto) {
+      return 0
+    }
+
+    return aDevuelto ? -1 : 1
+  })
+
 
   const handleNavigate = (id: number) => {
     router.push(`/programas/${id}/carga/docente`);
   };
+
+  const pendientesRef = useRef<HTMLDivElement>(null)
+
+  const handlePendingClick = () => {
+    pendientesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
       return(
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-yellow-700">Cargando datos de los programas...</p>
+            <p className="text-yellow-700">Cargando...</p>
           </div>  
         </div>
       )
     }
 
-    if (programasQuery.isLoading) {
+    if (programasQuery.isLoading || dashboardStatsQuery.isLoading) {
         return (
             <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Cargando datos de los programas...</p>
+                    <p className="text-muted-foreground">Cargando...</p>
                 </div>
             </div>
         )
     }
 
-    if (programasQuery.error) {
+    if (programasQuery.error || dashboardStatsQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="text-red-600" size={24} />
-            <p className="text-red-700">Error al obtener los programas</p>
+            <p className="text-red-700">Error al cargar los programas</p>
           </div>
         </div>
       )
@@ -100,66 +151,39 @@ export function ProfesorDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <BookOpen size={16} className="text-primary" />
-              Mis Cursos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{programas.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Este año lectivo</p>
-          </CardContent>
-        </Card>
+      {stats &&
+        <DashboardStats     
+          programasAsignados={stats.programasTotales ?? 0}
+          programasVigentes={stats.programasVigentes ?? 0}
+          programasEnCurso={(stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)}
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock size={16} className="text-accent" />
-              Programas Pendientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-accent">{programasPendientes.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Por completar</p>
-          </CardContent>
-        </Card>
+          enAdministracion={stats.pendienteAdministracion ?? 0}
+          enDocente={stats.pendienteDocente ?? 0}
+          enComision={stats.pendienteComisiones ?? 0}
+          enSecretaria={stats.pendienteSecretaria ?? 0}
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle size={16} className="text-orange-600" />
-              Programas Rechazados
+          nuevosParaCompletar={(stats.pendienteDocente ?? 0) - (stats.rechazadoDocente ?? 0)}
+          rechazadosAlDocente={stats.rechazadoDocente ?? 0}
+
+          onPendingClick={handlePendingClick}
+        />
+      }
+      <div
+        ref={pendientesRef}
+        className="scroll-mt-24"
+      >
+        <Card className="mb-6 mt-6">
+          <CardHeader>
+            <CardTitle>
+                Pendientes
             </CardTitle>
           </CardHeader>
+
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{programasRechazados.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Por corregir</p>
+            <ProgramasListReduced programas={programasOrdenados} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
           </CardContent>
         </Card>
       </div>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Pendientes</CardTitle>
-          <CardDescription></CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProgramasListReduced programas={programasPendientes} onRowClick={handleNavigate} />
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Rechazados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProgramasListReduced programas={programasRechazados} onRowClick={handleNavigate} />
-        </CardContent>
-      </Card>
-
     </div>
   )
 }

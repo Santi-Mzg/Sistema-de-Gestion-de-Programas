@@ -8,4 +8,6 @@ import type { ListProgramasPendientesRolActivo } from './listProgramasPendientes
 
 export type ListProgramasPendientesParams = {
 rolActivo: ListProgramasPendientesRolActivo;
+page?: number;
+size?: number;
 };

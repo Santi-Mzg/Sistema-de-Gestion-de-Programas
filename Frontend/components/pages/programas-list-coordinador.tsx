@@ -1,38 +1,45 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Plus, Eye, FileText, History, FolderClock } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, Eye, FileText, History, FolderClock } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ProgramaResponseDTO, ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { usePathname, useRouter } from "next/navigation"
-import { useRole } from "@/context/role-context"
-import Link from "next/link"
 import { useHeader } from "@/context/header-context"
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils"
 import { useDept } from "@/context/dept-context"
+import { PageNavigation } from "../nav/page-nav"
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  filterCarreraPlan: string
+  onPageChange: (page: number) => void
 }
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type SortField = "anio" | "nombreMateria" | "carreraPlan" | "estado" | "profesorResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
-export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps) {
+export function ProgramasListCoordinador({
+    programas = [],
+    page,
+    pageSize,
+    totalPages,
+    totalElements,
+    filterCarreraPlan,
+    onPageChange,
+  }: ProgramasListProps) {
   const { setHeader } = useHeader()
-  const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState<SortField>("nombreMateria")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
-  const [filterEstado, setFilterEstado] = useState<string>("todos")
-  const [filterCarreraPlan, setFilterCarreraPlan] = useState<string>("todos")
 
-  const pathname = usePathname() // 2. Obtener la ruta actual
+  const pathname = usePathname()
   const esVistaVersiones = pathname.includes("/versiones")
 
   
@@ -44,51 +51,42 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
     })
   }, [])
 
-  // Get unique values for filters
-  const uniqueEstados = useMemo(() => {
-    return [...new Set(programas.map((s) => getProgramStateLabel(s.estado as ProgramaResponseDTOEstado)).filter(Boolean))]
-  }, [programas])
-
-  const uniqueCarreraPlanes = useMemo(() => {
-    return [...new Set(activeDepartamento?.carrerasComoComision)]
-  }, [activeDepartamento?.carrerasComoComision])
-
   // Filter and sort data
- const rowsDisplay = useMemo(() => {
-    // 1. Aplanar: Una fila por cada relación materia-carrera que el coordinador supervisa
+  const rowsDisplay = useMemo(() => {
     const flattened = programas.flatMap((programa) => {
-      const planesAsignados = programa.bloqueMultiple?.filter(b => 
-        activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
-      ) || [];
-      
-      return planesAsignados.map(relacion => ({
+      const relaciones = programa.bloqueMultiple?.filter((relacion) => {
+        const carreraNombre = relacion.carreraNombre
+
+        if (!carreraNombre) {
+          return false
+        }
+
+        // Solo carreras de las que este usuario es coordinador
+        const esCarreraCoordinada =
+          activeDepartamento?.carrerasComoComision?.includes(carreraNombre)
+
+        if (!esCarreraCoordinada) {
+          return false
+        }
+
+        // Si seleccionó una carrera específica, mostramos solo esa
+        if (
+          filterCarreraPlan !== "todos" &&
+          carreraNombre !== filterCarreraPlan
+        ) {
+          return false
+        }
+
+        return true
+      }) ?? []
+
+      return relaciones.map((relacion) => ({
         ...programa,
-        relacionEspecifica: relacion 
-      }));
-    });
+        relacionEspecifica: relacion,
+      }))
+    })
 
-    // 2. Filtrar
-    const filtered = flattened.filter((item) => {
-      const matchesSearch =
-        !searchTerm ||
-        item.materia?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.materia?.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.profesorResponsable?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.profesorResponsable?.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesEstado =
-        filterEstado === "todos" ||
-        getProgramStateLabel(item.estado as ProgramaResponseDTOEstado) === filterEstado;
-
-      const matchesCarreraPlan =
-        filterCarreraPlan === "todos" ||
-        item.relacionEspecifica.carreraNombre === filterCarreraPlan;
-
-      return matchesSearch && matchesEstado && matchesCarreraPlan;
-    });
-
-    // 3. Ordenar
-    return [...filtered].sort((a, b) => {
+    return [...flattened].sort((a, b) => {
       let valueA: string = "";
       let valueB: string = "";
 
@@ -107,7 +105,13 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
       const comparison = valueA.localeCompare(valueB);
       return sortOrder === "asc" ? comparison : -comparison;
     });
-  }, [programas, searchTerm, sortField, sortOrder, filterEstado, filterCarreraPlan, activeDepartamento]);
+  }, [
+    programas,
+    sortField,
+    sortOrder,
+    filterCarreraPlan,
+    activeDepartamento?.carrerasComoComision,
+  ])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -118,120 +122,26 @@ export function ProgramasListCoordinador({ programas = [] }: ProgramasListProps)
     }
   }
 
-
-  // 1. Aplanamos la lista para tener una fila por cada carrera/plan
-const programasAplanados = programas.flatMap((programa) => {
-  const planesAsignados = programa.bloqueMultiple?.filter(b => 
-    activeDepartamento?.carrerasComoComision?.includes(b.carreraNombre!)
-  ) || [];
-  
-  return planesAsignados
-    .filter(p => !p.aprobadoPorComision)
-    .map(relacion => ({
-      ...programa,
-      relacionEspecifica: relacion // Guardamos la relación para el render
-    }));
-});
-
-// 2. Aplicamos el ordenamiento
-const programasOrdenados = [...programasAplanados].sort((a, b) => {
-    let valueA: string = "";
-    let valueB: string = "";
-
-  
-    switch (sortField) {
-      case "anio":
-        valueA = String(a.anio);
-        valueB = String(b.anio);
-        break;
-      case "estado":
-        valueA = getProgramStateLabel(a.estado as ProgramaResponseDTOEstado);
-        valueB = getProgramStateLabel(b.estado as ProgramaResponseDTOEstado);
-        break;
-      case "nombreMateria":
-        valueA = a.materia?.nombre || "";
-        valueB = b.materia?.nombre || "";
-        break;
-      case "profesorResponsable":
-        valueA = a.profesorResponsable?.apellido || "";
-        valueB = b.profesorResponsable?.apellido || "";
-        break;
-      case "carreraPlan":
-        valueA = a.relacionEspecifica.carreraNombre || "";
-        valueB = b.relacionEspecifica.carreraNombre || "";
-        break;
-      case "nombreDepartamento":
-        valueA = a.materia?.departamento || "";
-        valueB = b.materia?.departamento || "";
-        break;
-    }
-
-    const comparison = valueA.localeCompare(valueB);
-    return sortOrder === "asc" ? comparison : -comparison;
-  });
-
   return (
     <div className="w-full bg-background">
       <div className="max-w-full mx-auto">
-        {/* Search and Filters Section */}
-        <div className="space-y-6 mb-8">
-          {/* Search Bar */}
-        <div className="mb-4 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar por nombre, código, docente o departamento..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-            />
-          </div>
-        </div>
-
-          {/* Filter Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                <Filter size={16} /> Carrera - Plan
-              </label>
-              <select
-                value={filterCarreraPlan}
-                onChange={(e) => setFilterCarreraPlan(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="todos">Todas las carreras</option>
-                {uniqueCarreraPlanes.map((carreraPlan) => (
-                  <option key={carreraPlan} value={carreraPlan || ""}>
-                    {carreraPlan}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                <Filter size={16} /> Estado
-              </label>
-              <select
-                value={filterEstado}
-                onChange={(e) => setFilterEstado(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="todos">Todos los estados</option>
-                {uniqueEstados.map((estado) => (
-                  <option key={estado} value={estado || ""}>
-                    {estado}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{rowsDisplay.length}</span> programa{rowsDisplay.length === 1 ? "" : "s"}
+          <span>
+            Mostrando{" "}
+            <span className="font-medium text-foreground">
+              {page * pageSize + 1}
+            </span>
+            {" – "}
+            <span className="font-medium text-foreground">
+              {Math.min((page + 1) * pageSize, totalElements)}
+            </span>
+            {" de "}
+            <span className="font-medium text-foreground">
+              {totalElements}
+            </span>{" "}
+            programas
+          </span>
         </div>
 
         {/* Table */}
@@ -315,6 +225,14 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "programas"
+          />
         </div>
       </div>
     </div>

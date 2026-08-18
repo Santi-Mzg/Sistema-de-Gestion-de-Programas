@@ -16,12 +16,12 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.UserM
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UserService;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import jakarta.persistence.EntityNotFoundException;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -168,19 +168,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> listUsersDepartamento(Long deptId, UserEntity auth) {
-//        List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
-        List<UserResponseDTO> userList = userRepository.findAllByDepartamentoId(deptId)
-                        .stream()
-                        .map(userMapper::toDTO)
-                        .toList();
+    public Page<UserResponseDTO> listUsersDepartamento(Long deptId, UserEntity auth, String search, Pageable pageable) {
+        String normalizedSearch =
+                search == null || search.isBlank()
+                        ? ""
+                        : search.trim();
 
-        if(!auth.isAdmin()) {
-            return userList.stream().filter(usuario -> !usuario.isAdmin())
-                    .toList();
-        }
-
-        return userList;
+        return userRepository.findAllByDepartamentoId(deptId, normalizedSearch, auth.isAdmin(), pageable)
+                        .map(userMapper::toDTO);
     }
 
     @Override

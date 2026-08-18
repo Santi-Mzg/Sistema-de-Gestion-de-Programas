@@ -1,9 +1,11 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +46,14 @@ public class CarreraController {
     }
 
     @GetMapping("/departamentos/{deptId}/carreras")
-    public List<CarreraResponseDTO> listCarrerasDepartamento(@PathVariable Long deptId) {
-        return carreraService.listCarrerasDepartamento(deptId);
+    public ResponseEntity<Page<CarreraResponseDTO>> listCarrerasDepartamento(
+            @PathVariable Long deptId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(carreraService.listCarrerasDepartamento(deptId, search, pageable));
     }
 
     @PatchMapping("/carreras/{id}")

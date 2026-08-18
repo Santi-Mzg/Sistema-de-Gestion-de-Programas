@@ -15,17 +15,29 @@ import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { useQueryClient } from "@tanstack/react-query";
 import { useDept } from "@/context/dept-context"
+import { PageNavigation } from "../nav/page-nav"
 
 interface MateriasListProps {
   materias?: MateriaResponseDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  onPageChange: (page: number) => void
 }
 
 
-export function MateriasList({ materias = [] }: MateriasListProps) {
+export function MateriasList({ 
+  materias = [],
+  page,
+  pageSize,
+  totalPages,
+  totalElements,
+  onPageChange  
+ }: MateriasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
-  const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,19 +51,6 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
       icon: BookOpenText,
     })
   }, [])
-
-  // Filter and sort data
-  const filteredMaterias = useMemo(() => {
-    const filtered = materias.filter((materia) => {
-      return (
-        !searchTerm ||
-        materia.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        materia.codigo?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })
-
-    return filtered
-  }, [materias, searchTerm,])
 
 
   const handleDeleteClick = (materia: MateriaResponseDTO) => {
@@ -135,72 +134,63 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
-        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar por nombre o código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-            />
-          </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-            <Button size="lg"
-                    variant="outline"
-                    onClick={() => router.push(`/materias/crear`)}
-                    className="border-2 hover:bg-primary hover:text-primary-foreground">
-              <Plus size={16} className="mr-1" />
-              Crear Materia
-            </Button>
-          }
-        </div>
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredMaterias.length}</span> de{" "}
-          <span className="font-semibold text-foreground">{materias.length}</span> materia{materias.length === 1 ? "" : "s"}
+            {materias.length > 0 && (
+              <span>
+                Mostrando{" "}
+                <span className="font-medium text-foreground">
+                  {page * pageSize + 1}
+                </span>
+                {" – "}
+                <span className="font-medium text-foreground">
+                  {Math.min((page + 1) * pageSize, totalElements)}
+                </span>
+                {" de "}
+                <span className="font-medium text-foreground">
+                  {totalElements}
+                </span>{" "}
+                materias
+              </span>
+            )}
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
           <table className="w-full border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Nombre
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Código
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Área
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Departamento
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 text-left font-semibold">
                     Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filteredMaterias.length > 0 ? (
-                filteredMaterias.map((materia) => (
+            <tbody className="divide-y">
+              {materias.length > 0 ? (
+                materias.map((materia) => (
                   <tr
                     key={materia.id}
-                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{materia.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{materia.codigo}</td>
-                    <td className="px-6 py-4 text-foreground/80">{materia.area}</td>
-                    <td className="px-6 py-4 text-foreground/80">{materia.departamento}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="px-3 py-1.5 font-medium text-foreground">{materia.nombre}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{materia.codigo}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{materia.area}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{materia.departamento}</td>
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
                           size="sm"
                           variant="outline"
@@ -227,7 +217,7 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron materia</p>
@@ -245,6 +235,14 @@ export function MateriasList({ materias = [] }: MateriasListProps) {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "materias"
+          />
         </div>
       </div>
 

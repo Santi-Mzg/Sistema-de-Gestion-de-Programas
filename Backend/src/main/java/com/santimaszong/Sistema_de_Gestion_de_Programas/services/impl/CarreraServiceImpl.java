@@ -11,6 +11,8 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserReposit
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,13 +114,14 @@ public class CarreraServiceImpl implements CarreraService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CarreraResponseDTO> listCarrerasDepartamento(Long id) {
-        DepartamentoEntity departamento = departamentoService.findEntityWithCarrerasById(id);
+    public Page<CarreraResponseDTO> listCarrerasDepartamento(Long id, String search, Pageable pageable) {
+        String normalizedSearch =
+                search == null || search.isBlank()
+                        ? ""
+                        : search.trim();
 
-        return departamento.getCarreras()
-                .stream()
-                .map(carreraMapper::toDTO)
-                .toList();
+        return carreraRepository.findAllByDepartamentoId(id, normalizedSearch, pageable)
+                .map(carreraMapper::toDTO);
     };
 
     @Override
@@ -183,6 +186,12 @@ public class CarreraServiceImpl implements CarreraService {
 
 
         carreraRepository.save(carrera);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByDepartamentoId(Long deptId) {
+        return carreraRepository.countByDepartamentoId(deptId);
     }
 
     @Override

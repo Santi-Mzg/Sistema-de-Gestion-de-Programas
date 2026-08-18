@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Eye, FileText } from "lucide-react"
 import { ProgramaResponseDTO, EstadoUpdateDTOAccion, UsuarioDepartamentoDTORolesItem, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
-import { useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey, getListProgramasPendientesQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasCoordinacionQueryKey } from "@/app/api/generated/client"
+import { useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasCoordinacionQueryKey, getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -73,6 +73,33 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
             activeDepartamento!.departamentoId!,
             { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
           )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getListProgramasPendientesQueryKey(
+            activeDepartamento!.departamentoId!,
+            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
+          )
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetDashboardResumenQueryKey(
+            activeDepartamento!.departamentoId!,
+            {
+              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            }
+          ),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: getGetProgramaQueryKey(id)
         });
 
         router.push('/'); 

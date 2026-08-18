@@ -1,6 +1,5 @@
 "use client"
 
-import { SyllabusCoordinadorForm } from "@/components/forms/programa-coordinador-form";
 import { SyllabusSecretariaForm } from "@/components/forms/programa-secretaria-form";
 import { useRole } from "@/context/role-context";
 import { AlertCircle } from "lucide-react";

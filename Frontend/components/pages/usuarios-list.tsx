@@ -16,18 +16,30 @@ import { useHeader } from "@/context/header-context"
 import { getRoleLabel } from "@/lib/utils"
 import axios from "axios"
 import { useQueryClient } from "@tanstack/react-query";
+import { PageNavigation } from "../nav/page-nav"
 
 
 interface UsuariosListProps {
   usuarios?: UserResponseDTO[]
+  page: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  onPageChange: (page: number) => void
 }
 
 
-export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
+export function UsuariosList({ 
+  usuarios = [],
+  page,
+  pageSize,
+  totalPages,
+  totalElements,
+  onPageChange  
+}: UsuariosListProps) {
   const { setHeader } = useHeader()
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole()
-  const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -42,20 +54,6 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
       icon: Users,
     })
   }, [])
-
-  // Filter and sort data
-  const filteredUsuarios = useMemo(() => {
-    const filtered = usuarios.filter((user) => {
-      return (
-        !searchTerm ||
-        user.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.legajo?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })
-
-    return filtered
-  }, [usuarios, searchTerm,])
 
 
   const handleDeleteClick = (User: UserResponseDTO) => {
@@ -123,84 +121,85 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
     }
   }
 
+  if (!activeRole) {
+    return(
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-yellow-700">Cargando datos de las áreas...</p>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
-        {/* Search and Filters Section */}
-        <div className="mb-8 flex md:flex-row md:items-center md:justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar por nombre o legajo..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-            />
-          </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
-            <Button size="lg"
-                    variant="outline"
-                    onClick={() => router.push(`/usuarios/crear`)}
-                    className="border-2 hover:bg-primary hover:text-primary-foreground">
-              <Plus size={16} className="mr-1" />
-              Crear Usuario
-            </Button>
-          }
-        </div>
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredUsuarios.length}</span> de {" "}
-          <span className="font-semibold text-foreground">{usuarios.length}</span> usuario{usuarios.length === 1 ? "" : "s"}
+            {usuarios.length > 0 && (
+              <span>
+                Mostrando{" "}
+                <span className="font-medium text-foreground">
+                  {page * pageSize + 1}
+                </span>
+                {" – "}
+                <span className="font-medium text-foreground">
+                  {Math.min((page + 1) * pageSize, totalElements)}
+                </span>
+                {" de "}
+                <span className="font-medium text-foreground">
+                  {totalElements}
+                </span>{" "}
+                usuarios
+              </span>
+            )}
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto border rounded-xl shadow-sm">
+          <table className="w-full text-sm border-collapse">
             <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Legajo
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Apellido
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Nombre
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Email Departamental
                 </th>
-                <th className="px-6 py-4 text-left">
+                <th className="px-3 py-2 font-semibold text-left">
                     Roles Departamentales
                 </th>
                 {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
-                  <th className="px-6 py-4 text-left">
+                  <th className="px-3 py-2 font-semibold text-left w-40">
                       Acciones
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filteredUsuarios.length > 0 ? (
-                filteredUsuarios.map((user) => (
+            <tbody className="divide-y">
+              {usuarios.length > 0 ? (
+                usuarios.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">{user.legajo}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.apellido}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.nombre}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email}</td>
-                    <td className="px-6 py-4 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as UsuarioDepartamentoDTORolesItem)).join(", ")}</td>
+                    <td className="px-3 py-1.5 font-medium text-foreground">{user.legajo}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{user.apellido}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{user.nombre}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as UsuarioDepartamentoDTORolesItem)).join(", ")}</td>
                     {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-3 py-1.5">
+                        <div className="flex items-center justify-center gap-1">
                           <Button
                             size="sm"
                             variant="outline"
@@ -226,8 +225,8 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center gap-3">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center gap-1">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron usuarios</p>
                         {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
@@ -244,6 +243,14 @@ export function UsuariosList({ usuarios = [] }: UsuariosListProps) {
               )}
             </tbody>
           </table>
+          <PageNavigation 
+            page={page}   
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            itemLabel = "usuarios"
+          />
         </div>
       </div>
 

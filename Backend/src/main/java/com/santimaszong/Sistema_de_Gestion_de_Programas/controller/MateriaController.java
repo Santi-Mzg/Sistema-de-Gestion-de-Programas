@@ -4,10 +4,12 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.Mater
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Log
@@ -38,8 +40,14 @@ public class MateriaController {
     }
 
     @GetMapping("/departamentos/{deptId}/materias")
-    public List<MateriaResponseDTO> listMateriasDepartamento(@PathVariable Long deptId) {
-        return materiaService.listMateriasDepartamento(deptId);
+    public ResponseEntity<Page<MateriaResponseDTO>> listMateriasDepartamento(
+            @PathVariable Long deptId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(materiaService.listMateriasDepartamento(deptId, search, pageable));
     }
 
     @GetMapping("/carreras/{carreraId}/materias")

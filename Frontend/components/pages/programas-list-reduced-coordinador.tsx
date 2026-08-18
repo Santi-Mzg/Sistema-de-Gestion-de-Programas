@@ -6,15 +6,28 @@ import { ProgramaResponseDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context";
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button";
+import { PageNavigation } from "../nav/page-nav";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[],
+  page: number  
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  onPageChange: (page: number) => void
 }
 
 type SortField = "materia" | "carreraPlan" | "nombreDepartamento" | "profesorResponsable"
 type SortOrder = "asc" | "desc"
 
-export function ProgramasListReducedCoord({ programas = [] }: ProgramasListProps) {
+export function ProgramasListReducedCoord({ 
+  programas = [],
+  page,
+  pageSize,
+  totalPages,
+  totalElements,
+  onPageChange,  
+}: ProgramasListProps) {
   const { activeDepartamento } = useDept();
   const router = useRouter();
   const [sortField, setSortField] = useState<SortField>("materia")
@@ -72,9 +85,25 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
 
   return (
     <div className="w-full bg-background">
-      <div className="mb-2 text-sm text-muted-foreground">
-        Mostrando <span className="font-semibold text-foreground">{programas.length}</span> programa{programas.length === 1 ? "" : "s"}
-      </div>
+        <div className="mb-4 text-sm text-muted-foreground">
+          {programas.length > 0 && (
+            <span>
+              Mostrando{" "}
+              <span className="font-medium text-foreground">
+                {page * pageSize + 1}
+              </span>
+              {" – "}
+              <span className="font-medium text-foreground">
+                {Math.min((page + 1) * pageSize, totalElements)}
+              </span>
+              {" de "}
+              <span className="font-medium text-foreground">
+                {totalElements}
+              </span>{" "}
+              programas
+            </span>
+          )}
+        </div>
 
       <div className="overflow-x-auto border-2 border-border rounded-xl shadow-sm">
         <table className="w-full border-collapse">
@@ -162,6 +191,14 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
             )}
           </tbody>
         </table>
+        <PageNavigation 
+          page={page}   
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          itemLabel = "programas"
+        />
       </div>
     </div>
   )

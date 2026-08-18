@@ -49,19 +49,12 @@ export const getProgramStateStyles = (state: ProgramaResponseDTOEstado): string 
   const stateStyles: Record<ProgramaResponseDTOEstado, string> = {
     RECHAZADO_A_ADMINISTRACION: "border-destructive bg-destructive/10 text-destructive",
     RECHAZADO_A_PROFESOR: "border-destructive bg-destructive/10 text-destructive",
-
     INCOMPLETO_POR_ADMINISTRACION: "border-amber-500 bg-amber-50 text-amber-700",
-
     COMPLETO_POR_ADMINISTRACION: "border-blue-500 bg-blue-50 text-blue-700",
-
     INCOMPLETO_POR_PROFESOR: "border-amber-500 bg-amber-50 text-amber-700",
-
     COMPLETO_POR_PROFESOR: "border-violet-500 bg-violet-50 text-violet-700",
-
     APROBADO_POR_COMISION: "border-sky-500 bg-sky-50 text-sky-700",
-
     APROBADO_POR_SECRETARIA: "border-emerald-500 bg-emerald-50 text-emerald-700",
-
   }
   return stateStyles[state] || "border-gray-300 bg-gray-50 text-gray-600"
 };

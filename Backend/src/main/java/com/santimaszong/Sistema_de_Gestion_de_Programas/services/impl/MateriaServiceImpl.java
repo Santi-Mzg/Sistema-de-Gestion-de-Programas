@@ -3,38 +3,34 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services.impl;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.DepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.MateriaMapper;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.AreaService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.MateriaRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
-    private final DepartamentoService departamentoService;
     private final CarreraService carreraService;
     private final AreaService areaService;
 
     private final MateriaMapper materiaMapper;
 
-    public MateriaServiceImpl(MateriaRepository materiaRepository, DepartamentoService departamentoService, CarreraService carreraService, AreaService areaService, MateriaMapper materiaMapper) {
+    public MateriaServiceImpl(MateriaRepository materiaRepository, CarreraService carreraService, AreaService areaService, MateriaMapper materiaMapper) {
         this.materiaRepository = materiaRepository;
-        this.departamentoService = departamentoService;
         this.carreraService = carreraService;
         this.areaService = areaService;
         this.materiaMapper = materiaMapper;
@@ -83,13 +79,14 @@ public class MateriaServiceImpl implements MateriaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MateriaResponseDTO> listMateriasDepartamento(Long deptId) {
-        DepartamentoEntity departamento = departamentoService.findEntityWithMateriasById(deptId);
+    public Page<MateriaResponseDTO> listMateriasDepartamento(Long deptId, String search, Pageable pageable) {
+        String normalizedSearch =
+                search == null || search.isBlank()
+                        ? ""
+                        : search.trim();
 
-        return departamento.getMaterias()
-                .stream()
-                .map(materiaMapper::toDTO)
-                .toList();
+        return materiaRepository.findAllByDepartamentoId(deptId, normalizedSearch, pageable)
+                .map(materiaMapper::toDTO);
     };
 
     @Override
@@ -107,6 +104,12 @@ public class MateriaServiceImpl implements MateriaService {
     @Transactional(readOnly = true)
     public List<MateriaEntity> listEntities(List<Long> ids) {
         return materiaRepository.findAllById(ids);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByDepartamentoId(Long deptId) {
+        return materiaRepository.countByDepartamentoId(deptId);
     }
 
     @Override
