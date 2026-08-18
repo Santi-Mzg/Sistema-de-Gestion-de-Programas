@@ -475,6 +475,7 @@ public class ProgramaServiceImpl implements ProgramaService {
          else if (rolActivo.equals(Rol.DOCENTE) ) {
              spec = spec
                      .and(ProgramaSpecifications.departamento(deptId))
+                     .and(ProgramaSpecifications.docente(auth.getName()))
                      .and(ProgramaSpecifications.estadoIn(List.of(
                              EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
                              EstadoPrograma.INCOMPLETO_POR_PROFESOR,
