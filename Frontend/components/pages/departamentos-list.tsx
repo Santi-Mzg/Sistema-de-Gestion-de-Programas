@@ -180,7 +180,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                 <th className="px-3 py-2 font-semibold text-left">
                     Sitio Web
                 </th>
-                <th className="px-3 py-2 font-semibold text-left">
+                <th className="px-3 py-2 font-semibold text-left w-40">
                   Acciones
                 </th>
               </tr>
@@ -192,11 +192,11 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     key={departamento.id}
                     className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-3 py-1.5 font-medium text-foreground">{departamento.nombre}</td>
-                    <td className="px-6 py-1.5 text-foreground/80">{departamento.direccion}</td>
-                    <td className="px-6 py-1.5 text-foreground/80">{departamento.telefono}</td>
-                    <td className="px-6 py-1.5 text-foreground/80">{departamento.email}</td>
-                    <td className="px-6 py-1.5 text-foreground/80 break-all">
+                    <td className="px-3 py-1.5 font-medium text-foreground wrap-break-word">{departamento.nombre}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 wrap-break-word">{departamento.direccion}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{departamento.telefono}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 wrap-break-word">{departamento.email}</td>
+                    <td className="px-3 py-1.5 text-foreground/80 break-all">
                       {departamento.sitioWeb ? (
                         <a
                           href={departamento.sitioWeb}
@@ -229,8 +229,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                             onClick={() => handleDeleteClick(departamento)}
                             className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                           >
-                            <Trash2 size={16} className="mr-1" />
-                            Eliminar
+                            <Trash2 size={16} />
                           </Button>
                         )}
                       </div>
@@ -240,7 +239,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron departamentos</p>
