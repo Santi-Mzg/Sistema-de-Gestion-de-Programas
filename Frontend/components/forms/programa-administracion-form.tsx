@@ -120,15 +120,27 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
   const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined);
 
-  const materiasQuery = useListMateriasDepartamento(deptId ?? 0, {
+  const materiasQuery = useListMateriasDepartamento(deptId ?? 0, 
+    {
+      page: 0,
+      size: 1000,
+      search: undefined
+    },
+    {
     query: {
       enabled: !!deptId,
       staleTime: 1000 * 60 * 5,
-      queryKey: getListMateriasDepartamentoQueryKey(deptId),
+      queryKey: getListMateriasDepartamentoQueryKey(deptId,
+        {
+          page: 0,
+          size: 1000,
+          search: undefined
+        },
+      ),
     },
   })
 
-  const materias: MateriaResponseDTO[] | undefined = materiasQuery.data;
+  const materias: MateriaResponseDTO[] | undefined = materiasQuery.data?.content;
 
 
 

@@ -51,14 +51,25 @@ export function MateriaForm() {
 
   const areasQuery = useListAreasDepartamento(activeDepartamento?.departamentoId ?? 0,
     {
+      page: 0,
+      size: 1000,
+      search: undefined
+    },
+    {
       query: {
         enabled: !!activeDepartamento?.departamentoId,
         staleTime: 1000 * 60 * 5,
-        queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
+        queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId,
+          {
+            page: 0,
+            size: 1000,
+            search: undefined
+          },
+        )
       }
     });
 
-  const areas: AreaResponseDTO[] | undefined = areasQuery.data;
+  const areas: AreaResponseDTO[] | undefined = areasQuery.data?.content;
 
   const { mutate, isPending } = useCreateMateria({
       mutation: {

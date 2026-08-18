@@ -75,13 +75,26 @@ export default function EditCarreraPage() {
   
   const deptId = activeDepartamento?.departamentoId || 0;
 
-  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useListUsersDepartamento(deptId, {
+  const usuariosQuery = useListUsersDepartamento(deptId, 
+    {
+      page: 0,
+      size: 1000,
+      search: undefined
+    },
+    {
     query: {
       enabled: (activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION'),
-      queryKey: getListUsersDepartamentoQueryKey(deptId)
+      queryKey: getListUsersDepartamentoQueryKey(deptId,
+        {
+          page: 0,
+          size: 1000,
+          search: undefined
+        },
+      )
     },
   })
 
+  const usuarios: UserResponseDTO[] | undefined = usuariosQuery.data?.content;
 
   useEffect(() => {
     if(!carrera) return
@@ -605,7 +618,7 @@ export default function EditCarreraPage() {
           description="Elige un usuario para asignar como Coordinador/a de la Comisión Curricular"
           roleLabel="Comisión Actual"
           confirmLabel="Asignar Comisión"
-          isLoading={isLoading || isPending || isLoadingUsuarios}
+          isLoading={isLoading || isPending || usuariosQuery.isLoading}
         />
       }
 
