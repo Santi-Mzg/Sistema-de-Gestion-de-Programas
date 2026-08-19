@@ -6,7 +6,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.Password
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.providers.ResendEmailSender;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +40,7 @@ public class AuthService {
     private final PasswordTokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final ResendEmailSender resendEmailSender;
+    private final EmailService emailService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final PasswordTokenRepository tokenRepo;
@@ -119,7 +119,7 @@ public class AuthService {
         tokenRepository.save(token);
 
         for(String e : emails){
-            resendEmailSender.sendEmailRecuperarPassword(e, rawToken);
+            emailService.sendEmailRecuperarPassword(e, rawToken);
         }
     }
 
