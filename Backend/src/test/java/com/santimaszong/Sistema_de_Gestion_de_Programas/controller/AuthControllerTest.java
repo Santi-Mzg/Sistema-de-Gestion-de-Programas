@@ -6,8 +6,8 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginReq
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini.GeminiService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.providers.ResendEmailSender;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ai.formatterAPA.providers.GeminiBibliografiaFormatterService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.util.seeder.DatabaseSeeder;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,8 +46,8 @@ class AuthControllerTest {
     @Autowired private DepartamentoRepository deptRepository;
     @Autowired private UsuarioDepartamentoRepository udeRepository;
 
-    @MockBean private EmailService emailService;
-    @MockBean private GeminiService geminiService;
+    @MockBean private ResendEmailSender resendEmailSender;
+    @MockBean private GeminiBibliografiaFormatterService geminiBibliografiaFormatterService;
     @MockBean private PdfGeneratorService pdfGeneratorService;
     @MockBean private DatabaseSeeder databaseSeeder;
 

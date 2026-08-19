@@ -5,7 +5,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEnti
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini.GeminiService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ai.formatterAPA.BibliografiaFormatterService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
 import lombok.extern.java.Log;
 
@@ -27,12 +27,12 @@ public class ProgramaController {
 
     private final ProgramaService programaService;
     private final PdfGeneratorService pdfService;
-    private final GeminiService geminiService;
+    private final BibliografiaFormatterService bibliografiaFormatterService;;
 
-    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService, GeminiService geminiService) {
+    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService, BibliografiaFormatterService bibliografiaFormatterService) {
         this.programaService = programaService;
         this.pdfService = pdfService;
-        this.geminiService = geminiService;
+        this.bibliografiaFormatterService = bibliografiaFormatterService;
     }
 
     @PostMapping("/departamentos/{deptId}/programas")
@@ -246,7 +246,7 @@ public class ProgramaController {
     //GEMINI
     @PostMapping("/programas/formatear-apa")
     public ResponseEntity<String> formatearAPA(@RequestBody String bibliografia) {
-        String resultado = geminiService.formatearABibliografiaAPA(bibliografia);
+        String resultado = bibliografiaFormatterService.formatearAPA(bibliografia);
         return ResponseEntity.ok(resultado);
     }
 }

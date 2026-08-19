@@ -1,24 +1,32 @@
-package com.santimaszong.Sistema_de_Gestion_de_Programas.services.gemini;
+package com.santimaszong.Sistema_de_Gestion_de_Programas.services.ai.formatterAPA.providers;
 
 import java.util.List;
 import java.util.Map;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ai.formatterAPA.BibliografiaFormatterService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-public class GeminiService {
+public class GeminiBibliografiaFormatterService implements BibliografiaFormatterService {
 
-    @Value("${gemini.api.key}")
-    private String apiKey;
+    private final WebClient webClient;
+    private final String apiKey;
 
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://generativelanguage.googleapis.com/v1")
-            .build();
+    public GeminiBibliografiaFormatterService(
+            @Value("${gemini.api.key}") String apiKey
+    ) {
+        this.apiKey = apiKey;
 
-    public String formatearABibliografiaAPA(String textoSucio) {
+        this.webClient = WebClient.builder()
+                .baseUrl("https://generativelanguage.googleapis.com/v1")
+                .build();
+    }
+
+    @Override
+    public String formatearAPA(String textoSucio) {
         String prompt = "Actúa como un experto bibliotecario. Toma el siguiente texto y conviértelo estrictamente a formato de Normas APA 7ma edición. Si hay varios elementos, devuélvelos como una lista con cada ítem comenzando con una viñeta estilo punto y devuelve únicamente el texto formateado sin explicaciones. Bibliografía: " + textoSucio;
 
         Map<String, Object> requestBody = Map.of(
