@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Mail, CheckCircle, User } from "lucide-react"
 import { useForgotPasswordFlow } from "@/hooks/use-forgot-password"
+import { AboutDialog } from "@/components/modals/about-dialog"
 
 export default function ForgotPasswordPage() {
   const [legajo, setLegajo] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const { forgotPassword, success, setSuccess } = useForgotPasswordFlow()
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +35,10 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <AboutDialog
+          open={isAboutDialogOpen}
+          onOpenChange={setIsAboutDialogOpen}
+        />
         <div className="w-full max-w-md">
           {/* Success State */}
           <Card className="border-2 border-primary/20 text-center">
@@ -70,7 +76,21 @@ export default function ForgotPasswordPage() {
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground mt-6">
-            © 2025 Universidad Nacional del Sur. Todos los derechos reservados.
+            © 2026 Universidad Nacional del Sur
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span>Sílabus-UNS</span>
+
+              <span>·</span>
+
+              <button
+                type="button"
+                onClick={() => setIsAboutDialogOpen(true)}
+                className="hover:text-foreground transition-colors"
+              >
+                Acerca del sistema
+              </button>
+            </div>
           </p>
         </div>
       </div>
@@ -79,6 +99,10 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
+        <AboutDialog
+          open={isAboutDialogOpen}
+          onOpenChange={setIsAboutDialogOpen}
+        />
       <div className="w-full max-w-md">
         {/* Back Button */}
         <div className="mb-6">
@@ -142,7 +166,21 @@ export default function ForgotPasswordPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2026 Universidad Nacional del Sur.
+          © 2026 Universidad Nacional del Sur
+
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <span>Sílabus-UNS</span>
+
+            <span>·</span>
+
+            <button
+              type="button"
+              onClick={() => setIsAboutDialogOpen(true)}
+              className="hover:text-foreground transition-colors"
+            >
+              Acerca del sistema
+            </button>
+          </div>
         </p>
       </div>
     </div>

@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react"
 import { useSetPasswordFlow } from "@/hooks/use-set-password"
+import { AboutDialog } from "@/components/modals/about-dialog"
 
 interface PasswordRequirement {
   label: string
@@ -50,6 +51,8 @@ export default function SetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const { setPassword, success } = useSetPasswordFlow()
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
+
 
   const requirementsMet = useMemo(() => {
     return passwordRequirements.map((req) => ({
@@ -90,6 +93,10 @@ export default function SetPasswordPage() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-b from-background to-muted/30">
+        <AboutDialog
+          open={isAboutDialogOpen}
+          onOpenChange={setIsAboutDialogOpen}
+        />
         <div className="w-full max-w-md">
           <Card className="border-2 border-green-200 bg-linear-to-b from-green-50 to-white shadow-lg">
             <CardHeader className="text-center pb-2">
@@ -330,7 +337,21 @@ export default function SetPasswordPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2026 Universidad Nacional del Sur.
+          © 2026 Universidad Nacional del Sur
+
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <span>Sílabus-UNS</span>
+
+            <span>·</span>
+
+            <button
+              type="button"
+              onClick={() => setIsAboutDialogOpen(true)}
+              className="hover:text-foreground transition-colors"
+            >
+              Acerca del sistema
+            </button>
+          </div>
         </p>
       </div>
     </div>

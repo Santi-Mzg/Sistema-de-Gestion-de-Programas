@@ -11,6 +11,7 @@ import { AlertCircle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { loginSchema, type LoginFormData } from "@/lib/schemas"
 import { useLoginFlow } from "@/hooks/use-login"
+import { AboutDialog } from "@/components/modals/about-dialog"
 
 export default function LoginPage() {
   const { login } = useLoginFlow()
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [backendError, setBackendError] = useState<string | null>(null)
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
   const {
     register,
     handleSubmit,
@@ -48,6 +50,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
+      <AboutDialog
+        open={isAboutDialogOpen}
+        onOpenChange={setIsAboutDialogOpen}
+      />
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="p-4 border-sidebar-border/50 shrink-0">
@@ -144,7 +150,21 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2026 Universidad Nacional del Sur.
+          © 2026 Universidad Nacional del Sur
+
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <span>Sílabus-UNS</span>
+
+            <span>·</span>
+
+            <button
+              type="button"
+              onClick={() => setIsAboutDialogOpen(true)}
+              className="hover:text-foreground transition-colors"
+            >
+              Acerca del sistema
+            </button>
+          </div>
         </p>
       </div>
     </div>
