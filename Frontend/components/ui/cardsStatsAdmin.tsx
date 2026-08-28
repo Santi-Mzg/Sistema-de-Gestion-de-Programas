@@ -60,6 +60,8 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
   ]
 
   const totalEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)
+  const pendientesSinProgramas = (stats.materias ?? 0) - (stats.programasTotales ?? 0)
+  const pendientesTotalesAdministracion= (stats.pendienteAdministracion ?? 0) + (pendientesSinProgramas ?? 0)
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
@@ -225,7 +227,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
         className={
           `h-full flex flex-col 
           ${
-            stats.pendienteAdministracion ?? 0 > 0
+            pendientesTotalesAdministracion ?? 0 > 0
               ? "border-amber-500 bg-amber-50/30 shadow-sm cursor-pointer transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:shadow-2xl  hover:border-amber-500  hover:bg-amber-50/70 hover:ring-4 hover:ring-amber-400/20active:translate-y-0 active:scale-[0.98] "
               : "border-emerald-500 bg-emerald-50/30 shadow-sm"
           }`}
@@ -234,12 +236,12 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
           <CardTitle className="flex items-center gap-2 text-base">
             <div
               className={
-                stats.pendienteAdministracion ?? 0 > 0
+                pendientesTotalesAdministracion ?? 0 > 0
                   ? "rounded-lg bg-amber-50 p-2 text-amber-700"
                   : "rounded-lg bg-emerald-50 p-2 text-emerald-700"
               }
             >
-              {stats.pendienteAdministracion ?? 0 > 0 ? (
+              {pendientesTotalesAdministracion?? 0 > 0 ? (
                 <CircleAlert size={18} />
               ) : (
                 <CircleCheckBig size={18} />
@@ -258,17 +260,17 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
           <div className="mb-2 flex items-baseline gap-2">
             <div
               className={
-                stats.pendienteAdministracion ?? 0 > 0
+                pendientesTotalesAdministracion ?? 0 > 0
                   ? "text-3xl font-bold text-amber-700"
                   : "text-3xl font-bold text-emerald-700"
               }
             >
-              {stats.pendienteAdministracion ?? 0}
+              {pendientesTotalesAdministracion ?? 0}
             </div>
 
             <p className="text-[13px] text-muted-foreground">
-              {stats.pendienteAdministracion ?? 0 > 0
-                ? stats.pendienteAdministracion == 1 
+              {pendientesTotalesAdministracion ?? 0 > 0
+                ? pendientesTotalesAdministracion == 1 
                 ? "Programa pendiente de tu intervención"
                 : "Programas pendientes de tu intervención"
                 : "No tenés acciones pendientes"}
@@ -285,7 +287,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
             
             <StatBox
               label="Materias sin programa en este ciclo lectivo"
-              value={(stats.materias ?? 0) - (stats.programasTotales ?? 0)}
+              value={pendientesSinProgramas}
               icon={<BookOpen size={16} />}
               className="border-blue-500 bg-blue-50 text-blue-700"
             />
