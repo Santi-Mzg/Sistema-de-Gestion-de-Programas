@@ -590,7 +590,6 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
               <Input defaultValue={programa.cargaHorariaTotal || ""} readOnly className="border-border focus:border-primary" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">Créditos</Label>
               <LabelWithTooltip
                 label="Créditos"
                 htmlFor="creditos"

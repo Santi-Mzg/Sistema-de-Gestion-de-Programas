@@ -46,7 +46,6 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
         <div className="space-y-2">
           <LabelWithTooltip
             label="Ubicación en el Plan"
-            required
             tooltip={
               <>
                 <p>Indica en qué parte del plan de estudios se ubica la materia.</p>

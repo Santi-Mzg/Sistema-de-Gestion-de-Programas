@@ -273,8 +273,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Ubicación en el Plan"
-            required
+            label="Ubicación en el Plan *"
             tooltip={
               <>
                 <p>Indique en qué parte del plan de estudios se ubica la materia.</p>

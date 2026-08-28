@@ -47,7 +47,6 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         <div className="space-y-2">
           <LabelWithTooltip
             label="Ubicación en el Plan"
-            required
             tooltip={
               <>
                 <p>Indica en qué parte del plan de estudios se ubica la materia.</p>
