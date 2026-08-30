@@ -222,4 +222,69 @@ public class EmailService {
         );
         emailSender.sendHtmlEmail(destinatarioEmail, "Correcciones requeridas", htmlBody);
     }
+
+    @Async
+    public void sendEmailNotificacionRechazoOtrasComisiones(
+            String destinatarioEmail,
+            UserEntity destinatario,
+            UserEntity emisor,
+            MateriaEntity materia,
+            Rol destinoRechazo,
+            String justificacion
+    ) {
+
+        String destino = switch (destinoRechazo) {
+            case ADMINISTRACION -> "Administración";
+            case DOCENTE -> "Docente responsable";
+            default -> "responsable correspondiente";
+        };
+
+        String htmlBody = String.format(
+                "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
+                        "  <h2 style='color: #dc2626;'>Programa rechazado por una comisión curricular</h2>" +
+                        "  <p>Hola <strong>%s</strong>,</p>" +
+
+                        "  <p>Le informamos que una de las comisiones curriculares involucradas " +
+                        "  en la revisión del programa ha solicitado correcciones.</p>" +
+
+                        "  <div style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;'>" +
+                        "    <p style='margin: 0 0 5px 0;'><strong>Materia:</strong> %s (%s)</p>" +
+                        "    <p style='margin: 0 0 5px 0;'><strong>Rechazado por:</strong> %s</p>" +
+                        "    <p style='margin: 0;'><strong>Devuelto a:</strong> %s</p>" +
+                        "  </div>" +
+
+                        "  <p><strong>Motivo / Justificación:</strong></p>" +
+
+                        "  <div style='background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 10px 0; font-style: italic;'>" +
+                        "    %s" +
+                        "  </div>" +
+
+                        "  <p>El programa deberá ser corregido y posteriormente volverá a ingresar al circuito de revisión.</p>" +
+
+                        "  <div style='margin-top: 25px;'>" +
+                        "    <a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' " +
+                        "       style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>" +
+                        "       Acceder al Sistema" +
+                        "    </a>" +
+                        "  </div>" +
+
+                        "  <br />" +
+                        "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
+                        "  <p style='font-size: 12px; color: #777;'>Este es un mensaje automático del Sistema de Gestión de Programas UNS.</p>" +
+                        "</div>",
+
+                destinatario.getNombre(),
+                materia.getNombre(),
+                materia.getCodigo(),
+                emisor.getNombre(),
+                destino,
+                justificacion
+        );
+
+        emailSender.sendHtmlEmail(
+                destinatarioEmail,
+                "Programa devuelto para correcciones",
+                htmlBody
+        );
+    }
 }

@@ -26,7 +26,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import java.util.Objects;
+import java.util.function.Function;
 
 
 @Service
@@ -997,6 +998,22 @@ public class ProgramaServiceImpl implements ProgramaService {
                 rechazar(programa, estadoUpdateDTO, udeActor, Rol.COORDINACION_COMISION_CURRICULAR);
                 programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
                 programaRepository.save(programa);
+
+                // Notifica al resto de comisiones
+                programa.getBloqueMultiple().stream()
+                        .map(pc -> pc.getCarreraPlan().getCarrera().getComision())
+                        .filter(Objects::nonNull)
+                        // No avisar a la comisión que realizó el rechazo
+                        .filter(udeComision -> !udeComision.getId().equals(udeActor.getId()))
+                        // Evitar mails duplicados
+                        .collect(Collectors.toMap(
+                                UsuarioDepartamentoEntity::getId,
+                                Function.identity(),
+                                (a, b) -> a
+                        ))
+                        .values()
+                        .forEach(udeComision ->
+                                emailService.sendEmailNotificacionRechazoOtrasComisiones(udeComision.getEmail(), udeComision.getUsuario(), udeActor.getUsuario(), programa.getMateria(), estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion()));
                 break;
 
         }
