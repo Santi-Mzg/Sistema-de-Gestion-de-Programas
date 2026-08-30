@@ -881,6 +881,11 @@ export function SyllabusCreationForm() {
                   materiaId={materiaId || 0}
                   index={index}
                   carreras={carreras}
+                  carreraPlanIdsSeleccionados={
+                    bloqueMultiple
+                      ?.map((b) => b.carreraPlanId)
+                      .filter((id): id is number => !!id) ?? []
+                  }
                   control={control}
                   register={register}
                   setValue={setValue}

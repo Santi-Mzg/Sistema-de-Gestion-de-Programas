@@ -160,7 +160,7 @@ export function CarrerasList({
                   <span className="font-medium text-foreground">
                     {totalElements}
                   </span>{" "}
-                  usuarios
+                  carreras
                 </span>
               )}
           </div>

@@ -36,6 +36,7 @@ interface ProgramaCarreraBlockProps {
   materiaId: number;
   index: number;
   carreras: CarreraResponseDTO[];
+  carreraPlanIdsSeleccionados: number[];
   control: Control<ProgramaAdminFormData>;
   register: UseFormRegister<ProgramaAdminFormData>;
   setValue: UseFormSetValue<ProgramaAdminFormData>;
@@ -46,6 +47,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
   materiaId,
   index,
   carreras,
+  carreraPlanIdsSeleccionados,
   control,
   register,
   setValue,
@@ -76,6 +78,39 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
     setSelectedCarrera(carreraEncontrada ?? null)
   }, [block?.carreraPlanId, carreras])
 
+  const planesSeleccionadosPorOtrosBloques = useMemo(() => {
+    return carreraPlanIdsSeleccionados.filter(
+      (id) => id !== block?.carreraPlanId
+    )
+  }, [
+    carreraPlanIdsSeleccionados,
+    block?.carreraPlanId,
+  ])
+
+  const carrerasDisponibles = useMemo(() => {
+    return carreras.filter((carrera) =>
+      carrera.planes?.some(
+        (plan) =>
+          plan.id &&
+          !planesSeleccionadosPorOtrosBloques.includes(plan.id)
+      )
+    )
+  }, [carreras, planesSeleccionadosPorOtrosBloques])
+
+  const planesDisponibles = useMemo(() => {
+    if (!selectedCarrera?.planes) {
+      return []
+    }
+
+    return selectedCarrera.planes.filter(
+      (plan) =>
+        plan.id &&
+        !planesSeleccionadosPorOtrosBloques.includes(plan.id)
+    )
+  }, [
+    selectedCarrera,
+    planesSeleccionadosPorOtrosBloques,
+  ])
 
   const materiasQuery = useListMateriasCarreraPlan(selectedCarrera?.id ?? 0, {
     query: {
@@ -200,7 +235,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
                 <CommandList className="pointer-events-auto">
                   <CommandEmpty>No se encontró la carrera.</CommandEmpty>
                   <CommandGroup>
-                    {carreras.map((carrera) => (
+                    {carrerasDisponibles.map((carrera) => (
                       <CommandItem
                         key={carrera.id}
                         value={carrera.nombre}
@@ -256,7 +291,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
             disabled={!selectedCarrera}
           >
             <option value="">Seleccionar plan...</option>
-            {selectedCarrera?.planes?.map((plan) => (
+            {planesDisponibles.map((plan) => (
               <option key={plan.id} value={plan.id}>
                 {"Plan "+plan.anio +" - Versión "+plan.version}
               </option>
