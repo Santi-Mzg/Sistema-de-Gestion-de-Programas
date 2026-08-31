@@ -36,7 +36,7 @@ import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
-import { FieldErrors, useFieldArray, useForm } from "react-hook-form"
+import { FieldErrors, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 interface SyllabusFormProps {
   id: number,
@@ -164,7 +164,17 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
   const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
 
-  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateSaveDraft } = useSaveDraft({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          description: "✓ Guardado",
+          variant: "draft",
+        })
+      },
+    },
+  })
+  
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate, isPending } = useAdministrativoCarga({
@@ -361,48 +371,41 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     }
   }
 
-
-  const guardarBorrador = useCallback(() => {
   
+  const formValues = useWatch({
+    control,
+  })
+
+  useEffect(() => {
+    if (!isDirty) return
+    if (!activeDepartamento?.departamentoId) return
+    if (!programa?.materia?.id) return
+
+    const handler = setTimeout(() => {
       mutateSaveDraft({
-        deptId: activeDepartamento!.departamentoId!,
-        materiaId: programa?.materia?.id!,
+        deptId: activeDepartamento.departamentoId!,
+        materiaId: programa.materia!.id!,
         params: {
           rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
         data: {
           payloadJson: JSON.stringify(getValues()),
         },
-      });
+      })
+    }, 2000)
 
-      reset(getValues())
-  
-      toast({
-        description: "✓ Guardado",
-        variant: "draft",
-      })    
-
-  }, [getValues(), activeDepartamento, activeRole, mutateSaveDraft]);
-  
-  
-  const debouncedSave = useCallback(() => {
-      const handler = setTimeout(() => {
-        guardarBorrador();
-      }, 2000); // 2 segundos
-  
-      return () => clearTimeout(handler);
-  }, [guardarBorrador]);
+    return () => clearTimeout(handler)
+  }, [
+    formValues,
+    isDirty,
+    activeDepartamento?.departamentoId,
+    programa?.materia?.id,
+    activeRole,
+    mutateSaveDraft,
+    getValues,
+  ])
 
   
-  useEffect(() => {
-      if (!isDirty) return;
-
-      const cancel = debouncedSave();
-
-      return cancel;
-  }, [isDirty, debouncedSave]);
-
-
  useEffect(() => {
     if (!programa) return
 

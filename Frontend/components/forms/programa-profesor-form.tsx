@@ -1,13 +1,12 @@
 "use client"
 
-import type React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ProgramaResponseDTO, ProgramaCargaDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, EstadoUpdateDTO, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaQueryKey, getGetProgramaVigenteQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useFormatearAPA, useGetDraft, useGetPrograma, useGetProgramaVigente, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
+import { ProgramaResponseDTO, EstadoHistoricoResponseDTOEstado, EstadoUpdateDTOAccion, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useActualizarEstado, useDeleteDraft, useFormatearAPA, useGetDraft, useGetPrograma, useProfesorCarga, useSaveDraft } from "@/app/api/generated/client"
 import { AlertCircle, CheckCircle2, Sparkles, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -18,12 +17,11 @@ import { useRole } from "@/context/role-context"
 import { RejectionInfoCard } from "../ui/rejection-info-card"
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
-import { cn } from "@/lib/utils"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { ProgramaDocenteFormData, programaDocenteSchema } from "@/lib/schemas/programa"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface SyllabusFormProps {
@@ -43,6 +41,7 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
 
   const {
       register,
+      control,
       setValue,
       getValues,
       reset,
@@ -75,7 +74,16 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
   const ultimoEstado = programa?.historialEstados?.at(-1);
   const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_PROFESOR;
 
-  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateSaveDraft } = useSaveDraft({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          description: "✓ Guardado",
+          variant: "draft",
+        })
+      },
+    },
+  })
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate: mutateProfesor, isPending: isPendingProfesor } = useProfesorCarga({
@@ -334,48 +342,38 @@ export function SyllabusProfesorForm({ id }: SyllabusFormProps) {
     }
   }
 
+  const formValues = useWatch({
+    control,
+  })
 
-  const guardarBorrador = useCallback(() => {
-      const values = getValues()
-      
+  useEffect(() => {
+    if (!isDirty) return
+    if (!activeDepartamento?.departamentoId) return
+    if (!programa?.materia?.id) return
+
+    const handler = setTimeout(() => {
       mutateSaveDraft({
-        deptId: activeDepartamento!.departamentoId!,
-        materiaId: programa?.materia?.id!,
+        deptId: activeDepartamento.departamentoId!,
+        materiaId: programa.materia!.id!,
         params: {
           rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
         },
         data: {
-          payloadJson: JSON.stringify(values),
+          payloadJson: JSON.stringify(getValues()),
         },
-      });
-      
-      reset(values)
-  
-      toast({
-        description: "✓ Guardado",
-        variant: "draft",
-      })    
+      })
+    }, 2000)
 
-  }, [getValues, reset, activeDepartamento, programa?.materia?.id, activeRole, mutateSaveDraft]);
-  
-  
-  const debouncedSave = useCallback(() => {
-      const handler = setTimeout(() => {
-        guardarBorrador();
-      }, 2000); // 2 segundos
-  
-      return () => clearTimeout(handler);
-  }, [guardarBorrador]);
-
-  
-  useEffect(() => {
-      if (!isDirty) return;
-
-      const cancel = debouncedSave();
-
-      return cancel;
-  }, [isDirty, debouncedSave]);
-
+    return () => clearTimeout(handler)
+  }, [
+    formValues,
+    isDirty,
+    activeDepartamento?.departamentoId,
+    programa?.materia?.id,
+    activeRole,
+    mutateSaveDraft,
+    getValues,
+  ])  
   
   const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
     const data = {

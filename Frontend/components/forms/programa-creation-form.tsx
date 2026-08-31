@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from "lucide-react"
 import Link from "next/link"
 import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
-import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaMateriaAnioQueryKey, getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useCreatePrograma, useDeleteDraft, useGetDraft, useGetProgramaMateriaAnio, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
@@ -38,7 +38,7 @@ import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FieldErrors, useFieldArray, useForm } from "react-hook-form"
+import { FieldErrors, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 export function SyllabusCreationForm() {
@@ -177,7 +177,17 @@ export function SyllabusCreationForm() {
     setValue("cargaHorariaTotal", total)
   }, [semanas, cargaSemanal, setValue]);
 
-  const { mutate: mutateSaveDraft } = useSaveDraft()
+  const { mutate: mutateSaveDraft } = useSaveDraft({
+    mutation: {
+      onSuccess: () => {
+        toast({
+          description: "✓ Guardado",
+          variant: "draft",
+        })
+      },
+    },
+  })
+
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate, isPending } = useCreatePrograma({
@@ -468,44 +478,38 @@ export function SyllabusCreationForm() {
     })
   }, [selectedMateria])
 
-  const guardarBorrador = useCallback(() => {
-    const values = getValues()
-
-    mutateSaveDraft({
-      deptId: activeDepartamento!.departamentoId!,
-      materiaId: materiaId!,
-      params: {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-      },
-      data: {
-        payloadJson: JSON.stringify(values),
-      },
-    });
-
-    reset(values)
-
-    toast({
-      description: "✓ Guardado",
-      variant: "draft",
-    })    
-  }, [getValues, reset, activeDepartamento, materiaId, activeRole, mutateSaveDraft]);
-  
-  const debouncedSave = useCallback(() => {
-    const handler = setTimeout(() => {
-      guardarBorrador();
-    }, 2000); // 2 segundos
-
-    return () => clearTimeout(handler);
-  }, [guardarBorrador]);
+  const formValues = useWatch({
+    control,
+  })
 
   useEffect(() => {
-      if (!isDirty) return;
+    if (!isDirty) return
+    if (!activeDepartamento?.departamentoId) return
+    if (!materiaId) return
 
-      const cancel = debouncedSave();
+    const handler = setTimeout(() => {
+      mutateSaveDraft({
+        deptId: activeDepartamento.departamentoId!,
+        materiaId: materiaId!,
+        params: {
+          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        },
+        data: {
+          payloadJson: JSON.stringify(getValues()),
+        },
+      })
+    }, 2000)
 
-      return cancel;
-  }, [isDirty, debouncedSave]);
-
+    return () => clearTimeout(handler)
+  }, [
+    formValues,
+    isDirty,
+    activeDepartamento?.departamentoId,
+    materiaId,
+    activeRole,
+    mutateSaveDraft,
+    getValues,
+  ])
 
   const handleAddProgramaCarrera = () => {
     append({
