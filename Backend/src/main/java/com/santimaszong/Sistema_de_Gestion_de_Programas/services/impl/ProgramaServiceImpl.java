@@ -995,6 +995,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                 break;
 
             case RECHAZAR:
+                CarreraEntity carrera = carreraService.getCarreraEntityById(carreraId);
+
                 rechazar(programa, estadoUpdateDTO, udeActor, Rol.COORDINACION_COMISION_CURRICULAR);
                 programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
                 programaRepository.save(programa);
@@ -1013,7 +1015,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                         ))
                         .values()
                         .forEach(udeComision ->
-                                emailService.sendEmailNotificacionRechazoOtrasComisiones(udeComision.getEmail(), udeComision.getUsuario(), udeActor.getUsuario(), programa.getMateria(), estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion()));
+                                emailService.sendEmailNotificacionRechazoOtrasComisiones(udeComision.getEmail(), udeComision.getUsuario(), udeActor.getUsuario(), programa.getMateria(), carrera, estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion()));
                 break;
 
         }

@@ -10,6 +10,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepo
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,19 +30,22 @@ public class CarreraServiceImpl implements CarreraService {
     private final UserRepository userRepository;
     private final CarreraMapper carreraMapper;
     private final CarreraPlanMapper planMapper;
+    private final EmailService emailService;
 
     public CarreraServiceImpl(CarreraRepository carreraRepository,
                               CarreraPlanRepository planRepository,
                               DepartamentoService departamentoService,
                               UserRepository userRepository,
                               CarreraMapper carreraMapper,
-                              CarreraPlanMapper planMapper) {
+                              CarreraPlanMapper planMapper,
+                              EmailService emailService) {
         this.carreraRepository = carreraRepository;
         this.planRepository = planRepository;
         this.departamentoService = departamentoService;
         this.userRepository = userRepository;
         this.carreraMapper = carreraMapper;
         this.planMapper = planMapper;
+        this.emailService = emailService;
     }
 
 
@@ -184,8 +188,12 @@ public class CarreraServiceImpl implements CarreraService {
         udeNuevaComision.getRoles().add(Rol.COORDINACION_COMISION_CURRICULAR); // Da rol a nueva comision
         carrera.setComision(udeNuevaComision); // Cambia de comision
 
-
         carreraRepository.save(carrera);
+
+        emailService.sendEmailAsignacionCargo(udeNuevaComision.getEmail(), nuevaComision, "Representante de la Comisión Curricular", "Carrera", carrera.getNombre());
+        if(udeViejaComision != null && !udeViejaComision.getUsuario().getId().equals(nuevaComisionId)) {
+            emailService.sendEmailRemocionCargo(udeViejaComision.getEmail(), udeViejaComision.getUsuario(), "Representante de la Comisión Curricular", "Carrera", carrera.getNombre());
+        }
     }
 
     @Override

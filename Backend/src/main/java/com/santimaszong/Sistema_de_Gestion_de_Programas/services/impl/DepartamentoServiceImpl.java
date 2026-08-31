@@ -13,6 +13,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.mappers.extensions.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.DepartamentoRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +28,14 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     private final DepartamentoRepository departamentoRepository;
     private final UsuarioDepartamentoService userDptoService;
     private final DepartamentoMapper departamentoMapper;
+    private final EmailService emailService;
 
 
-    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper) {
+    public DepartamentoServiceImpl(DepartamentoRepository departamentoRepository, UsuarioDepartamentoService userDptoService, DepartamentoMapper departamentoMapper, EmailService emailService) {
         this.departamentoRepository = departamentoRepository;
         this.userDptoService = userDptoService;
         this.departamentoMapper = departamentoMapper;
+        this.emailService = emailService;
     }
 
 
@@ -108,6 +111,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             throw new IllegalArgumentException("Debe enviar un secretariaId");
         }
 
+        UsuarioDepartamentoEntity udeViejaSecretaria = dpto.getUsuarios().stream()
+                .filter(ude -> ude.getRoles().contains(Rol.SECRETARIA))
+                .findFirst()
+                .orElse(null);
+
         dpto.getUsuarios().forEach(ude -> { // Elimina secretario anterior
             ude.getRoles().remove(Rol.SECRETARIA);
         });
@@ -117,6 +125,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
         udeNuevoSecretario.getRoles().add(Rol.SECRETARIA);
 
         userDptoService.save(udeNuevoSecretario);
+
+        emailService.sendEmailAsignacionCargo(udeNuevoSecretario.getEmail(), udeNuevoSecretario.getUsuario(), "Secretaría Académica", "Departamento", dpto.getNombre());
+        if(udeViejaSecretaria != null && !udeViejaSecretaria.getUsuario().getId().equals(nuevaSecretariaId)) {
+            emailService.sendEmailRemocionCargo(udeViejaSecretaria.getEmail(), udeViejaSecretaria.getUsuario(), "Secretaría Académica", "Departamento", dpto.getNombre());
+        }
     }
 
     @Override
@@ -132,6 +145,11 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             throw new IllegalArgumentException("Debe enviar un direccionAdministrativaId");
         }
 
+        UsuarioDepartamentoEntity udeViejaDireccion = dpto.getUsuarios().stream()
+                .filter(ude -> ude.getRoles().contains(Rol.DIRECCION_ADMINISTRATIVA))
+                .findFirst()
+                .orElse(null);
+
         dpto.getUsuarios().forEach(ude -> { // Elimina direccion anterior
             ude.getRoles().remove(Rol.DIRECCION_ADMINISTRATIVA);
         });
@@ -142,6 +160,10 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
         userDptoService.save(udeNuevaDireccion);
 
+        emailService.sendEmailAsignacionCargo(udeNuevaDireccion.getEmail(), udeNuevaDireccion.getUsuario(), "Dirección Administrativa", "Departamento", dpto.getNombre());
+        if(udeViejaDireccion != null && !udeViejaDireccion.getUsuario().getId().equals(nuevaDireccionId)) {
+            emailService.sendEmailRemocionCargo(udeViejaDireccion.getEmail(), udeViejaDireccion.getUsuario(), "Dirección Administrativa", "Departamento", dpto.getNombre());
+        }
     }
 
     @Override

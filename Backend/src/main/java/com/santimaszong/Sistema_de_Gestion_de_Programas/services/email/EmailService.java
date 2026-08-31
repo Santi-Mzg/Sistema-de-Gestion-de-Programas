@@ -224,11 +224,51 @@ public class EmailService {
     }
 
     @Async
+    public void sendEmailNotificacionRechazoComision(
+            String destinatarioEmail,
+            UserEntity destinatario,
+            UserEntity emisor,
+            MateriaEntity materia,
+            CarreraEntity carreraComision,
+            String justificacion
+    ) {
+        String htmlBody = String.format(
+                "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
+                        "  <h2 style='color: #dc2626;'>Solicitud de Correcciones</h2>" +
+                        "  <p>Hola <strong>%s</strong>,</p>" +
+                        "<p>Le informamos que <strong>%s</strong>, en representación de la Comisión Curricular de la carrera <strong>%s</strong>, ha solicitado correcciones en el programa de la materia:</p>" +
+                        "  <div style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;'>" +
+                        "    <p style='margin: 0;'><strong>Materia:</strong> %s (%s)</p>" +
+                        "  </div>" +
+                        "  <p><strong>Motivo del rechazo / Justificación:</strong></p>" +
+                        "  <div style='background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 10px 0; font-style: italic;'>" +
+                        "    %s" +
+                        "  </div>" +
+                        "  <p>Por favor, ingrese al sistema para realizar los ajustes solicitados y reenviar el programa para su revisión.</p>" +
+                        "  <div style='margin-top: 25px;'>" +
+                        "    <a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Acceder al Sistema</a>" +
+                        "  </div>" +
+                        "  <br />" +
+                        "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
+                        "  <p style='font-size: 12px; color: #777;'>Este es un mensaje automático del Sistema de Gestión de Programas UNS.</p>" +
+                        "</div>",
+                destinatario.getNombre(),
+                emisor.getNombre(),
+                carreraComision.getNombre(),
+                materia.getNombre(),
+                materia.getCodigo(),
+                justificacion
+        );
+        emailSender.sendHtmlEmail(destinatarioEmail, "Correcciones requeridas", htmlBody);
+    }
+
+    @Async
     public void sendEmailNotificacionRechazoOtrasComisiones(
             String destinatarioEmail,
             UserEntity destinatario,
             UserEntity emisor,
             MateriaEntity materia,
+            CarreraEntity carreraComision,
             Rol destinoRechazo,
             String justificacion
     ) {
@@ -237,7 +277,7 @@ public class EmailService {
                         "  <h2 style='color: #dc2626;'>Programa rechazado por una comisión curricular</h2>" +
                         "  <p>Hola <strong>%s</strong>,</p>" +
 
-                        "  <p>Le informamos que una de las comisiones curriculares involucradas " +
+                        "  <p>Le informamos que la comisión curricular de la carrera <strong>%s</strong>, " +
                         "  en la revisión del programa ha solicitado correcciones.</p>" +
 
                         "  <div style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;'>" +
@@ -267,6 +307,7 @@ public class EmailService {
                         "</div>",
 
                 destinatario.getNombre(),
+                carreraComision.getNombre(),
                 materia.getNombre(),
                 materia.getCodigo(),
                 emisor.getNombre(),
@@ -277,6 +318,78 @@ public class EmailService {
         emailSender.sendHtmlEmail(
                 destinatarioEmail,
                 "Programa devuelto para correcciones",
+                htmlBody
+        );
+    }
+
+    public void sendEmailAsignacionCargo(
+            String destinatarioEmail,
+            UserEntity destinatario,
+            String cargo,
+            String tipoAmbito,
+            String nombreAmbito
+    ) {
+        String htmlBody = String.format(
+                "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
+                        "  <h2 style='color: #2563eb;'>Asignación de Cargo</h2>" +
+                        "  <p>Hola <strong>%s</strong>,</p>" +
+                        "  <p>Le informamos que ha sido asignado para desempeñar el cargo de <strong>%s</strong> en:</p>" +
+                        "  <div style='background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;'>" +
+                        "    <p style='margin: 0;'><strong>%s:</strong> %s</p>" +
+                        "  </div>" +
+                        "  <p>A partir de este momento podrá acceder desde el sistema a las funciones correspondientes a este cargo.</p>" +
+                        "  <div style='margin-top: 25px;'>" +
+                        "    <a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' " +
+                        "       style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>" +
+                        "       Acceder al Sistema" +
+                        "    </a>" +
+                        "  </div>" +
+                        "  <br />" +
+                        "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
+                        "  <p style='font-size: 12px; color: #777;'>Este es un mensaje automático del Sistema de Gestión de Programas UNS.</p>" +
+                        "</div>",
+                destinatario.getNombre(),
+                cargo,
+                tipoAmbito,
+                nombreAmbito
+        );
+
+        emailSender.sendHtmlEmail(
+                destinatarioEmail,
+                "Asignación de cargo - " + cargo,
+                htmlBody
+        );
+    }
+
+    public void sendEmailRemocionCargo(
+            String destinatarioEmail,
+            UserEntity destinatario,
+            String cargo,
+            String tipoAmbito,
+            String nombreAmbito
+    ) {
+        String htmlBody = String.format(
+                "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
+                        "  <h2 style='color: #6b7280;'>Actualización de Cargo</h2>" +
+                        "  <p>Hola <strong>%s</strong>,</p>" +
+                        "  <p>Le informamos que ha dejado de desempeñar el cargo de <strong>%s</strong> en:</p>" +
+                        "  <div style='background-color: #f3f4f6; border-left: 4px solid #6b7280; padding: 15px; margin: 20px 0;'>" +
+                        "    <p style='margin: 0;'><strong>%s:</strong> %s</p>" +
+                        "  </div>" +
+                        "  <p>En consecuencia, ya no tendrá acceso a las funciones asociadas a este cargo.</p>" +
+                        "  <br />" +
+                        "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
+                        "  <p style='font-size: 12px; color: #777;'>Este es un mensaje automático del Sistema de Gestión de Programas UNS.</p>" +
+                        "</div>",
+                destinatario.getNombre(),
+                cargo,
+                tipoAmbito,
+                nombreAmbito
+        );
+
+        emailSender.sendHtmlEmail(
+                destinatarioEmail,
+                "Actualización de cargo - " + cargo,
                 htmlBody
         );
     }
