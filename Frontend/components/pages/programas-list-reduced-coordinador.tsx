@@ -30,7 +30,7 @@ export function ProgramasListReducedCoord({
 }: ProgramasListProps) {
   const { activeDepartamento } = useDept();
   const router = useRouter();
-  const [sortField, setSortField] = useState<SortField>("materia")
+  const [sortField, setSortField] = useState<SortField>("carreraPlan")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   const handleSort = (field: SortField) => {

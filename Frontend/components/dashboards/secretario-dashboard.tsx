@@ -2,7 +2,7 @@
 
 import { AlertCircle, User, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, useGetDashboardResumen, useListProgramasPendientes } from "@/app/api/generated/client";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
@@ -83,7 +83,7 @@ export function SecretarioDashboard() {
     );
 
 
-    const programas: ProgramaResponseDTO[] = programasQuery.data?.content || [];
+    const programas: ProgramaResponseReducedDTO[] = programasQuery.data?.content || [];
     const totalPages = programasQuery.data?.totalPages ?? 0
     const totalElements = programasQuery.data?.totalElements ?? 0
 

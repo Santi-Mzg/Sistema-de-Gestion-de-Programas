@@ -2,7 +2,7 @@
 
 import { AlertCircle, Home, User } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
+import { ProgramaResponseReducedDTO } from "@/app/api/generated/model/programaResponseReducedDTO";
 import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useGetDashboardResumen, useListProgramas, useListProgramasPendientes } from "@/app/api/generated/client";
 import { EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
@@ -82,26 +82,9 @@ export function ProfesorDashboard() {
     }
   );
 
-  const programas: ProgramaResponseDTO[] = programasQuery.data?.content || [];
+  const programas: ProgramaResponseReducedDTO[] = programasQuery.data?.content || [];
   const totalPages = programasQuery.data?.totalPages ?? 0
   const totalElements = programasQuery.data?.totalElements ?? 0
-
-  const programasOrdenados = [...programas].sort((a, b) => {
-    const aDevuelto =
-      a.estado ===
-      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
-
-    const bDevuelto =
-      b.estado ===
-      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
-
-    if (aDevuelto === bDevuelto) {
-      return 0
-    }
-
-    return aDevuelto ? -1 : 1
-  })
-
 
   const handleNavigate = (id: number) => {
     router.push(`/programas/${id}/carga/docente`);
@@ -180,7 +163,7 @@ export function ProfesorDashboard() {
           </CardHeader>
 
           <CardContent>
-            <ProgramasListReduced programas={programasOrdenados} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
+            <ProgramasListReduced programas={programas} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
           </CardContent>
         </Card>
       </div>

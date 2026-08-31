@@ -92,22 +92,6 @@ export function AdministracionDashboard() {
 
   const stats = dashboardStatsQuery.data ?? undefined
 
-  const programasOrdenados = [...programas].sort((a, b) => {
-    const aDevuelto =
-      a.estado ===
-      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
-
-    const bDevuelto =
-      b.estado ===
-      EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION
-
-    if (aDevuelto === bDevuelto) {
-      return 0
-    }
-
-    return aDevuelto ? -1 : 1
-  })
-
   const pendientesRef = useRef<HTMLDivElement>(null)
 
   const handlePendingClick = () => {
@@ -179,7 +163,7 @@ export function AdministracionDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProgramasListReduced programas={programasOrdenados} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
+            <ProgramasListReduced programas={programas} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
           </CardContent>
         </Card>
       </div>

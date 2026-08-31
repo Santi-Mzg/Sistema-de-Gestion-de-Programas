@@ -35,13 +35,46 @@ export function ProgramasListReduced({
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortOrder("asc")
+      if (sortField === field) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+      } else {
+        setSortField(field)
+        setSortOrder("asc")
+      }
     }
-  }
+
+    const sortedProgramas = [...programas].sort((a, b) => {
+    let valueA = ""
+    let valueB = ""
+
+    switch (sortField) {
+      case "materia":
+        valueA = a.materia?.nombre ?? ""
+        valueB = b.materia?.nombre ?? ""
+        break
+
+      case "estado":
+        valueA = a.estado ?? ""
+        valueB = b.estado ?? ""
+        break
+
+      case "profesorResponsable":
+        valueA = `${a.profesorResponsable?.apellido ?? ""} ${a.profesorResponsable?.nombre ?? ""}`
+        valueB = `${b.profesorResponsable?.apellido ?? ""} ${b.profesorResponsable?.nombre ?? ""}`
+        break
+
+      case "nombreDepartamento":
+        valueA = a.materia?.departamento ?? ""
+        valueB = b.materia?.departamento ?? ""
+        break
+    }
+
+    const comparison = valueA.localeCompare(valueB, "es", {
+      sensitivity: "base",
+    })
+
+    return sortOrder === "asc" ? comparison : -comparison
+  })
 
   return (
     <div className="w-full bg-background">
@@ -119,8 +152,8 @@ export function ProgramasListReduced({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {programas.length > 0 ? (
-                programas.map((programa) => (
+              {sortedProgramas.length > 0 ? (
+                sortedProgramas.map((programa) => (
                   <tr
                     key={programa.id}
                     className="hover:bg-muted/30 transition-colors"
