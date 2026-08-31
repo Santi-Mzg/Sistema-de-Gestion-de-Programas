@@ -96,7 +96,7 @@ public class EmailService {
                 "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
                         "  <h2 style='color: #2563eb;'>Gestión de Programas</h2>" +
                         "  <p>Hola <strong>%s</strong> <strong>%s</strong>,</p>" +
-                        "  <p>Le informamos que ha sido asignado como <strong>Profesor Responsable</strong> del programa para la materia:</p>" +
+                        "  <p>Le informamos que tiene acciones pendientes como <strong>Docente Responsable</strong> del programa para la materia:</p>" +
                         "  <div style='background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;'>" +
                         "    <p style='margin: 0;'><strong>Materia:</strong> %s (%s)</p>" +
                         "  </div>" +
@@ -195,7 +195,7 @@ public class EmailService {
     ) {
         String htmlBody = String.format(
                 "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
-                        "  <h2 style='color: #dc2626;'>Solicitud de Correcciones</h2>" + // Rojo para indicar atención
+                        "  <h2 style='color: #dc2626;'>Solicitud de Correcciones</h2>" +
                         "  <p>Hola <strong>%s</strong>,</p>" +
                         "  <p>Le informamos que <strong>%s</strong> (%s) ha solicitado correcciones en el programa de la materia:</p>" +
                         "  <div style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;'>" +
@@ -215,7 +215,7 @@ public class EmailService {
                         "</div>",
                 destinatario.getNombre(),
                 emisor.getNombre(),
-                rolEmisor,
+                rolEmisor.getDisplayName(),
                 materia.getNombre(),
                 materia.getCodigo(),
                 justificacion
@@ -232,13 +232,6 @@ public class EmailService {
             Rol destinoRechazo,
             String justificacion
     ) {
-
-        String destino = switch (destinoRechazo) {
-            case ADMINISTRACION -> "Administración";
-            case DOCENTE -> "Docente responsable";
-            default -> "responsable correspondiente";
-        };
-
         String htmlBody = String.format(
                 "<div style='font-family: sans-serif; padding: 20px; color: #333;'>" +
                         "  <h2 style='color: #dc2626;'>Programa rechazado por una comisión curricular</h2>" +
@@ -277,7 +270,7 @@ public class EmailService {
                 materia.getNombre(),
                 materia.getCodigo(),
                 emisor.getNombre(),
-                destino,
+                destinoRechazo.getDisplayName(),
                 justificacion
         );
 
