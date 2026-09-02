@@ -15,13 +15,6 @@ public interface ProgramaCargaMapper extends ToEntityMapper<ProgramaCargaDTO, Pr
     @Mapping(target = "materia", ignore = true)
     @Mapping(target = "profesorResponsable", ignore = true)
     @Mapping(target = "bloqueMultiple", ignore = true)
-    @Mapping(target = "cargaHorariaPractica", ignore = true)
-    @Mapping(target = "fundamentacion", ignore = true)
-    @Mapping(target = "objetivos", ignore = true)
-    @Mapping(target = "programaAnalitico", ignore = true)
-    @Mapping(target = "metodologia", ignore = true)
-    @Mapping(target = "modalidadEvaluacion", ignore = true)
-    @Mapping(target = "bibliografia", ignore = true)
     @Mapping(target = "historialEstados", ignore = true)
     ProgramaEntity toEntity(ProgramaCargaDTO dto);
 

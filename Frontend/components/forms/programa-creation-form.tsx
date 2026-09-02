@@ -98,6 +98,13 @@ export function SyllabusCreationForm() {
           cargaHorariaSemanal: undefined,
           cargaHorariaTotal: undefined,
           creditos: undefined,
+          cargaHorariaPractica: undefined,
+          fundamentacion: "",
+          objetivos: "",
+          programaAnalitico: "",
+          metodologia: "",
+          modalidadEvaluacion: "",
+          bibliografia: ""
       }
   })
 
@@ -457,6 +464,27 @@ export function SyllabusCreationForm() {
 
         cantidadSemanas:
           programaVigente.cantidadSemanas ?? undefined,
+
+        cargaHorariaPractica:
+          programaVigente.cargaHorariaPractica ?? undefined,
+
+        fundamentacion:
+          programaVigente.fundamentacion ?? "",
+
+        objetivos:
+          programaVigente.objetivos ?? "",
+
+        programaAnalitico:
+          programaVigente.programaAnalitico ?? "",
+
+        metodologia:
+          programaVigente.metodologia ?? "",
+
+        modalidadEvaluacion:
+          programaVigente.modalidadEvaluacion ?? "",
+
+        bibliografia:
+          programaVigente.bibliografia ?? "",
       }
 
       reset(mappedData)

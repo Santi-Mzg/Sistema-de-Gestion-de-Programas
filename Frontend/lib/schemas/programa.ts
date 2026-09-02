@@ -109,6 +109,14 @@ export const programaAdminSchema = z.object({
     })
     .min(1, "Debe ser mayor que 0."),
 
+  cargaHorariaPractica: z.number().optional(),
+  fundamentacion: z.string().optional(),
+  objetivos: z.string().optional(),
+  programaAnalitico: z.string().optional(),
+  metodologia: z.string().optional(),
+  modalidadEvaluacion: z.string().optional(),
+  bibliografia: z.string().optional(),
+
 });
 
 export type ProgramaAdminFormData = z.infer<typeof programaAdminSchema>;
