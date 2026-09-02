@@ -51,6 +51,19 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
   }, [departamentos, searchTerm,])
 
 
+    const sortedDpts = useMemo(() => {
+      const sorted = filteredDepartamentos.sort((a, b) => {
+        const aValue = a.nombre ?? ""
+        const bValue = b.nombre ?? ""
+  
+        return aValue.localeCompare(bValue)
+      })
+  
+      return sorted
+    }, [filteredDepartamentos])
+  
+
+
   const handleDeleteClick = (departamento: DepartamentoResponseDTO) => {
     setSelectedDepartamento(departamento)
     setDeleteDialogOpen(true)
@@ -155,7 +168,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          Mostrando <span className="font-semibold text-foreground">{filteredDepartamentos.length}</span> de{" "}
+          Mostrando <span className="font-semibold text-foreground">{sortedDpts.length}</span> de{" "}
           <span className="font-semibold text-foreground">{departamentos.length}</span> departamento{departamentos.length === 1 ? "" : "s"}
         </div>
 
@@ -168,7 +181,6 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     Nombre
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
-
                     Dirección
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
@@ -186,8 +198,8 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredDepartamentos.length > 0 ? (
-                filteredDepartamentos.map((departamento) => (
+              {sortedDpts.length > 0 ? (
+                sortedDpts.map((departamento) => (
                   <tr
                     key={departamento.id}
                     className="hover:bg-muted/30 transition-colors"

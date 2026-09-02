@@ -14,6 +14,7 @@ import { useAuth } from "@/context/auth-context"
 import { useHeader } from "@/context/header-context"
 import { useRouter } from "next/navigation"
 import { DashboardStats } from "../ui/cardsStatsAdmin"
+import { MateriasList } from "../pages/materias-list"
 
 
 export function AdministracionDashboard() {
@@ -166,6 +167,17 @@ export function AdministracionDashboard() {
             <ProgramasListReduced programas={programas} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
           </CardContent>
         </Card>
+
+        {/* <Card className="mb-6 mt-6">
+          <CardHeader>
+            <CardTitle>
+              Materias sin programa en este ciclo lectivo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MateriasList materias={materias} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage}/>
+          </CardContent>
+        </Card> */}
       </div>
     </div>
   )

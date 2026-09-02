@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, Edit2, Trash2, Plus, Layers } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Search, Edit2, Trash2, Layers } from "lucide-react"
 import { AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { getGetAreaQueryKey, getListAreasDepartamentoQueryKey, useDeleteArea } from "@/app/api/generated/client"
@@ -37,7 +36,6 @@ export function AreasList({
 }: AreasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
-  const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedArea, setSelectedArea] = useState<AreaResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -63,6 +61,18 @@ export function AreasList({
     setSelectedArea(area)
     setDeleteDialogOpen(true)
   }
+
+  const sortedAreas = useMemo(() => {
+    const sorted = areas.sort((a, b) => {
+      const aValue = a.nombre ?? ""
+      const bValue = b.nombre ?? ""
+
+      return aValue.localeCompare(bValue)
+    })
+
+    return sorted
+  }, [areas])
+
 
 
   const { mutate, isPending } = useDeleteArea({
@@ -140,8 +150,8 @@ export function AreasList({
     <div className="w-full bg-background">
       <div className="p-8 max-w-7xl mx-auto">
         {/* Results Count */}
-<div className="mb-4 text-sm text-muted-foreground">
-            {areas.length > 0 && (
+        <div className="mb-4 text-sm text-muted-foreground">
+            {sortedAreas.length > 0 && (
               <span>
                 Mostrando{" "}
                 <span className="font-medium text-foreground">
@@ -177,8 +187,8 @@ export function AreasList({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {areas.length > 0 ? (
-                areas.map((area) => (
+              {sortedAreas.length > 0 ? (
+                sortedAreas.map((area) => (
                   <tr
                     key={area.id}
                     className="hover:bg-muted transition-colors border-b border-border last:border-b-0"

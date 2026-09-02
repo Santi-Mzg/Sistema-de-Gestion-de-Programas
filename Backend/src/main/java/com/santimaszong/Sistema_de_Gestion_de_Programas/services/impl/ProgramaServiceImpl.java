@@ -96,6 +96,9 @@ public class ProgramaServiceImpl implements ProgramaService {
         MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
 
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
+        if (!udeActor.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if(!udeActor.hasRole(Rol.ADMINISTRACION)){
             throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
         }
@@ -105,6 +108,9 @@ public class ProgramaServiceImpl implements ProgramaService {
         programaEntity.setMateria(materia);
 
         UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(programaDTO.getProfesorResponsableId(), deptId);
+        if (!udeProfesor.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if(!udeProfesor.hasRole(Rol.DOCENTE)){
             throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
         }
@@ -151,7 +157,9 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
-
+        if (!udeActor.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if(!udeActor.hasRole(Rol.ADMINISTRACION)) {
             throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
         }
@@ -170,7 +178,9 @@ public class ProgramaServiceImpl implements ProgramaService {
                         return; // Si es el mismo no lo cambia
 
                     UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId);
-
+                    if (!udeProfesorNuevo.isActivo()) {
+                        throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+                    }
                     if(!udeProfesorNuevo.hasRole(Rol.DOCENTE)){
                         throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
                     }
@@ -242,6 +252,9 @@ public class ProgramaServiceImpl implements ProgramaService {
 
 
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
+        if (!udeActor.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if(!udeActor.hasRole(Rol.DOCENTE)) {
             throw new IllegalStateException("El usuario no tiene rol DOCENTE");
         }
@@ -319,7 +332,9 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional
     public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo) {
         UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
+        if (!udeActor.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if ((rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR) || rolActivo.equals(Rol.DOCENTE)) && !udeActor.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -364,7 +379,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     public ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId) {
         Integer anioActual = LocalDate.now().getYear();
         ProgramaEntity foundProgram = programaRepository.findByMateriaIdAndAnio(materiaId, anioActual)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+                .orElse(null);
 
         return responseMapper.toDTO(foundProgram);
     }
@@ -375,7 +390,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         ProgramaEntity foundProgram = programaRepository.findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
                     materiaId,
                     EstadoPrograma.APROBADO_POR_SECRETARIA
-                ).orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
+                ).orElse(null);
 
         return responseMapper.toDTO(foundProgram);
     }
@@ -385,7 +400,9 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional(readOnly = true)
     public Page<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -426,7 +443,9 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional(readOnly = true)
     public Page<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -454,7 +473,9 @@ public class ProgramaServiceImpl implements ProgramaService {
      @Transactional(readOnly = true)
      public Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
          UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
+         if (!ude.isActivo()) {
+             throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+         }
          if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
              throw new AccessDeniedException("No autorizado");
          }
@@ -500,7 +521,9 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional(readOnly = true)
     public Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -556,7 +579,9 @@ public class ProgramaServiceImpl implements ProgramaService {
                         auth.getName(),
                         deptId
                 );
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!ude.hasRole(rolActivo)) {
             throw new AccessDeniedException("No autorizado");
         }
@@ -861,6 +886,29 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
 
+    @Override
+    @Transactional
+    public boolean tieneProgramasActivosComoDocente(UsuarioDepartamentoEntity ude) {
+
+        List<EstadoPrograma> estadosActivos = List.of(
+                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
+                EstadoPrograma.RECHAZADO_A_ADMINISTRACION,
+                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
+                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
+                EstadoPrograma.RECHAZADO_A_PROFESOR,
+                EstadoPrograma.COMPLETO_POR_PROFESOR,
+                EstadoPrograma.APROBADO_POR_COMISION
+        );
+
+        Specification<ProgramaEntity> spec = Specification.allOf(
+                ProgramaSpecifications.departamento(ude.getDepartamento().getId()),
+                ProgramaSpecifications.docente(ude.getUsuario().getLegajo()),
+                ProgramaSpecifications.estadoIn(estadosActivos)
+        );
+
+        return programaRepository.exists(spec);
+    }
+
 
 
     @Override
@@ -877,7 +925,9 @@ public class ProgramaServiceImpl implements ProgramaService {
         Long userId = user.getId();
 
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
@@ -907,11 +957,12 @@ public class ProgramaServiceImpl implements ProgramaService {
         Long userId = user.getId();
 
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }
-
         if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
             throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
         }
@@ -931,7 +982,9 @@ public class ProgramaServiceImpl implements ProgramaService {
         Long userId = user.getId();
 
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-
+        if (!ude.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
             throw new AccessDeniedException("No autorizado");
         }

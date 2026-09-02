@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Plus, Users } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Search, ChevronUp, ChevronDown, Edit2, Trash2, Users } from "lucide-react"
 import { UserResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useDeleteUser } from "@/app/api/generated/client"
+import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useDeleteUserFromDepartamento } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import { useDept } from "@/context/dept-context"
@@ -28,6 +27,9 @@ interface UsuariosListProps {
   onPageChange: (page: number) => void
 }
 
+type SortField = "nombre" | "apellido" | "legajo" | "email"
+type SortOrder = "asc" | "desc"
+
 
 export function UsuariosList({ 
   usuarios = [],
@@ -42,10 +44,10 @@ export function UsuariosList({
   const { activeRole } = useRole()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const queryClient = useQueryClient();
-
+  const [sortField, setSortField] = useState<SortField>("apellido")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   useEffect(() => {
     setHeader({
@@ -62,12 +64,12 @@ export function UsuariosList({
   }
 
 
-  const { mutate, isPending } = useDeleteUser({
+  const { mutate, isPending } = useDeleteUserFromDepartamento({
     mutation: {
         onSuccess: (_, variables) => {
           toast({
-            title: "✓ Éxito",
-            description: "Usuario eliminado exitosamente",
+            title: "✓ Usuario dado de baja",
+            description: "El usuario fue dado de baja del departamento correctamente.",
             variant: "success",
           })
 
@@ -88,15 +90,16 @@ export function UsuariosList({
           if (axios.isAxiosError(error)) {
             const backendError = error.response?.data;
             
-            errorMessage = backendError?.errors?.Error || 
-                          backendError?.message || 
-                          "Ocurrió un error inesperado";
+            errorMessage = backendError?.errors?.Error ?? 
+                          backendError?.message ?? 
+                          backendError?.error ??
+                          "Ocurrió un error inesperado"
           } else if (error instanceof Error) {
             errorMessage = error.message;
           }
 
           toast({
-            title: "✗ Error",
+            title: "✗ No se puede dar de baja al usuario",
             description: errorMessage,
             variant: "destructive",
           })
@@ -104,20 +107,57 @@ export function UsuariosList({
     }
   });
 
+
+  const sortedUsuarios = useMemo(() => {
+    const getSortValue = (usuario: UserResponseDTO, field: SortField): string => {
+      switch (field) {
+        case "legajo":
+          return String(usuario.legajo ?? "")
+
+        case "nombre":
+          return String(usuario.nombre ?? "")
+
+        case "apellido":
+          return String(usuario.apellido ?? "")
+
+        case "email":
+          return String(usuario.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email ?? "")
+
+        default:
+          return ""
+      }
+    }
+
+    const sorted = usuarios.sort((a, b) => {
+      const aValue = getSortValue(a, sortField)
+      const bValue = getSortValue(b, sortField)
+
+      return sortOrder === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
+    })
+
+    return sorted
+  }, [usuarios, sortField, sortOrder])
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("asc")
+    }
+  }
+
+
   const handleDeleteConfirm = async () => {
-    if (!selectedUser?.id) return
+    if (!selectedUser?.id || !activeDepartamento?.departamentoId) return
 
-    setIsSubmitting(true)
     try {
-
-      mutate({ id: selectedUser.id });
-
+      mutate({ deptId: activeDepartamento?.departamentoId, id: selectedUser.id});
       setDeleteDialogOpen(false)
       setSelectedUser(null)
     } catch (error) {
-      console.error("Error deleting User:", error)
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -164,16 +204,44 @@ export function UsuariosList({
             <thead className="bg-primary text-primary-foreground">
               <tr>
                 <th className="px-3 py-2 font-semibold text-left">
+                  <button
+                    onClick={() => handleSort("legajo")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Legajo
+                    {sortField === "legajo" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
+                  <button
+                    onClick={() => handleSort("apellido")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Apellido
+                    {sortField === "apellido" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
+                  <button
+                    onClick={() => handleSort("nombre")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Nombre
+                    {sortField === "nombre" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
+                  <button
+                    onClick={() => handleSort("email")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Email Departamental
+                    {sortField === "email" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
                     Roles Departamentales
@@ -186,8 +254,8 @@ export function UsuariosList({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {usuarios.length > 0 ? (
-                usuarios.map((user) => (
+              {sortedUsuarios.length > 0 ? (
+                sortedUsuarios.map((user) => (
                   <tr
                     key={user.id}
                     className="hover:bg-muted/30 transition-colors"
@@ -260,17 +328,18 @@ export function UsuariosList({
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
               <Trash2 size={24} />
-              Confirmar Eliminación
+              Confirmar Baja
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar al usuario{" "}
+              ¿Estás seguro de que deseas dar de baja del departamento al usuario{" "}
               <span className="font-semibold text-foreground">{selectedUser?.apellido} {selectedUser?.nombre} (Legajo: {selectedUser?.legajo})</span>?
             </DialogDescription>
           </DialogHeader>
 
           <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-4 my-4">
             <p className="text-sm text-foreground">
-              Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al usuario.
+              El usuario perderá sus roles y permisos dentro de este departamento.
+              Su información histórica permanecerá registrada en el sistema.
             </p>
           </div>
 
@@ -278,7 +347,7 @@ export function UsuariosList({
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
-              disabled={isSubmitting}
+              disabled={isPending}
               className="border-2"
             >
               Cancelar
@@ -286,10 +355,10 @@ export function UsuariosList({
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
-              disabled={isSubmitting}
+              disabled={isPending}
               className="bg-destructive"
             >
-              {isSubmitting ? "Eliminando..." : "Eliminar Usuario"}
+              {isPending ? "Eliminando..." : "Eliminar Usuario"}
             </Button>
           </DialogFooter>
         </DialogContent>

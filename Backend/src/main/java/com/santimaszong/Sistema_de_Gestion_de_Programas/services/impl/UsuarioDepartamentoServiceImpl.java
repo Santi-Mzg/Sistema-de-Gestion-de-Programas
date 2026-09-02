@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -47,6 +48,12 @@ public class UsuarioDepartamentoServiceImpl implements UsuarioDepartamentoServic
         return udeRepo.findByUsuarioLegajoAndDepartamentoId(legajo, deptId).
                 orElseThrow(() -> new IllegalStateException("El usuario indicado no esta relacionado con el departamento en cuestion."));
     }
+
+    @Override
+    public Optional<UsuarioDepartamentoEntity> findByUsuarioLegajoAndDepartamentoIdOptional(String legajo, Long deptId) {
+        return udeRepo.findByUsuarioLegajoAndDepartamentoId(legajo, deptId);
+    }
+
     @Override
     public UsuarioDepartamentoEntity save(UsuarioDepartamentoEntity entity) {
         return udeRepo.save(entity);

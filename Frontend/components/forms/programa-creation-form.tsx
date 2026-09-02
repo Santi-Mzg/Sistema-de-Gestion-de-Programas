@@ -56,24 +56,19 @@ export function SyllabusCreationForm() {
   const [loadingProgramaAnioExistente, setLoadingProgramaAnioExistente] = useState(false);
 
   const [showDraft, setShowDraft] = useState(false)
-  const [loadDraft, setLoadDraft] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(false);
 
   const [showProgramaVigente, setShowProgramaVigente] = useState(false)
-  const [loadProgramaVigente, setLoadProgramaVigente] = useState(false);
   const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
 
-  // type ProgramaLoadStep =
-  // | "IDLE"
-  // | "CHECK_ANIO"
-  // | "SHOW_ANIO_DIALOG"
-  // | "CHECK_DRAFT"
-  // | "SHOW_DRAFT_DIALOG"
-  // | "CHECK_VIGENTE"
-  // | "SHOW_VIGENTE_DIALOG"
-  // | "READY";
-
-  // const [step, setStep] = useState<ProgramaLoadStep>("IDLE");
+  
+  type LoadStep =
+  | "CHECK_CURRENT"
+  | "CHECK_DRAFT"
+  | "CHECK_VIGENTE"
+  | "READY"
+  
+  const [step, setStep] = useState<LoadStep>("CHECK_CURRENT")
 
   const [showCreationWarning, setShowCreationWarning] = useState(false);
   const materiaButtonRef = useRef<HTMLButtonElement>(null)
@@ -313,19 +308,18 @@ export function SyllabusCreationForm() {
   }
 
   useEffect(() => {
-    if (selectedMateria){
-      setShowDraft(false);
-      setLoadDraft(false);
-      setShowProgramaVigente(false);
-      setLoadProgramaVigente(false);
-      setShowCreationWarning(false);
-      setShowProgramaAnioExistente(false);
-    }   
-  }, [selectedMateria]); 
+    if (!selectedMateria) return
+
+    setShowProgramaAnioExistente(false)
+    setShowDraft(false)
+    setShowProgramaVigente(false)
+
+    setStep("CHECK_CURRENT")
+  }, [selectedMateria])
 
   const programaAnioExistenteQuery = useGetProgramaMateriaAnio(materiaId ?? 0, {
     query: {
-      enabled: !!materiaId, 
+      enabled: !!materiaId && step === "CHECK_CURRENT", 
       staleTime: Infinity, 
       retry: false,
       queryKey: getGetProgramaMateriaAnioQueryKey(materiaId)
@@ -333,15 +327,14 @@ export function SyllabusCreationForm() {
   });
 
   useEffect(() => {
-    if (programaAnioExistenteQuery.isSuccess) {
-      if (programaAnioExistenteQuery.data) {
-        setShowProgramaAnioExistente(true);
-        setLoadDraft(false);
-      } else {
-        setShowProgramaAnioExistente(false);
-        setLoadDraft(true);
-      }
+    if (!programaAnioExistenteQuery.isSuccess) return
+
+    if (programaAnioExistenteQuery.data) {
+      setShowProgramaAnioExistente(true);
+    } else {
+      setStep("CHECK_DRAFT")
     }
+
   }, [programaAnioExistenteQuery.data, programaAnioExistenteQuery.isSuccess]);
 
   const programaAnioExistente: ProgramaResponseDTO | undefined = programaAnioExistenteQuery.data;
@@ -355,7 +348,7 @@ export function SyllabusCreationForm() {
     },
     {
       query: {
-        enabled: !!activeDepartamento?.departamentoId && !!materiaId && loadDraft,
+        enabled: !!activeDepartamento?.departamentoId && !!materiaId && step === "CHECK_DRAFT",
         staleTime: Infinity,
         refetchOnWindowFocus: false,
         gcTime: 0,
@@ -372,28 +365,27 @@ export function SyllabusCreationForm() {
   );
 
   useEffect(() => {
-    if (draftQuery.isSuccess) {
-      if (draftQuery.data?.payloadJson) {
-        setShowDraft(true);
-        setLoadProgramaVigente(false);
-      } else {
-        setLoadProgramaVigente(true);
-        setShowDraft(false);
-      }
+    if (!draftQuery.isSuccess) return 
+
+    if (draftQuery.data?.payloadJson) {
+      setShowDraft(true);
+    } else {
+      setStep("CHECK_VIGENTE")
     }
+    
   }, [draftQuery.data, draftQuery.isSuccess]); 
 
 
   const handleLoadDraft = () => {
     if (!draftQuery.data?.payloadJson) return
 
-    setLoadingDraft(true)
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
       setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
       reset(draftData)
       setShowDraft(false)
-
+      setStep("READY")
+     
       toast({
         title: "Borrador recuperado",
         description: "Se restauró un borrador exitosamente",
@@ -402,13 +394,12 @@ export function SyllabusCreationForm() {
     } catch (error) {
       console.error("Error loading draft:", error)
     } finally {
-      setLoadingDraft(false)
     }
   }
 
   const programaVigenteQuery = useGetProgramaVigente(materiaId ?? 0, {
     query: {
-      enabled: !!materiaId && loadProgramaVigente,
+      enabled: !!materiaId && step === "CHECK_VIGENTE",
       staleTime: Infinity,
       retry: false,
       queryKey: getGetProgramaVigenteQueryKey(materiaId),
@@ -416,49 +407,70 @@ export function SyllabusCreationForm() {
   });
 
   useEffect(() => {
-    if (programaVigenteQuery.data){
-      setShowProgramaVigente(true);
+    if (!programaVigenteQuery.isSuccess) return
+
+    if (programaVigenteQuery.data) {
+      setShowProgramaVigente(true)
+    } else {
+      setStep("READY")
     }
-  }, [programaVigenteQuery.data]);
+  }, [programaVigenteQuery.data, programaVigenteQuery.isSuccess]);
 
 
   const programaVigente: ProgramaResponseDTO | undefined = programaVigenteQuery.data;
 
 
-  const handleLoadProgramaVigente = async () => {
+  const handleLoadProgramaVigente = () => {
     if (!programaVigente) return
 
-    setLoadingProgramaVigente(true)
-    setSelectedMateria(programaVigente.materia)
-
-    console.log("programaVigente completo:", programaVigente);
-    console.log("bloques vigentes:", programaVigente?.bloqueMultiple);
     try {
       const mappedData: ProgramaCargaDTO = {
-        materiaId: materiaId,
-        profesorResponsableId: programaVigente.profesorResponsable?.id || undefined,
+        materiaId,
+
+        profesorResponsableId:
+          programaVigente.profesorResponsable?.id ?? undefined,
+
         bloqueMultiple:
-          programaVigente.bloqueMultiple?.map((c, idx) => ({
-            key: `${Date.now()}-${idx}-${Math.random()}`,
-            carreraPlanId: c.plan?.id || 0,
-            ubicacionEnPlan: c.ubicacionEnPlan || "",
-            correlativasFuertesIds: c.correlativasFuertes?.map((cf) => cf.id).filter((id): id is number => id !== undefined) || [],
-            correlativasDebilesIds: c.correlativasDebiles?.map((cd) => cd.id).filter((id): id is number => id !== undefined) || [],
-            contribucion: c.contribucion || "",
-            contenidosMinimos: c.contenidosMinimos || "",
-          })) || [],
-        cargaHorariaTotal: programaVigente.cargaHorariaTotal || undefined,
-        cargaHorariaSemanal: programaVigente.cargaHorariaSemanal || undefined,
-        creditos: programaVigente.creditos || undefined,
-        cantidadSemanas: programaVigente.cantidadSemanas || undefined,
+          programaVigente.bloqueMultiple?.map((c) => ({
+            carreraPlanId: c.plan?.id ?? 0,
+            ubicacionEnPlan: c.ubicacionEnPlan ?? "",
+            correlativasFuertesIds:
+              c.correlativasFuertes
+                ?.map(cf => cf.id)
+                .filter((id): id is number => id !== undefined) ?? [],
+            correlativasDebilesIds:
+              c.correlativasDebiles
+                ?.map(cd => cd.id)
+                .filter((id): id is number => id !== undefined) ?? [],
+            contribucion: c.contribucion ?? "",
+            contenidosMinimos: c.contenidosMinimos ?? "",
+          })) ?? [],
+
+        cargaHorariaTotal:
+          programaVigente.cargaHorariaTotal ?? undefined,
+
+        cargaHorariaSemanal:
+          programaVigente.cargaHorariaSemanal ?? undefined,
+
+        creditos:
+          programaVigente.creditos ?? undefined,
+
+        cantidadSemanas:
+          programaVigente.cantidadSemanas ?? undefined,
       }
+
       reset(mappedData)
-      setLoadProgramaVigente(false)
+
+      setSelectedProfesor(
+        profesores?.find(
+          p => p.id === programaVigente.profesorResponsable?.id
+        )
+      )
+
       setShowProgramaVigente(false)
+      setStep("READY")
     } catch (error) {
       console.error("Error loading previous program:", error)
-    } finally {
-      setLoadingProgramaVigente(false)
     }
   }
 
@@ -1165,25 +1177,35 @@ export function SyllabusCreationForm() {
         programa={programaAnioExistente}
         onConfirm={() => {
           setShowProgramaAnioExistente(false)
-          setLoadDraft(true)
+          setStep("CHECK_DRAFT")
         }}
         onCancel={() => {
           setShowProgramaAnioExistente(false)
           setSelectedMateria(undefined)
           setValue("materiaId", 0, {
-              shouldDirty: true,
+              shouldDirty: false,
               shouldValidate: true,
           })
+          setStep("READY")
         }}
         isLoading={loadingProgramaAnioExistente}
       />
 
       <CargarProgramaVigenteDialog
         open={showProgramaVigente}
-        onOpenChange={setShowProgramaVigente}
+        onOpenChange={(open) => {
+          setShowProgramaVigente(open)
+
+          if (!open) {
+            setStep("READY")
+          }
+        }}
         programa={programaVigente}
         onConfirm={handleLoadProgramaVigente}
-        onCancel={() => setShowProgramaVigente(false)}
+        onCancel={() => {
+          setShowProgramaVigente(false)
+          setStep("READY")
+        }}
         isLoading={loadingProgramaVigente}
       />
 
@@ -1224,7 +1246,15 @@ export function SyllabusCreationForm() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!showDraft} onOpenChange={(open: any) => !open && setShowDraft(false)}>
+        <Dialog
+          open={!!showDraft}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowDraft(false)
+              setStep("CHECK_VIGENTE")
+            }
+          }}
+        >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
@@ -1241,11 +1271,11 @@ export function SyllabusCreationForm() {
               variant="outline"
               onClick={() => {
                 setShowDraft(false)
-                setLoadProgramaVigente(true)
+                setStep("CHECK_VIGENTE")
               }}
               className="border-2"
             >
-              Cancelar
+              No cargar
             </Button>
             <Button
               variant="secondary"

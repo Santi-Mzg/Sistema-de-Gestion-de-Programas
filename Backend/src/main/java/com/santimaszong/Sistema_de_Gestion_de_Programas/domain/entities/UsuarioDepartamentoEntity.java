@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
@@ -26,6 +27,12 @@ public class UsuarioDepartamentoEntity {
     @ManyToOne
     @JoinColumn(name = "departamento_id")
     private DepartamentoEntity departamento;
+
+    @Column(nullable = false)
+    private boolean activo = true;
+
+    private LocalDateTime fechaBaja;
+    private LocalDateTime fechaAlta;
 
     @Column(nullable = false)
     private String email;
@@ -60,6 +67,4 @@ public class UsuarioDepartamentoEntity {
     public boolean hasAnyRole(Rol... roles) {
         return Arrays.stream(roles).anyMatch(this.roles::contains);
     }
-
-
 }

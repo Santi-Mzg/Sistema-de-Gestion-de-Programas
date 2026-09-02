@@ -10,6 +10,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.CarreraRepo
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.UserRepository;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ public class CarreraServiceImpl implements CarreraService {
     private final CarreraRepository carreraRepository;
     private final CarreraPlanRepository planRepository;
     private final DepartamentoService departamentoService;
+    private final UsuarioDepartamentoService userDptoService;
     private final UserRepository userRepository;
     private final CarreraMapper carreraMapper;
     private final CarreraPlanMapper planMapper;
@@ -35,6 +37,7 @@ public class CarreraServiceImpl implements CarreraService {
     public CarreraServiceImpl(CarreraRepository carreraRepository,
                               CarreraPlanRepository planRepository,
                               DepartamentoService departamentoService,
+                              UsuarioDepartamentoService userDptoService,
                               UserRepository userRepository,
                               CarreraMapper carreraMapper,
                               CarreraPlanMapper planMapper,
@@ -42,6 +45,7 @@ public class CarreraServiceImpl implements CarreraService {
         this.carreraRepository = carreraRepository;
         this.planRepository = planRepository;
         this.departamentoService = departamentoService;
+        this.userDptoService = userDptoService;
         this.userRepository = userRepository;
         this.carreraMapper = carreraMapper;
         this.planMapper = planMapper;
@@ -205,6 +209,11 @@ public class CarreraServiceImpl implements CarreraService {
     @Override
     @Transactional
     public void deleteCarrera(Long id) {
+        CarreraEntity carrera = carreraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe la carrera"));
+        UsuarioDepartamentoEntity udeExComision = carrera.getComision();
+        udeExComision.getRoles().remove(Rol.COORDINACION_COMISION_CURRICULAR);
+        userDptoService.save(udeExComision);
         carreraRepository.deleteById(id);
     }
 

@@ -121,7 +121,9 @@ public class DepartamentoServiceImpl implements DepartamentoService {
         });
 
         UsuarioDepartamentoEntity udeNuevoSecretario = userDptoService.findByUsuarioIdAndDepartamentoId(nuevaSecretariaId, id);
-
+        if (!udeNuevoSecretario.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         udeNuevoSecretario.getRoles().add(Rol.SECRETARIA);
 
         userDptoService.save(udeNuevoSecretario);
@@ -155,7 +157,9 @@ public class DepartamentoServiceImpl implements DepartamentoService {
         });
 
         UsuarioDepartamentoEntity udeNuevaDireccion = userDptoService.findByUsuarioIdAndDepartamentoId(nuevaDireccionId, id);
-
+        if (!udeNuevaDireccion.isActivo()) {
+            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        }
         udeNuevaDireccion.getRoles().add(Rol.DIRECCION_ADMINISTRATIVA);
 
         userDptoService.save(udeNuevaDireccion);

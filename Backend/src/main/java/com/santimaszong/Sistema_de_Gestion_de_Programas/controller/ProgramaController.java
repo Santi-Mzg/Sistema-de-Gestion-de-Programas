@@ -188,13 +188,13 @@ public class ProgramaController {
     }
 
     @GetMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
-    public ProgramaDraftDTO getDraft(
+    public ResponseEntity<ProgramaDraftDTO> getDraft(
             @PathVariable Long deptId,
             @PathVariable Long materiaId,
             @RequestParam Rol rolActivo,
             @AuthenticationPrincipal UserEntity user
     ) {
-        return programaService.getDraft(deptId, materiaId, user, rolActivo);
+        return ResponseEntity.ok(programaService.getDraft(deptId, materiaId, user, rolActivo));
     }
 
     @DeleteMapping("/departamentos/{deptId}/programas/draft/{materiaId}")

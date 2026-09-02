@@ -27,6 +27,9 @@ interface MateriasListProps {
 }
 
 
+type SortField = "nombre" | "codigo" | "area"
+type SortOrder = "asc" | "desc"
+
 export function MateriasList({ 
   materias = [],
   page,
@@ -43,6 +46,9 @@ export function MateriasList({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const queryClient = useQueryClient();
+  const [sortField, setSortField] = useState<SortField>("nombre")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
+
 
   useEffect(() => {
     setHeader({
@@ -58,6 +64,43 @@ export function MateriasList({
     setDeleteDialogOpen(true)
   }
 
+  const sortedMaterias = useMemo(() => {
+    const getSortValue = (materia: MateriaResponseDTO, field: SortField): string => {
+      switch (field) {
+        case "nombre":
+          return String(materia.nombre ?? "")
+
+        case "codigo":
+          return materia.codigo ?? ""
+
+        case "area":
+          return materia.area ?? ""
+
+        default:
+          return ""
+      }
+    }
+
+    const sorted = materias.sort((a, b) => {
+      const aValue = getSortValue(a, sortField)
+      const bValue = getSortValue(b, sortField)
+
+      return sortOrder === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
+    })
+
+    return sorted
+  }, [materias, sortField, sortOrder])
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("asc")
+    }
+  }
 
   const { mutate, isPending } = useDeleteMateria({
     mutation: {
@@ -162,16 +205,34 @@ export function MateriasList({
             <thead className="bg-primary text-primary-foreground">
               <tr>
                 <th className="px-3 py-2 text-left font-semibold">
+                  <button
+                    onClick={() => handleSort("nombre")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Nombre
+                    {sortField === "nombre" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 text-left font-semibold">
+                  <button
+                    onClick={() => handleSort("codigo")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Código
+                    {sortField === "codigo" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 text-left font-semibold">
+                  <button
+                    onClick={() => handleSort("area")}
+                    className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
+                  >
                     Área
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">
-                    Departamento
+                    {sortField === "area" &&
+                      (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                  </button>
                 </th>
                 <th className="px-3 py-2 text-left font-semibold">
                     Acciones
@@ -179,8 +240,8 @@ export function MateriasList({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {materias.length > 0 ? (
-                materias.map((materia) => (
+              {sortedMaterias.length > 0 ? (
+                sortedMaterias.map((materia) => (
                   <tr
                     key={materia.id}
                     className="hover:bg-muted/30 transition-colors"
@@ -188,7 +249,6 @@ export function MateriasList({
                     <td className="px-3 py-1.5 font-medium text-foreground">{materia.nombre}</td>
                     <td className="px-3 py-1.5 text-foreground/80">{materia.codigo}</td>
                     <td className="px-3 py-1.5 text-foreground/80">{materia.area}</td>
-                    <td className="px-3 py-1.5 text-foreground/80">{materia.departamento}</td>
                     <td className="px-3 py-1.5">
                       <div className="flex items-center justify-center gap-1">
                         <Button
