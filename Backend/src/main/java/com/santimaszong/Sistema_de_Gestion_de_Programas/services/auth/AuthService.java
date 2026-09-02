@@ -57,22 +57,13 @@ public class AuthService {
 
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
-        String token = jwtService.generateToken(userDetails.getUsername());
-
-//        UserEntity user = userRepo.findByLegajoWithDepartamentosAndRoles(userDetails.getUsername())
-//                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
-//
-//        UserResponseDTO userResp = userMapper.toDTO(user);
-//
-//        userResp.setToken(token);
-
-        return token;
+        return jwtService.generateToken(userDetails.getUsername());
     }
 
 
     public UserResponseDTO me(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        UserEntity user = userRepo.findByLegajoWithDepartamentos(userDetails.getUsername())
+        UserEntity user = userRepo.findByLegajoWithDepartamentosActivos(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
 
         return userMapper.toDTO(user);
@@ -86,22 +77,44 @@ public class AuthService {
         if(token.isExpired() || token.isUsed()) throw  new IllegalStateException("Token no válido");
         
         UserEntity user = token.getUser();
-        String hashedBtn = passwordEncoder.encode(req.password());
-        user.setPassword(hashedBtn);
-        user.setEnabled(true);
 
-        userRepo.save(user);
+        boolean tieneDepartamentoActivo =
+                user.getDepartamentos().stream()
+                        .anyMatch(UsuarioDepartamentoEntity::isActivo);
+
+        if (!tieneDepartamentoActivo) {
+            throw new IllegalStateException(
+                    "El usuario no posee accesos activos al sistema"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(req.password())
+        );
+
+        if (token.getType() == TokenType.SET_PASSWORD) {
+            user.setEnabled(true);
+        }
 
         token.setUsed(true);
         token.setExpiresAt(LocalDateTime.now());
+
+        userRepo.save(user);
     }
 
     @Transactional
     public void forgotPassword(ForgotPasswordRequest req) {
-        UserEntity user = userRepo.findByLegajoWithDepartamentos(req.legajo())
+        UserEntity user = userRepo.findByLegajoWithDepartamentosActivos(req.legajo())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
+        if (!user.isEnabled()) {
+            throw new IllegalStateException(
+                    "El usuario no posee accesos activos al sistema"
+            );
+        }
+
         Set<String> emails = user.getDepartamentos().stream()
+                .filter(UsuarioDepartamentoEntity::isActivo)
                 .map(UsuarioDepartamentoEntity::getEmail)
                 .collect(Collectors.toSet());
 

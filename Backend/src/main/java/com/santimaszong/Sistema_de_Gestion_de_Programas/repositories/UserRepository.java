@@ -23,8 +23,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
         LEFT JOIN FETCH ud.roles r
         LEFT JOIN FETCH ud.carrerasComoComision ccc
         WHERE u.legajo = :legajo
+        AND ud.activo = true
     """)
-    Optional<UserEntity> findByLegajoWithDepartamentos(@Param("legajo") String legajo);
+    Optional<UserEntity> findByLegajoWithDepartamentosActivos(@Param("legajo") String legajo);
 
     Optional<UserEntity> findByLegajo(String legajo);
 
@@ -36,6 +37,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
         FROM UserEntity u
         JOIN u.departamentos ud
         WHERE ud.departamento.id = :deptId
+        AND ud.activo = true
         AND (:includeAdmins = true OR u.isAdmin = false)
         AND (
             :search = ''
@@ -50,6 +52,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
         FROM UserEntity u
         JOIN u.departamentos ud
         WHERE ud.departamento.id = :deptId
+        AND ud.activo = true
         AND (:includeAdmins = true OR u.isAdmin = false)
         AND (
             :search = ''

@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.TokenType;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.PasswordTokenRepository;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.auth.AuthService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final AuthService authService;
     private final UsuarioDepartamentoService userDptoService;
     private final EmailService emailService;
+    private final ProgramaService programaService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
                            AuthService authService,
                            UsuarioDepartamentoService userDptoService,
                            EmailService emailService,
+                           ProgramaService programaService,
                            UserMapper userMapper,
                            PasswordEncoder passwordEncoder) {
 
@@ -52,6 +55,7 @@ public class UserServiceImpl implements UserService {
         this.authService = authService;
         this.userDptoService = userDptoService;
         this.emailService = emailService;
+        this.programaService = programaService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -63,37 +67,51 @@ public class UserServiceImpl implements UserService {
         UserEntity user;
         boolean nuevoUsuario = false;
 
-        Optional<UserEntity> existingUser = userRepository.findByLegajoWithDepartamentos(userDTO.getLegajo());
+        DepartamentoEntity departamento = userDptoService.getDeptEntityById(deptId);
+        Optional<UserEntity> existingUser = userRepository.findByLegajo(userDTO.getLegajo());
+
 
         if (existingUser.isPresent()) { // Si existe lo busco
             user = existingUser.get();
+            Optional<UsuarioDepartamentoEntity> existingUDE = userDptoService.findByUsuarioLegajoAndDepartamentoIdOptional(userDTO.getLegajo(), deptId);
 
-            boolean userInDpto = user.getDepartamentos().stream()
-                    .anyMatch(ude -> ude.getDepartamento().getId().equals(deptId));
+            if(existingUDE.isPresent()) { // Existe y ademas esta/estuvo en el depa
+                UsuarioDepartamentoEntity ude = existingUDE.get();
 
-            if(userInDpto) { // Si ya tiene un ude de ese departamento retorno
-                throw new IllegalArgumentException("Usuario ya registrado en el departamento indicado");
+                if(ude.isActivo()) { // Esta activo
+                    throw new IllegalArgumentException("Usuario ya registrado en el departamento indicado");
+                }
+
+                // Sino lo reactivamos
+                ude.setActivo(true);
+                ude.setFechaBaja(null);
+                ude.setFechaAlta(LocalDateTime.now());
+                ude.setEmail(userDTO.getEmail());
+                ude.setRoles(userDTO.getRoles());
+                user.setEnabled(true);
+
+            } else { // Existe pero nunca pertenecio al departamento
+
+                UsuarioDepartamentoEntity ude = crearUsuarioDepartamento(user, departamento, userDTO);
+
+                user.getDepartamentos().add(ude);
+                user.setEnabled(true);
             }
 
-        } else { // Si no existe lo creo
+        } else { // Si no existe lo creo y lo agrego al departamento
 
             user = new UserEntity();
+
             user.setNombre(userDTO.getNombre());
             user.setApellido(userDTO.getApellido());
             user.setLegajo(userDTO.getLegajo());
+            user.setEnabled(false);
+
+            UsuarioDepartamentoEntity ude = crearUsuarioDepartamento(user, departamento, userDTO);
+            user.getDepartamentos().add(ude);
 
             nuevoUsuario = true;
         }
-
-        // De todas maneras creo el ude acorde al departamento
-        DepartamentoEntity departamento = userDptoService.getDeptEntityById(deptId);
-
-        UsuarioDepartamentoEntity ude = new UsuarioDepartamentoEntity();
-        ude.setUsuario(user);
-        ude.setDepartamento(departamento);
-        ude.setEmail(userDTO.getEmail());
-        ude.setRoles(userDTO.getRoles());
-        user.getDepartamentos().add(ude);
 
         UserEntity savedUser = userRepository.save(user);
 
@@ -107,8 +125,7 @@ public class UserServiceImpl implements UserService {
                 token.setTokenHash(hashedToken);
                 token.setType(TokenType.SET_PASSWORD);
                 token.setCreatedAt(LocalDateTime.now());
-//                token.setExpiresAt(LocalDateTime.now().plusHours(1));
-                token.setExpiresAt(LocalDateTime.now().plusYears(1));
+                token.setExpiresAt(LocalDateTime.now().plusHours(1));
                 token.setUsed(false);
 
                 tokenRepository.save(token);
@@ -125,6 +142,26 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDTO(savedUser);
     }
 
+    private UsuarioDepartamentoEntity crearUsuarioDepartamento(
+            UserEntity user,
+            DepartamentoEntity departamento,
+            UserCreateDTO userDTO
+    ) {
+        UsuarioDepartamentoEntity ude =
+                new UsuarioDepartamentoEntity();
+
+        ude.setUsuario(user);
+        ude.setDepartamento(departamento);
+        ude.setEmail(userDTO.getEmail());
+        ude.setRoles(userDTO.getRoles());
+
+        ude.setActivo(true);
+        ude.setFechaAlta(LocalDateTime.now());
+        ude.setFechaBaja(null);
+
+        return ude;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
@@ -137,7 +174,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO getUserByLegajo(String legajo) {
-        UserEntity foundUser = userRepository.findByLegajoWithDepartamentos(legajo)
+        UserEntity foundUser = userRepository.findByLegajoWithDepartamentosActivos(legajo)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
 
         return userMapper.toDTO(foundUser);
@@ -183,7 +220,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDTO> listDocentesDepartamento(Long deptId, UserEntity auth) {
         List<UserResponseDTO> userList = userDptoService.findFullByDepartamentoId(deptId)
                 .stream()
-                .filter(ude -> ude.hasRole(Rol.DOCENTE))
+                .filter(ude -> ude.isActivo() && ude.hasRole(Rol.DOCENTE))
                 .map(UsuarioDepartamentoEntity::getUsuario)
                 .map(userMapper::toDTO)
                 .toList();
@@ -259,6 +296,9 @@ public class UserServiceImpl implements UserService {
             Optional.ofNullable(userDTO.getLegajo()).ifPresent(existingUser::setLegajo);
             Optional.ofNullable(userDTO.getEmail()).ifPresent(email -> {
                 UsuarioDepartamentoEntity ude = userDptoService.findByUsuarioIdAndDepartamentoId(id, deptId);
+                if (!ude.isActivo()) {
+                    throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+                }
                 ude.setEmail(email);
             });
             Optional.ofNullable(userDTO.getPassword()).ifPresent( password -> {
@@ -273,7 +313,74 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUserFromDepartamento(Long id, Long deptId) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no existente"));
+
+        UsuarioDepartamentoEntity ude =
+                userDptoService.findByUsuarioIdAndDepartamentoId(id, deptId);
+
+        if (!ude.isActivo()) {
+            throw new IllegalStateException(
+                    "El usuario ya se encuentra inactivo en el departamento"
+            );
+        }
+
+        validarQuePuedeDarseDeBaja(ude);
+
+        // Baja lógica del usuario dentro del departamento
+        ude.setActivo(false);
+        ude.setFechaBaja(LocalDateTime.now());
+
+        // Evita que conserve permisos operativos
+        ude.getRoles().clear();
+
+        userDptoService.save(ude);
+
+        // Si ya no pertenece activamente a ningún departamento,
+        // se deshabilita también la cuenta global.
+        boolean tieneDepartamentosActivos =
+                user.getDepartamentos().stream()
+                        .anyMatch(UsuarioDepartamentoEntity::isActivo);
+
+        if (!tieneDepartamentosActivos) {
+            user.setEnabled(false);
+            userRepository.save(user);
+        }
+
+    }
+
+    private void validarQuePuedeDarseDeBaja(
+            UsuarioDepartamentoEntity ude
+    ) {
+        if (!ude.getCarrerasComoComision().isEmpty()) {
+            throw new IllegalStateException(
+                    "No se puede dar de baja al usuario porque coordina una o más carreras"
+            );
+        }
+
+        if (ude.getRoles().contains(Rol.SECRETARIA)) {
+            throw new IllegalStateException(
+                    "No se puede dar de baja al usuario porque actualmente ocupa el cargo de Secretaría Académica"
+            );
+        }
+
+        if (ude.getRoles().contains(Rol.DIRECCION_ADMINISTRATIVA)) {
+            throw new IllegalStateException(
+                    "No se puede dar de baja al usuario porque actualmente ocupa el cargo de Dirección Administrativa"
+            );
+        }
+
+        if (ude.getRoles().contains(Rol.SYSTEM_ADMIN)) {
+            throw new IllegalStateException(
+                    "No se puede dar de baja al usuario porque es un Administrador del Sistema"
+            );
+        }
+
+        if (programaService.tieneProgramasActivosComoDocente(ude)) {
+            throw new IllegalStateException(
+                    "No se puede dar de baja al usuario porque posee programas activos como docente responsable"
+            );
+        }
     }
 }

@@ -9,11 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UsuarioDepartamentoService {
     List<UsuarioDepartamentoEntity> findByDepartamentoId(Long deptId);
     UsuarioDepartamentoEntity findByUsuarioIdAndDepartamentoId(Long userId, Long deptId);
     UsuarioDepartamentoEntity findByUsuarioLegajoAndDepartamentoId(String legajo, Long deptId);
+    Optional<UsuarioDepartamentoEntity> findByUsuarioLegajoAndDepartamentoIdOptional(String legajo, Long deptId);
     UsuarioDepartamentoEntity save(UsuarioDepartamentoEntity entity);
     DepartamentoEntity getDeptEntityById(Long deptId);
     UserEntity getUserEntityById(Long userId);

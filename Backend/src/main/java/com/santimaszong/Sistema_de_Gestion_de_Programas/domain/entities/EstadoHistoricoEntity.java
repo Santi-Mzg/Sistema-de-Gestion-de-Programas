@@ -43,7 +43,6 @@ public class EstadoHistoricoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "actor_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private UsuarioDepartamentoEntity actor;
 
     private Rol actorRol;

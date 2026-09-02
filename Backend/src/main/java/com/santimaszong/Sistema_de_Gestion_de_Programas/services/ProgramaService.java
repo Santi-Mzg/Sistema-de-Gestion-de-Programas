@@ -2,12 +2,14 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 
 import java.util.List;
 
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.programa.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 
 public interface ProgramaService {
@@ -29,5 +31,7 @@ public interface ProgramaService {
     Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
     Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
     DashboardResumenDTO getDashboardResumen(Authentication auth, Long deptId, Rol rolActivo);
+    boolean tieneProgramasActivosComoDocente(UsuarioDepartamentoEntity ude);
+
 
 }

@@ -76,7 +76,7 @@ export default function Usuarios() {
           <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
-              placeholder="Buscar por nombre o legajo..."
+              placeholder="Buscar por nombre, apellido o legajo..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"

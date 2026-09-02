@@ -46,7 +46,7 @@ public class MateriaServiceImpl implements MateriaService {
 
         materiaEntity.setDepartamento(area.getDepartamento());
         materiaEntity.setArea(area);
-
+        materiaEntity.setCodigo(materiaDTO.getCodigo().trim().toUpperCase());
         MateriaEntity createdMateriaEntity = materiaRepository.save(materiaEntity);
 
         return materiaMapper.toDTO(createdMateriaEntity);

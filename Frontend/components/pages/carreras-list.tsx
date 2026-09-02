@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, Trash2, Eye, Plus, GraduationCap } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Search, Trash2, Eye, GraduationCap } from "lucide-react"
 import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { getGetCarreraQueryKey, getListCarrerasDepartamentoQueryKey, useDeleteCarrera } from "@/app/api/generated/client"
@@ -39,7 +38,6 @@ export function CarrerasList({
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
-  const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResponseDTO | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,6 +60,19 @@ export function CarrerasList({
       })
     }
   }, [])
+
+
+  const sortedCarreras = useMemo(() => {
+    const sorted = carreras.sort((a, b) => {
+      const aValue = a.nombre ?? ""
+      const bValue = b.nombre ?? ""
+
+      return aValue.localeCompare(bValue)
+    })
+
+    return sorted
+  }, [carreras])
+
 
 
   const handleDeleteClick = (carrera: CarreraResponseDTO) => {
@@ -146,7 +157,7 @@ export function CarrerasList({
       <div className="p-8 max-w-7xl mx-auto">
         {/* Search and Filters Section */}
           <div className="mb-4 text-sm text-muted-foreground">
-              {carreras.length > 0 && (
+              {sortedCarreras.length > 0 && (
                 <span>
                   Mostrando{" "}
                   <span className="font-medium text-foreground">
@@ -185,8 +196,8 @@ export function CarrerasList({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {carreras.length > 0 ? (
-                carreras.map((carrera) => (
+              {sortedCarreras.length > 0 ? (
+                sortedCarreras.map((carrera) => (
                   <tr
                     key={carrera.id}
                     className="hover:bg-muted/30 transition-colors"
