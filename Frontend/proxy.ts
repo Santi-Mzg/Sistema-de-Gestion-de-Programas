@@ -12,7 +12,7 @@
   export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    let token = req.cookies.get('jwt')?.value;
+    const token = req.cookies.get('jwt')?.value;
 
     // Rutas públicas
     if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {

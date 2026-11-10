@@ -4,8 +4,8 @@
 # Execution flow:
 #
 #   secret-detection (gate: blocks if secrets are detected)
-#   ├── test-backend  (gate: all backend tests must pass)
-#   ├── test-frontend (gate: all frontend tests must pass)
+#   ├── test-backend  (gate: isolated tests and production JAR)
+#   ├── test-frontend (gate: types, lint baseline, tests and production build)
 #   ├── sca-backend   (gate: blocks on CRITICAL)
 #   ├── sca-frontend  (gate: blocks on HIGH+ production vulnerabilities)
 #   ├── sast          (informational findings; analysis job must complete)
@@ -34,9 +34,9 @@
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 permissions:
   contents: read
@@ -76,8 +76,9 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 2a ─ Backend Tests — GATE
   #
-  # Runs the complete Maven test suite.
-  # Any failing test blocks DAST.
+  # Runs the ordinary Maven test suite and packages the application with profile ci.
+  # Persistent local data launchers are excluded; tests use H2 and mocks.
+  # A failing test or build blocks DAST.
   # ═══════════════════════════════════════════════════════════════════════════
   test-backend:
     name: "2a · Backend Tests"
@@ -95,19 +96,27 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Run backend tests
+      - name: Test and package backend (isolated H2 and mocks)
         working-directory: Backend
         run: |
           chmod +x ./mvnw
-          ./mvnw test --no-transfer-progress
+          ./mvnw -Pci clean verify --no-transfer-progress
+
+      - name: Upload backend test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: Backend/target/surefire-reports/
+          if-no-files-found: warn
 
 
   # ═══════════════════════════════════════════════════════════════════════════
   # JOB 2b ─ Frontend Tests — GATE
   #
-  # Installs dependencies from package-lock.json and runs the complete
-  # Vitest test suite in non-interactive CI mode.
-  # Any failing test blocks DAST.
+  # Installs dependencies from package-lock.json, then runs
+  # type checking, lint against the reviewed baseline, the complete Vitest suite
+  # and a production build. Any failing check blocks DAST.
   # ═══════════════════════════════════════════════════════════════════════════
   test-frontend:
     name: "2b · Frontend Tests (Vitest)"
@@ -129,9 +138,24 @@ jobs:
         working-directory: Frontend
         run: npm ci
 
+      - name: Check frontend types
+        working-directory: Frontend
+        run: npm run typecheck
+
+      - name: Lint frontend
+        working-directory: Frontend
+        run: npm run lint:ci
+
       - name: Run frontend tests
         working-directory: Frontend
-        run: npx vitest run --passWithNoTests
+        run: npm test
+
+      - name: Build frontend for production
+        working-directory: Frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:8080
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
 
 
   # ═══════════════════════════════════════════════════════════════════════════

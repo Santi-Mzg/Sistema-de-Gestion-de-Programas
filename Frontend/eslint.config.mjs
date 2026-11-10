@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // El contrato generado se verifica con TypeScript; no se edita su estilo a mano.
+    "app/api/generated/**",
   ]),
 ]);
 
