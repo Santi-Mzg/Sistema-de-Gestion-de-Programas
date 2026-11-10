@@ -13,19 +13,20 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useRole } from "@/context/role-context"
-import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { Rol } from "@/app/api/generated/model"
 
 interface RechazDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => void
+  onConfirm: (destino: Rol, justificacion: string) => void
+  destinos?: Rol[]
   isLoading?: boolean
 }
 
-export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: RechazDialogProps) {
+export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destinos }: RechazDialogProps) {
   const { activeRole } = useRole()
   const [step, setStep] = useState<"destino" | "justificacion">("destino")
-  const [selectedDestino, setSelectedDestino] = useState<UsuarioDepartamentoDTORolesItem>("ADMINISTRACION")
+  const [selectedDestino, setSelectedDestino] = useState<Rol>("ADMINISTRACION")
   const [justificacion, setJustificacion] = useState("")
 
   const handleNextStep = () => {
@@ -55,36 +56,13 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
             </DialogHeader>
 
             <div className="space-y-3">
-              <label className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5 transition">
-                <input
-                  type="radio"
-                  name="destino"
-                  value="ADMINISTRACION"
-                  checked={selectedDestino === "ADMINISTRACION"}
-                  onChange={(e) => setSelectedDestino(e.target.value as UsuarioDepartamentoDTORolesItem)}
-                  className="w-4 h-4"
-                />
-                <div>
-                  <p className="font-semibold text-foreground">Administración</p>
-                  <p className="text-sm text-muted-foreground">Enviar para revisión administrativa</p>
-                </div>
-              </label>
-              {!(activeRole === "DOCENTE") && 
-                <label className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5 transition">
-                  <input
-                    type="radio"
-                    name="destino"
-                    value="DOCENTE"
-                    checked={selectedDestino === "DOCENTE"}
-                    onChange={(e) => setSelectedDestino(e.target.value as UsuarioDepartamentoDTORolesItem)}
-                    className="w-4 h-4"
-                  />
-                  <div>
-                    <p className="font-semibold text-foreground">Docente Responsable</p>
-                    <p className="text-sm text-muted-foreground">Devolver al docente para correcciones</p>
-                  </div>
+              {(destinos ?? (activeRole === 'DOCENTE' ? ['ADMINISTRACION', 'SECRETARIA'] : ['ADMINISTRACION', 'SECRETARIA', 'DOCENTE'])).map(destino => (
+                <label key={destino} className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5">
+                  <input type="radio" name="destino" value={destino} checked={selectedDestino === destino}
+                    onChange={() => setSelectedDestino(destino as Rol)} />
+                  <span className="font-semibold">{destino === 'ADMINISTRACION' ? 'Administración' : destino === 'SECRETARIA' ? 'Secretaría inicial' : 'Docente responsable'}</span>
                 </label>
-              }
+              ))}
             </div>
 
             <DialogFooter className="gap-3">
@@ -99,7 +77,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Justificación del Rechazo</DialogTitle>
+              <DialogTitle>Justificación del rechazo</DialogTitle>
               <DialogDescription>Ingresa una justificación detallada para el rechazo</DialogDescription>
             </DialogHeader>
 
@@ -108,7 +86,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading }: Rech
                 <p className="text-sm font-medium text-foreground">
                   Destinatario:{" "}
                   <span className="font-semibold">
-                    {selectedDestino === "ADMINISTRACION" ? "Administración" : "Docente Responsable"}
+                    {selectedDestino === "ADMINISTRACION" ? "Administración" : selectedDestino === "SECRETARIA" ? "Secretaría inicial" : "Docente responsable"}
                   </span>
                 </p>
               </div>

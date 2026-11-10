@@ -19,4 +19,7 @@ export interface DashboardResumenDTO {
   rechazadoDocente?: number;
   pendienteComisiones?: number;
   pendienteSecretaria?: number;
+  pendienteCoordinacionArea?: number;
+  pendienteSecretariaInicial?: number;
+  pendienteSecretariaFinal?: number;
 }

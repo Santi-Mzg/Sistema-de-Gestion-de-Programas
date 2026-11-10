@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AlertCircle, ChevronDown, ChevronUp, User, Calendar } from "lucide-react"
-import type { EstadoHistoricoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import type { EstadoHistoricoResponseDTO, Rol } from "@/app/api/generated/model"
 import { getRoleLabel } from "@/lib/utils"
 
 interface RejectionInfoCardProps {
@@ -12,7 +12,7 @@ interface RejectionInfoCardProps {
 export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  if(!(estadoHistorico?.estado === "RECHAZADO_A_ADMINISTRACION" || estadoHistorico?.estado === "RECHAZADO_A_PROFESOR")) {
+  if(!(estadoHistorico?.estado === "RECHAZADO_A_ADMINISTRACION" || estadoHistorico?.estado === "RECHAZADO_A_DOCENTE")) {
     // return null
   }
 
@@ -30,7 +30,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
 
   const getRejectionType = (estado?: string) => {
     if (estado === "RECHAZADO_A_ADMINISTRACION") return "Administración"
-    if (estado === "RECHAZADO_A_PROFESOR") return "Profesor Responsable"
+    if (estado === "RECHAZADO_A_DOCENTE") return "Docente responsable"
     return "Desconocido"
   }
 
@@ -47,7 +47,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
               <AlertCircle className="w-5 h-5 text-destructive-foreground" />
             </div>
             <div>
-              <h3 className="font-bold text-destructive-foreground text-sm">Programa Rechazado</h3>
+              <h3 className="font-bold text-destructive-foreground text-sm">Programa rechazado</h3>
               <p className="text-xs text-destructive-foreground/80">Para {getRejectionType(estadoHistorico.estado)}</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function RejectionInfoCard({ estadoHistorico }: RejectionInfoCardProps) {
               <div className="flex items-start gap-2 bg-background/10 rounded-lg p-3 flex-1">
                 <User className="w-4 h-4 text-destructive-foreground/70 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-destructive-foreground/70 font-medium">Rechazado por {getRoleLabel(estadoHistorico.actorRol as UsuarioDepartamentoDTORolesItem)}</p>
+                  <p className="text-xs text-destructive-foreground/70 font-medium">Rechazado por {getRoleLabel(estadoHistorico.actorRol as Rol)}</p>
                   <p className="text-sm text-destructive-foreground font-semibold">
                     {estadoHistorico.actor?.apellido + ", " +estadoHistorico.actor?.nombre || "No especificado"}
                   </p>

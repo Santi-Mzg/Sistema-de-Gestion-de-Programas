@@ -4,15 +4,16 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { EstadoHistoricoResponseDTOEstado } from './estadoHistoricoResponseDTOEstado';
+import type { EstadoPrograma } from './estadoPrograma';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
-import type { EstadoHistoricoResponseDTOActorRol } from './estadoHistoricoResponseDTOActorRol';
+import type { Rol } from './rol';
 
 export interface EstadoHistoricoResponseDTO {
-  estado?: EstadoHistoricoResponseDTOEstado;
+  estado?: EstadoPrograma;
   fecha?: string;
   justificacion?: string;
   actor?: UserResponseReducedDTO;
   departamentoName?: string;
-  actorRol?: EstadoHistoricoResponseDTOActorRol;
+  actorRol?: Rol;
+  observacion?: string;
 }

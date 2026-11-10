@@ -6,13 +6,13 @@
  */
 import type { MateriaResponseDTO } from './materiaResponseDTO';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
-import type { ProgramaResponseReducedDTOEstado } from './programaResponseReducedDTOEstado';
+import type { EstadoPrograma } from './estadoPrograma';
 
 export interface ProgramaResponseReducedDTO {
   id?: number;
   anio?: number;
   materia?: MateriaResponseDTO;
-  profesorResponsable?: UserResponseReducedDTO;
-  estado?: ProgramaResponseReducedDTOEstado;
+  docenteResponsable?: UserResponseReducedDTO;
+  estado?: EstadoPrograma;
   aprobado?: boolean;
 }

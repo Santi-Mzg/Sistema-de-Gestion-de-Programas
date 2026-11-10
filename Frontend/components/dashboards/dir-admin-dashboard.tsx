@@ -7,8 +7,9 @@ import { useAuth } from "@/context/auth-context";
 import { useHeader } from "@/context/header-context";
 import { AlertCircle, Home, User } from "lucide-react";
 import { getGetDashboardResumenQueryKey, useGetDashboardResumen } from "@/app/api/generated/client";
-import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { Rol } from "@/app/api/generated/model";
 import { DashboardStats } from "../ui/cardsStatsDirAdmin";
+import { MateriasSinProgramaCard } from "../pages/materias-sin-programa-card";
 
 
 export function DirAdminDashboard() {
@@ -19,7 +20,7 @@ export function DirAdminDashboard() {
     
     useEffect(() => {
       setHeader({
-        title: "Panel Administrativo",
+        title: "Panel administrativo",
         subtitle: "Visualiza y gestiona las informaciones departamentales",
         badge: (
           <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -34,7 +35,7 @@ export function DirAdminDashboard() {
     const dashboardStatsQuery = useGetDashboardResumen(
       activeDepartamento!.departamentoId!,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
       },
       {
         query: {
@@ -43,7 +44,7 @@ export function DirAdminDashboard() {
           queryKey: getGetDashboardResumenQueryKey(
             activeDepartamento!.departamentoId!,
             {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+              rolActivo: activeRole as Rol,
             }
           ),
         }, 
@@ -91,6 +92,8 @@ export function DirAdminDashboard() {
       {stats &&
         <DashboardStats stats={stats}/>
       }
+      <MateriasSinProgramaCard key={`${activeDepartamento.departamentoId}-${activeRole}`}
+        deptId={activeDepartamento.departamentoId} rol={activeRole} />
     </div>
   )
 }

@@ -8,7 +8,8 @@ import type { ProgramaCarreraCreateDTO } from './programaCarreraCreateDTO';
 
 export interface ProgramaCargaDTO {
   materiaId?: number;
-  profesorResponsableId?: number;
+  docenteResponsableId?: number;
+  contenidosMinimos?: string;
   bloqueMultiple?: ProgramaCarreraCreateDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;

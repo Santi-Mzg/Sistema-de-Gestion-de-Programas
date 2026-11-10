@@ -7,14 +7,15 @@
 import type { MateriaResponseDTO } from './materiaResponseDTO';
 import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 import type { ProgramaCarreraResponseDTO } from './programaCarreraResponseDTO';
-import type { ProgramaResponseDTOEstado } from './programaResponseDTOEstado';
+import type { EstadoPrograma } from './estadoPrograma';
 import type { EstadoHistoricoResponseDTO } from './estadoHistoricoResponseDTO';
 
 export interface ProgramaResponseDTO {
   id?: number;
   anio?: number;
   materia?: MateriaResponseDTO;
-  profesorResponsable?: UserResponseReducedDTO;
+  docenteResponsable?: UserResponseReducedDTO;
+  contenidosMinimos?: string;
   bloqueMultiple?: ProgramaCarreraResponseDTO[];
   cargaHorariaTotal?: number;
   cargaHorariaSemanal?: number;
@@ -27,7 +28,7 @@ export interface ProgramaResponseDTO {
   metodologia?: string;
   modalidadEvaluacion?: string;
   bibliografia?: string;
-  estado?: ProgramaResponseDTOEstado;
+  estado?: EstadoPrograma;
   historialEstados?: EstadoHistoricoResponseDTO[];
   aprobado?: boolean;
 }

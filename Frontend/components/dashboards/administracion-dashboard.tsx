@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ProgramasListReduced } from "../pages/programas-list-reduced"
-import { EstadoHistoricoResponseDTOEstado, ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { EstadoPrograma, ProgramaResponseReducedDTO, Rol } from "@/app/api/generated/model"
 import { useRole } from "@/context/role-context"
 import { useDept } from "@/context/dept-context"
 import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useGetDashboardResumen, useListProgramas, useListProgramasPendientes } from "@/app/api/generated/client"
@@ -14,7 +14,7 @@ import { useAuth } from "@/context/auth-context"
 import { useHeader } from "@/context/header-context"
 import { useRouter } from "next/navigation"
 import { DashboardStats } from "../ui/cardsStatsAdmin"
-import { MateriasList } from "../pages/materias-list"
+import { MateriasSinProgramaCard } from "../pages/materias-sin-programa-card"
 
 
 export function AdministracionDashboard() {
@@ -33,7 +33,7 @@ export function AdministracionDashboard() {
 
   useEffect(() => {
     setHeader({
-      title: "Panel de Administración",
+      title: "Panel de administración",
       subtitle: "Visualiza y gestiona los programas departamentales",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -48,7 +48,7 @@ export function AdministracionDashboard() {
   const programasQuery = useListProgramasPendientes(
       activeDepartamento!.departamentoId!,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
         page,
         size: pageSize,
       },
@@ -59,7 +59,7 @@ export function AdministracionDashboard() {
           queryKey: getListProgramasPendientesQueryKey(
             activeDepartamento!.departamentoId!,
             {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+              rolActivo: activeRole as Rol,
               page,
               size: pageSize,
             }
@@ -75,7 +75,7 @@ export function AdministracionDashboard() {
   const dashboardStatsQuery = useGetDashboardResumen(
     activeDepartamento!.departamentoId!,
     {
-      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      rolActivo: activeRole as Rol,
     },
     {
       query: {
@@ -84,7 +84,7 @@ export function AdministracionDashboard() {
         queryKey: getGetDashboardResumenQueryKey(
           activeDepartamento!.departamentoId!,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            rolActivo: activeRole as Rol,
           }
         ),
       }, 
@@ -148,7 +148,7 @@ export function AdministracionDashboard() {
             size="lg"
           >
             <Plus size={20} />
-            {showForm ? "Cancelar" : "Crear Nuevo Programa"}
+            {showForm ? "Cancelar" : "Crear nuevo programa"}
           </Button>
         </Link>
       </div>
@@ -168,16 +168,8 @@ export function AdministracionDashboard() {
           </CardContent>
         </Card>
 
-        {/* <Card className="mb-6 mt-6">
-          <CardHeader>
-            <CardTitle>
-              Materias sin programa en este ciclo lectivo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MateriasList materias={materias} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage}/>
-          </CardContent>
-        </Card> */}
+        <MateriasSinProgramaCard key={`${activeDepartamento.departamentoId}-${activeRole}`}
+          deptId={activeDepartamento.departamentoId} rol={activeRole} />
       </div>
     </div>
   )

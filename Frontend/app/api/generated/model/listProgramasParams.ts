@@ -4,12 +4,12 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ListProgramasRolActivo } from './listProgramasRolActivo';
-import type { ListProgramasEstado } from './listProgramasEstado';
+import type { Rol } from './rol';
+import type { EstadoPrograma } from './estadoPrograma';
 
 export type ListProgramasParams = {
-rolActivo: ListProgramasRolActivo;
-estado?: ListProgramasEstado;
+rolActivo: Rol;
+estado?: EstadoPrograma;
 search?: string;
 page?: number;
 size?: number;

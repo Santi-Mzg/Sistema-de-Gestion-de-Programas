@@ -1,4 +1,23 @@
 "use client"
+import { invalidarConsultasPrograma } from "@/lib/invalidacion-consultas";
+import {
+  getGetDraftQueryKey,
+  getGetProgramaMateriaAnioQueryKey,
+  getGetProgramaVigenteQueryKey,
+  getListCarrerasQueryKey,
+  getListDocentesDepartamentoQueryKey,
+  getListMateriasDepartamentoQueryKey,
+  useCreatePrograma,
+  useDeleteDraft,
+  useGetDraft,
+  useGetProgramaMateriaAnio,
+  useGetProgramaVigente,
+  useListCarreras,
+  useListCarrerasDepartamento,
+  useListDocentesDepartamento,
+  useListMateriasDepartamento,
+  useSaveDraft
+} from "@/app/api/generated/client";
 
 import type React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -8,9 +27,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from "lucide-react"
 import Link from "next/link"
-import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
-import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaMateriaAnioQueryKey, getGetProgramaVigenteQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useCreatePrograma, useDeleteDraft, useGetDraft, useGetProgramaMateriaAnio, useGetProgramaVigente, useListCarreras, useListCarrerasDepartamento, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
+import { ProgramaResponseDTO, ProgramaCarreraResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, Rol } from "@/app/api/generated/model"
 import { CargarProgramaVigenteDialog } from "../modals/cargar-programa-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
@@ -34,23 +51,31 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { formComboboxStyles } from "@/lib/form-field-styles"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FieldErrors, useFieldArray, useForm, useWatch } from "react-hook-form"
+import { FieldErrors, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
+import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
 
-export function SyllabusCreationForm() {
+import { bloquesParaConsulta } from "@/lib/programa-bloques-consulta"
+
+interface SyllabusCreationFormProps {
+  materiaIdInicial?: string | null;
+}
+
+export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormProps) {
+  const [bloquesConsulta, setBloquesConsulta] = useState<ProgramaCarreraResponseDTO[]>([])
   const router = useRouter();
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const queryClient = useQueryClient();
-  const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
   const actualYear = new Date().getFullYear()
 
   const [openMateriaSelector, setOpenMateriaSelector] = useState(false);
-  const [openProfesorSelector, setOpenProfesorSelector] = useState(false);
+  const [openDocenteSelector, setOpenDocenteSelector] = useState(false);
 
   const [showProgramaAnioExistente, setShowProgramaAnioExistente] = useState(false)
   const [loadingProgramaAnioExistente, setLoadingProgramaAnioExistente] = useState(false);
@@ -61,19 +86,21 @@ export function SyllabusCreationForm() {
   const [showProgramaVigente, setShowProgramaVigente] = useState(false)
   const [loadingProgramaVigente, setLoadingProgramaVigente] = useState(false)
 
-  
+
   type LoadStep =
   | "CHECK_CURRENT"
   | "CHECK_DRAFT"
   | "CHECK_VIGENTE"
   | "READY"
-  
+
   const [step, setStep] = useState<LoadStep>("CHECK_CURRENT")
 
   const [showCreationWarning, setShowCreationWarning] = useState(false);
   const materiaButtonRef = useRef<HTMLButtonElement>(null)
-  const profesorButtonRef = useRef<HTMLButtonElement>(null)
+  const docenteButtonRef = useRef<HTMLButtonElement>(null)
   const bloqueMultipleRef = useRef<HTMLDivElement>(null)
+  const materiaInicialProcesada = useRef(false)
+  const [errorMateriaInicial, setErrorMateriaInicial] = useState<string | null>(null)
 
   const {
     register,
@@ -92,13 +119,14 @@ export function SyllabusCreationForm() {
       shouldFocusError: false,
       defaultValues: {
           materiaId: undefined,
-          profesorResponsableId: undefined,
+          docenteResponsableId: undefined,
           bloqueMultiple: [],
-          cantidadSemanas: undefined, 
+          cantidadSemanas: undefined,
           cargaHorariaSemanal: undefined,
           cargaHorariaTotal: undefined,
           creditos: undefined,
           cargaHorariaPractica: undefined,
+          contenidosMinimos: "",
           fundamentacion: "",
           objetivos: "",
           programaAnalitico: "",
@@ -108,14 +136,6 @@ export function SyllabusCreationForm() {
       }
   })
 
-  const {
-    fields,
-    append,
-    remove,
-  } = useFieldArray({
-    control,
-    name: "bloqueMultiple",
-  })
 
   const materiaId = watch("materiaId");
   const bloqueMultiple = watch("bloqueMultiple");
@@ -156,19 +176,52 @@ export function SyllabusCreationForm() {
   const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data;
 
 
-  const profesoresQuery = useListDocentesDepartamento(deptId ?? 0, {
+  const docentesQuery = useListDocentesDepartamento(deptId ?? 0, {
     query: {
       enabled: !!deptId,
-      staleTime: 1000 * 60 * 5,    
+      staleTime: 1000 * 60 * 5,
       queryKey: getListDocentesDepartamentoQueryKey(deptId),
     },
   })
 
-  const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
+  const docentes: UserResponseDTO[] | undefined = docentesQuery.data;
 
   const [selectedMateria, setSelectedMateria] = useState<MateriaResponseDTO | undefined>(undefined)
-  const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined)
-  
+  const [selectedDocente, setSelectedDocente] = useState<UserResponseDTO | undefined>(undefined)
+
+  // La selección inicial y la manual siguen los mismos controles y etapas de carga.
+  const seleccionarMateria = useCallback((materia: MateriaResponseDTO) => {
+    materiaInicialProcesada.current = true;
+    setErrorMateriaInicial(null);
+    if (materia.id !== materiaId) {
+      setBloquesConsulta([]);
+      setValue("bloqueMultiple", []);
+      setValue("cargaHorariaPractica", undefined);
+      for (const campo of ["contenidosMinimos", "fundamentacion", "objetivos", "programaAnalitico", "metodologia", "modalidadEvaluacion", "bibliografia"] as const) {
+        setValue(campo, "");
+      }
+    }
+    setSelectedMateria(materia);
+    setValue("materiaId", materia.id!, { shouldDirty: true, shouldValidate: true });
+    setOpenMateriaSelector(false);
+  }, [materiaId, setValue]);
+
+  useEffect(() => {
+    if (materiaInicialProcesada.current || materiaIdInicial == null
+        || !deptId || activeRole !== "ADMINISTRACION" || materiasQuery.isLoading || !materias) return;
+
+    materiaInicialProcesada.current = true;
+    const idInicial = Number(materiaIdInicial);
+    const materia = /^[1-9]\d*$/.test(materiaIdInicial) && Number.isSafeInteger(idInicial)
+      ? materias.find(materia => materia.id === idInicial)
+      : undefined;
+    if (!materia) {
+      setErrorMateriaInicial("No se pudo seleccionar la materia indicada. Elegí una materia del departamento activo.");
+      return;
+    }
+    seleccionarMateria(materia);
+  }, [materiaIdInicial, deptId, activeRole, materiasQuery.isLoading, materias, seleccionarMateria]);
+
   useEffect(() => {
     const total =
       (Number.isFinite(semanas) ? semanas : 0) *
@@ -200,40 +253,15 @@ export function SyllabusCreationForm() {
           title: "✓ Éxito",
           description: "Programa cargado exitosamente",
           variant: "success",
-        })    
+        })
 
-        mutateDeleteDraft({
-          deptId: activeDepartamento!.departamentoId!,
-          materiaId: materiaId!,
-          params:{
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-          }
-        });
+        // El backend elimina este draft junto con la transición.
 
         reset()
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
+        await invalidarConsultasPrograma(queryClient, { departamentoId: activeDepartamento!.departamentoId! });
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasPendientesQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getGetDashboardResumenQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          ),
-        });
-
-        router.push('/'); 
+        router.push('/');
 
       },
         onError: (error: unknown) => {
@@ -242,9 +270,9 @@ export function SyllabusCreationForm() {
 
           if (axios.isAxiosError(error)) {
             const backendError = error.response?.data;
-            
-            errorMessage = backendError?.errors?.Error || 
-                          backendError?.message || 
+
+            errorMessage = backendError?.errors?.Error ||
+                          backendError?.message ||
                           "Ocurrió un error inesperado";
           } else if (error instanceof Error) {
             errorMessage = error.message;
@@ -260,12 +288,13 @@ export function SyllabusCreationForm() {
   });
 
   const onSubmit = (data: ProgramaAdminFormData) => {
+      if (programaAnioExistente) { setShowProgramaAnioExistente(true); return; }
       mutate({
           deptId: activeDepartamento!.departamentoId!,
           data
       });
   };
-  
+
   const focusPopover = (ref: React.RefObject<HTMLButtonElement | null>) => {
     ref.current?.scrollIntoView({
       behavior: "smooth",
@@ -285,8 +314,8 @@ export function SyllabusCreationForm() {
       return
     }
 
-    if (formErrors.profesorResponsableId) {
-      focusPopover(profesorButtonRef)
+    if (formErrors.docenteResponsableId) {
+      focusPopover(docenteButtonRef)
       return
     }
 
@@ -326,8 +355,8 @@ export function SyllabusCreationForm() {
 
   const programaAnioExistenteQuery = useGetProgramaMateriaAnio(materiaId ?? 0, {
     query: {
-      enabled: !!materiaId && step === "CHECK_CURRENT", 
-      staleTime: Infinity, 
+      enabled: !!materiaId && step === "CHECK_CURRENT",
+      staleTime: Infinity,
       retry: false,
       queryKey: getGetProgramaMateriaAnioQueryKey(materiaId)
     }
@@ -351,7 +380,7 @@ export function SyllabusCreationForm() {
     activeDepartamento?.departamentoId ?? 0,
     materiaId ?? 0,
     {
-      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      rolActivo: activeRole as Rol, anio: actualYear, programaId: 0,
     },
     {
       query: {
@@ -359,12 +388,12 @@ export function SyllabusCreationForm() {
         staleTime: Infinity,
         refetchOnWindowFocus: false,
         gcTime: 0,
-        retry: false, 
+        retry: false,
         queryKey: getGetDraftQueryKey(
           activeDepartamento!.departamentoId!,
           materiaId!,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            rolActivo: activeRole as Rol, anio: actualYear, programaId: 0,
           }
         )
       }
@@ -372,15 +401,15 @@ export function SyllabusCreationForm() {
   );
 
   useEffect(() => {
-    if (!draftQuery.isSuccess) return 
+    if (!draftQuery.isSuccess) return
 
     if (draftQuery.data?.payloadJson) {
       setShowDraft(true);
     } else {
       setStep("CHECK_VIGENTE")
     }
-    
-  }, [draftQuery.data, draftQuery.isSuccess]); 
+
+  }, [draftQuery.data, draftQuery.isSuccess]);
 
 
   const handleLoadDraft = () => {
@@ -388,11 +417,16 @@ export function SyllabusCreationForm() {
 
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
-      setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
+      // Compatibilidad con borradores guardados antes del cambio de terminología.
+      draftData.docenteResponsableId ??= draftData.profesorResponsableId;
+      delete draftData.profesorResponsableId;
+      setSelectedDocente(docentes?.find((p) => p.id === draftData.docenteResponsableId))
+      setBloquesConsulta(Array.isArray(draftData.bloquesConsulta) ? draftData.bloquesConsulta : [])
+      delete draftData.bloquesConsulta
       reset(draftData)
       setShowDraft(false)
       setStep("READY")
-     
+
       toast({
         title: "Borrador recuperado",
         description: "Se restauró un borrador exitosamente",
@@ -432,10 +466,11 @@ export function SyllabusCreationForm() {
 
     try {
       const mappedData: ProgramaCargaDTO = {
+        contenidosMinimos: programaVigente.contenidosMinimos ?? "",
         materiaId,
 
-        profesorResponsableId:
-          programaVigente.profesorResponsable?.id ?? undefined,
+        docenteResponsableId:
+          programaVigente.docenteResponsable?.id ?? undefined,
 
         bloqueMultiple:
           programaVigente.bloqueMultiple?.map((c) => ({
@@ -450,7 +485,6 @@ export function SyllabusCreationForm() {
                 ?.map(cd => cd.id)
                 .filter((id): id is number => id !== undefined) ?? [],
             contribucion: c.contribucion ?? "",
-            contenidosMinimos: c.contenidosMinimos ?? "",
           })) ?? [],
 
         cargaHorariaTotal:
@@ -488,10 +522,11 @@ export function SyllabusCreationForm() {
       }
 
       reset(mappedData)
+      setBloquesConsulta(programaVigente.bloqueMultiple ?? [])
 
-      setSelectedProfesor(
-        profesores?.find(
-          p => p.id === programaVigente.profesorResponsable?.id
+      setSelectedDocente(
+        docentes?.find(
+          p => p.id === programaVigente.docenteResponsable?.id
         )
       )
 
@@ -503,10 +538,10 @@ export function SyllabusCreationForm() {
   }
 
   const {setHeader} = useHeader();
-  
+
   useEffect(() => {
     setHeader({
-      title: selectedMateria ? `Programa de ${selectedMateria?.nombre} (${selectedMateria?.codigo}) - ${actualYear}` : "Nuevo Programa Académico",
+      title: selectedMateria ? `Programa de ${selectedMateria?.nombre} (${selectedMateria?.codigo}) - ${actualYear}` : "Nuevo programa académico",
       subtitle: "Formulario de carga de programa académico",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -523,7 +558,7 @@ export function SyllabusCreationForm() {
   })
 
   useEffect(() => {
-    if (!isDirty) return
+    if (step !== "READY" || !isDirty) return
     if (!activeDepartamento?.departamentoId) return
     if (!materiaId) return
 
@@ -532,10 +567,10 @@ export function SyllabusCreationForm() {
         deptId: activeDepartamento.departamentoId!,
         materiaId: materiaId!,
         params: {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          rolActivo: activeRole as Rol, anio: actualYear, programaId: 0,
         },
         data: {
-          payloadJson: JSON.stringify(getValues()),
+          payloadJson: JSON.stringify({ ...getValues(), bloquesConsulta }),
         },
       })
     }, 2000)
@@ -543,6 +578,8 @@ export function SyllabusCreationForm() {
     return () => clearTimeout(handler)
   }, [
     formValues,
+    step,
+    bloquesConsulta,
     isDirty,
     activeDepartamento?.departamentoId,
     materiaId,
@@ -550,26 +587,6 @@ export function SyllabusCreationForm() {
     mutateSaveDraft,
     getValues,
   ])
-
-  const handleAddProgramaCarrera = () => {
-    append({
-        carreraPlanId: 0,
-        ubicacionEnPlan: "",
-        correlativasFuertesIds: [],
-        correlativasDebilesIds: [],
-        contribucion: "",
-        contenidosMinimos: "",
-    })
-  }
-
-  const handleRemoveProgramaCarrera = () => {
-    if(removeProgramaCarreraIndex == null) return
-
-    remove(removeProgramaCarreraIndex)
-
-    setRemoveProgramaCarreraIndex(null)
-  } 
-
 
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
@@ -581,7 +598,7 @@ export function SyllabusCreationForm() {
         </div>
       )
     }
-  
+
     if (materiasQuery.isLoading) {
         return (
           <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
@@ -592,7 +609,7 @@ export function SyllabusCreationForm() {
           </div>
         )
     }
-  
+
     if (materiasQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -603,7 +620,7 @@ export function SyllabusCreationForm() {
         </div>
       )
     }
-  
+
     if (!materias || materias.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -611,13 +628,13 @@ export function SyllabusCreationForm() {
             <AlertCircle className="text-yellow-600" size={24} />
             <p className="text-yellow-700">No hay materias registradas. Deben haber materias registradas para poder crear programas.</p>
             <Link href="/materias/crear">
-              <Button>Crear Materia</Button>
+              <Button>Crear materia</Button>
             </Link>
           </div>
         </div>
       )
     }
-  
+
 
     if (carrerasQuery.isLoading) {
       return (
@@ -629,7 +646,7 @@ export function SyllabusCreationForm() {
         </div>
       )
     }
-  
+
     if (carrerasQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -640,7 +657,7 @@ export function SyllabusCreationForm() {
         </div>
       )
     }
-  
+
     if (!carreras || carreras.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -652,39 +669,39 @@ export function SyllabusCreationForm() {
       )
     }
 
-    if (profesoresQuery.isLoading) {
+    if (docentesQuery.isLoading) {
       return (
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
             <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Cargando profesores disponibles...</p>
+                <p className="text-muted-foreground">Cargando docentes disponibles...</p>
             </div>
         </div>
       )
     }
-  
-    if (profesoresQuery.error) {
+
+    if (docentesQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="text-red-600" size={24} />
-            <p className="text-red-700">Error al obtener los profesores</p>
+            <p className="text-red-700">Error al obtener los docentes</p>
           </div>
         </div>
       )
     }
-  
-    if (!profesores || profesores.length === 0) {
+
+    if (!docentes || docentes.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <AlertCircle className="text-yellow-600" size={24} />
-            <p className="text-yellow-700">No hay profesores registrados. Deben haber profesores registrados para poder crear programas.</p>
+            <p className="text-yellow-700">No hay docentes registrados. Deben haber docentes registrados para poder crear programas.</p>
           </div>
         </div>
       )
     }
-  
+
     if (programaVigenteQuery.isLoading) {
       return (
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
@@ -700,9 +717,9 @@ export function SyllabusCreationForm() {
       <form className="space-y-8">
         {/* BLOQUE ÚNICO */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+          <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
 
-          <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
                 Departamento
@@ -732,13 +749,14 @@ export function SyllabusCreationForm() {
             </div>
           </div>
 
-          <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">            
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
             <div className="flex flex-col space-y-2">
               <Label className="text-sm font-semibold">Materia *</Label>
               <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
                 <PopoverTrigger asChild>
                   <Button
-                    ref={materiaButtonRef}
+                  ref={materiaButtonRef}
+                  aria-label="Materia"
                     type="button"
                     variant="outline"
                     role="combobox"
@@ -749,15 +767,15 @@ export function SyllabusCreationForm() {
                         ? "materia-error"
                         : undefined
                     }
-                    className="w-full justify-between font-normal border-border"
+                    className={cn(formComboboxStyles, "border-border")}
                   >
-                    {selectedMateria 
-                      ? selectedMateria.nombre
-                      : "Seleccionar materia..."}
+                    <span className="min-w-0 flex-1 truncate text-left" title={selectedMateria?.nombre}>
+                      {selectedMateria ? selectedMateria.nombre : "Seleccionar materia..."}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+                <PopoverContent className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
                   <Command>
                     <CommandInput placeholder="Buscar..." />
                     <CommandList className="pointer-events-auto">
@@ -767,14 +785,7 @@ export function SyllabusCreationForm() {
                           <CommandItem
                             key={materia.id}
                             value={materia.nombre}
-                            onSelect={() => {
-                              setSelectedMateria(materia)
-                              setValue("materiaId", materia.id!, {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                              })
-                              setOpenMateriaSelector(false)
-                            }}
+                            onSelect={() => seleccionarMateria(materia)}
                           >
                             <Check
                               className={cn(
@@ -791,6 +802,7 @@ export function SyllabusCreationForm() {
                 </PopoverContent>
               </Popover>
               <div className="min-h-5">
+                {errorMateriaInicial && <p role="alert" className="text-sm text-red-500">{errorMateriaInicial}</p>}
                 {errors.materiaId && (
                   <p className="text-sm text-red-500">
                     {errors.materiaId.message}
@@ -829,53 +841,58 @@ export function SyllabusCreationForm() {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <Label className="text-sm font-semibold">Docente Responsable *</Label>
-            <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
+            <Label className="text-sm font-semibold">Docente responsable *</Label>
+            <Popover open={openDocenteSelector} onOpenChange={setOpenDocenteSelector}>
               <PopoverTrigger asChild>
                 <Button
-                  ref={profesorButtonRef}
+                  ref={docenteButtonRef}
                   type="button"
                   variant="outline"
                   role="combobox"
-                  aria-expanded={openProfesorSelector}
-                  aria-invalid={!!errors.profesorResponsableId}
+                  aria-expanded={openDocenteSelector}
+                  aria-invalid={!!errors.docenteResponsableId}
                   aria-describedby={
-                    errors.profesorResponsableId ? "profesor-error" : undefined
+                    errors.docenteResponsableId ? "docente-error" : undefined
                   }
-                  className="w-full justify-between font-normal border-border"
+                  className={cn(formComboboxStyles, "border-border")}
                 >
-                  {selectedProfesor 
-                    ? `${selectedProfesor.apellido}, ${selectedProfesor.nombre} (Legajo: ${selectedProfesor.legajo})`
-                    : "Seleccionar docente..."}
+                  <span
+                    className="min-w-0 flex-1 truncate text-left"
+                    title={selectedDocente ? `${selectedDocente.apellido}, ${selectedDocente.nombre} (Legajo: ${selectedDocente.legajo})` : undefined}
+                  >
+                    {selectedDocente
+                      ? `${selectedDocente.apellido}, ${selectedDocente.nombre} (Legajo: ${selectedDocente.legajo})`
+                      : "Seleccionar docente..."}
+                  </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+              <PopoverContent className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
                 <Command>
                   <CommandInput placeholder="Buscar..." />
                   <CommandList className="pointer-events-auto">
                     <CommandEmpty>No se encontró la materia.</CommandEmpty>
                     <CommandGroup>
-                      {profesores.map((profesor) => (
+                      {docentes.map((docente) => (
                         <CommandItem
-                          key={profesor.id}
-                          value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
+                          key={docente.id}
+                          value={docente.nombre + " " + docente.apellido + " " + docente.legajo}
                           onSelect={() => {
-                            setSelectedProfesor(profesor)
-                            setValue("profesorResponsableId", profesor.id!, {
+                            setSelectedDocente(docente)
+                            setValue("docenteResponsableId", docente.id!, {
                                 shouldDirty: true,
                                 shouldValidate: true,
                             })
-                            setOpenProfesorSelector(false)
+                            setOpenDocenteSelector(false)
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedProfesor?.id === profesor.id ? "opacity-100" : "opacity-0"
+                              selectedDocente?.id === docente.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          {profesor.apellido}, {profesor.nombre} (Legajo: {profesor.legajo})
+                          {docente.apellido}, {docente.nombre} (Legajo: {docente.legajo})
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -885,9 +902,9 @@ export function SyllabusCreationForm() {
             </Popover>
 
             <div className="min-h-5">
-              {errors.profesorResponsableId && (
+              {errors.docenteResponsableId && (
                 <p className="text-sm text-red-500">
-                  {errors.profesorResponsableId.message}
+                  {errors.docenteResponsableId.message}
                 </p>
               )}
             </div>
@@ -895,61 +912,33 @@ export function SyllabusCreationForm() {
         </div>
 
         {/* BLOQUE MÚLTIPLE */}
-        <div ref={bloqueMultipleRef} className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
-            <Button
-              type="button"
-              onClick={handleAddProgramaCarrera}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
-              size="sm"
-            >
-              <Plus size={18} />
-              Agregar Carrera
-            </Button>
-          </div>
-
-          {bloqueMultiple.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground bg-background rounded-lg border-2 border-dashed border-accent/20">
-              {errors.bloqueMultiple && (
-                <p className="text-red-500">{errors.bloqueMultiple.message}</p>) || 
-                (<p>No hay carreras agregadas aún</p>)
-              }
-              <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
+        {
+          <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-accent">Información por carrera</h2>
             </div>
-          ) : (
+
             <div className={bloqueMultiple && bloqueMultiple.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-              {fields.map((block, index) => (
-                <ProgramaCarreraCreateBlock
-                  key={block.id}
-                  materiaId={materiaId || 0}
+              {bloquesParaConsulta(bloqueMultiple, carreras, materias, bloquesConsulta).map((block, index) => (
+                <ProgramaCarreraBlockView
+                  key={index}
+                  block={block}
                   index={index}
-                  carreras={carreras}
-                  carreraPlanIdsSeleccionados={
-                    bloqueMultiple
-                      ?.map((b) => b.carreraPlanId)
-                      .filter((id): id is number => !!id) ?? []
-                  }
-                  control={control}
-                  register={register}
-                  setValue={setValue}
-                  errors={errors}
-                  onRemove={setRemoveProgramaCarreraIndex}
                 />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        }
 
         {/* CONFIGURACIÓN GENERAL */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-          <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
+          <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
           {/* Carga Horaria */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
-                Cantidad de Semanas *
+                Cantidad de semanas *
               </Label>
               <Input
                 id="semanas"
@@ -974,7 +963,7 @@ export function SyllabusCreationForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Semanal *
+                Carga horaria semanal *
               </Label>
               <Input
                 id="cargaSemanal"
@@ -995,7 +984,7 @@ export function SyllabusCreationForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Total
+                Carga horaria total
               </Label>
               <Input
                 id="cargaTotal"
@@ -1041,12 +1030,12 @@ export function SyllabusCreationForm() {
           {/* Carga Práctica */}
           <div className="space-y-2">
             <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-              Carga Horaria Práctica
+              Carga horaria práctica
             </Label>
             <Input
               id="cargaPractica"
               type="number"
-              value={programaVigente?.cargaHorariaPractica}
+              value={watch("cargaHorariaPractica") ?? ""}
               placeholder="ej: 64"
               className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               readOnly
@@ -1056,6 +1045,7 @@ export function SyllabusCreationForm() {
 
         {/* Campos de texto largo */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+
           <div className="space-y-2">
             <LabelWithTooltip
               label="Fundamentación"
@@ -1068,7 +1058,7 @@ export function SyllabusCreationForm() {
             />
             <Textarea
               id="fundamentacion"
-              value={programaVigente?.fundamentacion}
+              value={watch("fundamentacion") ?? ""}
               placeholder="Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1087,7 +1077,7 @@ export function SyllabusCreationForm() {
             />
             <Textarea
               id="objetivos"
-              value={programaVigente?.objetivos}
+              value={watch("objetivos") ?? ""}
               placeholder="Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico"
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1096,7 +1086,25 @@ export function SyllabusCreationForm() {
 
           <div className="space-y-2">
             <LabelWithTooltip
-              label="Programa Analítico"
+              label="Contenidos mínimos"
+              htmlFor="contenidosMínimos"
+              tooltip={
+                <>
+                  <p></p>
+                </>
+              }
+            />
+            <Textarea
+              id="contenidosMínimos"
+              value={watch("contenidosMinimos") ?? ""}
+              placeholder=""
+              className="border-border focus:border-primary min-h-20 resize-none"
+              readOnly
+            />
+          </div>
+          <div className="space-y-2">
+            <LabelWithTooltip
+              label="Programa analítico"
               htmlFor="programa"
               tooltip={
                 <>
@@ -1106,7 +1114,7 @@ export function SyllabusCreationForm() {
             />
             <Textarea
               id="programa"
-              value={programaVigente?.programaAnalitico}
+              value={watch("programaAnalitico") ?? ""}
               placeholder="Indique la nómina de unidades temáticas y su desarrollo."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1115,7 +1123,7 @@ export function SyllabusCreationForm() {
 
           <div className="space-y-2">
              <LabelWithTooltip
-               label="Metodología"
+               label="Metodología de enseñanza y actividades de aprendizaje"
                 htmlFor="metodologia"
                tooltip={
                  <>
@@ -1128,19 +1136,19 @@ export function SyllabusCreationForm() {
              />
             <Textarea
               id="metodologia"
-              value={programaVigente?.metodologia}
+              value={watch("metodologia") ?? ""}
               placeholder="Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de
                   prácticas de gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o
                   visitas, trabajos de campo, etc.*
                   "
-              className="border-border focus:border-primary min-h-20 resize-none" 
+              className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
           </div>
 
           <div className="space-y-2">
             <LabelWithTooltip
-              label="Modalidad de Evaluación"
+              label="Sistema de evaluación"
               htmlFor="modalidadEvaluacion"
               tooltip={
                 <>
@@ -1152,7 +1160,7 @@ export function SyllabusCreationForm() {
             />
             <Textarea
               id="evaluacion"
-              value={programaVigente?.modalidadEvaluacion}
+              value={watch("modalidadEvaluacion") ?? ""}
               placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1164,13 +1172,13 @@ export function SyllabusCreationForm() {
               label="Bibliografía"
               tooltip={
                 <>
-                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón &apos;Formatear&apos; para adecuar automáticamente las referencias al formato APA.</p>
                 </>
               }
             />
             <Textarea
               id="bibliografia"
-              value={programaVigente?.bibliografia}
+              value={watch("bibliografia") ?? ""}
               placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
@@ -1179,14 +1187,14 @@ export function SyllabusCreationForm() {
         </div>
 
         {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-border">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
             <Button
               type="button"
               onClick={handleSubmit(onSubmit, onInvalid)}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
-              {isPending ? "Cargando..." : "Cargar Programa"}
+              {isPending ? "Cargando..." : "Enviar a secretaría"}
             </Button>
             <Button
               type="button"
@@ -1237,15 +1245,15 @@ export function SyllabusCreationForm() {
         isLoading={loadingProgramaVigente}
       />
 
-      <Dialog open={!!showCreationWarning} onOpenChange={(open: any) => !open && setShowCreationWarning(false)}>
+      <Dialog open={!!showCreationWarning} onOpenChange={(open: boolean) => !open && setShowCreationWarning(false)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
               <AlertCircle size={24} />
-              Sobreescribir Programa 
+              Programa existente
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
-              Al crear este programa se borrará el programa existente para la materia {programaAnioExistente?.materia?.nombre} en el año {programaAnioExistente?.anio}. ¿Desea continuar?
+              Ya existe un programa para esta materia y año. Puede consultarlo; no se permite reemplazarlo.
             </DialogDescription>
           </DialogHeader>
 
@@ -1261,10 +1269,7 @@ export function SyllabusCreationForm() {
               variant="secondary"
               onClick={() => {
                 setShowCreationWarning(false)
-                mutate({ 
-                  deptId: activeDepartamento!.departamentoId!,
-                  data: getValues()
-                })
+                router.push(`/programas/${programaAnioExistente?.id}`)
               }}
               className="bg-destructive"
             >
@@ -1287,7 +1292,7 @@ export function SyllabusCreationForm() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
               <FileText size={24} />
-              Borrador Encontrado
+              Borrador encontrado
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               Se encontró un borrador. ¿Desea cargarlo?
@@ -1317,36 +1322,7 @@ export function SyllabusCreationForm() {
       </Dialog>
 
 
-      <Dialog open={removeProgramaCarreraIndex !== null} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <AlertCircle size={24} />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar el bloque?
-            </DialogDescription>
-          </DialogHeader>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRemoveProgramaCarreraIndex(null)}
-              className="border-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveProgramaCarrera}
-              className="bg-destructive"
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

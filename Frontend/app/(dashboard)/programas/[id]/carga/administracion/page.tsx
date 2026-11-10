@@ -6,7 +6,7 @@ import { AlertCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function CompletarPrograma() {
-  const { id } = useParams<{ id: string }>()  
+  const { id } = useParams<{ id: string }>()
   const { activeRole } = useRole()
 
   // const programa: ProgramaResponseDTO = useGetPrograma(Number(id)).data!;
@@ -16,7 +16,7 @@ export default function CompletarPrograma() {
   // }
 
   //   // 💡 Esta es la función que se pasa al formulario
-  //   const handleFormSubmit = (data: ProgramaCargaProfesorDTO) => {
+  //   const handleFormSubmit = (data: ProgramaCargaDocenteDTO) => {
   //     // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
   //     mutate({ id: programa.id!, data });
   //   };
@@ -33,7 +33,7 @@ export default function CompletarPrograma() {
       )
     }
 
-    if(activeRole !== "SYSTEM_ADMIN" && activeRole !== "ADMINISTRACION") {
+    if(activeRole !== "ADMINISTRACION") {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">

@@ -6,18 +6,22 @@ export const customInstance = <T>(
   config: AxiosRequestConfig,
 ): Promise<T> => {
   const source = Axios.CancelToken.source();
-  
+
   const promise = Axios.request<T>({
     ...config,
     baseURL: API_PROXY_URL,
+    headers: {
+      ...config.headers,
+      ...(typeof window !== 'undefined' ? {
+        'X-Departamento-Activo': localStorage.getItem('activeDeptId') ?? '',
+        'X-Rol-Activo': localStorage.getItem('activeRole') ?? '',
+      } : {}),
+    },
     cancelToken: source.token,
     withCredentials: true,
   }).then(({ data }) => data);
 
-  // @ts-ignore
-  promise.cancel = () => {
-    source.cancel('Query was cancelled');
-  };
-
-  return promise as Promise<T>;
+  return Object.assign(promise, {
+    cancel: () => source.cancel('Query was cancelled'),
+  });
 };

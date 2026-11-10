@@ -1,9 +1,9 @@
 "use client"
 
 import { act, useState } from "react"
-import { Search, ChevronUp, ChevronDown, Eye, Pencil, Clock, AlertCircle} from "lucide-react"
-import { ProgramaResponseDTOEstado, ProgramaResponseReducedDTO, UserCreateDTORolesItem, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { Button } from "../ui/button";
+import { Search, ChevronUp, ChevronDown } from "lucide-react"
+import { EstadoPrograma, ProgramaResponseReducedDTO, Rol } from "@/app/api/generated/model"
+import { ProgramaAcciones } from './programa-acciones';
 import { useRole } from "@/context/role-context";
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
 import { PageNavigation } from "../nav/page-nav";
@@ -18,7 +18,7 @@ interface ProgramasListProps {
   onRowClick: (programaId: number) => void;
 }
 
-type SortField = "materia" | "estado" | "profesorResponsable" | "nombreDepartamento"
+type SortField = "materia" | "estado" | "docenteResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListReduced({ 
@@ -58,9 +58,9 @@ export function ProgramasListReduced({
         valueB = b.estado ?? ""
         break
 
-      case "profesorResponsable":
-        valueA = `${a.profesorResponsable?.apellido ?? ""} ${a.profesorResponsable?.nombre ?? ""}`
-        valueB = `${b.profesorResponsable?.apellido ?? ""} ${b.profesorResponsable?.nombre ?? ""}`
+      case "docenteResponsable":
+        valueA = `${a.docenteResponsable?.apellido ?? ""} ${a.docenteResponsable?.nombre ?? ""}`
+        valueB = `${b.docenteResponsable?.apellido ?? ""} ${b.docenteResponsable?.nombre ?? ""}`
         break
 
       case "nombreDepartamento":
@@ -114,14 +114,14 @@ export function ProgramasListReduced({
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
+                {activeRole !== Rol.DOCENTE &&
                   <th className="px-3 py-2 text-left font-semibold">
                     <button
-                      onClick={() => handleSort("profesorResponsable")}
+                      onClick={() => handleSort("docenteResponsable")}
                       className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
                     >
                       Docente
-                      {sortField === "profesorResponsable" &&
+                      {sortField === "docenteResponsable" &&
                         (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                     </button>
                   </th>
@@ -146,7 +146,7 @@ export function ProgramasListReduced({
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
-                <th className="px-3 py-2 text-left font-semibold w-40">
+                <th className="px-3 py-2 text-center font-semibold w-40">
                   Acciones
                 </th>
               </tr>
@@ -162,8 +162,8 @@ export function ProgramasListReduced({
                       <div className="font-medium leading-tight">{programa.materia?.nombre}</div>
                       <div className="text-xs text-muted-foreground uppercase">{programa.materia?.codigo}</div>
                     </td>
-                    {activeRole !== UsuarioDepartamentoDTORolesItem.DOCENTE &&
-                      <td className="px-3 py-1.5 test-xs text-muted-foreground">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+                    {activeRole !== Rol.DOCENTE &&
+                      <td className="px-3 py-1.5 test-xs text-muted-foreground">{programa.docenteResponsable?.apellido}, {programa.docenteResponsable?.nombre} (Legajo: {programa.docenteResponsable?.legajo})</td>
                     }
                     <td className="px-3 py-1.5 text-xs text-muted-foreground">
                         {programa.materia?.departamento || "N/A"}
@@ -171,33 +171,18 @@ export function ProgramasListReduced({
                     <td className="px-3 py-1.5">
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-sm ${
-                          getProgramStateStyles(programa.estado as ProgramaResponseDTOEstado) || "border-gray-300 bg-gray-50 text-gray-600"
+                          getProgramStateStyles(programa.estado as EstadoPrograma) || "border-gray-300 bg-gray-50 text-gray-600"
                         }`}
                       >
-                        {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+                        {getProgramStateLabel(programa.estado as EstadoPrograma)}
                       </span> 
                     </td>
-                    <td className="px-3 py-1.5">
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onRowClick(programa.id!)}
-                          className="border-2 hover:bg-primary hover:text-primary-foreground"
-                        >
-                          {activeRole === UserCreateDTORolesItem.SECRETARIA || activeRole === UserCreateDTORolesItem.COORDINACION_COMISION_CURRICULAR ? (
-                            <>
-                              <Eye size={16} className="mr-1" />
-                              Revisar
-                            </>
-                          ) : (
-                            <>
-                              <Pencil size={16} className="mr-1" />
-                              Completar
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                    <td className="px-3 py-1.5 text-right">
+                      <ProgramaAcciones
+                        descripcion={`${programa.materia?.nombre ?? 'la materia'} (${programa.anio ?? ''})`}
+                        revision={(activeRole === 'SECRETARIA' && programa.estado === 'PENDIENTE_DE_SECRETARIA_FINAL') || activeRole === 'COORDINACION_COMISION_CURRICULAR' || activeRole === 'COORDINADOR_AREA'}
+                        onContinuar={() => onRowClick(programa.id!)}
+                      />
                     </td>
                   </tr>
                 ))

@@ -44,7 +44,7 @@ const estadoConfig: Record<
   }
 > = {
   INCOMPLETO_POR_ADMINISTRACION: {
-    label: "Pendiente Administración (Incompleto)",
+    label: "Pendiente administración (incompleto)",
     color: "text-amber-700",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-300",
@@ -52,54 +52,54 @@ const estadoConfig: Record<
     isRejection: false,
   },
   RECHAZADO_A_ADMINISTRACION: {
-    label: "Rechazado a Administración",
+    label: "Rechazado a administración",
     color: "text-red-700",
     bgColor: "bg-red-50",
     borderColor: "border-red-300",
     icon: XCircle,
     isRejection: true,
   },
-  COMPLETO_POR_ADMINISTRACION: {
-    label: "Pendiente Docente",
+  PENDIENTE_DE_SECRETARIA_INICIAL: {
+    label: "Pendiente docente",
     color: "text-blue-700",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-300",
     icon: CheckCircle2,
     isRejection: false,
   },
-  INCOMPLETO_POR_PROFESOR: {
-    label: "Pendiente Docente (Incompleto)",
+  INCOMPLETO_POR_DOCENTE: {
+    label: "Pendiente docente (incompleto)",
     color: "text-amber-700",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-300",
     icon: Clock,
     isRejection: false,
   },
-  RECHAZADO_A_PROFESOR: {
-    label: "Rechazado a Docente",
+  RECHAZADO_A_DOCENTE: {
+    label: "Rechazado a docente",
     color: "text-red-700",
     bgColor: "bg-red-50",
     borderColor: "border-red-300",
     icon: XCircle,
     isRejection: true,
   },
-  COMPLETO_POR_PROFESOR: {
-    label: "En Revisión (Comisiones Curriculares)",
+  PENDIENTE_DE_COMISIONES_CURRICULARES: {
+    label: "En revisión (comisiones curriculares)",
     color: "text-violet-700",
     bgColor: "bg-violet-50",
     borderColor: "border-violet-300",
     icon: CheckCircle2,
     isRejection: false,
   },
-  APROBADO_POR_COMISION: {
-    label: "En Revisión (Secretaría)",
+  PENDIENTE_DE_SECRETARIA_FINAL: {
+    label: "En revisión (secretaría)",
     color: "text-sky-700",
     bgColor: "bg-sky-50",
     borderColor: "border-sky-300",
     icon: CheckCircle2,
     isRejection: false,
   },
-  APROBADO_POR_SECRETARIA: {
+  APROBADO: {
     label: "Aprobado",
     color: "text-emerald-700",
     bgColor: "bg-emerald-50",
@@ -109,11 +109,19 @@ const estadoConfig: Record<
   },
 }
 
+estadoConfig.PENDIENTE_DE_SECRETARIA_INICIAL.label = 'Pendiente secretaría inicial';
+estadoConfig.PENDIENTE_DE_DOCENTE = { ...estadoConfig.PENDIENTE_DE_SECRETARIA_INICIAL, label: 'Pendiente docente' };
+estadoConfig.RECHAZADO_A_SECRETARIA = { ...estadoConfig.RECHAZADO_A_ADMINISTRACION, label: 'Rechazado a secretaría inicial' };
+estadoConfig.PENDIENTE_DE_COORDINACION_AREA = {
+  ...estadoConfig.PENDIENTE_DE_SECRETARIA_INICIAL, label: 'Pendiente coordinación de área',
+  color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-amber-300',
+};
+
 const rolLabels: Record<string, string> = {
-  SYSTEM_ADMIN: "Administrador del Sistema",
-  DIRECCION_ADMINISTRATIVA: "Dirección Administrativa",
+  SYSTEM_ADMIN: "Administrador del sistema",
+  DIRECCION_ADMINISTRATIVA: "Dirección administrativa",
   SECRETARIA: "Secretaría",
-  COORDINACION_COMISION_CURRICULAR: "Coordinación Comisión Curricular",
+  COORDINACION_COMISION_CURRICULAR: "Coordinación comisión curricular",
   DOCENTE: "Docente",
   ADMINISTRACION: "Administración",
 }
@@ -154,7 +162,10 @@ function EstadoCard({ estado, isFirst }: { estado: EstadoHistoricoResponseDTO; i
               <div className={`p-1.5 rounded-full ${config.bgColor} border ${config.borderColor}`}>
                 <Icon className={`h-4 w-4 ${config.color}`} />
               </div>
-              <span className={`font-semibold text-sm ${config.color}`}>{config.label}</span>
+              <span className={`font-semibold text-sm ${config.color}`}>
+                {estado.estado === 'PENDIENTE_DE_COMISIONES_CURRICULARES' && estado.actorRol === 'COORDINADOR_AREA'
+                  ? 'Aceptación de coordinación de área' : config.label}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
@@ -189,6 +200,9 @@ function EstadoCard({ estado, isFirst }: { estado: EstadoHistoricoResponseDTO; i
             )}
           </div>
 
+          {estado.observacion && (
+            <p className="mt-3 text-sm text-foreground/80 whitespace-pre-wrap">{estado.observacion}</p>
+          )}
           {/* Rejection justification (collapsible) */}
           {config.isRejection && estado.justificacion && (
             <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-3">
@@ -244,7 +258,7 @@ export function EstadoHistorialFlow({ historial }: EstadoHistorialFlowProps) {
                     <div className="p-1.5 rounded-full bg-slate-100 border border-slate-300">
                     <FileText className="h-4 w-4 text-slate-600" />
                     </div>
-                    <span className="font-semibold text-sm text-slate-700">Inicio del Proceso de Carga</span>
+                    <span className="font-semibold text-sm text-slate-700">Inicio del proceso de carga</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />

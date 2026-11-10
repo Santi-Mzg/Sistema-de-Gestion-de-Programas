@@ -1,5 +1,5 @@
-import { ProgramaResponseDTOEstado } from "@/app/api/generated/model/programaResponseDTOEstado"
-import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model/usuarioDepartamentoDTORolesItem"
+import { EstadoPrograma } from "@/app/api/generated/model/estadoPrograma"
+import { Rol } from "@/app/api/generated/model/rol"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -19,11 +19,12 @@ export function formatDate(dateString?: string): string {
   })
 }
 
-export const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
-  const roleLabels: Record<UsuarioDepartamentoDTORolesItem, string> = {
-    SYSTEM_ADMIN: "Administrador del Sistema",
+export const getRoleLabel = (role: Rol): string => {
+  const roleLabels: Record<Rol, string> = {
+    COORDINADOR_AREA: "Coord. Área",
+    SYSTEM_ADMIN: "Administrador del sistema",
     DIRECCION_ADMINISTRATIVA: "Dir. Administrativa",
-    SECRETARIA: "Secretaría Académica",
+    SECRETARIA: "Secretaría académica",
     COORDINACION_COMISION_CURRICULAR: "Coord. Comisión",
     DOCENTE: "Docente",
     ADMINISTRACION: "Administración",
@@ -31,30 +32,32 @@ export const getRoleLabel = (role: UsuarioDepartamentoDTORolesItem): string => {
   return roleLabels[role] || role
 }
 
-export const getProgramStateLabel = (state: ProgramaResponseDTOEstado): string => {
-  const stateLabels: Record<ProgramaResponseDTOEstado, string> = {
-    // INCOMPLETO_POR_ADMINISTRACION: 'Pendiente Administración (Incompleto)',
-    RECHAZADO_A_ADMINISTRACION: 'Rechazado a Administración',
-    COMPLETO_POR_ADMINISTRACION: 'Pendiente Docente',
-    // INCOMPLETO_POR_PROFESOR: 'Pendiente Docente (Incompleto)',
-    RECHAZADO_A_PROFESOR: 'Rechazado a Docente',
-    COMPLETO_POR_PROFESOR: 'En Revisión (Comisiones Curriculares)',
-    APROBADO_POR_COMISION: 'En Revisión (Secretaría)',
-    APROBADO_POR_SECRETARIA: 'Aprobado',
+export const getProgramStateLabel = (state: EstadoPrograma): string => {
+  const stateLabels: Record<EstadoPrograma, string> = {
+    PENDIENTE_DE_DOCENTE: 'Pendiente carga docente',
+    RECHAZADO_A_SECRETARIA: 'Rechazado a secretaría inicial',
+    PENDIENTE_DE_COORDINACION_AREA: 'En revisión (coordinación de área)',
+    RECHAZADO_A_DOCENTE: 'Rechazado a docente',
+    PENDIENTE_DE_COMISIONES_CURRICULARES: 'En revisión (comisiones curriculares)',
+    RECHAZADO_A_ADMINISTRACION: 'Rechazado a administración',
+    PENDIENTE_DE_SECRETARIA_INICIAL: 'Pendiente carga secretaría',
+    PENDIENTE_DE_SECRETARIA_FINAL: 'En revisión (secretaría)',
+    APROBADO: 'Aprobado',
   }
   return stateLabels[state] || state
 }
 
-export const getProgramStateStyles = (state: ProgramaResponseDTOEstado): string =>{
-  const stateStyles: Record<ProgramaResponseDTOEstado, string> = {
+export const getProgramStateStyles = (state: EstadoPrograma): string =>{
+  const stateStyles: Record<EstadoPrograma, string> = {
+    PENDIENTE_DE_DOCENTE: "border-blue-500 bg-blue-50 text-blue-700",
+    RECHAZADO_A_SECRETARIA: "border-destructive bg-destructive/10 text-destructive",
+    PENDIENTE_DE_COORDINACION_AREA: "border-amber-500 bg-amber-50 text-amber-700",
+    RECHAZADO_A_DOCENTE: "border-destructive bg-destructive/10 text-destructive",
+    PENDIENTE_DE_COMISIONES_CURRICULARES: "border-violet-500 bg-violet-50 text-violet-700",
     RECHAZADO_A_ADMINISTRACION: "border-destructive bg-destructive/10 text-destructive",
-    RECHAZADO_A_PROFESOR: "border-destructive bg-destructive/10 text-destructive",
-    // INCOMPLETO_POR_ADMINISTRACION: "border-amber-500 bg-amber-50 text-amber-700",
-    COMPLETO_POR_ADMINISTRACION: "border-blue-500 bg-blue-50 text-blue-700",
-    // INCOMPLETO_POR_PROFESOR: "border-amber-500 bg-amber-50 text-amber-700",
-    COMPLETO_POR_PROFESOR: "border-violet-500 bg-violet-50 text-violet-700",
-    APROBADO_POR_COMISION: "border-sky-500 bg-sky-50 text-sky-700",
-    APROBADO_POR_SECRETARIA: "border-emerald-500 bg-emerald-50 text-emerald-700",
+    PENDIENTE_DE_SECRETARIA_INICIAL: "border-blue-500 bg-blue-50 text-blue-700",
+    PENDIENTE_DE_SECRETARIA_FINAL: "border-sky-500 bg-sky-50 text-sky-700",
+    APROBADO: "border-emerald-500 bg-emerald-50 text-emerald-700",
   }
   return stateStyles[state] || "border-gray-300 bg-gray-50 text-gray-600"
 };

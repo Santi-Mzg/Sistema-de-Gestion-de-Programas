@@ -2,8 +2,15 @@
 
 import { AlertCircle, User, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { EstadoHistoricoResponseDTOEstado, ProgramaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
-import { getGetDashboardResumenQueryKey, getListProgramasPendientesCoordinadorQueryKey, useGetDashboardResumen, useListProgramasPendientesCoordinador } from "@/app/api/generated/client";
+import { EstadoPrograma, ProgramaResponseDTO, Rol } from "@/app/api/generated/model";
+import {
+  getGetDashboardResumenQueryKey,
+  getListProgramasPendientesCoordinadorQueryKey,
+  useGetDashboardResumen,
+  useListProgramasPendientesCoordinador,
+  getListCarrerasAsignadasQueryKey,
+  useListCarrerasAsignadas
+} from "@/app/api/generated/client";
 import { useRole } from "@/context/role-context";
 import { useDept } from "@/context/dept-context";
 import { ProgramasListReducedCoord } from "../pages/programas-list-reduced-coordinador";
@@ -17,13 +24,14 @@ export function CoordinadorDashboard() {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const { user } = useAuth();
+  const deptId = activeDepartamento?.departamentoId ?? 0;
   const {setHeader} = useHeader();
   const [page, setPage] = useState(0)
-  const pageSize = 10;
+  const pageSize = 2;
     
   useEffect(() => {
     setHeader({
-      title: "Panel de Coordinación de la Comisión Curricular",
+      title: "Panel de coordinación de la comisión curricular",
       subtitle: "Visualiza y gestiona los programas asignados",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -36,18 +44,18 @@ export function CoordinadorDashboard() {
   }, [user]);
 
   const dashboardStatsQuery = useGetDashboardResumen(
-    activeDepartamento!.departamentoId!,
+    deptId,
     {
-      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      rolActivo: activeRole as Rol,
     },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
         queryKey: getGetDashboardResumenQueryKey(
-          activeDepartamento!.departamentoId!,
+          deptId,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            rolActivo: activeRole as Rol,
           }
         ),
       }, 
@@ -58,18 +66,22 @@ export function CoordinadorDashboard() {
 
 
   const programasQuery = useListProgramasPendientesCoordinador(
-      activeDepartamento!.departamentoId!,
+      deptId,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
+        page,
+        size: pageSize,
       },
     {
       query: {
         enabled: !!activeDepartamento?.departamentoId && !!activeRole,
         staleTime: 1000 * 60 * 5,
         queryKey: getListProgramasPendientesCoordinadorQueryKey(
-            activeDepartamento!.departamentoId!,
+            deptId,
             {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+              rolActivo: activeRole as Rol,
+              page,
+              size: pageSize,
             }
         )
       } 
@@ -78,6 +90,12 @@ export function CoordinadorDashboard() {
   const programas: ProgramaResponseDTO[] = programasQuery.data?.content || [];
   const totalPages = programasQuery.data?.totalPages ?? 0
   const totalElements = programasQuery.data?.totalElements ?? 0
+  const carrerasParams = { page: 0, size: 5, search: undefined };
+  const carrerasQuery = useListCarrerasAsignadas(deptId, carrerasParams, { query: {
+    enabled: !!deptId && !!user?.id && activeRole === 'COORDINACION_COMISION_CURRICULAR',
+    staleTime: 0,
+    queryKey: [...getListCarrerasAsignadasQueryKey(deptId, carrerasParams), { usuarioId: user?.id, rol: activeRole }],
+  } });
 
   const pendientesRef = useRef<HTMLDivElement>(null)
 
@@ -148,11 +166,12 @@ export function CoordinadorDashboard() {
     <div className="p-8 max-w-7xl mx-auto">
       {stats &&
         <DashboardStats 
-          programasEnCurso={(stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)}
-          enAdministracion={stats.pendienteAdministracion ?? 0}
-          enDocente={stats.pendienteDocente ?? 0}
-          enComision={stats.pendienteComisiones ?? 0}
-          enSecretaria={stats.pendienteSecretaria ?? 0}
+          stats={stats}
+          carreras={carrerasQuery.data?.content ?? []}
+          totalCarreras={carrerasQuery.data?.totalElements ?? 0}
+          cargandoCarreras={carrerasQuery.isLoading}
+          errorCarreras={!!carrerasQuery.error}
+          pendientesRevision={totalElements}
           onPendingClick={handlePendingClick}
         />
       }
@@ -162,7 +181,7 @@ export function CoordinadorDashboard() {
       >
         <Card className="mb-6 mt-6">
           <CardHeader>
-            <CardTitle>Programas Pendientes</CardTitle>
+            <CardTitle>Programas pendientes</CardTitle>
           </CardHeader>
           <CardContent>
             <ProgramasListReducedCoord programas={programas} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage}/>

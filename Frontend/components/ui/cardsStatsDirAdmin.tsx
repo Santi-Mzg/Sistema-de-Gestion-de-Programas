@@ -1,5 +1,7 @@
 "use client"
 
+import { etapasDashboard } from "@/lib/etapas-dashboard"
+
 import {
   BookOpen,
   GraduationCap,
@@ -29,6 +31,7 @@ import {
   ResponsiveContainer
 } from "recharts"
 import { DashboardResumenDTO } from "@/app/api/generated/model"
+import { MateriasSinProgramaIndicador } from "./materias-sin-programa-indicador"
 
 interface DashboardStatsProps {
   stats: DashboardResumenDTO
@@ -36,30 +39,10 @@ interface DashboardStatsProps {
 
 export function DashboardStats( { stats }: DashboardStatsProps) {
 
-  const programasEnCurso = [
-    {
-      estado: "Administración",
-      cantidad: stats.pendienteAdministracion,
-      color: "#f59e0b",
-    },
-    {
-      estado: "Docente",
-      cantidad: stats.pendienteDocente,
-      color: "#3b82f6",
-    },
-    {
-      estado: "Comisiones",
-      cantidad: stats.pendienteComisiones,
-      color: "#8b5cf6",
-    },
-        {
-      estado: "Secretaría",
-      cantidad: stats.pendienteSecretaria,
-      color: "#06b6d4",
-    },
-  ]
+  const programasEnCurso = etapasDashboard(stats)
 
   const totalEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)
+  const materiasSinPrograma = (stats.materias ?? 0) - (stats.programasTotales ?? 0)
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
@@ -129,6 +112,9 @@ export function DashboardStats( { stats }: DashboardStatsProps) {
               value={stats.administrativos ?? 0}
               label="Administrativos"
             />
+          </div>
+          <div className="mt-4 border-t pt-4">
+            <MateriasSinProgramaIndicador cantidad={materiasSinPrograma} />
           </div>
         </CardContent>
       </Card>

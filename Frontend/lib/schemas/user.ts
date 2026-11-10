@@ -1,4 +1,4 @@
-import { UserCreateDTORolesItem } from "@/app/api/generated/model"
+import { Rol } from "@/app/api/generated/model"
 import { z } from "zod"
 
 export const createUserSchema = z
@@ -8,8 +8,8 @@ export const createUserSchema = z
     legajo: z.string().min(1, "El legajo es requerido").regex(/^\d+$/, "El legajo solo debe contener números"),
     email: z.string().min(1, "El correo electrónico es requerido").email("Ingresa un correo electrónico válido"),
     roles: z.array(z.enum([
-      UserCreateDTORolesItem.ADMINISTRACION, 
-      UserCreateDTORolesItem.DOCENTE
+      Rol.ADMINISTRACION,
+      Rol.DOCENTE
     ])).min(1, "Selecciona al menos un rol"),
   })
 export type CreateUserFormData = z.infer<typeof createUserSchema>

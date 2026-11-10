@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronUp, ChevronDown, Eye } from "lucide-react"
+import { ChevronUp, ChevronDown } from "lucide-react"
 import { ProgramaResponseDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context";
 import { useRouter } from "next/navigation"
-import { Button } from "../ui/button";
+import { ProgramaAcciones } from './programa-acciones';
 import { PageNavigation } from "../nav/page-nav";
 
 interface ProgramasListProps {
@@ -17,7 +17,7 @@ interface ProgramasListProps {
   onPageChange: (page: number) => void
 }
 
-type SortField = "materia" | "carreraPlan" | "nombreDepartamento" | "profesorResponsable"
+type SortField = "materia" | "carreraPlan" | "nombreDepartamento" | "docenteResponsable"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListReducedCoord({ 
@@ -65,9 +65,9 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
       valueA = a.materia?.nombre || "";
       valueB = b.materia?.nombre || "";
       break;
-    case "profesorResponsable":
-      valueA = a.profesorResponsable?.apellido || "";
-      valueB = b.profesorResponsable?.apellido || "";
+    case "docenteResponsable":
+      valueA = a.docenteResponsable?.apellido || "";
+      valueB = b.docenteResponsable?.apellido || "";
       break;
     case "carreraPlan":
       valueA = a.relacionEspecifica.carreraNombre || "";
@@ -116,11 +116,11 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
               </th>
               <th className="px-3 py-1.5 text-left w-1/4">
                 <button
-                  onClick={() => handleSort("profesorResponsable")}
+                  onClick={() => handleSort("docenteResponsable")}
                   className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
                 >
                   Docente
-                  {sortField === "profesorResponsable" &&
+                  {sortField === "docenteResponsable" &&
                     (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </button>
               </th>
@@ -151,7 +151,7 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
                       <div className="text-xs text-muted-foreground">{programa.materia?.codigo}</div>
                     </td>
 
-                    <td className="px-3 py-1.5 text-foreground/80">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{programa.docenteResponsable?.apellido}, {programa.docenteResponsable?.nombre} (Legajo: {programa.docenteResponsable?.legajo})</td>
 
                     <td className="px-3 py-1.5 align-middle">
                       <div className="flex flex-col">
@@ -168,16 +168,12 @@ const programasOrdenados = [...programasAplanados].sort((a, b) => {
                       </span>
                     </td>
 
-                    <td className="px-3 py-1.5 align-middle text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push(`/programas/${programa.id}/revision/comision/${relacion.plan?.id}`)}
-                        className="border-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                      >
-                        <Eye size={16} className="mr-2" />
-                        Revisar
-                      </Button>
+                    <td className="px-3 py-1.5 align-middle text-right">
+                      <ProgramaAcciones
+                        descripcion={`${programa.materia?.nombre ?? 'la materia'} (${programa.anio ?? ''}), ${relacion.carreraNombre ?? ''}`}
+                        revision
+                        onContinuar={() => router.push(`/programas/${programa.id}/revision/comision/${relacion.plan?.id}`)}
+                      />
                     </td>
                   </tr>
                 );

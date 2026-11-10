@@ -1,46 +1,43 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo } from "react";
 import { useDept } from "./dept-context";
-import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { Rol } from "@/app/api/generated/model";
+import { useRouter } from "next/navigation";
+import { useStoredPreference } from "@/hooks/use-stored-preference";
 
 interface RoleContextType {
-  availableRoles: UsuarioDepartamentoDTORolesItem[];
-  activeRole: UsuarioDepartamentoDTORolesItem | null;
-  setActiveRole: (r: UsuarioDepartamentoDTORolesItem) => void;
+  availableRoles: Rol[];
+  activeRole: Rol | null;
+  setActiveRole: (r: Rol) => void;
 }
 
 const RoleContext = createContext<RoleContextType | null>(null);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { activeDepartamento } = useDept();
-  const [activeRole, setActiveRole] = useState<UsuarioDepartamentoDTORolesItem | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem("activeRole") as UsuarioDepartamentoDTORolesItem | null;
-  });    
+  const router = useRouter();
+  const [storedRole, setStoredRole] = useStoredPreference("activeRole");
 
   const availableRoles = useMemo(
     () => activeDepartamento?.roles ?? [],
     [activeDepartamento]
   );
 
-  useEffect(() => {
-    const savedRole = localStorage.getItem("activeRole") as UsuarioDepartamentoDTORolesItem | null;
-    
-    // Validamos que el rol guardado exista dentro de los roles del departamento actual
-    if (savedRole && availableRoles.includes(savedRole)) {
-      setActiveRole(savedRole);
-    } else if (availableRoles.length > 0) {
-      setActiveRole(availableRoles[0]);
-    } else {
-      setActiveRole(null);
-    }
-  }, [availableRoles]); // Se dispara cuando cambia el depto (y por ende sus roles)
+  // La preferencia solo se usa si pertenece al departamento activo.
+  const activeRole = availableRoles.includes(storedRole as Rol)
+    ? storedRole as Rol
+    : availableRoles[0] ?? null;
+
+  // Los efectos de las consultas deben leer el mismo rol que muestra el contexto.
+  useLayoutEffect(() => {
+    if (storedRole !== undefined && activeRole) setStoredRole(activeRole);
+  }, [storedRole, activeRole, setStoredRole]);
 
 
-  const handleSetActiveRole = (rol: UsuarioDepartamentoDTORolesItem) => {
-    setActiveRole(rol);
-    localStorage.setItem("activeRole", String(rol));
+  const handleSetActiveRole = (rol: Rol) => {
+    setStoredRole(rol);
+    router.push('/');
   };
 
   return (

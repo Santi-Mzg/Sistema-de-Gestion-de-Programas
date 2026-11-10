@@ -2,13 +2,25 @@
 
 import { SyllabusCreationForm } from "@/components/forms/programa-creation-form";
 import { useRole } from "@/context/role-context";
+import { useDept } from "@/context/dept-context";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Suspense } from "react";
 
 
+function FormularioConMateriaInicial() {
+    const searchParams = useSearchParams();
+    const { activeDepartamento } = useDept();
+    const materiaIdInicial = searchParams.get("materiaId");
+
+    return <SyllabusCreationForm
+      key={JSON.stringify([activeDepartamento?.departamentoId, materiaIdInicial])}
+      materiaIdInicial={materiaIdInicial} />;
+}
+
 export default function CrearPrograma() {
     const { activeRole } = useRole()
-  
+
 
     if (!activeRole) {
       return(
@@ -21,7 +33,7 @@ export default function CrearPrograma() {
       )
     }
 
-    if(activeRole !== "SYSTEM_ADMIN" && activeRole !== "ADMINISTRACION") {
+    if(activeRole !== "ADMINISTRACION") {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -41,7 +53,7 @@ export default function CrearPrograma() {
           </div>
         </div>
       }>
-        <SyllabusCreationForm />
+        <FormularioConMateriaInicial />
       </Suspense>
     );
 }

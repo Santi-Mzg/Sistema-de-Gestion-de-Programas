@@ -4,8 +4,8 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { GetDashboardResumenRolActivo } from './getDashboardResumenRolActivo';
+import type { Rol } from './rol';
 
 export type GetDashboardResumenParams = {
-rolActivo: GetDashboardResumenRolActivo;
+rolActivo: Rol;
 };

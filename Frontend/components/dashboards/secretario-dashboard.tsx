@@ -2,7 +2,7 @@
 
 import { AlertCircle, User, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProgramaResponseReducedDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { ProgramaResponseReducedDTO, Rol } from "@/app/api/generated/model";
 import { getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, useGetDashboardResumen, useListProgramasPendientes } from "@/app/api/generated/client";
 import { ProgramasListReduced } from "../pages/programas-list-reduced";
 import { useRouter } from "next/navigation"
@@ -12,6 +12,8 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useHeader } from "@/context/header-context";
 import { DashboardStats } from "../ui/cardsStatsSecretaria";
+import { rutaAccionPrograma } from "@/lib/circuito-programa";
+import { MateriasSinProgramaCard } from "../pages/materias-sin-programa-card";
 
 
 export function SecretarioDashboard() {
@@ -26,7 +28,7 @@ export function SecretarioDashboard() {
     
     useEffect(() => {
       setHeader({
-        title: "Panel de Secretaría",
+        title: "Panel de secretaría",
         subtitle: "Visualiza y gestiona las informaciones departamentales",
         badge: (
           <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -41,7 +43,7 @@ export function SecretarioDashboard() {
     const dashboardStatsQuery = useGetDashboardResumen(
       activeDepartamento!.departamentoId!,
       {
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
       },
       {
         query: {
@@ -50,7 +52,7 @@ export function SecretarioDashboard() {
           queryKey: getGetDashboardResumenQueryKey(
             activeDepartamento!.departamentoId!,
             {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+              rolActivo: activeRole as Rol,
             }
           ),
         }, 
@@ -62,7 +64,7 @@ export function SecretarioDashboard() {
     const programasQuery = useListProgramasPendientes(
         activeDepartamento!.departamentoId!,
         {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          rolActivo: activeRole as Rol,
           page,
           size: pageSize,
         },
@@ -73,7 +75,7 @@ export function SecretarioDashboard() {
             queryKey: getListProgramasPendientesQueryKey(
               activeDepartamento!.departamentoId!,
               {
-                rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+                rolActivo: activeRole as Rol,
                 page,
                 size: pageSize,
               }
@@ -97,7 +99,9 @@ export function SecretarioDashboard() {
     }
   
     const handleNavigate = (id: number) => {
-      router.push(`/programas/${id}/revision/secretaria`);
+      const programa = programas.find(programa => programa.id === id);
+      const ruta = rutaAccionPrograma(activeRole, programa?.estado, id);
+      if (ruta) router.push(ruta);
     };
 
     if (!activeDepartamento || !activeDepartamento.departamentoId || !activeRole) {
@@ -176,6 +180,8 @@ export function SecretarioDashboard() {
               <ProgramasListReduced programas={programas} page={page} pageSize={pageSize} totalPages={totalPages} totalElements={totalElements} onPageChange={setPage} onRowClick={handleNavigate}/>
             </CardContent>
           </Card>
+          <MateriasSinProgramaCard key={`${activeDepartamento.departamentoId}-${activeRole}`}
+            deptId={activeDepartamento.departamentoId} rol={activeRole} />
         </div>
     </div>
   )

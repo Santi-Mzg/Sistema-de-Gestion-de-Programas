@@ -4,8 +4,11 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
+import type { UserResponseReducedDTO } from './userResponseReducedDTO';
 
 export interface AreaResponseDTO {
   id?: number;
   nombre?: string;
+  departamentoId?: number;
+  coordinador?: UserResponseReducedDTO;
 }

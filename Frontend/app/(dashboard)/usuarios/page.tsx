@@ -1,7 +1,7 @@
 "use client"
 
 import { getListUsersDepartamentoQueryKey, useListUsersDepartamento } from "@/app/api/generated/client";
-import { UserResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { UserResponseDTO, Rol } from "@/app/api/generated/model";
 import { UsuariosList } from "@/components/pages/usuarios-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,16 +82,16 @@ export default function Usuarios() {
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+          {(activeRole === Rol.ADMINISTRACION || 
+              activeRole === Rol.SECRETARIA || 
+              activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+              activeRole === Rol.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/usuarios/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Usuario
+              Crear usuario
             </Button>
           }
         </div>

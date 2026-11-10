@@ -1,4 +1,20 @@
 "use client"
+import { invalidarConsultasPrograma } from "@/lib/invalidacion-consultas";
+import {
+  getGetDraftQueryKey,
+  getGetProgramaQueryKey,
+  getListCarrerasQueryKey,
+  getListDocentesDepartamentoQueryKey,
+  getListMateriasDepartamentoQueryKey,
+  useAdministrativoCarga,
+  useDeleteDraft,
+  useGetDraft,
+  useGetPrograma,
+  useListCarreras,
+  useListDocentesDepartamento,
+  useListMateriasDepartamento,
+  useSaveDraft
+} from "@/app/api/generated/client";
 
 import type React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -8,9 +24,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Check, CheckCircle2, ChevronsUpDown, FileText, Plus } from "lucide-react"
 import Link from "next/link"
-import { ProgramaCarreraCreateBlock } from "./programa-carrera-block-field"
-import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, EstadoHistoricoResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
-import { getGetDashboardResumenQueryKey, getGetDraftQueryKey, getGetProgramaQueryKey, getListCarrerasQueryKey, getListDocentesDepartamentoQueryKey, getListMateriasDepartamentoQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey, useAdministrativoCarga, useDeleteDraft, useGetDraft, useGetPrograma, useListCarreras, useListDocentesDepartamento, useListMateriasDepartamento, useSaveDraft } from "@/app/api/generated/client"
+import { ProgramaResponseDTO, UserResponseDTO, CarreraResponseDTO, MateriaResponseDTO, ProgramaCargaDTO, ProgramaCarreraCreateDTO, EstadoPrograma, Rol } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -20,7 +34,7 @@ import { useRole } from "@/context/role-context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import {
   Command,
-  CommandEmpty, 
+  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -32,12 +46,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { formComboboxStyles } from "@/lib/form-field-styles"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
-import { FieldErrors, useFieldArray, useForm, useWatch } from "react-hook-form"
+import { FieldErrors, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
+import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
+import { MateriaProgramaSelector } from "./materia-programa-selector"
 interface SyllabusFormProps {
   id: number,
 }
@@ -47,15 +64,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole();
   const queryClient = useQueryClient();
-  const [removeProgramaCarreraIndex, setRemoveProgramaCarreraIndex] = useState<number | null>(null)
   const [showDraft, setShowDraft] = useState(false)
   const actualYear = new Date().getFullYear()
-  const [openProfesorSelector, setOpenProfesorSelector] = useState(false)
+  const [openDocenteSelector, setOpenDocenteSelector] = useState(false)
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [loadingPrograma, setLoadingPrograma] = useState(false)
 
   const materiaButtonRef = useRef<HTMLButtonElement>(null)
-  const profesorButtonRef = useRef<HTMLButtonElement>(null)
+  const docenteButtonRef = useRef<HTMLButtonElement>(null)
   const bloqueMultipleRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -75,23 +91,15 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       shouldFocusError: false,
       defaultValues: {
           materiaId: undefined,
-          profesorResponsableId: undefined,
+          docenteResponsableId: undefined,
           bloqueMultiple: [],
-          cantidadSemanas: undefined, 
+          cantidadSemanas: undefined,
           cargaHorariaSemanal: undefined,
           cargaHorariaTotal: undefined,
           creditos: undefined,
       }
   })
 
-  const {
-    fields,
-    append,
-    remove,
-  } = useFieldArray({
-    control,
-    name: "bloqueMultiple",
-  })
 
   const materiaId = watch("materiaId");
   const bloqueMultiple = watch("bloqueMultiple");
@@ -101,7 +109,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
 
   const deptId = activeDepartamento?.departamentoId
-  
+
   const programaQuery = useGetPrograma(id,
     {
       query: {
@@ -116,11 +124,11 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
 
   const ultimoEstado = programa?.historialEstados?.at(-1);
-  const esRechazado = ultimoEstado?.estado === EstadoHistoricoResponseDTOEstado.RECHAZADO_A_ADMINISTRACION;
+  const esRechazado = ultimoEstado?.estado === EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
 
-  const [selectedProfesor, setSelectedProfesor] = useState<UserResponseDTO | undefined>(undefined);
+  const [selectedDocente, setSelectedDocente] = useState<UserResponseDTO | undefined>(undefined);
 
-  const materiasQuery = useListMateriasDepartamento(deptId ?? 0, 
+  const materiasQuery = useListMateriasDepartamento(deptId ?? 0,
     {
       page: 0,
       size: 1000,
@@ -154,15 +162,15 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data;
 
 
-  const profesoresQuery = useListDocentesDepartamento(deptId ?? 0, {
+  const docentesQuery = useListDocentesDepartamento(deptId ?? 0, {
     query: {
       enabled: !!deptId,
-      staleTime: 1000 * 60 * 5,    
+      staleTime: 1000 * 60 * 5,
       queryKey: getListDocentesDepartamentoQueryKey(deptId),
     },
   })
 
-  const profesores: UserResponseDTO[] | undefined = profesoresQuery.data;
+  const docentes: UserResponseDTO[] | undefined = docentesQuery.data;
 
   const { mutate: mutateSaveDraft } = useSaveDraft({
     mutation: {
@@ -174,68 +182,25 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       },
     },
   })
-  
+
   const { mutate: mutateDeleteDraft } = useDeleteDraft()
 
   const { mutate, isPending } = useAdministrativoCarga({
     mutation: {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast({
           title: "✓ Éxito",
           description: "Programa cargado exitosamente",
           variant: "success",
-        })        
+        })
 
-        mutateDeleteDraft({
-          deptId: activeDepartamento!.departamentoId!,
-          materiaId: programa?.materia?.id!,
-          params:{
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-          }
-        });
+        // El backend elimina este draft junto con la transición.
 
         reset()
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
+        await invalidarConsultasPrograma(queryClient, { departamentoId: activeDepartamento!.departamentoId!, programaId: id });
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasPendientesQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasCoordinacionQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          ),
-        });
-        
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasPendientesCoordinadorQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getGetDashboardResumenQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          ),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getGetProgramaQueryKey(id)
-        });
-
-        router.push('/'); 
+        router.push('/');
 
       },
       onError: (error: unknown) => {
@@ -244,9 +209,9 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
         if (axios.isAxiosError(error)) {
           const backendError = error.response?.data;
-          
-            errorMessage = backendError?.errors?.Error || 
-                          backendError?.message || 
+
+            errorMessage = backendError?.errors?.Error ||
+                          backendError?.message ||
                         "Ocurrió un error inesperado";
         } else if (error instanceof Error) {
           errorMessage = error.message;
@@ -262,10 +227,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   });
 
   const onSubmit = (data: ProgramaAdminFormData) => {
-    mutate({ 
+    mutate({
       deptId: activeDepartamento!.departamentoId!,
       id,
-      data: data 
+      data: data
     });
   }
 
@@ -288,8 +253,8 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       return
     }
 
-    if (formErrors.profesorResponsableId) {
-      focusPopover(profesorButtonRef)
+    if (formErrors.docenteResponsableId) {
+      focusPopover(docenteButtonRef)
       return
     }
 
@@ -321,7 +286,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     activeDepartamento?.departamentoId ?? 0,
     programa?.materia?.id ?? 0,
     {
-      rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+      rolActivo: activeRole as Rol, anio: programa?.anio ?? new Date().getFullYear(), programaId: id,
     },
     {
       query: {
@@ -330,12 +295,12 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         staleTime: Infinity,
         refetchOnWindowFocus: false,
         gcTime: 0,
-        retry: false, 
+        retry: false,
         queryKey: getGetDraftQueryKey(
           activeDepartamento!.departamentoId!,
-          programa?.materia?.id!,
+          programa?.materia?.id ?? 0,
           {
-            rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+            rolActivo: activeRole as Rol, anio: programa?.anio ?? new Date().getFullYear(), programaId: id,
           }
         )
       }
@@ -343,9 +308,9 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   );
 
   useEffect(() => {
-    if (draftQuery.data?.payloadJson)       
+    if (draftQuery.data?.payloadJson)
         setShowDraft(true);
-  }, [draftQuery.data]); 
+  }, [draftQuery.data]);
 
 
   const handleLoadDraft = () => {
@@ -354,7 +319,10 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     setLoadingDraft(true)
     try {
       const draftData = JSON.parse(draftQuery.data.payloadJson)
-      setSelectedProfesor(profesores?.find((p) => p.id === draftData.profesorResponsableId))
+      // Compatibilidad con borradores guardados antes del cambio de terminología.
+      draftData.docenteResponsableId ??= draftData.profesorResponsableId;
+      delete draftData.profesorResponsableId;
+      setSelectedDocente(docentes?.find((p) => p.id === draftData.docenteResponsableId))
       reset(draftData)
       setShowDraft(false)
 
@@ -371,7 +339,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     }
   }
 
-  
+
   const formValues = useWatch({
     control,
   })
@@ -386,7 +354,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         deptId: activeDepartamento.departamentoId!,
         materiaId: programa.materia!.id!,
         params: {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          rolActivo: activeRole as Rol, anio: programa?.anio ?? new Date().getFullYear(), programaId: id,
         },
         data: {
           payloadJson: JSON.stringify(getValues()),
@@ -405,7 +373,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     getValues,
   ])
 
-  
+
  useEffect(() => {
     if (!programa) return
 
@@ -413,17 +381,16 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     try {
       const mappedData: ProgramaCargaDTO = {
         materiaId: programa.materia?.id,
-        profesorResponsableId: programa.profesorResponsable?.id,
+        docenteResponsableId: programa.docenteResponsable?.id,
         bloqueMultiple:
-          programa.bloqueMultiple?.map((c) => ({
-            key: `${Date.now()}_${Math.random()}`,
-            carreraPlanId: c.plan?.id || 0,
-            ubicacionEnPlan: c.ubicacionEnPlan || "",
-            correlativasFuertesIds: c.correlativasFuertes?.map((cf) => cf.id).filter((id): id is number => id !== undefined) || [],
-            correlativasDebilesIds: c.correlativasDebiles?.map((cd) => cd.id).filter((id): id is number => id !== undefined) || [],
-            contribucion: c.contribucion || "",
-            contenidosMinimos: c.contenidosMinimos || "",
-          })) || [],
+        programa.bloqueMultiple?.map((c) => ({
+          key: `${Date.now()}_${Math.random()}`,
+          carreraPlanId: c.plan?.id || 0,
+          ubicacionEnPlan: c.ubicacionEnPlan || "",
+          correlativasFuertesIds: c.correlativasFuertes?.map((cf) => cf.id).filter((id): id is number => id !== undefined) || [],
+          correlativasDebilesIds: c.correlativasDebiles?.map((cd) => cd.id).filter((id): id is number => id !== undefined) || [],
+          contribucion: c.contribucion || "",
+        })) || [],
         cargaHorariaTotal: programa.cargaHorariaTotal || 0,
         cargaHorariaSemanal: programa.cargaHorariaSemanal || 0,
         creditos: programa.creditos || 0,
@@ -432,12 +399,12 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       reset(mappedData)
 
 
-      if (programa.profesorResponsable?.id) {
-      const docenteEncontrado = profesores?.find(
-        (p) => p.id === programa.profesorResponsable?.id
+      if (programa.docenteResponsable?.id) {
+      const docenteEncontrado = docentes?.find(
+        (p) => p.id === programa.docenteResponsable?.id
       );
       if (docenteEncontrado) {
-        setSelectedProfesor(docenteEncontrado);
+        setSelectedDocente(docenteEncontrado);
       }
     }
 
@@ -447,25 +414,25 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       setLoadingPrograma(false)
     }
 
-  }, [programa, profesores]);
+  }, [programa, docentes]);
 
 
   const {setHeader} = useHeader();
-  
+
   useEffect(() => {
     setHeader({
-      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - ${programa?.anio}` : "Nuevo Programa Académico",
+      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - ${programa?.anio}` : "Nuevo programa académico",
       subtitle: "Formulario de carga de programa académico",
       badge: (
           <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-            esRechazado 
-              ? "bg-red-100 border border-amber-200" 
+            esRechazado
+              ? "bg-red-100 border border-amber-200"
               : "bg-primary/10"
-            }`}>            
+            }`}>
             {esRechazado ? (
                 <>
                   <AlertCircle className="text-amber-600" size={20} />
-                  <span className="font-semibold text-amber-700">Requiere Correcciones</span>
+                  <span className="font-semibold text-amber-700">Requiere correcciones</span>
                 </>
               ) : (
                 <>
@@ -489,25 +456,6 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     setValue("cargaHorariaTotal", total)
   }, [semanas, cargaSemanal, setValue]);
 
-  const handleAddProgramaCarrera = () => {
-    append({
-        carreraPlanId: 0,
-        ubicacionEnPlan: "",
-        correlativasFuertesIds: [],
-        correlativasDebilesIds: [],
-        contribucion: "",
-        contenidosMinimos: "",
-    })
-  }
-
-  const handleRemoveProgramaCarrera = () => {
-    if(removeProgramaCarreraIndex == null) return
-
-    remove(removeProgramaCarreraIndex)
-
-    setRemoveProgramaCarreraIndex(null)
-  } 
-
     if (!activeDepartamento || !activeDepartamento.departamentoId) {
       return(
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
@@ -518,7 +466,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (materiasQuery.isLoading) {
         return (
           <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
@@ -529,7 +477,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           </div>
         )
     }
-  
+
     if (materiasQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -540,7 +488,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (!materias || materias.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -548,7 +496,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <AlertCircle className="text-yellow-600" size={24} />
             <p className="text-yellow-700">No hay materias registradas. Deben haber materias registradas para poder crear programas.</p>
             <Link href="/materias/crear">
-              <Button>Crear Materia</Button>
+              <Button>Crear materia</Button>
             </Link>
           </div>
         </div>
@@ -565,7 +513,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (carrerasQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -576,7 +524,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (!carreras || carreras.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -588,34 +536,34 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
       )
     }
 
-    if (profesoresQuery.isLoading) {
+    if (docentesQuery.isLoading) {
       return (
         <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
             <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Cargando profesores disponibles...</p>
+                <p className="text-muted-foreground">Cargando docentes disponibles...</p>
             </div>
         </div>
       )
     }
-  
-    if (profesoresQuery.error) {
+
+    if (docentesQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="text-red-600" size={24} />
-            <p className="text-red-700">Error al obtener los profesores</p>
+            <p className="text-red-700">Error al obtener los docentes</p>
           </div>
         </div>
       )
     }
-  
-    if (!profesores || profesores.length === 0) {
+
+    if (!docentes || docentes.length === 0) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <AlertCircle className="text-yellow-600" size={24} />
-            <p className="text-yellow-700">No hay profesores registrados. Deben haber profesores registrados para poder crear programas.</p>
+            <p className="text-yellow-700">No hay docentes registrados. Deben haber docentes registrados para poder crear programas.</p>
           </div>
         </div>
       )
@@ -631,7 +579,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (programaQuery.error) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -642,7 +590,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
       )
     }
-  
+
     if (!programa || !programa.id) {
       return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -660,13 +608,13 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         {esRechazado && (
           <RejectionInfoCard estadoHistorico={ultimoEstado} />
         )}
-      
+
 
         {/* BLOQUE ÚNICO */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+          <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
 
-          <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
                 Departamento
@@ -688,7 +636,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="anio"
                 name="anio"
-                value={actualYear}
+                value={programa.anio ?? actualYear}
                 className="border-border focus:border-primary bg-background"
                 disabled
                 required
@@ -696,19 +644,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </div>
           </div>
 
-          <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">            
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
                 Materia
               </Label>
-              <Input
-                id="materia"
-                type="text"
-                defaultValue={programa.materia?.nombre}
-                className="border-border focus:border-primary bg-background"
-                disabled
-                required
-              />
+              <MateriaProgramaSelector materias={materias} value={materiaId} buttonRef={materiaButtonRef}
+                error={errors.materiaId?.message}
+                onChange={materia => setValue('materiaId', materia.id!, { shouldDirty: true, shouldValidate: true })} />
             </div>
 
             <div className="space-y-2">
@@ -718,7 +661,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="codigo"
                 type="text"
-                defaultValue={programa.materia?.codigo}
+                value={materias.find(m => m.id === materiaId)?.codigo ?? programa.materia?.codigo ?? ""}
                 className="border-border focus:border-primary bg-background"
                 disabled
                 required
@@ -732,7 +675,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               <Input
                 id="area"
                 type="text"
-                defaultValue={programa.materia?.area}
+                value={materias.find(m => m.id === materiaId)?.area ?? programa.materia?.area ?? ""}
                 className="border-border focus:border-primary bg-background"
                 disabled
                 required
@@ -741,55 +684,60 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <Label className="text-sm font-semibold">Docente Responsable *</Label>
-            <Popover open={openProfesorSelector} onOpenChange={setOpenProfesorSelector}>
+            <Label className="text-sm font-semibold">Docente responsable *</Label>
+            <Popover open={openDocenteSelector} onOpenChange={setOpenDocenteSelector}>
               <PopoverTrigger asChild>
                 <Button
-                  ref={profesorButtonRef}
+                  ref={docenteButtonRef}
                   type="button"
                   variant="outline"
                   role="combobox"
-                  aria-expanded={openProfesorSelector}
-                  aria-invalid={!!errors.profesorResponsableId}
+                  aria-expanded={openDocenteSelector}
+                  aria-invalid={!!errors.docenteResponsableId}
                   aria-describedby={
-                    errors.profesorResponsableId
-                      ? "profesor-error"
+                    errors.docenteResponsableId
+                      ? "docente-error"
                       : undefined
                   }
-                  className="w-full justify-between font-normal border-border"
+                  className={cn(formComboboxStyles, "border-border")}
                 >
-                  {selectedProfesor?.id 
-                    ? `${selectedProfesor.apellido}, ${selectedProfesor.nombre} (Legajo: ${selectedProfesor.legajo})`
-                    : "Seleccionar docente..."}
+                  <span
+                    className="min-w-0 flex-1 truncate text-left"
+                    title={selectedDocente ? `${selectedDocente.apellido}, ${selectedDocente.nombre} (Legajo: ${selectedDocente.legajo})` : undefined}
+                  >
+                    {selectedDocente?.id
+                      ? `${selectedDocente.apellido}, ${selectedDocente.nombre} (Legajo: ${selectedDocente.legajo})`
+                      : "Seleccionar docente..."}
+                  </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+              <PopoverContent className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
                 <Command>
                   <CommandInput placeholder="Buscar..." />
                   <CommandList className="pointer-events-auto">
                     <CommandEmpty>No se encontró la materia.</CommandEmpty>
                     <CommandGroup>
-                      {profesores.map((profesor) => (
+                      {docentes.map((docente) => (
                         <CommandItem
-                          key={profesor.id}
-                          value={profesor.nombre + " " + profesor.apellido + " " + profesor.legajo}
+                          key={docente.id}
+                          value={docente.nombre + " " + docente.apellido + " " + docente.legajo}
                           onSelect={() => {
-                            setSelectedProfesor(profesor)
-                            setValue("profesorResponsableId", profesor.id!, {
+                            setSelectedDocente(docente)
+                            setValue("docenteResponsableId", docente.id!, {
                                 shouldDirty: true,
                                 shouldValidate: true,
                             })
-                            setOpenProfesorSelector(false)
+                            setOpenDocenteSelector(false)
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedProfesor?.id === profesor.id ? "opacity-100" : "opacity-0"
+                              selectedDocente?.id === docente.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          {profesor.apellido}, {profesor.nombre} (Legajo: {profesor.legajo})
+                          {docente.apellido}, {docente.nombre} (Legajo: {docente.legajo})
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -798,9 +746,9 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               </PopoverContent>
             </Popover>
             <div className="min-h-5">
-              {errors.profesorResponsableId && (
+              {errors.docenteResponsableId && (
                 <p className="text-sm text-red-500">
-                  {errors.profesorResponsableId.message}
+                  {errors.docenteResponsableId.message}
                 </p>
               )}
             </div>
@@ -808,58 +756,31 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
 
         {/* BLOQUE MÚLTIPLE */}
-        <div ref={bloqueMultipleRef} className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
+        <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
-            <Button
-              type="button"
-              onClick={handleAddProgramaCarrera}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
-              size="sm"
-            >
-              <Plus size={18} />
-              Agregar Carrera
-            </Button>
+            <h2 className="text-lg font-bold text-accent">Información por carrera</h2>
           </div>
 
-          {bloqueMultiple.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground bg-background rounded-lg border-2 border-dashed border-accent/20">
-              <p>No hay carreras agregadas aún</p>
-              <p className="text-sm">Haz clic en "Agregar Carrera" para comenzar</p>
-            </div>
-          ) : (
-            <div className={bloqueMultiple && bloqueMultiple.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
-              {fields.map((block, index) => (
-                <ProgramaCarreraCreateBlock
-                  key={block.id}
-                  materiaId={materiaId || 0}
-                  index={index}
-                  carreras={carreras}
-                  carreraPlanIdsSeleccionados={
-                    bloqueMultiple
-                      ?.map((b) => b.carreraPlanId)
-                      .filter((id): id is number => !!id) ?? []
-                  }
-                  control={control}
-                  register={register}
-                  setValue={setValue}
-                  errors={errors}
-                  onRemove={setRemoveProgramaCarreraIndex}
-                />
-              ))}
-            </div>
-          )}
+          <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
+            {programa.bloqueMultiple?.map((block, index) => (
+              <ProgramaCarreraBlockView
+                key={index}
+                block={block}
+                index={index}
+              />
+            ))}
+          </div>
         </div>
 
         {/* CONFIGURACIÓN GENERAL */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-          <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
+          <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
           {/* Carga Horaria */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
-                Cantidad de Semanas *
+                Cantidad de semanas *
               </Label>
               <Input
                 id="semanas"
@@ -884,7 +805,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaSemanal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Semanal *
+                Carga horaria semanal *
               </Label>
               <Input
                 id="cargaSemanal"
@@ -909,7 +830,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cargaTotal" className="text-sm font-semibold text-foreground">
-                Carga Horaria Total
+                Carga horaria total
               </Label>
               <Input
                 id="cargaTotal"
@@ -955,7 +876,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
           {/* Carga Práctica */}
           <div className="space-y-2">
             <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-              Carga Horaria Práctica
+              Carga horaria práctica
             </Label>
             <Input
               id="cargaPractica"
@@ -983,7 +904,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             <Textarea
               id="fundamentacion"
               value={programa.fundamentacion}
-              placeholder="Justifica la importancia de esta Materia..."
+              placeholder="Justifica la importancia de esta materia..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -1010,7 +931,26 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
           <div className="space-y-2">
             <LabelWithTooltip
-              label="Programa Analítico"
+              label="Contenidos mínimos"
+              htmlFor="contenidosMinimos"
+              tooltip={
+                <>
+                  <p>Indique los contenidos mínimos que tiene que tener el programa de la materia</p>
+                </>
+              }
+            />
+            <Textarea
+              id="contenidosMinimos"
+              value={programa.contenidosMinimos}
+              placeholder="Detalla el contenido mínimo del curso..."
+              className="border-border focus:border-primary min-h-20 resize-none"
+              disabled
+            />
+          </div>
+
+          <div className="space-y-2">
+            <LabelWithTooltip
+              label="Programa analítico"
               htmlFor="programa"
               tooltip={
                 <>
@@ -1029,7 +969,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
 
           <div className="space-y-2">
             <LabelWithTooltip
-              label="Metodología"
+              label="Metodología de enseñanza y actividades de aprendizaje"
               htmlFor="metodologia"
               tooltip={
                 <>
@@ -1044,14 +984,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               id="metodologia"
               value={programa.metodologia}
               placeholder="Describe los métodos de enseñanza..."
-              className="border-border focus:border-primary min-h-20 resize-none" 
+              className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
           </div>
 
           <div className="space-y-2">
             <LabelWithTooltip
-              label="Modalidad de Evaluación"
+              label="Sistema de evaluación"
               htmlFor="modalidadEvaluacion"
               tooltip={
                 <>
@@ -1076,7 +1016,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
               htmlFor="bibliografia"
               tooltip={
                 <>
-                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                  <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón &apos;Formatear&apos; para adecuar automáticamente las referencias al formato APA.</p>
                 </>
               }
             />
@@ -1091,14 +1031,14 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </div>
 
         {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-border">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
             <Button
               type="button"
               onClick={handleSubmit(onSubmit, onInvalid)}
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
-              {isPending ? "Cargando..." : "Cargar Programa"}
+              {isPending ? "Cargando..." : "Enviar a secretaría"}
             </Button>
             <Button
               type="button"
@@ -1108,15 +1048,15 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
             >
               Cancelar
             </Button>
-          </div>
+                      </div>
       </form>
 
-      <Dialog open={!!showDraft} onOpenChange={(open: any) => !open && setShowDraft(false)}>
+      <Dialog open={!!showDraft} onOpenChange={(open: boolean) => !open && setShowDraft(false)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-2">
               <FileText size={24} />
-              Borrador Encontrado
+              Borrador encontrado
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               Se encontró un borrador. ¿Desea cargarlo?
@@ -1144,36 +1084,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={removeProgramaCarreraIndex !== null} onOpenChange={(open: any) => !open && setRemoveProgramaCarreraIndex(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
-              <AlertCircle size={24} />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              ¿Estás seguro de que deseas eliminar el bloque?
-            </DialogDescription>
-          </DialogHeader>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRemoveProgramaCarreraIndex(null)}
-              className="border-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveProgramaCarrera}
-              className="bg-destructive"
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

@@ -1,5 +1,7 @@
 "use client"
 
+import { etapasDashboard } from "@/lib/etapas-dashboard"
+
 import {
   BookOpen,
   GraduationCap,
@@ -28,6 +30,7 @@ import {
   ResponsiveContainer
 } from "recharts"
 import { DashboardResumenDTO } from "@/app/api/generated/model"
+import { MateriasSinProgramaIndicador } from "./materias-sin-programa-indicador"
 
 interface DashboardStatsProps {
   stats: DashboardResumenDTO
@@ -36,28 +39,7 @@ interface DashboardStatsProps {
 
 export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) {
 
-  const programasEnCurso = [
-    {
-      estado: "Administración",
-      cantidad: stats.pendienteAdministracion,
-      color: "#f59e0b",
-    },
-    {
-      estado: "Docente",
-      cantidad: stats.pendienteDocente,
-      color: "#3b82f6",
-    },
-    {
-      estado: "Comisiones",
-      cantidad: stats.pendienteComisiones,
-      color: "#8b5cf6",
-    },
-        {
-      estado: "Secretaría",
-      cantidad: stats.pendienteSecretaria,
-      color: "#06b6d4",
-    },
-  ]
+  const programasEnCurso = etapasDashboard(stats)
 
   const totalEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)
   const pendientesSinProgramas = (stats.materias ?? 0) - (stats.programasTotales ?? 0)
@@ -285,12 +267,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
               className="border-amber-500 bg-amber-50 text-amber-700"
             />
             
-            <StatBox
-              label="Materias sin programa en este ciclo lectivo"
-              value={pendientesSinProgramas}
-              icon={<BookOpen size={16} />}
-              className="border-blue-500 bg-blue-50 text-blue-700"
-            />
+            <MateriasSinProgramaIndicador cantidad={pendientesSinProgramas} />
           </div>
         </CardContent>
       </Card>

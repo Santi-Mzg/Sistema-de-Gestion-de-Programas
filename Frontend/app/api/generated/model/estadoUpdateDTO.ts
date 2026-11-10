@@ -5,11 +5,14 @@
  * OpenAPI spec version: v0
  */
 import type { EstadoUpdateDTOAccion } from './estadoUpdateDTOAccion';
-import type { EstadoUpdateDTODestinoRechazo } from './estadoUpdateDTODestinoRechazo';
+import type { Rol } from './rol';
+import type { ProgramaCargaDTO } from './programaCargaDTO';
 
 export interface EstadoUpdateDTO {
   accion?: EstadoUpdateDTOAccion;
-  destinoRechazo?: EstadoUpdateDTODestinoRechazo;
+  destinoRechazo?: Rol;
   justificacion?: string;
   contribucionCarrera?: string;
+  guardarCambios?: boolean;
+  cambios?: ProgramaCargaDTO;
 }

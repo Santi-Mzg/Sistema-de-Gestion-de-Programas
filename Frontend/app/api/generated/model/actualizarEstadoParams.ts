@@ -4,9 +4,9 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { ActualizarEstadoRolActivo } from './actualizarEstadoRolActivo';
+import type { Rol } from './rol';
 
 export type ActualizarEstadoParams = {
 carreraId?: number;
-rolActivo: ActualizarEstadoRolActivo;
+rolActivo: Rol;
 };

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, Filter, Eye, FileText, History, FolderClock } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, Filter, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
-import { Button } from "../ui/button"
+import { ProgramaResponseDTO, EstadoPrograma } from "@/app/api/generated/model"
+import { ProgramaAcciones } from "./programa-acciones"
 import { usePathname, useRouter } from "next/navigation"
 import { useHeader } from "@/context/header-context"
 import { getProgramStateLabel, getProgramStateStyles } from "@/lib/utils"
@@ -21,7 +21,7 @@ interface ProgramasListProps {
   onPageChange: (page: number) => void
 }
 
-type SortField = "anio" | "nombreMateria" | "carreraPlan" | "estado" | "profesorResponsable" | "nombreDepartamento"
+type SortField = "anio" | "nombreMateria" | "carreraPlan" | "estado" | "docenteResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
 export function ProgramasListCoordinador({
@@ -93,11 +93,11 @@ export function ProgramasListCoordinador({
       switch (sortField) {
         case "anio": valueA = String(a.anio); valueB = String(b.anio); break;
         case "estado":
-          valueA = getProgramStateLabel(a.estado as ProgramaResponseDTOEstado);
-          valueB = getProgramStateLabel(b.estado as ProgramaResponseDTOEstado);
+          valueA = getProgramStateLabel(a.estado as EstadoPrograma);
+          valueB = getProgramStateLabel(b.estado as EstadoPrograma);
           break;
         case "nombreMateria": valueA = a.materia?.nombre || ""; valueB = b.materia?.nombre || ""; break;
-        case "profesorResponsable": valueA = a.profesorResponsable?.apellido || ""; valueB = b.profesorResponsable?.apellido || ""; break;
+        case "docenteResponsable": valueA = a.docenteResponsable?.apellido || ""; valueB = b.docenteResponsable?.apellido || ""; break;
         case "carreraPlan": valueA = a.relacionEspecifica.carreraNombre || ""; valueB = b.relacionEspecifica.carreraNombre || ""; break;
         case "nombreDepartamento": valueA = a.materia?.departamento || ""; valueB = b.materia?.departamento || ""; break;
       }
@@ -152,7 +152,7 @@ export function ProgramasListCoordinador({
                 {[
                   { id: "anio", label: "Año" },
                   { id: "nombreMateria", label: "Materia" },
-                  { id: "profesorResponsable", label: "Docente" },
+                  { id: "docenteResponsable", label: "Docente" },
                   { id: "carreraPlan", label: "Carrera - Plan" },
                   { id: "nombreDepartamento", label: "Departamento" },
                   { id: "estado", label: "Estado" }
@@ -167,7 +167,7 @@ export function ProgramasListCoordinador({
                     </button>
                   </th>
                 ))}
-                <th className="px-3 py-3 text-left font-semibold">Acciones</th>
+                <th className="px-3 py-3 text-center font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -180,7 +180,7 @@ export function ProgramasListCoordinador({
                       <div className="text-xs text-muted-foreground uppercase">{item.materia?.codigo}</div>
                     </td>
                     <td className="px-3 py-2 text-xs">
-                      {item.profesorResponsable?.apellido}, {item.profesorResponsable?.nombre} (Legajo: {item.profesorResponsable?.legajo})
+                      {item.docenteResponsable?.apellido}, {item.docenteResponsable?.nombre} (Legajo: {item.docenteResponsable?.legajo})
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-col">
@@ -192,24 +192,17 @@ export function ProgramasListCoordinador({
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">{item.materia?.departamento}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 ${getProgramStateStyles(item.estado as ProgramaResponseDTOEstado)}`}>
-                        {getProgramStateLabel(item.estado as ProgramaResponseDTOEstado)}
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 ${getProgramStateStyles(item.estado as EstadoPrograma)}`}>
+                        {getProgramStateLabel(item.estado as EstadoPrograma)}
                       </span>
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-1">
-                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/${item.id}`)} title="Ver Programa">
-                          <Eye size={16} />
-                        </Button>
-                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/${item.id}/historial-estados`)} title="Historial">
-                          <History size={16}/>
-                        </Button>
-                        {!esVistaVersiones && (
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => router.push(`/programas/materia/${item.materia?.id}/versiones`)} title="Versiones">
-                            <FolderClock size={16} />
-                          </Button>
-                        )}
-                      </div>
+                    <td className="px-3 py-2 text-right">
+                      <ProgramaAcciones
+                        descripcion={`${item.materia?.nombre ?? 'la materia'} (${item.anio ?? ''})`}
+                        onVer={() => router.push(`/programas/${item.id}`)}
+                        onHistorial={() => router.push(`/programas/${item.id}/historial-estados`)}
+                        onVersiones={!esVistaVersiones ? () => router.push(`/programas/materia/${item.materia?.id}/versiones`) : undefined}
+                      />
                     </td>
                   </tr>
                 ))

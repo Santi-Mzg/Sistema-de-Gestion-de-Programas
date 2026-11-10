@@ -1,13 +1,13 @@
 "use client";
 
-import { SetPasswordRequest } from "@/app/api/generated/model/setPasswordRequest";
+import type { ResetPasswordRequest } from "@/app/api/generated/model/resetPasswordRequest";
 import { useState } from "react";
 
 export function useSetPasswordFlow() {
 
   const [success, setSuccess] = useState(false);
 
-  const setPassword = async (data: SetPasswordRequest) => {
+  const setPassword = async (data: ResetPasswordRequest) => {
     const res = await fetch("/api/auth/set-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle2, Eye, FileText, Plus, Orbit } from "lucide-react"
-import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, EstadoUpdateDTODestinoRechazo, UsuarioDepartamentoDTORolesItem, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import { ProgramaResponseDTO, EstadoUpdateDTO, EstadoUpdateDTOAccion, Rol, EstadoPrograma } from "@/app/api/generated/model"
 import { useCreatePrograma, useListMateriasDepartamento, useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasQueryKey } from "@/app/api/generated/client"
 import { RechazoDialog } from "../modals/rechazo-dialog"
 import { useRouter } from "next/navigation"
@@ -35,17 +35,17 @@ export function SyllabusView({ id }: SyllabusFormProps) {
     }
   );
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
-  
+
   const {setHeader} = useHeader();
-  
+
   useEffect(() => {
     setHeader({
-      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) Año ${programa?.anio}` : "Nuevo Programa Académico",
+      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) Año ${programa?.anio}` : "Nuevo programa académico",
       subtitle: "Información de programa académico",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
           <Orbit className="text-primary" size={20} />
-          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as ProgramaResponseDTOEstado)}</span>
+          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as EstadoPrograma)}</span>
         </div>
       ),
       icon: FileText
@@ -89,7 +89,7 @@ export function SyllabusView({ id }: SyllabusFormProps) {
     <>
       {/* BLOQUE ÚNICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-        <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+        <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
 
         <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
@@ -119,7 +119,7 @@ export function SyllabusView({ id }: SyllabusFormProps) {
           </div>
         </div>
 
-        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
               Materia
@@ -161,13 +161,13 @@ export function SyllabusView({ id }: SyllabusFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-            Profesor Responsable
+          <Label htmlFor="docente" className="text-sm font-semibold text-foreground">
+            Docente responsable
           </Label>
           <Input
-            id="profesor"
+            id="docente"
             type="text"
-            value={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+            value={programa.docenteResponsable?.apellido + " " + programa.docenteResponsable?.nombre + " (" + programa.docenteResponsable?.legajo + ")" || ""}
             className="bg-background"
             readOnly
           />
@@ -177,7 +177,7 @@ export function SyllabusView({ id }: SyllabusFormProps) {
       {/* BLOQUE MÚLTIPLE */}
       <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-accent">Información por Carrera</h2>
+          <h2 className="text-lg font-bold text-accent">Información por carrera</h2>
         </div>
 
         <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
@@ -193,20 +193,20 @@ export function SyllabusView({ id }: SyllabusFormProps) {
 
       {/* CONFIGURACIÓN GENERAL */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
+        <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
         {/* Carga Horaria */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
+            <Label className="text-sm font-semibold text-foreground">Cantidad de semanas</Label>
             <Input value={programa.cantidadSemanas || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
+            <Label className="text-sm font-semibold text-foreground">Carga horaria semanal</Label>
             <Input value={programa.cargaHorariaSemanal || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
+            <Label className="text-sm font-semibold text-foreground">Carga horaria total</Label>
             <Input value={programa.cargaHorariaTotal || ""} readOnly className="bg-background" />
           </div>
           <div className="space-y-2">
@@ -216,14 +216,14 @@ export function SyllabusView({ id }: SyllabusFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Carga Horaria Práctica</Label>
+          <Label className="text-sm font-semibold text-foreground">Carga horaria práctica</Label>
           <Input value={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
         </div>
       </div>
 
       {/* CONTENIDO ACADÉMICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
+        <h2 className="text-lg font-bold text-primary">Contenido académico</h2>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-foreground">Fundamentación</Label>
@@ -236,17 +236,22 @@ export function SyllabusView({ id }: SyllabusFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Programa Analítico</Label>
+          <Label className="text-sm font-semibold text-foreground">Contenidos mínimos</Label>
+          <Textarea value={programa.contenidosMinimos || ""} readOnly className="bg-background min-h-32" />
+        </div>
+        
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground">Programa analítico</Label>
           <Textarea value={programa.programaAnalitico || ""} readOnly className="bg-background min-h-32" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Metodología</Label>
+          <Label className="text-sm font-semibold text-foreground">Metodología de enseñanza y actividades de aprendizaje</Label>
           <Textarea value={programa.metodologia || ""} readOnly className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Modalidad de Evaluación</Label>
+          <Label className="text-sm font-semibold text-foreground">Sistema de evaluación</Label>
           <Textarea value={programa.modalidadEvaluacion || ""} readOnly className="bg-background min-h-24" />
         </div>
 
@@ -258,10 +263,10 @@ export function SyllabusView({ id }: SyllabusFormProps) {
 
       {/* ACTION BUTTONS */}
       <div className="flex gap-3 pt-6 border-t border-border bg-background z-10 p-4 rounded-t-lg">
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           onClick={() => router.push('/')}
-          variant="outline" 
+          variant="outline"
           className="flex-1 bg-transparent"
         >
           Atrás

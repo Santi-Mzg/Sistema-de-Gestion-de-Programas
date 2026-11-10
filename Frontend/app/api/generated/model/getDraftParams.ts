@@ -4,8 +4,11 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { GetDraftRolActivo } from './getDraftRolActivo';
+import type { Rol } from './rol';
 
 export type GetDraftParams = {
-rolActivo: GetDraftRolActivo;
+rolActivo: Rol;
+anio: number;
+programaId?: number;
+planId?: number;
 };

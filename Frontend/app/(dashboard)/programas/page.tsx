@@ -1,7 +1,7 @@
 "use client"
 
 import { ProgramasList } from "@/components/pages/programas-list";
-import { ProgramaResponseDTOEstado, UsuarioDepartamentoDTORolesItem } from "../../api/generated/model";
+import { EstadoPrograma, Rol } from "../../api/generated/model";
 import { getListProgramasCoordinacionQueryKey, getListProgramasQueryKey, useListProgramas, useListProgramasCoordinacion } from "../../api/generated/client";
 import { useDept } from "@/context/dept-context";
 import { useRole } from "@/context/role-context";
@@ -31,28 +31,28 @@ export default function Programas() {
     const { activeRole } = useRole()
 
     const deptId = activeDepartamento?.departamentoId
-    const isCoordinacion = activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR;
+    const isCoordinacion = activeRole === Rol.COORDINACION_COMISION_CURRICULAR;
 
     useEffect(() => {
       const timeout = setTimeout(() => {
         setSearch(searchInput.trim())
         setPage(0)
       }, 1000)
-    
+
       return () => clearTimeout(timeout)
     }, [searchInput])
 
     const programasCoordinacionQuery = useListProgramasCoordinacion(
         deptId!,
         {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          rolActivo: activeRole as Rol,
           page,
           size: pageSize,
           search: search || undefined,
           estado:
             estado === "todos"
               ? undefined
-              : estado as ProgramaResponseDTOEstado,
+              : estado as EstadoPrograma,
           carrera:
             carrera === "todos"
               ? undefined
@@ -61,18 +61,18 @@ export default function Programas() {
         {
           query: {
             enabled: !!deptId && !!activeRole && isCoordinacion,
-            staleTime: 1000 * 60 * 5,    
+            staleTime: 1000 * 60 * 5,
             refetchOnWindowFocus: false,
-            queryKey: getListProgramasCoordinacionQueryKey(deptId!, 
+            queryKey: getListProgramasCoordinacionQueryKey(deptId!,
               {
-                rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+                rolActivo: activeRole as Rol,
                 page,
                 size: pageSize,
                 search: search || undefined,
                 estado:
                   estado === "todos"
                     ? undefined
-                    : estado as ProgramaResponseDTOEstado,
+                    : estado as EstadoPrograma,
                 carrera:
                   carrera === "todos"
                     ? undefined
@@ -85,41 +85,41 @@ export default function Programas() {
     const programasQuery = useListProgramas(
         deptId!,
         {
-          rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+          rolActivo: activeRole as Rol,
           page,
           size: pageSize,
           search: search || undefined,
           estado:
             estado === "todos"
               ? undefined
-              : estado as ProgramaResponseDTOEstado,
+              : estado as EstadoPrograma,
         },
         {
           query: {
             enabled: !!deptId && !!activeRole && !isCoordinacion,
-            staleTime: 1000 * 60 * 5,    
+            staleTime: 1000 * 60 * 5,
             refetchOnWindowFocus: false,
             queryKey: getListProgramasQueryKey(deptId!,
               {
-                rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+                rolActivo: activeRole as Rol,
                 page,
                 size: pageSize,
                 search: search || undefined,
                 estado:
                   estado === "todos"
                     ? undefined
-                    : estado as ProgramaResponseDTOEstado,
+                    : estado as EstadoPrograma,
               }),
           },
         }
     );
-    
+
     const pathname = usePathname() // 2. Obtener la ruta actual
     const router = useRouter()
     const esVistaVersiones = pathname.includes("/versiones")
 
-    
-    const estadosDisponibles = Object.values(ProgramaResponseDTOEstado)
+
+    const estadosDisponibles = Object.values(EstadoPrograma)
 
     const uniqueCarreraPlanes = useMemo(() => {
       return [...new Set(activeDepartamento?.carrerasComoComision)]
@@ -133,8 +133,8 @@ export default function Programas() {
     const handleCarreraChange = (value: string) => {
       setCarrera(value)
       setPage(0)
-    } 
-  
+    }
+
     const isReady = !!deptId && !!activeRole && (programasQuery.isSuccess || programasCoordinacionQuery.isSuccess);
 
     // if (!isReady) {
@@ -144,20 +144,20 @@ export default function Programas() {
     //       <div className="text-center">
     //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
     //         <p className="text-yellow-700">Cargando datos de los programas...</p>
-    //       </div>  
+    //       </div>
     //     </div>
     //   )
     // }
 
 
-    
+
     if(isCoordinacion) {
         const programas = programasCoordinacionQuery.data?.content ?? []
         const totalPages = programasCoordinacionQuery.data?.totalPages ?? 0
         const totalElements = programasCoordinacionQuery.data?.totalElements ?? 0
         return (
           <>
-            <div className="space-y-6 mb-8">    
+            <div className="space-y-6 mb-8">
               {/* Filter Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -177,7 +177,7 @@ export default function Programas() {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                     <Filter size={16} /> Estado
@@ -190,7 +190,7 @@ export default function Programas() {
                     <option value="todos">Todos los estados</option>
                     {estadosDisponibles.map((estado) => (
                       <option key={estado} value={estado || ""}>
-                        {getProgramStateLabel(estado as ProgramaResponseDTOEstado)}
+                        {getProgramStateLabel(estado as EstadoPrograma)}
                       </option>
                     ))}
                   </select>
@@ -214,7 +214,7 @@ export default function Programas() {
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-yellow-700">Cargando programas...</p>
-                  </div>  
+                  </div>
                 </div>
               ) || (
                 <ProgramasListCoordinador
@@ -225,7 +225,7 @@ export default function Programas() {
                   totalElements={totalElements}
                   filterCarreraPlan={carrera}
                   onPageChange={setPage}
-                />   
+                />
               )}
           </>
        )
@@ -236,7 +236,7 @@ export default function Programas() {
         const totalElements = programasQuery.data?.totalElements ?? 0
         return (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-muted/30 p-3 rounded-lg border">              
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-muted/30 p-3 rounded-lg border">
                 <div className="relative flex-1 min-w-[300px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <Input
@@ -256,14 +256,13 @@ export default function Programas() {
                   <option value="todos">Todos los estados</option>
                   {estadosDisponibles.map((estado) => (
                     <option key={estado} value={estado || ""}>
-                      {getProgramStateLabel(estado as ProgramaResponseDTOEstado)}
+                      {getProgramStateLabel(estado as EstadoPrograma)}
                     </option>
                   ))}
                 </select>
-                {!esVistaVersiones && (activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                  activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                {!esVistaVersiones && (activeRole === Rol.ADMINISTRACION) &&
                   <Button size="sm" onClick={() => router.push(`/programas/crear`)} className="h-9">
-                    <Plus size={16} className="mr-1" /> Nuevo Programa
+                    <Plus size={16} className="mr-1" /> Nuevo programa
                   </Button>
                 }
               </div>
@@ -273,7 +272,7 @@ export default function Programas() {
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                   <p className="text-yellow-700">Cargando programas...</p>
-                </div>  
+                </div>
               </div>
             ) || (
               <ProgramasList

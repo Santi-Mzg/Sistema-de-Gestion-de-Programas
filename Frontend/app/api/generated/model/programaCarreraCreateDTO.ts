@@ -12,5 +12,4 @@ export interface ProgramaCarreraCreateDTO {
   correlativasFuertesIds?: number[];
   correlativasDebilesIds?: number[];
   contribucion?: string;
-  contenidosMinimos?: string;
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useLayoutEffect } from "react";
 import { useAuth } from "./auth-context";
 import { UsuarioDepartamentoDTO } from "@/app/api/generated/model";
 import { useRouter } from "next/navigation";
+import { useStoredPreference } from "@/hooks/use-stored-preference";
 
 interface DepartamentoContextType {
   availableDepartamentos: UsuarioDepartamentoDTO[];
@@ -15,18 +16,9 @@ const DepartamentoContext = createContext<DepartamentoContextType | null>(null);
 
 export function DepartamentoProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [activeDeptId, setActiveDeptId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem("activeDept");
-  });
+  const [activeDeptId, setActiveDeptId] = useStoredPreference("activeDept");
   const router = useRouter();
 
-  useEffect(() => {
-      const saved = localStorage.getItem("activeDept");
-      if (saved) {
-        setActiveDeptId(saved);
-      }
-  }, []);
 
   const availableDepartamentos = useMemo(
     () => user?.departamentos ?? [],
@@ -40,9 +32,12 @@ export function DepartamentoProvider({ children }: { children: React.ReactNode }
     [availableDepartamentos, activeDeptId]
   );
 
+  useLayoutEffect(() => {
+    if (activeDepartamento?.departamentoId) localStorage.setItem("activeDeptId", String(activeDepartamento.departamentoId));
+  }, [activeDepartamento?.departamentoId]);
+
   const handleSetActiveDept = (dept: string) => {
     setActiveDeptId(dept);
-    localStorage.setItem("activeDept", dept);
     router.push(`/`);
   };
 

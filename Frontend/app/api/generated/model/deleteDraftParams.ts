@@ -4,8 +4,11 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { DeleteDraftRolActivo } from './deleteDraftRolActivo';
+import type { Rol } from './rol';
 
 export type DeleteDraftParams = {
-rolActivo: DeleteDraftRolActivo;
+rolActivo: Rol;
+anio: number;
+programaId?: number;
+planId?: number;
 };

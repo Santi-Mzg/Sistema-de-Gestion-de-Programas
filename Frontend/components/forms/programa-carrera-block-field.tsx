@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
+import { formComboboxStyles, nonEditableFieldStyles, singleLineFieldStyles } from "@/lib/form-field-styles"
 import {
   Control,
   UseFormRegister,
@@ -29,7 +30,7 @@ import {
   FieldErrors,
   useWatch,
 } from "react-hook-form";
-import { ProgramaAdminFormData } from "@/lib/schemas/programa"
+import { ProgramaSecretariaInicialFormData } from "@/lib/schemas/programa"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface ProgramaCarreraBlockProps {
@@ -37,10 +38,10 @@ interface ProgramaCarreraBlockProps {
   index: number;
   carreras: CarreraResponseDTO[];
   carreraPlanIdsSeleccionados: number[];
-  control: Control<ProgramaAdminFormData>;
-  register: UseFormRegister<ProgramaAdminFormData>;
-  setValue: UseFormSetValue<ProgramaAdminFormData>;
-  errors: FieldErrors<ProgramaAdminFormData>;
+  control: Control<ProgramaSecretariaInicialFormData>;
+  register: UseFormRegister<ProgramaSecretariaInicialFormData>;
+  setValue: UseFormSetValue<ProgramaSecretariaInicialFormData>;
+  errors: FieldErrors<ProgramaSecretariaInicialFormData>;
   onRemove: (index: number) => void;
 }
 export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlock({
@@ -202,9 +203,9 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
         <X size={20} />
       </button>
 
-      <div className="text-lg font-semibold text-primary">#{index + 1}</div>
+      <div className="min-w-0 break-words text-lg font-semibold text-primary">#{index + 1}</div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
         {/* BUSCADOR DE CARRERA */}
         <div className="flex flex-col space-y-2">
           <Label className="text-sm font-semibold">Carrera *</Label>
@@ -217,19 +218,19 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
                 aria-expanded={open}
                 aria-invalid={!!blockErrors?.carreraPlanId}
                 className={cn(
-                  "w-full justify-between font-normal border-2",
+                  formComboboxStyles,
                   blockErrors?.carreraPlanId
                     ? "border-red-500"
                     : "border-border"
                 )}
               >
-                {selectedCarrera 
-                  ? selectedCarrera.nombre 
-                  : "Seleccionar carrera..."}
+                <span className="min-w-0 flex-1 truncate text-left" title={selectedCarrera?.nombre}>
+                  {selectedCarrera ? selectedCarrera.nombre : "Seleccionar carrera..."}
+                </span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
+            <PopoverContent className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0" onCloseAutoFocus={(e) => e.preventDefault()}>
               <Command>
                 <CommandInput placeholder="Buscar..." />
                 <CommandList className="pointer-events-auto">
@@ -282,11 +283,13 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
             }}
             aria-invalid={!!blockErrors?.carreraPlanId}
             className={cn(
-              "w-full px-3 py-2 border-2 rounded-md bg-background text-foreground",
+              singleLineFieldStyles,
+              "max-w-full truncate px-3 py-1 bg-background text-foreground text-base md:text-sm",
               "focus:outline-none focus:ring-2 focus:ring-primary",
               blockErrors?.carreraPlanId
                 ? "border-red-500"
-                : "border-border"
+                : "border-border",
+              !selectedCarrera && nonEditableFieldStyles
             )}  
             disabled={!selectedCarrera}
           >
@@ -308,7 +311,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Ubicación en el Plan *"
+            label="Ubicación en el plan *"
             tooltip={
               <>
                 <p>Indique en qué parte del plan de estudios se ubica la materia.</p>
@@ -357,10 +360,10 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
             <p className="text-red-700">Error al obtener las materias</p>
           </div>
       ) : (
-        <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4 [&>*]:min-w-0">
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
             <LabelWithTooltip
-              label="Correlativas Fuertes"
+              label="Correlativas fuertes"
               tooltip={
                 <>
                   <p>Las asignaturas que deben estar aprobadas antes de cursar esta asignatura.</p>
@@ -388,7 +391,7 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
 
           <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
             <LabelWithTooltip
-              label="Correlativas Débiles"
+              label="Correlativas débiles"
               tooltip={
                 <>
                   <p>Las asignaturas que deben estar cursadas antes de cursar esta asignatura.</p>
@@ -432,38 +435,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
           className="border-border focus:border-primary min-h-16 resize-none"
           disabled
         />
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip
-          label="Contenidos Mínimos *"
-          tooltip={
-            <>
-              <p>Describa los contenidos mínimos establecidos en el plan de estudios que deben abordarse obligatoriamente en la asignatura.</p>
-            </>
-          }
-        />
-        <Textarea
-          id={`contenidos-${index}`}
-          {...register(
-            `bloqueMultiple.${index}.contenidosMinimos`
-          )}     
-          placeholder="Lista los contenidos mínimos requeridos..."
-          aria-invalid={!!blockErrors?.contenidosMinimos}
-          className={cn(
-            "border-2 focus:border-primary min-h-16 resize-none",
-            blockErrors?.contenidosMinimos
-              ? "border-red-500"
-              : "border-border"
-          )}
-        />
-        <div className="min-h-5">
-          {blockErrors?.contenidosMinimos && (
-            <p className="text-sm text-red-500" role="alert">
-              {blockErrors.contenidosMinimos.message}
-            </p>
-          )}
-        </div>
       </div>
     </div>
   )

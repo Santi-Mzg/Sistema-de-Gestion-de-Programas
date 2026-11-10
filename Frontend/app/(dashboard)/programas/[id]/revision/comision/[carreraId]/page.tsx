@@ -5,7 +5,7 @@ import { useRole } from "@/context/role-context";
 import { AlertCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 
-  
+
 
 export default function CompletarPrograma() {
   const { activeRole } = useRole()
@@ -24,7 +24,7 @@ export default function CompletarPrograma() {
     )
   }
 
-  if(!(activeRole === "SYSTEM_ADMIN" || activeRole === "COORDINACION_COMISION_CURRICULAR")) {
+  if(!(activeRole === "COORDINACION_COMISION_CURRICULAR")) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -40,11 +40,11 @@ export default function CompletarPrograma() {
   //   return <div className="p-8 max-w-7xl mx-auto">No se ha podido cargar el programa solicitado.</div>;
   // }
 
-  // const { mutate, isPending } = useProfesorCarga({
+  // const { mutate, isPending } = useDocenteCarga({
   //       mutation: {
   //         onSuccess: () => {
   //           alert("Programa completado exitosamente!");
-  //           // Aquí puedes invalidar otras queries con queryClient.invalidateQueries(...)
+  //           // Las consultas del circuito se invalidan desde @/lib/invalidacion-consultas
   //         },
   //         onError: (error: Error) => {
   //           alert(`Error al cargar datos: ${error.message}`);
@@ -53,7 +53,7 @@ export default function CompletarPrograma() {
   //   });
 
   //   // 💡 Esta es la función que se pasa al formulario
-  //   const handleFormSubmit = (data: ProgramaCargaProfesorDTO) => {
+  //   const handleFormSubmit = (data: ProgramaCargaDocenteDTO) => {
   //     // La función 'mutate' espera el objeto { data: T } si no se especificó un mutator diferente
   //     mutate({ id: programa.id!, data });
   //   };

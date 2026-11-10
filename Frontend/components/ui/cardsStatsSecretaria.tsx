@@ -1,5 +1,7 @@
 "use client"
 
+import { etapasDashboard } from "@/lib/etapas-dashboard"
+
 import {
   BookOpen,
   GraduationCap,
@@ -29,6 +31,7 @@ import {
   ResponsiveContainer
 } from "recharts"
 import { DashboardResumenDTO } from "@/app/api/generated/model"
+import { MateriasSinProgramaIndicador } from "./materias-sin-programa-indicador"
 
 interface DashboardStatsProps {
   stats: DashboardResumenDTO
@@ -37,30 +40,11 @@ interface DashboardStatsProps {
 
 export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) {
 
-  const programasEnCurso = [
-    {
-      estado: "Administración",
-      cantidad: stats.pendienteAdministracion,
-      color: "#f59e0b",
-    },
-    {
-      estado: "Docente",
-      cantidad: stats.pendienteDocente,
-      color: "#3b82f6",
-    },
-    {
-      estado: "Comisiones",
-      cantidad: stats.pendienteComisiones,
-      color: "#8b5cf6",
-    },
-        {
-      estado: "Secretaría",
-      cantidad: stats.pendienteSecretaria,
-      color: "#06b6d4",
-    },
-  ]
+  const programasEnCurso = etapasDashboard(stats)
 
+  const pendientesSecretaria = (stats.pendienteSecretariaInicial ?? 0) + (stats.pendienteSecretariaFinal ?? 0)
   const totalEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)
+  const materiasSinPrograma = (stats.materias ?? 0) - (stats.programasTotales ?? 0)
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
@@ -225,7 +209,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
         onClick={onPendingClick}
         className={
           `h-full flex flex-col ${
-          stats.pendienteSecretaria ?? 0 > 0
+          pendientesSecretaria > 0
             ? "border-amber-500 bg-amber-50/30 shadow-sm cursor-pointer transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:shadow-2xl  hover:border-amber-500  hover:bg-amber-50/70 hover:ring-4 hover:ring-amber-400/20active:translate-y-0 active:scale-[0.98] "
             : "border-emerald-500 bg-emerald-50/30 shadow-sm"
         }`}
@@ -234,12 +218,12 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
           <CardTitle className="flex items-center gap-2 text-base">
             <div
               className={
-                stats.pendienteSecretaria ?? 0 > 0
+                pendientesSecretaria > 0
                   ? "rounded-lg bg-amber-50 p-2 text-amber-700"
                   : "rounded-lg bg-emerald-50 p-2 text-emerald-700"
               }
             >
-              {stats.pendienteSecretaria ?? 0 > 0 ? (
+              {pendientesSecretaria > 0 ? (
                 <CircleAlert size={18} />
               ) : (
                 <CircleCheckBig size={18} />
@@ -258,17 +242,17 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
           <div className="mb-2 flex items-baseline gap-2">
             <div
               className={
-                stats.pendienteSecretaria ?? 0 > 0
+                pendientesSecretaria > 0
                   ? "text-3xl font-bold text-amber-700"
                   : "text-3xl font-bold text-emerald-700"
               }
             >
-              {stats.pendienteSecretaria ?? 0}
+              {pendientesSecretaria}
             </div>
 
             <p className="text-[13px] text-muted-foreground">
-              {stats.pendienteSecretaria ?? 0 > 0
-                ? stats.pendienteSecretaria == 1 
+              {pendientesSecretaria > 0
+                ? pendientesSecretaria === 1
                 ? "Programa pendiente de tu intervención"
                 : "Programas pendientes de tu intervención"
                 : "No tenés acciones pendientes"}
@@ -277,11 +261,12 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
 
           <div className="mt-auto grid grid-cols-1 gap-2 border-t pt-2">
             <StatBox
-              label="A Revisar"
-              value={stats.pendienteSecretaria ?? 0}
+              label="A revisar"
+              value={pendientesSecretaria}
               icon={<ClipboardList size={16} />}
               className="border-sky-500 bg-sky-50 text-sky-700"
             />
+            <MateriasSinProgramaIndicador cantidad={materiasSinPrograma} />
           </div>
         </CardContent>
       </Card>

@@ -1,7 +1,7 @@
 "use client"
 
 import { getListMateriasDepartamentoQueryKey, useListMateriasDepartamento } from "@/app/api/generated/client";
-import { MateriaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import { MateriaResponseDTO, Rol } from "@/app/api/generated/model";
 import { MateriasList } from "@/components/pages/materias-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,16 +83,16 @@ export default function Materias() {
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-              activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+          {(activeRole === Rol.ADMINISTRACION || 
+              activeRole === Rol.SECRETARIA || 
+              activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+              activeRole === Rol.SYSTEM_ADMIN) &&
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/materias/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Materia
+              Crear materia
             </Button>
           }
         </div>

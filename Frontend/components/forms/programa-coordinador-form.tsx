@@ -1,4 +1,5 @@
 "use client"
+import { invalidarConsultasPrograma } from "@/lib/invalidacion-consultas";
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -6,9 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, Eye, FileText } from "lucide-react"
-import { ProgramaResponseDTO, EstadoUpdateDTOAccion, UsuarioDepartamentoDTORolesItem, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
-import { useActualizarEstado, useGetPrograma, getGetProgramaQueryKey, getListProgramasPendientesCoordinadorQueryKey, getListProgramasCoordinacionQueryKey, getGetDashboardResumenQueryKey, getListProgramasPendientesQueryKey, getListProgramasQueryKey } from "@/app/api/generated/client"
-import { RechazoDialog } from "../modals/rechazo-dialog"
+import { ProgramaResponseDTO, EstadoUpdateDTOAccion, Rol, ProgramaCarreraResponseDTO } from "@/app/api/generated/model"
+import { useActualizarEstado, useGetPrograma, getGetProgramaQueryKey } from "@/app/api/generated/client"
+import { RechazoConCambiosDialog } from "../modals/rechazo-con-cambios-dialog"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { useDept } from "@/context/dept-context"
@@ -19,6 +20,8 @@ import { ProgramaCarreraBlockFieldCoord } from "./programa-carrera-block-field-c
 import axios from "axios"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
+import { useGetDraft, getGetDraftQueryKey, useSaveDraft } from '@/app/api/generated/client';
+import { Button as DraftButton } from '@/components/ui/button';
 interface SyllabusFormProps {
   id: number,
   carreraId?: number,
@@ -29,8 +32,8 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
   const { activeDepartamento } = useDept()
   const { activeRole } = useRole()
   const router = useRouter();
-  const queryClient = useQueryClient(); 
-  
+  const queryClient = useQueryClient();
+
   const programaQuery = useGetPrograma(id,
     {
       query: {
@@ -42,67 +45,43 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
   const programa: ProgramaResponseDTO | undefined = programaQuery.data;
 
   const [bloque, setBloque] = useState<ProgramaCarreraResponseDTO | undefined>(undefined);
-  
-  useEffect(() => {
+
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof programa, typeof carreraId] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== programa || previousFormSources[1] !== carreraId) {
+    setPreviousFormSources([programa, carreraId])
     if (programa?.bloqueMultiple) {
       const found = programa.bloqueMultiple.find(block => block.plan?.id === carreraId);
       setBloque(found);
     }
-  }, [programa, carreraId]);
+  }
 
-  const [rechazDialogOpen, setRechazDialogOpen] = useState(false)
+  const [rechazDialogOpen, setRechazDialogOpen] = useState(false);
+  const draftParams = { rolActivo: activeRole!, anio: programa?.anio ?? new Date().getFullYear(), programaId: id, planId: carreraId ?? 0 };
+  const draft = useGetDraft(activeDepartamento?.departamentoId ?? 0, programa?.materia?.id ?? 0, draftParams, {
+    query: { enabled: !!programa?.materia?.id && !!carreraId && activeRole === 'COORDINACION_COMISION_CURRICULAR',
+      queryKey: getGetDraftQueryKey(activeDepartamento?.departamentoId ?? 0, programa?.materia?.id ?? 0, draftParams), retry: false }
+  });
+  const saveDraft = useSaveDraft();
+  const valorInicial = programa?.bloqueMultiple?.find(b => b.plan?.id === carreraId)?.contribucion ?? '';
+  useEffect(() => {
+    if (!bloque || rechazDialogOpen || (bloque.contribucion ?? '') === valorInicial || !programa?.materia?.id) return;
+    const timer = setTimeout(() => saveDraft.mutate({ deptId: activeDepartamento!.departamentoId!, materiaId: programa.materia!.id!,
+      params: draftParams, data: { payloadJson: JSON.stringify({ contribucion: bloque.contribucion ?? '' }) } }), 2000);
+    return () => clearTimeout(timer);
+  }, [bloque?.contribucion, valorInicial, rechazDialogOpen, programa?.materia?.id, activeDepartamento?.departamentoId, activeRole, carreraId]);
 
   const { mutate, isPending } = useActualizarEstado({
     mutation: {
-      onSuccess: (data, variables) => {
+      onSuccess: async (data, variables) => {
         toast({
           title: "✓ Éxito",
           description: `Programa ${variables.data.accion === EstadoUpdateDTOAccion.APROBAR ? "aprobado" : "rechazado"} exitosamente`,
           variant: "success",
-        })      
+        })
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasCoordinacionQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          ),
-        });
-        
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasPendientesCoordinadorQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
+        await invalidarConsultasPrograma(queryClient, { departamentoId: activeDepartamento!.departamentoId!, programaId: id });
 
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getListProgramasPendientesQueryKey(
-            activeDepartamento!.departamentoId!,
-            { rolActivo: activeRole as UsuarioDepartamentoDTORolesItem }
-          )
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getGetDashboardResumenQueryKey(
-            activeDepartamento!.departamentoId!,
-            {
-              rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
-            }
-          ),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: getGetProgramaQueryKey(id)
-        });
-
-        router.push('/'); 
+        router.push('/');
       },
         onError: (error: unknown) => {
 
@@ -110,9 +89,9 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
 
           if (axios.isAxiosError(error)) {
             const backendError = error.response?.data;
-            
-            errorMessage = backendError?.errors?.Error || 
-                          backendError?.message || 
+
+            errorMessage = backendError?.errors?.Error ||
+                          backendError?.message ||
                           "Ocurrió un error inesperado";
           } else if (error instanceof Error) {
             errorMessage = error.message;
@@ -123,15 +102,15 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
             description: errorMessage,
             variant: "destructive",
           })
-        }, 
+        },
     }
   });
 
     const {setHeader} = useHeader();
-  
+
   useEffect(() => {
     setHeader({
-      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - ${programa?.anio}` : "Nuevo Programa Académico",
+      title: programa ? `Programa de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - ${programa?.anio}` : "Nuevo programa académico",
       subtitle: "Revisión de programa académico",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
@@ -189,19 +168,20 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       data: data,
       params: {
         carreraId: carreraId,
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
       }
     });
   }
 
-  const handleRechazarConfirm = (destino: UsuarioDepartamentoDTORolesItem, justificacion: string) => {
+  const handleRechazarConfirm = (destino: Rol, justificacion: string, guardarCambios: boolean) => {
     const data = {
       accion: EstadoUpdateDTOAccion.RECHAZAR,
+      guardarCambios,
+      contribucionCarrera: guardarCambios ? bloque?.contribucion : undefined,
       destinoRechazo: destino,
       justificacion: justificacion,
     }
 
-    setRechazDialogOpen(false)
 
     mutate({
       deptId: activeDepartamento?.departamentoId ?? 0,
@@ -209,18 +189,27 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       data: data,
       params: {
         carreraId: carreraId,
-        rolActivo: activeRole as UsuarioDepartamentoDTORolesItem,
+        rolActivo: activeRole as Rol,
       }
     });
   }
 
   return (
     <form className="space-y-8">
+      {draft.data?.payloadJson && <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5 flex flex-wrap gap-3 items-center">
+        <span>Hay un borrador de su contribución para este bloque.</span>
+        <DraftButton type="button" variant="outline" onClick={() => {
+          try { const recuperado: unknown = JSON.parse(draft.data!.payloadJson!);
+            if (recuperado && typeof recuperado === 'object' && 'contribucion' in recuperado && typeof recuperado.contribucion === 'string')
+              setBloque(actual => actual ? { ...actual, contribucion: recuperado.contribucion as string } : actual);
+          } catch { toast({ title: 'No se pudo recuperar el borrador', variant: 'destructive' }); }
+        }}>Recuperar borrador</DraftButton>
+      </div>}
       {/* BLOQUE ÚNICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-        <h2 className="text-lg font-bold text-primary mb-6">Información Básica</h2>
+        <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
 
-        <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="departamento" className="text-sm font-semibold text-foreground">
               Departamento
@@ -248,7 +237,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
           </div>
         </div>
 
-        <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="materia" className="text-sm font-semibold text-foreground">
               Materia
@@ -290,13 +279,13 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profesor" className="text-sm font-semibold text-foreground">
-            Profesor Responsable
+          <Label htmlFor="docente" className="text-sm font-semibold text-foreground">
+            Docente responsable
           </Label>
           <Input
-            id="profesor"
+            id="docente"
             type="text"
-            defaultValue={programa.profesorResponsable?.apellido + " " + programa.profesorResponsable?.nombre + " (" + programa.profesorResponsable?.legajo + ")" || ""}
+            defaultValue={programa.docenteResponsable?.apellido + " " + programa.docenteResponsable?.nombre + " (" + programa.docenteResponsable?.legajo + ")" || ""}
             className="bg-background"
             disabled
           />
@@ -306,7 +295,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       {/* BLOQUE MÚLTIPLE */}
       {programa.bloqueMultiple && programa.bloqueMultiple.length > 0 && (
         <div className="border-l-4 border-accent p-6 py-4 bg-accent/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-accent mb-6">Información por Carrera</h2>
+          <h2 className="text-lg font-bold text-accent mb-6">Información por carrera</h2>
 
         <div className={programa.bloqueMultiple && programa.bloqueMultiple?.length > 3 ? "space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-accent/20" : "space-y-6"}>
              {bloque &&
@@ -321,20 +310,20 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
 
       {/* CONFIGURACIÓN GENERAL */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Cargas horarias y Créditos</h2>
+        <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
         {/* Carga Horaria */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Cantidad de Semanas</Label>
+            <Label className="text-sm font-semibold text-foreground">Cantidad de semanas</Label>
             <Input defaultValue={programa.cantidadSemanas || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Semanal</Label>
+            <Label className="text-sm font-semibold text-foreground">Carga horaria semanal</Label>
             <Input defaultValue={programa.cargaHorariaSemanal || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-foreground">Carga Horaria Total</Label>
+            <Label className="text-sm font-semibold text-foreground">Carga horaria total</Label>
             <Input defaultValue={programa.cargaHorariaTotal || ""} disabled className="bg-background" />
           </div>
           <div className="space-y-2">
@@ -352,14 +341,14 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Carga Horaria Práctica</Label>
+          <Label className="text-sm font-semibold text-foreground">Carga horaria práctica</Label>
           <Input defaultValue={programa.cargaHorariaPractica || ""} disabled className="bg-background" />
         </div>
       </div>
 
       {/* CONTENIDO ACADÉMICO */}
       <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <h2 className="text-lg font-bold text-primary">Contenido Académico</h2>
+        <h2 className="text-lg font-bold text-primary">Contenido académico</h2>
 
         <div className="space-y-2">
           <LabelWithTooltip
@@ -383,26 +372,44 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
                 <p>Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico.</p>
               </>
             }
-          />   
+          />
           <Textarea defaultValue={programa.objetivos || ""} disabled className="bg-background min-h-24" />
         </div>
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Programa Analítico"
+            label="Contenidos mínimos"
+            htmlFor="contenidosMinimos"
+            tooltip={
+              <>
+                <p>Indique los contenidos mínimos que tiene que tener el programa de la materia</p>
+              </>
+            }
+          />
+          <Textarea
+            id="contenidosMinimos"
+            defaultValue={programa.contenidosMinimos || ""}
+            className="bg-background min-h-32"
+            disabled
+          />
+        </div>
+
+        <div className="space-y-2">
+          <LabelWithTooltip
+            label="Programa analítico"
             htmlFor="programa"
             tooltip={
               <>
                 <p>Indique la nómina de unidades temáticas y su desarrollo.</p>
               </>
             }
-          />        
+          />
           <Textarea defaultValue={programa.programaAnalitico || ""} disabled className="bg-background min-h-32" />
         </div>
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Metodología"
+            label="Metodología de enseñanza y actividades de aprendizaje"
             htmlFor="metodologia"
             tooltip={
               <>
@@ -418,7 +425,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Modalidad de Evaluación"
+            label="Sistema de evaluación"
             htmlFor="modalidadEvaluacion"
             tooltip={
               <>
@@ -437,7 +444,7 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
             htmlFor="bibliografia"
             tooltip={
               <>
-                <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón 'Formatear' para adecuar automáticamente las referencias al formato APA.</p>
+                <p>La bibliografía obligatoria y complementaria de la asignatura. Puede utilizar el botón &apos;Formatear&apos; para adecuar automáticamente las referencias al formato APA.</p>
               </>
             }
           />
@@ -464,10 +471,10 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         >
           ✕ Rechazar
         </Button>
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           onClick={() => router.back()}
-          variant="outline" 
+          variant="outline"
           className="flex-1 bg-transparent"
         >
           Atrás
@@ -475,7 +482,8 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
       </div>
 
       {/* RECHAZO DIALOG */}
-      <RechazoDialog
+      <RechazoConCambiosDialog
+        hayCambios={!!bloque && (bloque.contribucion ?? '') !== valorInicial}
         open={rechazDialogOpen}
         onOpenChange={setRechazDialogOpen}
         onConfirm={handleRechazarConfirm}

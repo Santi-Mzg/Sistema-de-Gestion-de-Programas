@@ -18,8 +18,8 @@ export const ProgramaCarreraBlockView = React.memo(function ProgramaCarreraBlock
 console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
   return (
     <div className="relative border-2 border-primary/20 rounded-lg p-6 bg-background space-y-6">
-      <div className="text-lg font-semibold text-primary">#{index+1+" "+block.carreraNombre+" (Plan "+block.plan?.anio+" - Versión "+block.plan?.version+")"}</div>
-      <div className="space-y-6 grid grid-cols-2 md:grid-cols-3 gap-6">            
+      <div className="min-w-0 break-words text-lg font-semibold text-primary">#{index+1+" "+block.carreraNombre+" (Plan "+block.plan?.anio+" - Versión "+block.plan?.version+")"}</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
         <div className="space-y-2">
           <Label htmlFor={`carrera-${index}`} className="text-sm font-semibold text-foreground">
             Carrera
@@ -46,7 +46,7 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
 
         <div className="space-y-2">
           <LabelWithTooltip
-            label="Ubicación en el Plan"
+            label="Ubicación en el plan"
             tooltip={
               <>
                 <p>Indica en qué parte del plan de estudios se ubica la materia.</p>
@@ -62,10 +62,10 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 [&>*]:min-w-0">
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <LabelWithTooltip
-            label="Correlativas Fuertes"
+            label="Correlativas fuertes"
             tooltip={
               <>
                 <p>Las asignaturas que deben estar aprobadas antes de cursar esta asignatura.</p>
@@ -76,13 +76,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
             {block.correlativasFuertes?.map((materia: MateriaResponseDTO) => (
               <label
                 key={materia.id}
-                className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
+                className="flex items-center gap-2 cursor-not-allowed opacity-50 p-2 rounded transition"
               >
                 <input
                   type="checkbox"
                   checked
                   className="rounded border-border"
                   readOnly
+                  disabled
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>
               </label>
@@ -92,7 +93,7 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
 
         <div className="space-y-3 border border-primary/20 rounded-lg p-4 bg-primary/5">
           <LabelWithTooltip
-            label="Correlativas Débiles"
+            label="Correlativas débiles"
             tooltip={
               <>
                 <p>Las asignaturas que deben estar cursadas antes de cursar esta asignatura.</p>
@@ -103,13 +104,14 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
             {block.correlativasDebiles?.map((materia: MateriaResponseDTO) => (
               <label
                 key={materia.id}
-                className="flex items-center gap-2 cursor-pointer hover:bg-background p-2 rounded transition"
+                className="flex items-center gap-2 cursor-not-allowed opacity-50 p-2 rounded transition"
               >
                 <input
                   type="checkbox"
                   checked
                   className="rounded border-border"
                   readOnly
+                  disabled
                 />
                 <span className="text-sm text-foreground">{materia.nombre}</span>
               </label>
@@ -130,23 +132,6 @@ console.log("ProgramaCarreraBlockView Rendered" + JSON.stringify(block))
         <Textarea
           id={`contribucion-${index}`}
           value={block.contribucion}
-          className="border-border focus:border-primary min-h-16 resize-none"
-          disabled
-        />
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip
-          label="Contenidos Mínimos"
-          tooltip={
-            <>
-              <p>Los contenidos mínimos establecidos en el plan de estudios que deben abordarse obligatoriamente en la asignatura.</p>
-            </>
-          }
-        />
-        <Textarea
-          id={`contenidos-${index}`}
-          value={block.contenidosMinimos}
           className="border-border focus:border-primary min-h-16 resize-none"
           disabled
         />

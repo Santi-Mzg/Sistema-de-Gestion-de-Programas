@@ -1,5 +1,7 @@
 "use client"
 
+import { etapasDashboard } from "@/lib/etapas-dashboard"
+
 import {
   Users,
   UserRound,
@@ -25,49 +27,31 @@ import {
   Cell,
   ResponsiveContainer
 } from "recharts"
-import { useDept } from "@/context/dept-context"
+import type { CarreraResponseDTO, DashboardResumenDTO } from "@/app/api/generated/model"
+import Link from 'next/link'
 
 interface DashboardStatsProps {
-    programasEnCurso: number
-    enAdministracion: number
-    enDocente: number
-    enComision: number
-    enSecretaria: number
+    stats: DashboardResumenDTO
+    carreras?: CarreraResponseDTO[]
+    totalCarreras?: number
+    cargandoCarreras?: boolean
+    errorCarreras?: boolean
+    pendientesRevision?: number
     onPendingClick?: () => void
 }
 
 export function DashboardStats( { 
-    programasEnCurso,
-    enAdministracion,
-    enDocente,
-    enComision,
-    enSecretaria,
+    stats,
+    carreras = [],
+    totalCarreras = carreras.length,
+    cargandoCarreras = false,
+    errorCarreras = false,
+    pendientesRevision = stats.pendienteComisiones ?? 0,
     onPendingClick
  }: DashboardStatsProps) {
 
-  const { activeDepartamento } = useDept();
-  const etapas = [
-    {
-      estado: "Administración",
-      cantidad: enAdministracion,
-      color: "#f59e0b",
-    },
-    {
-      estado: "Docente",
-      cantidad: enDocente,
-      color: "#3b82f6",
-    },
-    {
-      estado: "Comisiones",
-      cantidad: enComision,
-      color: "#8b5cf6",
-    },
-        {
-      estado: "Secretaría",
-      cantidad: enSecretaria,
-      color: "#06b6d4",
-    },
-  ]
+  const programasEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0);
+  const etapas = etapasDashboard(stats)
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -89,32 +73,36 @@ export function DashboardStats( {
         </CardHeader>
 
         <CardContent className="pt-2">
-          <div className="mb-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-blue-700">
-              {activeDepartamento?.carrerasComoComision?.length ?? 0}
-            </span>
-
-            <span className="text-xs text-muted-foreground">
-              carreras
-            </span>
-          </div>
-
+          {cargandoCarreras ? (
+            <p role="status" className="text-sm text-muted-foreground">Cargando carreras asignadas...</p>
+          ) : errorCarreras ? (
+            <p role="alert" className="text-sm text-destructive">
+              No se pudieron cargar las carreras asignadas. <Link href="/carreras" className="underline">Ver mis carreras</Link>
+            </p>
+          ) : <>
           <div className="space-y-2 border-t pt-3">
-            {activeDepartamento?.carrerasComoComision?.map((carrera) => (
-              <div
-                key={carrera}
-                className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2"
+            {carreras.length === 0 && <p className="text-sm text-muted-foreground">No tenés carreras asignadas.</p>}
+            {carreras.map((carrera) => (
+              <Link
+                key={carrera.id}
+                href={`/carreras/${carrera.id}`}
+                className="flex min-w-0 items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2 hover:border-primary"
               >
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700">
                   <GraduationCap size={15} />
                 </div>
 
-                <span className="text-sm font-medium text-foreground">
-                  {carrera}
+                <span className="min-w-0 break-words text-sm font-medium text-foreground">
+                  {carrera.nombre}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
+          {totalCarreras > carreras.length && <div className="border-t pt-3 text-sm">
+            <p className="mb-1 text-muted-foreground">Mostrando {carreras.length} de {totalCarreras} carreras.</p>
+            <Link href="/carreras" className="font-medium text-primary underline">Ver todas mis carreras</Link>
+          </div>}
+          </>}
         </CardContent>
       </Card>
 
@@ -221,7 +209,7 @@ export function DashboardStats( {
       <Card
         onClick={onPendingClick}
         className={`h-full flex flex-col ${
-            enComision ?? 0 > 0
+            pendientesRevision > 0
             ? "border-amber-500 bg-amber-50/30 shadow-sm cursor-pointer transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:shadow-2xl  hover:border-amber-500  hover:bg-amber-50/70 hover:ring-4 hover:ring-amber-400/20active:translate-y-0 active:scale-[0.98] "
             : "border-emerald-500 bg-emerald-50/30 shadow-sm"
         }`}
@@ -230,12 +218,12 @@ export function DashboardStats( {
           <CardTitle className="flex items-center gap-2 text-base">
             <div
               className={
-                enComision ?? 0 > 0
+                pendientesRevision > 0
                   ? "rounded-lg bg-amber-50 p-2 text-amber-700"
                   : "rounded-lg bg-emerald-50 p-2 text-emerald-700"
               }
             >
-              {enComision ?? 0 > 0 ? (
+              {pendientesRevision > 0 ? (
                 <CircleAlert size={18} />
               ) : (
                 <CircleCheckBig size={18} />
@@ -254,16 +242,16 @@ export function DashboardStats( {
           <div className="mt-auto mb-4">
             <div
               className={
-                enComision ?? 0 > 0
+                pendientesRevision > 0
                   ? "text-3xl font-bold text-amber-700"
                   : "text-3xl font-bold text-emerald-700"
               }
             >
-              {enComision ?? 0}
+              {pendientesRevision}
             </div>
 
             <p className="text-[13px] text-muted-foreground">
-              {enComision ?? 0 > 0
+              {pendientesRevision > 0
                 ? "Programas pendientes"
                 : "No tienes acciones pendientes"}
             </p>

@@ -4,12 +4,12 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { UsuarioDepartamentoDTORolesItem } from './usuarioDepartamentoDTORolesItem';
+import type { Rol } from './rol';
 
 export interface UsuarioDepartamentoDTO {
   departamentoId?: number;
   departamentoNombre?: string;
   email?: string;
-  roles?: UsuarioDepartamentoDTORolesItem[];
+  roles?: Rol[];
   carrerasComoComision?: string[];
 }

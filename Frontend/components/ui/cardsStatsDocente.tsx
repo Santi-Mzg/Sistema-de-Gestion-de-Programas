@@ -1,5 +1,7 @@
 "use client"
 
+import { etapasDashboard } from "@/lib/etapas-dashboard"
+
 import {
   BookOpen,
   CircleAlert,
@@ -15,57 +17,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { DashboardResumenDTO } from "@/app/api/generated/model"
 
 interface DashboardStatsProps {
-    programasAsignados: number
-    programasVigentes: number
-    programasEnCurso: number
-    enAdministracion: number
-    enDocente: number
-    enComision: number
-    enSecretaria: number
-    nuevosParaCompletar: number
-    rechazadosAlDocente: number
-    onPendingClick?: () => void
+  stats: DashboardResumenDTO,
+  onPendingClick?: () => void
 }
 
 export function DashboardStats({
-    programasAsignados,
-    programasVigentes,
-    programasEnCurso,
-    enAdministracion,
-    enDocente,
-    enComision,
-    enSecretaria,
-    nuevosParaCompletar,
-    rechazadosAlDocente,
+    stats,
     onPendingClick
 }: DashboardStatsProps) {
-  const etapas = [
-    {
-      label: "Administración",
-      value: enAdministracion ?? 0,
-      color: "bg-amber-500",
-    },
-    {
-      label: "Mi revisión",
-      value: enDocente ?? 0,
-      color: "bg-blue-500",
-    },
-    {
-      label: "Comisión",
-      value: enComision ?? 0,
-      color: "bg-violet-500",
-    },
-    {
-      label: "Secretaría",
-      value: enSecretaria ?? 0,
-      color: "bg-sky-500",
-    },
-  ]
+  const etapas = etapasDashboard(stats).map(etapa => ({
+    label: etapa.estado === 'Docente' ? 'Mi revisión' : etapa.estado,
+    value: etapa.cantidad,
+    color: etapa.color,
+  }))
 
   const totalEtapas =
     etapas.reduce((acc, item) => acc + item.value, 0)
+
+
+  const programasEnCurso = (stats.programasTotales ?? 0) - (stats.programasVigentes ?? 0)
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -89,7 +62,7 @@ export function DashboardStats({
         <CardContent className="pt-2">
           <div className="mb-4">
             <div className="text-3xl font-bold text-sky-700">
-              {programasAsignados ?? 0}
+              {stats.programasTotales ?? 0}
             </div>
 
             <p className="text-[13px] text-muted-foreground">
@@ -100,14 +73,14 @@ export function DashboardStats({
           <div className="grid grid-cols-2 gap-2 border-t pt-3">
             <StatBox
               label="Vigentes"
-              value={programasVigentes ?? 0}
+              value={stats.programasVigentes ?? 0}
               icon={<CircleCheckBig size={16} />}
               className="border-emerald-500 bg-emerald-50 text-emerald-700"
             />
 
             <StatBox
               label="En curso"
-              value={programasEnCurso ?? 0}
+              value={programasEnCurso}
               icon={<RefreshCw size={16} />}
               className="border-sky-500 bg-sky-50 text-sky-700"
             />
@@ -143,9 +116,9 @@ export function DashboardStats({
                 return (
                   <div
                     key={etapa.label}
-                    className={etapa.color}
                     style={{
                       width: `${percentage}%`,
+                      backgroundColor: etapa.color,
                     }}
                     title={`${etapa.label}: ${etapa.value}`}
                   />
@@ -162,7 +135,7 @@ export function DashboardStats({
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${etapa.color}`}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: etapa.color }}
                   />
 
                   <span className="truncate text-muted-foreground">
@@ -193,7 +166,7 @@ export function DashboardStats({
       <Card
         onClick={onPendingClick}
         className={`h-full flex flex-col ${
-            enDocente > 0
+            stats.pendienteDocente ?? 0 > 0
             ? "border-amber-500 bg-amber-50/30 shadow-sm cursor-pointer transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:shadow-2xl  hover:border-amber-500  hover:bg-amber-50/70 hover:ring-4 hover:ring-amber-400/20active:translate-y-0 active:scale-[0.98] "
             : "border-emerald-500 bg-emerald-50/30 shadow-sm"
         }`}
@@ -202,12 +175,12 @@ export function DashboardStats({
           <CardTitle className="flex items-center gap-2 text-base">
             <div
               className={
-                enDocente > 0
+                stats.pendienteDocente ?? 0 > 0
                   ? "rounded-lg bg-amber-50 p-2 text-amber-700"
                   : "rounded-lg bg-emerald-50 p-2 text-emerald-700"
               }
             >
-              {enDocente > 0 ? (
+              {stats.pendienteDocente ?? 0 > 0 ? (
                 <CircleAlert size={18} />
               ) : (
                 <CircleCheckBig size={18} />
@@ -226,16 +199,16 @@ export function DashboardStats({
           <div className="mb-4">
             <div
               className={
-                enDocente > 0
+                stats.pendienteDocente ?? 0 > 0
                   ? "text-3xl font-bold text-amber-700"
                   : "text-3xl font-bold text-emerald-700"
               }
             >
-              {enDocente ?? 0}
+              {stats.pendienteDocente ?? 0}
             </div>
 
             <p className="text-[13px] text-muted-foreground">
-              {enDocente > 0
+              {stats.pendienteDocente ?? 0 > 0
                 ? "Programas pendientes"
                 : "No tenés acciones pendientes"}
             </p>
@@ -244,14 +217,14 @@ export function DashboardStats({
           <div className="mt-auto grid grid-cols-2 gap-2 border-t pt-3">  
             <StatBox
               label="Nuevos"
-              value={nuevosParaCompletar ?? 0}
+              value={(stats.pendienteDocente ?? 0) - (stats.rechazadoDocente ?? 0)}
               icon={<BookOpen size={16} />}
               className="border-blue-500 bg-blue-50 text-blue-700"
             />
 
             <StatBox
               label="Rechazados"
-              value={rechazadosAlDocente ?? 0}
+              value={stats.rechazadoDocente ?? 0}
               icon={<CircleAlert size={16} />}
               className="border-amber-500 bg-amber-50 text-amber-700"
             />

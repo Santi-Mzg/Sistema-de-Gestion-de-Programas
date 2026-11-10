@@ -25,6 +25,9 @@ import type {
   ActualizarEstadoParams,
   AreaCreateDTO,
   AreaResponseDTO,
+  AsignacionCoordinador,
+  AsignarCoordinadorParams,
+  CandidatosParams,
   CarreraCreateDTO,
   CarreraPlanCreateDTO,
   CarreraPlanResponseDTO,
@@ -41,8 +44,10 @@ import type {
   GetDashboardResumenParams,
   GetDraftParams,
   ListAreasDepartamentoParams,
+  ListCarrerasAsignadasParams,
   ListCarrerasDepartamentoParams,
   ListMateriasDepartamentoParams,
+  ListMateriasSinProgramaParams,
   ListProgramasCoordinacionParams,
   ListProgramasParams,
   ListProgramasPendientesCoordinadorParams,
@@ -66,7 +71,8 @@ import type {
   ResetPasswordRequest,
   SaveDraftParams,
   UserCreateDTO,
-  UserResponseDTO
+  UserResponseDTO,
+  UserResponseReducedDTO
 } from './model';
 
 import { customInstance } from '../custom-instance';
@@ -2509,7 +2515,127 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
-export const profesorCarga = (
+export const secretariaCarga = (
+    deptId: number,
+    id: number,
+    programaCargaDTO: ProgramaCargaDTO,
+ ) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas/${id}/secretaria-carga`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: programaCargaDTO
+    },
+      );
+    }
+  
+
+
+export const getSecretariaCargaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof secretariaCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof secretariaCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
+
+const mutationKey = ['secretariaCarga'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof secretariaCarga>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
+          const {deptId,id,data} = props ?? {};
+
+          return  secretariaCarga(deptId,id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SecretariaCargaMutationResult = NonNullable<Awaited<ReturnType<typeof secretariaCarga>>>
+    export type SecretariaCargaMutationBody = ProgramaCargaDTO
+    export type SecretariaCargaMutationError = unknown
+
+    export const useSecretariaCarga = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof secretariaCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof secretariaCarga>>,
+        TError,
+        {deptId: number;id: number;data: ProgramaCargaDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getSecretariaCargaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const docenteCarga = (
+    deptId: number,
+    id: number,
+    programaCargaDTO: ProgramaCargaDTO,
+ ) => {
+      
+      
+      return customInstance<ProgramaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/programas/${id}/docente-carga`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: programaCargaDTO
+    },
+      );
+    }
+  
+
+
+export const getDocenteCargaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof docenteCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof docenteCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
+
+const mutationKey = ['docenteCarga'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof docenteCarga>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
+          const {deptId,id,data} = props ?? {};
+
+          return  docenteCarga(deptId,id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DocenteCargaMutationResult = NonNullable<Awaited<ReturnType<typeof docenteCarga>>>
+    export type DocenteCargaMutationBody = ProgramaCargaDTO
+    export type DocenteCargaMutationError = unknown
+
+    export const useDocenteCarga = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof docenteCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof docenteCarga>>,
+        TError,
+        {deptId: number;id: number;data: ProgramaCargaDTO},
+        TContext
+      > => {
+
+      const mutationOptions = getDocenteCargaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const docenteCarga1 = (
     deptId: number,
     id: number,
     programaCargaDTO: ProgramaCargaDTO,
@@ -2526,11 +2652,11 @@ export const profesorCarga = (
   
 
 
-export const getProfesorCargaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
+export const getDocenteCarga1MutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof docenteCarga1>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof docenteCarga1>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext> => {
 
-const mutationKey = ['profesorCarga'];
+const mutationKey = ['docenteCarga1'];
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -2540,10 +2666,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof profesorCarga>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof docenteCarga1>>, {deptId: number;id: number;data: ProgramaCargaDTO}> = (props) => {
           const {deptId,id,data} = props ?? {};
 
-          return  profesorCarga(deptId,id,data,)
+          return  docenteCarga1(deptId,id,data,)
         }
 
         
@@ -2551,20 +2677,20 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type ProfesorCargaMutationResult = NonNullable<Awaited<ReturnType<typeof profesorCarga>>>
-    export type ProfesorCargaMutationBody = ProgramaCargaDTO
-    export type ProfesorCargaMutationError = unknown
+    export type DocenteCarga1MutationResult = NonNullable<Awaited<ReturnType<typeof docenteCarga1>>>
+    export type DocenteCarga1MutationBody = ProgramaCargaDTO
+    export type DocenteCarga1MutationError = unknown
 
-    export const useProfesorCarga = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof profesorCarga>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
+    export const useDocenteCarga1 = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof docenteCarga1>>, TError,{deptId: number;id: number;data: ProgramaCargaDTO}, TContext>, }
  ): UseMutationResult<
-        Awaited<ReturnType<typeof profesorCarga>>,
+        Awaited<ReturnType<typeof docenteCarga1>>,
         TError,
         {deptId: number;id: number;data: ProgramaCargaDTO},
         TContext
       > => {
 
-      const mutationOptions = getProfesorCargaMutationOptions(options);
+      const mutationOptions = getDocenteCarga1MutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -2687,6 +2813,68 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getAdministrativoCargaMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const asignarCoordinador = (
+    deptId: number,
+    id: number,
+    asignacionCoordinador: AsignacionCoordinador,
+    params: AsignarCoordinadorParams,
+ ) => {
+      
+      
+      return customInstance<AreaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/areas/${id}/coordinador`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: asignacionCoordinador,
+        params
+    },
+      );
+    }
+  
+
+
+export const getAsignarCoordinadorMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof asignarCoordinador>>, TError,{deptId: number;id: number;data: AsignacionCoordinador;params: AsignarCoordinadorParams}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof asignarCoordinador>>, TError,{deptId: number;id: number;data: AsignacionCoordinador;params: AsignarCoordinadorParams}, TContext> => {
+
+const mutationKey = ['asignarCoordinador'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof asignarCoordinador>>, {deptId: number;id: number;data: AsignacionCoordinador;params: AsignarCoordinadorParams}> = (props) => {
+          const {deptId,id,data,params} = props ?? {};
+
+          return  asignarCoordinador(deptId,id,data,params,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AsignarCoordinadorMutationResult = NonNullable<Awaited<ReturnType<typeof asignarCoordinador>>>
+    export type AsignarCoordinadorMutationBody = AsignacionCoordinador
+    export type AsignarCoordinadorMutationError = unknown
+
+    export const useAsignarCoordinador = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof asignarCoordinador>>, TError,{deptId: number;id: number;data: AsignacionCoordinador;params: AsignarCoordinadorParams}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof asignarCoordinador>>,
+        TError,
+        {deptId: number;id: number;data: AsignacionCoordinador;params: AsignarCoordinadorParams},
+        TContext
+      > => {
+
+      const mutationOptions = getAsignarCoordinadorMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -4487,6 +4675,109 @@ export function useListProgramasPendientesCoordinadorSuspense<TData = Awaited<Re
 
 
 
+export const misAreas = (
+    deptId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AreaResponseDTO[]>(
+      {url: `/api/departamentos/${deptId}/mis-areas`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getMisAreasQueryKey = (deptId?: number,) => {
+    return [
+    `/api/departamentos/${deptId}/mis-areas`
+    ] as const;
+    }
+
+    
+export const getMisAreasQueryOptions = <TData = Awaited<ReturnType<typeof misAreas>>, TError = unknown>(deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMisAreasQueryKey(deptId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof misAreas>>> = ({ signal }) => misAreas(deptId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type MisAreasQueryResult = NonNullable<Awaited<ReturnType<typeof misAreas>>>
+export type MisAreasQueryError = unknown
+
+
+
+export function useMisAreas<TData = Awaited<ReturnType<typeof misAreas>>, TError = unknown>(
+ deptId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getMisAreasQueryOptions(deptId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getMisAreasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof misAreas>>, TError = unknown>(deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMisAreasQueryKey(deptId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof misAreas>>> = ({ signal }) => misAreas(deptId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type MisAreasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof misAreas>>>
+export type MisAreasSuspenseQueryError = unknown
+
+
+
+export function useMisAreasSuspense<TData = Awaited<ReturnType<typeof misAreas>>, TError = unknown>(
+ deptId: number, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof misAreas>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getMisAreasSuspenseQueryOptions(deptId,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const listMateriasDepartamento = (
     deptId: number,
     params?: ListMateriasDepartamentoParams,
@@ -4597,6 +4888,116 @@ export function useListMateriasDepartamentoSuspense<TData = Awaited<ReturnType<t
 
 
 
+export const listMateriasSinPrograma = (
+    deptId: number,
+    params?: ListMateriasSinProgramaParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<PageMateriaResponseDTO>(
+      {url: `/api/departamentos/${deptId}/materias/sin-programa`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListMateriasSinProgramaQueryKey = (deptId?: number,
+    params?: ListMateriasSinProgramaParams,) => {
+    return [
+    `/api/departamentos/${deptId}/materias/sin-programa`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListMateriasSinProgramaQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError = unknown>(deptId: number,
+    params?: ListMateriasSinProgramaParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasSinProgramaQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasSinPrograma>>> = ({ signal }) => listMateriasSinPrograma(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMateriasSinProgramaQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasSinPrograma>>>
+export type ListMateriasSinProgramaQueryError = unknown
+
+
+
+export function useListMateriasSinPrograma<TData = Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError = unknown>(
+ deptId: number,
+    params?: ListMateriasSinProgramaParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMateriasSinProgramaQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListMateriasSinProgramaSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError = unknown>(deptId: number,
+    params?: ListMateriasSinProgramaParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMateriasSinProgramaQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMateriasSinPrograma>>> = ({ signal }) => listMateriasSinPrograma(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMateriasSinProgramaSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listMateriasSinPrograma>>>
+export type ListMateriasSinProgramaSuspenseQueryError = unknown
+
+
+
+export function useListMateriasSinProgramaSuspense<TData = Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError = unknown>(
+ deptId: number,
+    params?: ListMateriasSinProgramaParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listMateriasSinPrograma>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMateriasSinProgramaSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 export const getDashboardResumen = (
     deptId: number,
     params: GetDashboardResumenParams,
@@ -4695,6 +5096,226 @@ export function useGetDashboardResumenSuspense<TData = Awaited<ReturnType<typeof
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetDashboardResumenSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const listCarrerasAsignadas = (
+    deptId: number,
+    params?: ListCarrerasAsignadasParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<PageCarreraResponseDTO>(
+      {url: `/api/departamentos/${deptId}/carreras/asignadas`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getListCarrerasAsignadasQueryKey = (deptId?: number,
+    params?: ListCarrerasAsignadasParams,) => {
+    return [
+    `/api/departamentos/${deptId}/carreras/asignadas`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getListCarrerasAsignadasQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError = unknown>(deptId: number,
+    params?: ListCarrerasAsignadasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasAsignadasQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasAsignadas>>> = ({ signal }) => listCarrerasAsignadas(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCarrerasAsignadasQueryResult = NonNullable<Awaited<ReturnType<typeof listCarrerasAsignadas>>>
+export type ListCarrerasAsignadasQueryError = unknown
+
+
+
+export function useListCarrerasAsignadas<TData = Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError = unknown>(
+ deptId: number,
+    params?: ListCarrerasAsignadasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCarrerasAsignadasQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getListCarrerasAsignadasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError = unknown>(deptId: number,
+    params?: ListCarrerasAsignadasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCarrerasAsignadasQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCarrerasAsignadas>>> = ({ signal }) => listCarrerasAsignadas(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCarrerasAsignadasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof listCarrerasAsignadas>>>
+export type ListCarrerasAsignadasSuspenseQueryError = unknown
+
+
+
+export function useListCarrerasAsignadasSuspense<TData = Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError = unknown>(
+ deptId: number,
+    params?: ListCarrerasAsignadasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof listCarrerasAsignadas>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCarrerasAsignadasSuspenseQueryOptions(deptId,params,options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+export const candidatos = (
+    deptId: number,
+    params: CandidatosParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseReducedDTO[]>(
+      {url: `/api/departamentos/${deptId}/areas/candidatos-coordinacion`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getCandidatosQueryKey = (deptId?: number,
+    params?: CandidatosParams,) => {
+    return [
+    `/api/departamentos/${deptId}/areas/candidatos-coordinacion`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getCandidatosQueryOptions = <TData = Awaited<ReturnType<typeof candidatos>>, TError = unknown>(deptId: number,
+    params: CandidatosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCandidatosQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof candidatos>>> = ({ signal }) => candidatos(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CandidatosQueryResult = NonNullable<Awaited<ReturnType<typeof candidatos>>>
+export type CandidatosQueryError = unknown
+
+
+
+export function useCandidatos<TData = Awaited<ReturnType<typeof candidatos>>, TError = unknown>(
+ deptId: number,
+    params: CandidatosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCandidatosQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getCandidatosSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof candidatos>>, TError = unknown>(deptId: number,
+    params: CandidatosParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCandidatosQueryKey(deptId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof candidatos>>> = ({ signal }) => candidatos(deptId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CandidatosSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof candidatos>>>
+export type CandidatosSuspenseQueryError = unknown
+
+
+
+export function useCandidatosSuspense<TData = Awaited<ReturnType<typeof candidatos>>, TError = unknown>(
+ deptId: number,
+    params: CandidatosParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof candidatos>>, TError, TData>, }
+  
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCandidatosSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

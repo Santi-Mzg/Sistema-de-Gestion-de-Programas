@@ -2,7 +2,7 @@
 
 import { getGetProgramaQueryKey } from "@/app/api/generated/client";
 import { useGetPrograma } from "@/app/api/generated/client";
-import { ProgramaResponseDTOEstado } from "@/app/api/generated/model";
+import { EstadoPrograma } from "@/app/api/generated/model";
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
 import { EstadoHistorialFlow } from "@/components/pages/historial-estados-flow";
 import { useHeader } from "@/context/header-context";
@@ -32,12 +32,12 @@ export default function HistorialEstado() {
 
   useEffect(() => {
     setHeader({
-      title: programa ? `Historial de Estados de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - Año ${programa?.anio}` : "Nuevo Programa Académico",
+      title: programa ? `Historial de Estados de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - Año ${programa?.anio}` : "Nuevo programa académico",
       subtitle: "Historial de estados de programa académico",
       badge: (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
           <Orbit className="text-primary" size={18} />
-          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as ProgramaResponseDTOEstado)}</span>
+          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as EstadoPrograma)}</span>
         </div>
       ),
       icon: History
