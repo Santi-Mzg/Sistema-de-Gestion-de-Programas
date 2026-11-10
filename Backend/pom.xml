@@ -35,6 +35,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <org.projectlombok.version>1.18.42</org.projectlombok.version>
+        <tomcat.version>10.1.59</tomcat.version>
+        <netty.version>4.1.137.Final</netty.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -266,20 +268,5 @@
             </plugin>
 		</plugins>
 	</build>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.apache.tomcat.embed</groupId>
-				<artifactId>tomcat-embed-core</artifactId>
-				<version>10.1.55</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.tomcat.embed</groupId>
-				<artifactId>tomcat-embed-websocket</artifactId>
-				<version>10.1.55</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 </project>
