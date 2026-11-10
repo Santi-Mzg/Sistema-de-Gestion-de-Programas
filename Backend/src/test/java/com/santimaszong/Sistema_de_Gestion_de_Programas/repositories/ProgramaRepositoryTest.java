@@ -113,14 +113,14 @@
 //        return ude;
 //    }
 //
-//    /** Crea un ProgramaEntity mínimo con materia, anio, profesor y estado. */
+//    /** Crea un ProgramaEntity mínimo con materia, anio, docente y estado. */
 //    private ProgramaEntity buildPrograma(MateriaEntity mat, int anio,
-//                                         UsuarioDepartamentoEntity profesor,
+//                                         UsuarioDepartamentoEntity docente,
 //                                         EstadoPrograma estado) {
 //        ProgramaEntity p = new ProgramaEntity();
 //        p.setAnio(anio);
 //        p.setMateria(mat);
-//        p.setProfesorResponsable(profesor);
+//        p.setDocenteResponsable(docente);
 //        p.setEstadoActual(estado);
 //        return p;
 //    }
@@ -148,7 +148,7 @@
 //    @Test
 //    void findByMateriaIdAndAnio_givenExistingPrograma_whenQuery_thenReturnsCorrectPrograma() {
 //        // Given
-//        ProgramaEntity p = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
+//        ProgramaEntity p = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
 //        em.persistAndFlush(p);
 //
 //        // When
@@ -164,7 +164,7 @@
 //    @Test
 //    void findByMateriaIdAndAnio_givenNonExistingAnio_whenQuery_thenReturnsEmpty() {
 //        // Given
-//        em.persistAndFlush(buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION));
+//        em.persistAndFlush(buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL));
 //
 //        // When / Then
 //        assertThat(programaRepository.findByMateriaIdAndAnio(materia.getId(), 2099)).isEmpty();
@@ -177,7 +177,7 @@
 //    @Test
 //    void existsByMateriaIdAndAnio_givenExistingPrograma_whenCheck_thenReturnsTrue() {
 //        // Given
-//        em.persistAndFlush(buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION));
+//        em.persistAndFlush(buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL));
 //
 //        // When / Then
 //        assertThat(programaRepository.existsByMateriaIdAndAnio(materia.getId(), 2025)).isTrue();
@@ -209,12 +209,12 @@
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════
-//    // TEST 3 – findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio()
+//    // TEST 3 – findByDocenteResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio()
 //    // Solo devuelve programas del docente cuyo legajo coincide
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
-//    void findByProfesorResponsable_givenTwoProgramasWithDifferentDocentes_whenQueryByLegajo_thenReturnsOnlyMatchingOne() {
+//    void findByDocenteResponsable_givenTwoProgramasWithDifferentDocentes_whenQueryByLegajo_thenReturnsOnlyMatchingOne() {
 //        // Given – segundo docente y su programa en una materia distinta
 //        UserEntity otroDocente = buildUser("docente999");
 //        em.persist(otroDocente);
@@ -227,15 +227,15 @@
 //        otraMateria.setDepartamento(dept);
 //        em.persist(otraMateria);
 //
-//        ProgramaEntity p1 = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
-//        ProgramaEntity p2 = buildPrograma(otraMateria, 2025, udeOtroDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
+//        ProgramaEntity p1 = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
+//        ProgramaEntity p2 = buildPrograma(otraMateria, 2025, udeOtroDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
 //        em.persist(p1);
 //        em.persist(p2);
 //        em.flush();
 //
 //        // When
 //        List<ProgramaEntity> result = programaRepository
-//                .findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
+//                .findByDocenteResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
 //                        "docente001", dept.getId(), 2025);
 //
 //        // Then – solo el programa de docente001, no el de docente999
@@ -276,12 +276,12 @@
 //        em.persist(otraMateria);
 //
 //        // p1 → plan → carrera → comision = coord001
-//        ProgramaEntity p1 = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_PROFESOR);
+//        ProgramaEntity p1 = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
 //        em.persist(p1);
 //        persistBloque(p1, plan);
 //
 //        // p2 → plan2 → carrera2 → comision = coord999
-//        ProgramaEntity p2 = buildPrograma(otraMateria, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_PROFESOR);
+//        ProgramaEntity p2 = buildPrograma(otraMateria, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
 //        em.persist(p2);
 //        persistBloque(p2, plan2);
 //
@@ -299,7 +299,7 @@
 //    @Test
 //    void findProgramasByCoordinador_givenProgramaWithoutBloques_whenQuery_thenReturnsNothing() {
 //        // Given – programa sin ProgramaCarreraEntity → el EXISTS retorna falso
-//        ProgramaEntity p = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_PROFESOR);
+//        ProgramaEntity p = buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
 //        em.persistAndFlush(p);
 //
 //        // When / Then
@@ -318,7 +318,7 @@
 //            ProgramaEntity p = new ProgramaEntity();
 //            p.setAnio(anio);
 //            p.setMateria(materia);
-//            p.setEstadoActual(EstadoPrograma.APROBADO_POR_SECRETARIA);
+//            p.setEstadoActual(EstadoPrograma.APROBADO);
 //            em.persist(p);
 //        }
 //
@@ -326,7 +326,7 @@
 //        ProgramaEntity pBorrador = new ProgramaEntity();
 //        pBorrador.setAnio(2025);
 //        pBorrador.setMateria(materia);
-//        pBorrador.setEstadoActual(EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
+//        pBorrador.setEstadoActual(EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
 //        em.persist(pBorrador);
 //
 //        em.flush();
@@ -334,22 +334,22 @@
 //        // When
 //        Optional<ProgramaEntity> result = programaRepository
 //                .findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
-//                        materia.getId(), EstadoPrograma.APROBADO_POR_SECRETARIA);
+//                        materia.getId(), EstadoPrograma.APROBADO);
 //
-//        // Then – devuelve el de 2024 (el más reciente entre los APROBADO_POR_SECRETARIA)
+//        // Then – devuelve el de 2024 (el más reciente entre los APROBADO)
 //        assertThat(result).isPresent();
 //        assertThat(result.get().getAnio()).isEqualTo(2024);
-//        assertThat(result.get().getEstadoActual()).isEqualTo(EstadoPrograma.APROBADO_POR_SECRETARIA);
+//        assertThat(result.get().getEstadoActual()).isEqualTo(EstadoPrograma.APROBADO);
 //    }
 //
 //    @Test
 //    void findFirstByMateriaIdAndEstadoActualOrderByAnioDesc_givenNoApprovedPrograms_whenQuery_thenReturnsEmpty() {
 //        // Given – solo un programa pero con estado distinto
 //        em.persistAndFlush(
-//                buildPrograma(materia, 2025, udeDocente, EstadoPrograma.COMPLETO_POR_ADMINISTRACION));
+//                buildPrograma(materia, 2025, udeDocente, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL));
 //
 //        // When / Then
 //        assertThat(programaRepository.findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
-//                materia.getId(), EstadoPrograma.APROBADO_POR_SECRETARIA)).isEmpty();
+//                materia.getId(), EstadoPrograma.APROBADO)).isEmpty();
 //    }
 //}

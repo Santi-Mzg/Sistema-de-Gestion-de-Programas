@@ -3,6 +3,8 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.services;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.area.AreaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseReducedDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -14,6 +16,9 @@ public interface AreaService {
     List<AreaResponseDTO> listAreas();
     Page<AreaResponseDTO> listAreasDepartamento(Long deptId, String search, Pageable pageable);
     AreaResponseDTO updateArea(Long id, AreaCreateDTO area);
+    AreaResponseDTO updateCoordinador(String legajo, Long deptId, Rol rol, Long areaId, Long usuarioId);
+    List<UserResponseReducedDTO> candidatosCoordinacion(String legajo, Long deptId, Rol rol);
+    List<AreaResponseDTO> misAreas(String legajo, Long deptId);
     long countByDepartamentoId(Long deptId);
     void deleteArea(Long id);
 }

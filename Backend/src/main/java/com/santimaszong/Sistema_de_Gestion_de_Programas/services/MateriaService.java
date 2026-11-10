@@ -5,6 +5,7 @@ import java.util.List;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.data.domain.Pageable;
 
 public interface MateriaService {
@@ -14,8 +15,10 @@ public interface MateriaService {
     List<MateriaEntity> listEntities(List<Long> ids);
     List<MateriaResponseDTO> listMaterias();
     Page<MateriaResponseDTO> listMateriasDepartamento(Long deptId, String search, Pageable pageable);
+    Page<MateriaResponseDTO> listMateriasSinPrograma(Long deptId, String legajo, Rol rol,
+                                                   String search, Pageable pageable);
     List<MateriaResponseDTO> listMateriasCarreraPlan(Long carreraId);
-    MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materia);
+    MateriaResponseDTO updateMateria(Long id, MateriaCreateDTO materia, String legajo, Long deptId, Rol rol);
     long countByDepartamentoId(Long deptId);
     void deleteMateria(Long id);
 }

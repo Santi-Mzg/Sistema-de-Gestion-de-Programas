@@ -15,7 +15,8 @@ public interface DecisionComisionRepository extends JpaRepository<DecisionComisi
 
     @Query("""
         SELECT d FROM DecisionComisionEntity d
-        WHERE d.programaCarrera.programa.id = :programaId
+        WHERE d.programa.id = :programaId
+        AND d.ronda = d.programa.rondaRevision
         AND d.programaCarrera.carreraPlan.id = :carreraId
         AND d.programaCarrera.carreraPlan.carrera.comision.id = :comisionId
     """)
@@ -25,6 +26,11 @@ public interface DecisionComisionRepository extends JpaRepository<DecisionComisi
             @Param("comisionId") Long comisionId
     );
 
-    long countByProgramaCarreraProgramaIdAndAprobadoFalse(Long programaId);
+    @Query("""
+        SELECT count(d) FROM DecisionComisionEntity d
+        WHERE d.programa.id = :programaId AND d.ronda = d.programa.rondaRevision
+        AND d.resultado = com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.ResultadoDecisionComision.PENDIENTE
+    """)
+    long countPendientesRondaActual(@Param("programaId") Long programaId);
 
 }

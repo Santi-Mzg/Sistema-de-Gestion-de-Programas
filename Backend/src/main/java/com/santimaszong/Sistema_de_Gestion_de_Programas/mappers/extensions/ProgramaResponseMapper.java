@@ -22,7 +22,7 @@ public interface ProgramaResponseMapper extends ToDTOMapper<ProgramaEntity, Prog
 
     @Override
     @Mapping(source = "materia", target = "materia")
-    @Mapping(source = "profesorResponsable.usuario", target = "profesorResponsable")
+    @Mapping(source = "docenteResponsable.usuario", target = "docenteResponsable")
     @Mapping(source = "bloqueMultiple", target = "bloqueMultiple")
     @Mapping(source = "historialEstados", target = "historialEstados")
     @Mapping(source = "estadoActual", target = "estado")

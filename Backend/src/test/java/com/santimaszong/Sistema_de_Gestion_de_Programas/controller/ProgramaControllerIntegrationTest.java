@@ -149,7 +149,7 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 1 – POST con JWT válido y rol ADMINISTRACION
-//    //          → 201 + estado INCOMPLETO_POR_ADMINISTRACION o COMPLETO_POR_ADMINISTRACION
+//    //          → 201 + estado INCOMPLETO_POR_ADMINISTRACION o PENDIENTE_DE_SECRETARIA_INICIAL
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
@@ -165,7 +165,7 @@
 //
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materia.getId());
-//        dto.setProfesorResponsableId(docenteUser.getId());
+//        dto.setDocenteResponsableId(docenteUser.getId());
 //        dto.setBloqueMultiple(List.of(bloque));
 //        dto.setCargaHorariaTotal(64);
 //        dto.setCargaHorariaSemanal(4);
@@ -183,7 +183,7 @@
 //                .andExpect(jsonPath("$.anio").isNumber())
 //                .andExpect(jsonPath("$.estado").value(
 //                        org.hamcrest.Matchers.anyOf(
-//                                org.hamcrest.Matchers.is("COMPLETO_POR_ADMINISTRACION"),
+//                                org.hamcrest.Matchers.is("PENDIENTE_DE_SECRETARIA_INICIAL"),
 //                                org.hamcrest.Matchers.is("INCOMPLETO_POR_ADMINISTRACION")
 //                        )));
 //    }
@@ -236,14 +236,14 @@
 //
 //    @Test
 //    void listPendientes_givenCoordinadorJwt_whenGet_thenReturns200WithFilteredList() throws Exception {
-//        // Given – programa en COMPLETO_POR_PROFESOR con bloque en la carrera del coordinador
+//        // Given – programa en PENDIENTE_DE_COMISIONES_CURRICULARES con bloque en la carrera del coordinador
 //        //         y una DecisionComisionEntity pendiente (aprobado=false)
 //        ProgramaEntity programa = new ProgramaEntity();
 //        programa.setAnio(LocalDate.now().getYear()); // el service usa el año actual
 //        programa.setMateria(materia);
-//        programa.setProfesorResponsable(udeDocente);
+//        programa.setDocenteResponsable(udeDocente);
 //        programa.registrarNuevoEstado(
-//                EstadoPrograma.COMPLETO_POR_PROFESOR, udeAdmin, Rol.ADMINISTRACION, null);
+//                EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES, udeAdmin, Rol.ADMINISTRACION, null);
 //
 //        // Bloque que conecta el programa con la carrera cuyo coordinador es coordUser
 //        ProgramaCarreraEntity bloque = new ProgramaCarreraEntity();

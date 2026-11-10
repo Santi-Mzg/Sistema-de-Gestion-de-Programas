@@ -18,7 +18,7 @@ public interface ProgramaResponseReducedMapper extends ToDTOMapper<ProgramaEntit
 
     @Override
     @Mapping(source = "materia", target = "materia")
-    @Mapping(source = "profesorResponsable.usuario", target = "profesorResponsable")
+    @Mapping(source = "docenteResponsable.usuario", target = "docenteResponsable")
     @Mapping(source = "estadoActual", target = "estado")
     ProgramaResponseReducedDTO toDTO(ProgramaEntity entity);
 

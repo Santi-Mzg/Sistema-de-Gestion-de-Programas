@@ -10,4 +10,6 @@ public class EstadoUpdateDTO {
     private Rol destinoRechazo;
     private String justificacion;
     private String contribucionCarrera;
+    private boolean guardarCambios;
+    private ProgramaCargaDTO cambios;
 }

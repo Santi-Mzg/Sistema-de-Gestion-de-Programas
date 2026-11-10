@@ -44,9 +44,9 @@ public class UsuarioDepartamentoEntity {
     @BatchSize(size = 5)
     private Set<CarreraEntity> carrerasComoComision;
 
-    @OneToMany(mappedBy = "profesorResponsable")
+    @OneToMany(mappedBy = "docenteResponsable")
     @BatchSize(size = 5)
-    private List<ProgramaEntity> materiasComoProfesor;
+    private List<ProgramaEntity> materiasComoDocente;
 
 //    @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();

@@ -54,11 +54,22 @@ public class ProgramaCarreraEntity {
     @Column(columnDefinition = "TEXT")
     private String contribucion;
 
-    @Column(columnDefinition = "TEXT")
-    private String contenidosMinimos;
 
-    @OneToOne(mappedBy = "programaCarrera", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private DecisionComisionEntity decisionComision;
+    /** La decisión vigente se obtiene de la ronda activa, sin borrar las anteriores. */
+    @Transient
+    public DecisionComisionEntity getDecisionComision() {
+        if (programa == null || carreraPlan == null) return null;
+        var estado = programa.getEstadoActual();
+        if (estado != com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES
+                && estado != com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL
+                && estado != com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.EstadoPrograma.APROBADO) {
+            return null;
+        }
+        return programa.getDecisionesComision().stream()
+                .filter(d -> java.util.Objects.equals(d.getRonda(), programa.getRondaRevision())
+                        && java.util.Objects.equals(d.getCarreraPlanId(), carreraPlan.getId()))
+                .findFirst().orElse(null);
+    }
 
 
 }

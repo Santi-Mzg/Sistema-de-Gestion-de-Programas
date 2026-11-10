@@ -21,4 +21,5 @@ public class EstadoHistoricoResponseDTO {
     private UserResponseReducedDTO actor;
     private String departamentoName;
     private Rol actorRol;
+    private String observacion;
 }

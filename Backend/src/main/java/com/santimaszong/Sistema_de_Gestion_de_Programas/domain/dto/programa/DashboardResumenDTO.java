@@ -13,5 +13,8 @@ public record DashboardResumenDTO(
         Long pendienteDocente,
         Long rechazadoDocente,
         Long pendienteComisiones,
-        Long pendienteSecretaria
+        Long pendienteSecretaria,
+        Long pendienteCoordinacionArea,
+        Long pendienteSecretariaInicial,
+        Long pendienteSecretariaFinal
 ) {}

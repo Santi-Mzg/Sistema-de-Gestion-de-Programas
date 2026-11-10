@@ -26,11 +26,13 @@ import java.util.List;
 public class ProgramaController {
 
     private final ProgramaService programaService;
+    private final com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaBorradorService borradores;
     private final PdfGeneratorService pdfService;
     private final BibliografiaFormatterService bibliografiaFormatterService;;
 
-    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService, BibliografiaFormatterService bibliografiaFormatterService) {
+    public ProgramaController(ProgramaService programaService, PdfGeneratorService pdfService, BibliografiaFormatterService bibliografiaFormatterService, com.santimaszong.Sistema_de_Gestion_de_Programas.services.ProgramaBorradorService borradores) {
         this.programaService = programaService;
+        this.borradores = borradores;
         this.pdfService = pdfService;
         this.bibliografiaFormatterService = bibliografiaFormatterService;
     }
@@ -54,14 +56,23 @@ public class ProgramaController {
         return new ResponseEntity<>(updatedProgram, HttpStatus.OK);
     }
 
-    // PROFESOR carga sus datos
-    @PatchMapping("/departamentos/{deptId}/programas/{id}/profesor-carga")
-    public ResponseEntity<ProgramaResponseDTO> profesorCarga(@PathVariable Long deptId,
+    @PatchMapping("/departamentos/{deptId}/programas/{id}/secretaria-carga")
+    public ResponseEntity<ProgramaResponseDTO> secretariaCarga(@PathVariable Long deptId, @PathVariable Long id,
+            @RequestBody ProgramaCargaDTO datos, @AuthenticationPrincipal UserEntity actor) {
+        return ResponseEntity.ok(programaService.secretariaCarga(deptId, id, datos, actor));
+    }
+
+    // DOCENTE carga sus datos
+    @PatchMapping({
+            "/departamentos/{deptId}/programas/{id}/docente-carga",
+            "/departamentos/{deptId}/programas/{id}/profesor-carga"
+    })
+    public ResponseEntity<ProgramaResponseDTO> docenteCarga(@PathVariable Long deptId,
                                                              @PathVariable Long id,
                                                              @RequestBody ProgramaCargaDTO programaDTO,
                                                              @AuthenticationPrincipal UserEntity actor) {
 
-        return ResponseEntity.ok(programaService.profesorCarga(deptId, id, programaDTO, actor));
+        return ResponseEntity.ok(programaService.docenteCarga(deptId, id, programaDTO, actor));
     }
 
     @PatchMapping("/departamentos/{deptId}/programas/{id}/estado")
@@ -119,7 +130,7 @@ public class ProgramaController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);        
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(programaService.getListAnioActual(auth, deptId, rolActivo, estado, search, pageable));
     }
 
@@ -176,37 +187,35 @@ public class ProgramaController {
     // BORRADOR
     @PostMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
     public ResponseEntity<Void> saveDraft(
-            @PathVariable Long deptId,
-            @PathVariable Long materiaId,
-            @RequestParam Rol rolActivo,
+            @PathVariable Long deptId, @PathVariable Long materiaId, @RequestParam Rol rolActivo,
+            @RequestParam Integer anio, @RequestParam(defaultValue = "0") Long programaId,
+            @RequestParam(defaultValue = "0") Long planId,
             @RequestBody ProgramaDraftDTO dto,
-            @AuthenticationPrincipal UserEntity user
-    ) {
-        programaService.saveDraft(deptId, materiaId, dto, user, rolActivo);
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            @AuthenticationPrincipal UserEntity user) {
+        ProgramaDraftDTO resultado = borradores.operar(user.getLegajo(), deptId, materiaId, rolActivo, anio, programaId, planId, "GUARDAR", dto);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
     public ResponseEntity<ProgramaDraftDTO> getDraft(
-            @PathVariable Long deptId,
-            @PathVariable Long materiaId,
-            @RequestParam Rol rolActivo,
-            @AuthenticationPrincipal UserEntity user
-    ) {
-        return ResponseEntity.ok(programaService.getDraft(deptId, materiaId, user, rolActivo));
+            @PathVariable Long deptId, @PathVariable Long materiaId, @RequestParam Rol rolActivo,
+            @RequestParam Integer anio, @RequestParam(defaultValue = "0") Long programaId,
+            @RequestParam(defaultValue = "0") Long planId,
+
+            @AuthenticationPrincipal UserEntity user) {
+        ProgramaDraftDTO resultado = borradores.operar(user.getLegajo(), deptId, materiaId, rolActivo, anio, programaId, planId, "LEER", null);
+        return ResponseEntity.ok(resultado);
     }
 
     @DeleteMapping("/departamentos/{deptId}/programas/draft/{materiaId}")
     public ResponseEntity<Void> deleteDraft(
-            @PathVariable Long deptId,
-            @PathVariable Long materiaId,
-            @RequestParam Rol rolActivo,
-            @AuthenticationPrincipal UserEntity user
-    ) {
-        programaService.deleteDraft(deptId, materiaId, user, rolActivo);
+            @PathVariable Long deptId, @PathVariable Long materiaId, @RequestParam Rol rolActivo,
+            @RequestParam Integer anio, @RequestParam(defaultValue = "0") Long programaId,
+            @RequestParam(defaultValue = "0") Long planId,
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            @AuthenticationPrincipal UserEntity user) {
+        ProgramaDraftDTO resultado = borradores.operar(user.getLegajo(), deptId, materiaId, rolActivo, anio, programaId, planId, "ELIMINAR", null);
+        return ResponseEntity.noContent().build();
     }
 
     // DASHBOARD

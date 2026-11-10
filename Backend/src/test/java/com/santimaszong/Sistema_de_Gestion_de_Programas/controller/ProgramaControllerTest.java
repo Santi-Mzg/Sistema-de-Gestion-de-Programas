@@ -147,7 +147,7 @@
 //
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materia.getId());
-//        dto.setProfesorResponsableId(docenteUser.getId());
+//        dto.setDocenteResponsableId(docenteUser.getId());
 //        dto.setBloqueMultiple(List.of(bloque));
 //        dto.setCargaHorariaTotal(64);
 //        dto.setCargaHorariaSemanal(4);
@@ -158,7 +158,7 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 1 – POST /departamentos/{id}/programas
-//    //          Admin con todos los campos → 201 + estado COMPLETO_POR_ADMINISTRACION
+//    //          Admin con todos los campos → 201 + estado PENDIENTE_DE_SECRETARIA_INICIAL
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
@@ -174,7 +174,7 @@
 //                        .content(body)
 //                        .with(user(adminUser)))
 //                .andExpect(status().isCreated())
-//                .andExpect(jsonPath("$.estado").value("COMPLETO_POR_ADMINISTRACION"))
+//                .andExpect(jsonPath("$.estado").value("PENDIENTE_DE_SECRETARIA_INICIAL"))
 //                .andExpect(jsonPath("$.id").isNumber())
 //                .andExpect(jsonPath("$.anio").isNumber());
 //    }
@@ -190,7 +190,7 @@
 //        // Given – DTO sin bloqueMultiple
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materia.getId());
-//        dto.setProfesorResponsableId(docenteUser.getId());
+//        dto.setDocenteResponsableId(docenteUser.getId());
 //        dto.setBloqueMultiple(List.of());
 //        dto.setCargaHorariaTotal(64);
 //        dto.setCargaHorariaSemanal(4);
@@ -254,8 +254,8 @@
 //        ProgramaEntity p = new ProgramaEntity();
 //        p.setAnio(2025);
 //        p.setMateria(materia);
-//        p.setProfesorResponsable(udeDocente);
-//        p.setEstadoActual(EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
+//        p.setDocenteResponsable(udeDocente);
+//        p.setEstadoActual(EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
 //        p = programaRepository.saveAndFlush(p);
 //
 //        // When / Then
@@ -264,7 +264,7 @@
 //                .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.id").value(p.getId()))
 //                .andExpect(jsonPath("$.anio").value(2025))
-//                .andExpect(jsonPath("$.estado").value("COMPLETO_POR_ADMINISTRACION"));
+//                .andExpect(jsonPath("$.estado").value("PENDIENTE_DE_SECRETARIA_INICIAL"));
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════
@@ -281,8 +281,8 @@
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════
-//    // TEST 7 – PATCH /estado: secretaria APRUEBA programa en APROBADO_POR_COMISION
-//    //          → 200 + estado APROBADO_POR_SECRETARIA
+//    // TEST 7 – PATCH /estado: secretaria APRUEBA programa en PENDIENTE_DE_SECRETARIA_FINAL
+//    //          → 200 + estado APROBADO
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
@@ -293,8 +293,8 @@
 //        ProgramaEntity p = new ProgramaEntity();
 //        p.setAnio(2025);
 //        p.setMateria(materia);
-//        p.setProfesorResponsable(udeDocente);
-//        p.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_COMISION, udeAdmin, Rol.ADMINISTRACION, null);
+//        p.setDocenteResponsable(udeDocente);
+//        p.registrarNuevoEstado(EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL, udeAdmin, Rol.ADMINISTRACION, null);
 //        p = programaRepository.saveAndFlush(p);
 //
 //        EstadoUpdateDTO dto = new EstadoUpdateDTO();
@@ -308,7 +308,7 @@
 //                        .param("rolActivo", "SECRETARIA")
 //                        .with(user(secretariaUser)))
 //                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.estado").value("APROBADO_POR_SECRETARIA"));
+//                .andExpect(jsonPath("$.estado").value("APROBADO"));
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════

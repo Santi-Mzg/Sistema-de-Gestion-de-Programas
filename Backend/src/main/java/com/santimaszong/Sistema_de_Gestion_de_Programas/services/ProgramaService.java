@@ -15,7 +15,8 @@ import org.springframework.security.core.Authentication;
 public interface ProgramaService {
     ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
-    ProgramaResponseDTO profesorCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
+    ProgramaResponseDTO secretariaCarga(Long deptId, Long id, ProgramaCargaDTO datos, UserEntity actor);
+    ProgramaResponseDTO docenteCarga(Long deptId, Long id, ProgramaCargaDTO programa, UserEntity actor);
     ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo);
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
@@ -25,9 +26,6 @@ public interface ProgramaService {
     List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId);
     List<ProgramaResponseReducedDTO> listAll();
     void delete(Long id);
-    void saveDraft(Long departamentoId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo);
-    ProgramaDraftDTO getDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
-    void deleteDraft(Long departamentoId, Long materiaId, UserEntity user, Rol rolActivo);
     Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
     Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);
     DashboardResumenDTO getDashboardResumen(Authentication auth, Long deptId, Rol rolActivo);

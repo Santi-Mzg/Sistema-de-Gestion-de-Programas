@@ -4,6 +4,7 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.carrera.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraPlanEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -16,6 +17,7 @@ public interface CarreraService {
     CarreraResponseDTO findEntityWithPlanesById(Long id);
     List<CarreraResponseDTO> listCarreras();
     Page<CarreraResponseDTO> listCarrerasDepartamento(Long deptId, String search, Pageable pageable);
+    Page<CarreraResponseDTO> listCarrerasAsignadas(Long deptId, String legajo, Rol rol, String search, Pageable pageable);
     List<MateriaEntity> listMateriasCarreraPlan(Long id);
     CarreraResponseDTO updateCarrera(Long id, CarreraCreateDTO carrera);
     void updateComision(Long id, CarreraUpdateComisionDTO carreraDTO);

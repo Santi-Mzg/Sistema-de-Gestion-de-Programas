@@ -25,6 +25,27 @@ public class AreaController {
         this.areaService = areaService;
     }
 
+    public record AsignacionCoordinador(Long usuarioId) {}
+
+    @PatchMapping("/departamentos/{deptId}/areas/{id}/coordinador")
+    public ResponseEntity<AreaResponseDTO> asignarCoordinador(@PathVariable Long deptId, @PathVariable Long id,
+            @RequestParam com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol rolActivo,
+            @RequestBody AsignacionCoordinador datos, org.springframework.security.core.Authentication auth) {
+        return ResponseEntity.ok(areaService.updateCoordinador(auth.getName(), deptId, rolActivo, id, datos.usuarioId()));
+    }
+
+    @GetMapping("/departamentos/{deptId}/areas/candidatos-coordinacion")
+    public List<com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.user.UserResponseReducedDTO> candidatos(
+            @PathVariable Long deptId, @RequestParam com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol rolActivo,
+            org.springframework.security.core.Authentication auth) {
+        return areaService.candidatosCoordinacion(auth.getName(), deptId, rolActivo);
+    }
+
+    @GetMapping("/departamentos/{deptId}/mis-areas")
+    public List<AreaResponseDTO> misAreas(@PathVariable Long deptId, org.springframework.security.core.Authentication auth) {
+        return areaService.misAreas(auth.getName(), deptId);
+    }
+
     @PostMapping("/departamentos/{deptId}/areas")
     public ResponseEntity<AreaResponseDTO> createArea(@PathVariable Long deptId, @RequestBody AreaCreateDTO area) {
         AreaResponseDTO createArea = areaService.createArea(deptId, area);

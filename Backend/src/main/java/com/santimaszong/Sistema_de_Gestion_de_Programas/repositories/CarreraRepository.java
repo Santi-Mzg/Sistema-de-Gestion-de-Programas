@@ -33,6 +33,17 @@ public interface CarreraRepository extends JpaRepository<CarreraEntity, Long> {
     @EntityGraph(attributePaths = {"planes"})
     Optional<CarreraEntity> findWithPlanesById(Long id);
 
+    @Query("""
+        SELECT c FROM CarreraEntity c
+        WHERE c.departamento.id = :deptId AND c.comision.id = :coordinadorId
+        AND (:search = '' OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    Page<CarreraEntity> findAsignadas(
+            @Param("deptId") Long deptId,
+            @Param("coordinadorId") Long coordinadorId,
+            @Param("search") String search,
+            Pageable pageable);
+
     long countByDepartamentoId(Long departamentoId);
 
 }

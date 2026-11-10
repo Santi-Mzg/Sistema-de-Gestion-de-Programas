@@ -18,6 +18,18 @@ public interface MateriaRepository extends JpaRepository<MateriaEntity, Long> {
     long countByDepartamentoId(Long departamentoId);
 
     @Query("""
+        SELECT m FROM MateriaEntity m
+        WHERE m.departamento.id = :deptId
+        AND (:search = '' OR LOWER(m.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
+             OR LOWER(m.codigo) LIKE LOWER(CONCAT('%', :search, '%')))
+        AND NOT EXISTS (
+            SELECT p.id FROM ProgramaEntity p WHERE p.materia.id = m.id AND p.anio = :anio
+        )
+        """)
+    Page<MateriaEntity> findSinProgramaEnAnio(@Param("deptId") Long deptId, @Param("anio") Integer anio,
+                                            @Param("search") String search, Pageable pageable);
+
+    @Query("""
         SELECT m
         FROM MateriaEntity m
         WHERE m.departamento.id = :deptId

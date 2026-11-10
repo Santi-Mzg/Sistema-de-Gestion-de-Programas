@@ -2,14 +2,18 @@ package com.santimaszong.Sistema_de_Gestion_de_Programas.controller;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaCreateDTO;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.materia.MateriaResponseDTO;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.MateriaService;
 import lombok.extern.java.Log;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 
 @Log
@@ -55,11 +59,28 @@ public class MateriaController {
         return materiaService.listMateriasCarreraPlan(carreraId);
     }
 
-    @PutMapping("/materias/{id}")
-    public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO program) {
-        MateriaResponseDTO updatedMateria = materiaService.updateMateria(id, program);
+    @GetMapping("/departamentos/{deptId}/materias/sin-programa")
+    public ResponseEntity<Page<MateriaResponseDTO>> listMateriasSinPrograma(
+            @PathVariable Long deptId,
+            @RequestHeader("X-Departamento-Activo") Long departamentoActivo,
+            @RequestHeader("X-Rol-Activo") Rol rol,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication auth) {
+        if (!deptId.equals(departamentoActivo)) {
+            throw new AccessDeniedException("La consulta no corresponde al departamento activo");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending().and(Sort.by("id")));
+        return ResponseEntity.ok(materiaService.listMateriasSinPrograma(deptId, auth.getName(), rol, search, pageable));
+    }
 
-        return new ResponseEntity<>(updatedMateria, HttpStatus.OK);
+    @PutMapping("/materias/{id}")
+    public ResponseEntity<MateriaResponseDTO> updateMateria(@PathVariable Long id, @RequestBody MateriaCreateDTO datos,
+            @RequestHeader("X-Departamento-Activo") Long deptId,
+            @RequestHeader("X-Rol-Activo") Rol rol,
+            Authentication auth) {
+        return ResponseEntity.ok(materiaService.updateMateria(id, datos, auth.getName(), deptId, rol));
     }
 
     @DeleteMapping("/materias/{id}")

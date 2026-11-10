@@ -35,15 +35,20 @@ public class ProgramaEntity {
     @Column(nullable = false)
     private Integer anio;
 
+    private Integer rondaRevision = 0;
+
     // --- BLOQUE ÚNICO ---
     @ManyToOne
     @JoinColumn(name = "materia_id")
     private MateriaEntity materia;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    // Se mantiene el nombre físico de la columna existente; no requiere migración.
     @JoinColumn(name = "profesor_responsable_id")
-    private UsuarioDepartamentoEntity profesorResponsable;
+    private UsuarioDepartamentoEntity docenteResponsable;
 
+    @Column(columnDefinition = "TEXT")
+    private String contenidosMinimos;
 
     // --- BLOQUE MÚLTIPLE ---
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -81,26 +86,34 @@ public class ProgramaEntity {
     @JdbcTypeCode(Types.LONGVARCHAR)
     private String bibliografia;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = com.santimaszong.Sistema_de_Gestion_de_Programas.domain.converters.EstadoProgramaConverter.class)
     private EstadoPrograma estadoActual;
 
     @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("fecha ASC")
+    @OrderBy("fecha ASC, id ASC")
     @BatchSize(size = 20)
     private List<EstadoHistoricoEntity> historialEstados = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private List<DecisionComisionEntity> decisionComisiones = new ArrayList<>();
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("ronda ASC, id ASC")
+    @BatchSize(size = 20)
+    private List<DecisionComisionEntity> decisionesComision = new ArrayList<>();
 
 
 
     public void registrarNuevoEstado(EstadoPrograma estado, UsuarioDepartamentoEntity actor, Rol actorRol, String justificacion){
+        registrarNuevoEstado(estado, actor, actorRol, justificacion, null);
+    }
+
+    public void registrarNuevoEstado(EstadoPrograma estado, UsuarioDepartamentoEntity actor, Rol actorRol,
+                                     String justificacion, String observacion) {
         EstadoHistoricoEntity nuevoEstadoHistorico = new EstadoHistoricoEntity();
         nuevoEstadoHistorico.setPrograma(this);
         nuevoEstadoHistorico.setEstado(estado);
         nuevoEstadoHistorico.setActor(actor);
         nuevoEstadoHistorico.setActorRol(actorRol);
         nuevoEstadoHistorico.setJustificacion(justificacion);
+        nuevoEstadoHistorico.setObservacion(observacion);
         nuevoEstadoHistorico.setFecha(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         historialEstados.add(nuevoEstadoHistorico);

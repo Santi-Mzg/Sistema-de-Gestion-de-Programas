@@ -15,17 +15,25 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long>,
     @EntityGraph(attributePaths = {
             "materia.departamento",
             "materia.area",
-            "profesorResponsable.usuario",
+            "docenteResponsable.usuario",
             "bloqueMultiple.carreraPlan.carrera"
     })
     Optional<ProgramaEntity> findWithAllDetailsById(Long id);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select p from ProgramaEntity p where p.id = :id")
+    Optional<ProgramaEntity> findForUpdateById(@org.springframework.data.repository.query.Param("id") Long id);
+
+    java.util.List<ProgramaEntity> findByMateriaIdAndEstadoActual(Long materiaId, EstadoPrograma estado);
+
+    java.util.List<ProgramaEntity> findByMateriaAreaIdAndEstadoActual(Long areaId, EstadoPrograma estado);
 
     boolean existsByMateriaIdAndAnio(Long materiaId, Integer anio);
 
     @EntityGraph(attributePaths = {
             "materia.departamento",
             "materia.area",
-            "profesorResponsable.usuario",
+            "docenteResponsable.usuario",
             "bloqueMultiple.carreraPlan.carrera"
     })
     Optional<ProgramaEntity> findByMateriaIdAndAnio(Long materiaId, Integer anio);
@@ -35,7 +43,7 @@ public interface ProgramaRepository extends JpaRepository<ProgramaEntity, Long>,
     @EntityGraph(attributePaths = {
             "materia.departamento",
             "materia.area",
-            "profesorResponsable.usuario",
+            "docenteResponsable.usuario",
             "bloqueMultiple.carreraPlan.carrera"
     })
     Optional<ProgramaEntity> findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(

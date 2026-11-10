@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_draft_usuario_materia",
-                        columnNames = {"usuario_id", "materia_id"}
+                        columnNames = {"usuario_id", "materia_id", "anio", "rol", "programa_id", "plan_id"}
                 )
         }
 )
@@ -33,6 +33,16 @@ public class ProgramaDraftEntity {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String payloadJson;
+
+    @Column(nullable = false)
+    private Integer anio;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol rol;
+    @Column(name = "programa_id", nullable = false)
+    private Long programaId = 0L;
+    @Column(name = "plan_id", nullable = false)
+    private Long planId = 0L;
 
     @Column(nullable = false)
     private LocalDateTime lastUpdated;

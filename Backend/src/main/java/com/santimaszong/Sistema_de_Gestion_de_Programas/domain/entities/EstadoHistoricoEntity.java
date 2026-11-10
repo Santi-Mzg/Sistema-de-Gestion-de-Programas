@@ -32,7 +32,7 @@ public class EstadoHistoricoEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private ProgramaEntity programa;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = com.santimaszong.Sistema_de_Gestion_de_Programas.domain.converters.EstadoProgramaConverter.class)
     private EstadoPrograma estado;
 
     private LocalDateTime fecha;
@@ -46,5 +46,8 @@ public class EstadoHistoricoEntity {
     private UsuarioDepartamentoEntity actor;
 
     private Rol actorRol;
+    /** Contexto de una transición automática o de revisión; no es una justificación de rechazo. */
+    @Column(columnDefinition = "TEXT")
+    private String observacion;
 
 }

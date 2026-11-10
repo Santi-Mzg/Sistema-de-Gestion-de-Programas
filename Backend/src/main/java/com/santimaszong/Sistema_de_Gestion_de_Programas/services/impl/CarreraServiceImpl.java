@@ -12,6 +12,8 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.services.CarreraService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.DepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.UsuarioDepartamentoService;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.security.ContextoPrograma;
+import org.springframework.security.access.AccessDeniedException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ public class CarreraServiceImpl implements CarreraService {
     private final CarreraMapper carreraMapper;
     private final CarreraPlanMapper planMapper;
     private final EmailService emailService;
+    private final ContextoPrograma contexto;
 
     public CarreraServiceImpl(CarreraRepository carreraRepository,
                               CarreraPlanRepository planRepository,
@@ -41,7 +44,8 @@ public class CarreraServiceImpl implements CarreraService {
                               UserRepository userRepository,
                               CarreraMapper carreraMapper,
                               CarreraPlanMapper planMapper,
-                              EmailService emailService) {
+                              EmailService emailService,
+                              ContextoPrograma contexto) {
         this.carreraRepository = carreraRepository;
         this.planRepository = planRepository;
         this.departamentoService = departamentoService;
@@ -50,6 +54,7 @@ public class CarreraServiceImpl implements CarreraService {
         this.carreraMapper = carreraMapper;
         this.planMapper = planMapper;
         this.emailService = emailService;
+        this.contexto = contexto;
     }
 
 
@@ -131,6 +136,18 @@ public class CarreraServiceImpl implements CarreraService {
         return carreraRepository.findAllByDepartamentoId(id, normalizedSearch, pageable)
                 .map(carreraMapper::toDTO);
     };
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CarreraResponseDTO> listCarrerasAsignadas(Long deptId, String legajo, Rol rol, String search, Pageable pageable) {
+        if (rol != Rol.COORDINACION_COMISION_CURRICULAR) {
+            throw new AccessDeniedException("Seleccione el rol de coordinación de comisión curricular");
+        }
+        UsuarioDepartamentoEntity coordinador = contexto.exigir(legajo, deptId, rol);
+        String normalizedSearch = search == null || search.isBlank() ? "" : search.trim();
+        return carreraRepository.findAsignadas(deptId, coordinador.getId(), normalizedSearch, pageable)
+                .map(carreraMapper::toDTO);
+    }
 
     @Override
     @Transactional(readOnly = true)

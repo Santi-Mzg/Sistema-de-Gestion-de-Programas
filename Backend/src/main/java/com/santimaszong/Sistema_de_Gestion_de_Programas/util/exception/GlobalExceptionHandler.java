@@ -228,14 +228,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
-    /**
-     * Última barrera para excepciones no controladas.
-     *
-     * IMPORTANTE:
-     * - El stack trace completo queda registrado en los logs.
-     * - El cliente recibe únicamente un mensaje genérico.
-     * - Nunca exponemos ex.getMessage() en una respuesta HTTP 500.
-     */
+    /** Conflicto esperado del circuito, con un mensaje de negocio para el usuario. */
+    @ExceptionHandler(ConflictoProgramaException.class)
+    public ResponseEntity<HttpErrorResponse> handleConflicto(ConflictoProgramaException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(HttpErrorResponse.of("Conflicto de programa", 409,
+                Map.of("Error", ex.getMessage()), List.of(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(ValidacionProgramaException.class)
+    public ResponseEntity<HttpErrorResponse> handleEntrada(ValidacionProgramaException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(HttpErrorResponse.of("Datos inválidos", 400,
+                Map.of("Error", ex.getMessage()), List.of(), request.getRequestURI()));
+    }
+
+    /** Última barrera: nunca exponer detalles internos en una respuesta HTTP 500. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
 

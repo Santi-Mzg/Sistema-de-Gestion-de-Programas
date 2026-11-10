@@ -25,6 +25,10 @@ public class AreaEntity {
     @JoinColumn(name = "departamento_id")
     private DepartamentoEntity departamento;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coordinador_id")
+    private UsuarioDepartamentoEntity coordinador;
+
     @OneToMany(mappedBy = "area", fetch = FetchType.LAZY)
     private List<MateriaEntity> materias = new ArrayList<>();
 }

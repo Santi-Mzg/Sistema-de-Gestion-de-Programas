@@ -308,8 +308,8 @@
         </tr>
         <tr>
             <td colspan="2">
-                <strong>PROFESOR RESPONSABLE:</strong><br/>
-                <span th:text="${programa.profesorResponsable != null ? (programa.profesorResponsable.usuario.nombre + ' ' + programa.profesorResponsable.usuario.apellido) : ''}">Dra. Juliana Piña</span>
+                <strong>DOCENTE RESPONSABLE:</strong><br/>
+                <span th:text="${programa.docenteResponsable != null ? (programa.docenteResponsable.usuario.nombre + ' ' + programa.docenteResponsable.usuario.apellido) : ''}">Dra. Juliana Piña</span>
             </td>
             <td>
                 <strong>CÓDIGO:</strong><br/>
@@ -494,14 +494,14 @@
         <tr>
             <td width="20%"><strong>AÑO</strong></td>
             <td width="40%"><strong>Presenta modificaciones respecto al año anterior</strong></td>
-            <td width="20%"><strong>PROFESOR RESPONSABLE<br/>Firma</strong></td>
-            <td width="20%"><strong>PROFESOR RESPONSABLE<br/>Aclaración</strong></td>
+            <td width="20%"><strong>DOCENTE RESPONSABLE<br/>Firma</strong></td>
+            <td width="20%"><strong>DOCENTE RESPONSABLE<br/>Aclaración</strong></td>
         </tr>
         <tr>
             <td th:text="${programa.anio}">2024</td>
             <td><!-- Could add a field to track modifications --></td>
             <td style="height: 50px;"></td>
-            <td th:text="${programa.profesorResponsable != null ? (programa.profesorResponsable.usuario.nombre + ' ' + programa.profesorResponsable.usuario.apellido) : ''}">Dr. Jorge Ressia</td>
+            <td th:text="${programa.docenteResponsable != null ? (programa.docenteResponsable.usuario.nombre + ' ' + programa.docenteResponsable.usuario.apellido) : ''}">Dr. Jorge Ressia</td>
         </tr>
     </table>
 
@@ -510,19 +510,7 @@
         <div class="firma-col">
             <div style="height: 80px;"></div>
             <div class="firma-linea"></div>
-            <div class="firma-texto">COMISIÓN CURRICULAR</div>
-            <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
-        </div>
-        <div class="firma-col">
-            <div style="height: 80px;"></div>
-            <div class="firma-linea"></div>
-            <div class="firma-texto">SECRETARIO ACADÉMICO</div>
-            <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
-        </div>
-        <div class="firma-col">
-            <div style="height: 80px;"></div>
-            <div class="firma-linea"></div>
-            <div class="firma-texto">DIRECTOR DE DEPARTAMENTO</div>
+            <div class="firma-texto">DECANO DE DEPARTAMENTO</div>
             <div style="margin-top: 10px; font-size: 8pt;">FECHA:</div>
         </div>
     </div>

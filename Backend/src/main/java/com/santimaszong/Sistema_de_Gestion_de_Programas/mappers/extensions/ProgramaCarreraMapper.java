@@ -23,7 +23,6 @@ public interface ProgramaCarreraMapper extends ToEntityMapper<ProgramaCarreraCre
     @Mapping(target = "programa", ignore = true)
     @Mapping(target = "correlativasDebiles", ignore = true)
     @Mapping(target = "correlativasFuertes", ignore = true)
-    @Mapping(target = "decisionComision", ignore = true)
     ProgramaCarreraEntity toEntity(ProgramaCarreraCreateDTO dto);
 
     @Override
@@ -33,7 +32,6 @@ public interface ProgramaCarreraMapper extends ToEntityMapper<ProgramaCarreraCre
     @Mapping(source = "correlativasFuertes", target = "correlativasFuertes")
     @Mapping(source = "correlativasDebiles", target = "correlativasDebiles")
     @Mapping(source = "contribucion", target = "contribucion")
-    @Mapping(source = "contenidosMinimos", target = "contenidosMinimos")
     @Mapping(source = "decisionComision.aprobado", target = "aprobadoPorComision")
     @Mapping(target = "key", ignore = true)
     ProgramaCarreraResponseDTO toDTO(ProgramaCarreraEntity entity);

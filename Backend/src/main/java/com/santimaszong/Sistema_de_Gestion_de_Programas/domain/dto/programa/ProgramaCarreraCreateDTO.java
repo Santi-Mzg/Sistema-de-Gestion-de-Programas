@@ -18,5 +18,4 @@ public class ProgramaCarreraCreateDTO {
     private List<Long> correlativasFuertesIds;
     private List<Long> correlativasDebilesIds;
     private String contribucion;
-    private String contenidosMinimos;
 }

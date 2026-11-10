@@ -19,7 +19,7 @@ public class ProgramaResponseReducedDTO {
     // --- BLOQUE ÚNICO ---
     private Integer anio;
     private MateriaResponseDTO materia;
-    private UserResponseReducedDTO profesorResponsable;
+    private UserResponseReducedDTO docenteResponsable;
 
     // --- BLOQUE ÚNICO ---
     private EstadoPrograma estado;

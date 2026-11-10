@@ -13,7 +13,7 @@ public interface ProgramaCargaMapper extends ToEntityMapper<ProgramaCargaDTO, Pr
     @Override
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "materia", ignore = true)
-    @Mapping(target = "profesorResponsable", ignore = true)
+    @Mapping(target = "docenteResponsable", ignore = true)
     @Mapping(target = "bloqueMultiple", ignore = true)
     @Mapping(target = "historialEstados", ignore = true)
     ProgramaEntity toEntity(ProgramaCargaDTO dto);

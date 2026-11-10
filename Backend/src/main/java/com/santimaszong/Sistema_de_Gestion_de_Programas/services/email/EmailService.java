@@ -1,12 +1,15 @@
 package com.santimaszong.Sistema_de_Gestion_de_Programas.services.email;
 
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.CarreraEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.AreaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.MateriaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.ProgramaEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UserEntity;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.UsuarioDepartamentoEntity;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 @Service
 public class EmailService {
@@ -15,6 +18,92 @@ public class EmailService {
 
     public EmailService(EmailSender emailSender) {
         this.emailSender = emailSender;
+    }
+
+    public void sendEmailNotificacionCargaSecretariaInicial(
+            UsuarioDepartamentoEntity destinatario, ProgramaEntity programa) {
+        exigirResponsableActivo(destinatario, "Secretaría inicial");
+        String contenido = "<p>Administración ha completado la información inicial del programa.</p>"
+                + resumenPrograma(programa)
+                + "<p>Ingrese con el rol de <strong>Secretaría Académica</strong> para revisar los datos "
+                + "de Administración, completar los <strong>contenidos mínimos y bloques múltiples</strong> "
+                + "y enviar el programa al docente responsable. Si necesita una corrección de Administración, "
+                + "puede devolverlo con la justificación correspondiente.</p>";
+        emailSender.sendHtmlEmail(destinatario.getEmail(), "Programa pendiente de carga de Secretaría inicial",
+                mensajeCircuito("Carga inicial de Secretaría Académica", destinatario.getUsuario(), contenido));
+    }
+
+    public void sendEmailNotificacionRevisionArea(
+            UsuarioDepartamentoEntity destinatario, ProgramaEntity programa) {
+        exigirResponsableActivo(destinatario, "Coordinación de Área");
+        String contenido = "<p>El docente responsable ha completado la carga del programa, "
+                + "que requiere su revisión como <strong>Coordinador de Área</strong>.</p>"
+                + resumenPrograma(programa)
+                + "<p><strong>Área:</strong> " + textoHtml(programa.getMateria().getArea().getNombre()) + "</p>"
+                + "<p>Seleccione el departamento y el rol de Coordinador de Área y revise sus pendientes. "
+                + "Puede aceptar para enviarlo a las comisiones curriculares o devolverlo a Administración, "
+                + "Secretaría inicial o Docente, indicando una justificación.</p>";
+        emailSender.sendHtmlEmail(destinatario.getEmail(), "Programa pendiente de revisión de Área",
+                mensajeCircuito("Revisión de Coordinación de Área", destinatario.getUsuario(), contenido));
+    }
+
+    public void sendEmailAsignacionCoordinadorArea(UsuarioDepartamentoEntity destinatario, AreaEntity area) {
+        String contenido = "<p>Se le ha asignado el cargo de <strong>Coordinador de Área</strong>.</p>"
+                + resumenArea(area)
+                + "<p>Seleccione el departamento y el rol de Coordinador de Área para acceder a "
+                + "<strong>Mis áreas</strong>. Revise sus <strong>programas pendientes de revisión</strong>: "
+                + "puede haber programas esperando su intervención.</p>";
+        emailSender.sendHtmlEmail(destinatario.getEmail(), "Asignación de Coordinación de Área - " + area.getNombre(),
+                mensajeCircuito("Asignación de Coordinación de Área", destinatario.getUsuario(), contenido));
+    }
+
+    public void sendEmailRemocionCoordinadorArea(UsuarioDepartamentoEntity destinatario, AreaEntity area) {
+        String contenido = "<p>Se le informa que ha dejado de desempeñar el cargo de "
+                + "<strong>Coordinador de Área</strong> en el área indicada.</p>"
+                + resumenArea(area)
+                + "<p>Ya no tiene las funciones de coordinación de esta área. "
+                + "Si coordina otras áreas, conserva las funciones correspondientes a esas asignaciones.</p>";
+        emailSender.sendHtmlEmail(destinatario.getEmail(), "Remoción de Coordinación de Área - " + area.getNombre(),
+                mensajeCircuito("Actualización de Coordinación de Área", destinatario.getUsuario(), contenido));
+    }
+
+    private void exigirResponsableActivo(UsuarioDepartamentoEntity destinatario, String etapa) {
+        if (destinatario == null || !destinatario.isActivo()) {
+            throw new IllegalStateException("Debe asignar un responsable activo de " + etapa);
+        }
+    }
+
+    private String resumenPrograma(ProgramaEntity programa) {
+        return "<div style='background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;'>"
+                + "<p><strong>Materia:</strong> " + textoHtml(programa.getMateria().getNombre())
+                + " (" + textoHtml(programa.getMateria().getCodigo()) + ")</p>"
+                + "<p><strong>Año académico:</strong> " + programa.getAnio() + "</p>"
+                + "<p><strong>Departamento:</strong> "
+                + textoHtml(programa.getMateria().getDepartamento().getNombre()) + "</p></div>";
+    }
+
+    private String resumenArea(AreaEntity area) {
+        return "<div style='background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;'>"
+                + "<p><strong>Área:</strong> " + textoHtml(area.getNombre()) + "</p>"
+                + "<p><strong>Departamento:</strong> " + textoHtml(area.getDepartamento().getNombre()) + "</p></div>";
+    }
+
+    private String mensajeCircuito(String titulo, UserEntity destinatario, String contenido) {
+        return "<div style='font-family: sans-serif; padding: 20px; color: #333;'>"
+                + "<h2 style='color: #2563eb;'>" + textoHtml(titulo) + "</h2>"
+                + "<p>Hola <strong>" + textoHtml(destinatario.getNombre()) + " "
+                + textoHtml(destinatario.getApellido()) + "</strong>,</p>"
+                + contenido
+                + "<div style='margin-top: 25px;'>"
+                + "<a href='https://sistema-de-gestion-de-programas-fro.vercel.app/login' "
+                + "style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>"
+                + "Acceder al Sistema</a></div>"
+                + "<hr style='border: 0; border-top: 1px solid #eee; margin-top: 25px;' />"
+                + "<p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p></div>";
+    }
+
+    private String textoHtml(String valor) {
+        return HtmlUtils.htmlEscape(valor == null ? "" : valor);
     }
 
     // EMAILS SERVICES
@@ -89,7 +178,7 @@ public class EmailService {
     @Async
     public void sendEmailNotificacionCargaAdministrativo(
             String destinatario,
-            UserEntity profesor,
+            UserEntity docente,
             MateriaEntity materia
     ) {
         String htmlBody = String.format(
@@ -108,7 +197,7 @@ public class EmailService {
                         "  <hr style='border: 0; border-top: 1px solid #eee;' />" +
                         "  <p style='font-size: 12px; color: #777;'>Mensaje generado automáticamente por el Sistema de Gestión de Programas UNS.</p>" +
                         "</div>",
-                profesor.getNombre(), profesor.getApellido(), materia.getNombre(), materia.getCodigo()
+                docente.getNombre(), docente.getApellido(), materia.getNombre(), materia.getCodigo()
         );
 
         emailSender.sendHtmlEmail(

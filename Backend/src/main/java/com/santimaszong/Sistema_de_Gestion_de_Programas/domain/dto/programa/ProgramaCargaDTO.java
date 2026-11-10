@@ -13,7 +13,9 @@ public class ProgramaCargaDTO {
 
     // --- BLOQUE ÚNICO ---
     private Long materiaId;
-    private Long profesorResponsableId;
+    @com.fasterxml.jackson.annotation.JsonAlias("profesorResponsableId")
+    private Long docenteResponsableId;
+    private String contenidosMinimos;
 
     // --- BLOQUE MÚLTIPLE ---
     private List<ProgramaCarreraCreateDTO> bloqueMultiple;

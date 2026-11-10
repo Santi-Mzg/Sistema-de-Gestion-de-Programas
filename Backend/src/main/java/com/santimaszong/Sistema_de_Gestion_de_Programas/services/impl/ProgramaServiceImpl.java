@@ -42,6 +42,8 @@ public class ProgramaServiceImpl implements ProgramaService {
     private final CarreraService carreraService;
     private final UsuarioDepartamentoService udeService;
     private final EmailService emailService;
+    private final ProgramaWorkflowService workflow;
+    private final com.santimaszong.Sistema_de_Gestion_de_Programas.security.ContextoPrograma contexto;
 
 
 
@@ -63,7 +65,7 @@ public class ProgramaServiceImpl implements ProgramaService {
                                ProgramaResponseReducedMapper responseReducedMapper,
                                ProgramaCargaMapper cargaMapper,
                                ProgramaCarreraMapper programaCarreraMapper,
-                               EmailService emailService) {
+                               EmailService emailService, ProgramaWorkflowService workflow, com.santimaszong.Sistema_de_Gestion_de_Programas.security.ContextoPrograma contexto) {
 
         this.programaRepository = programaRepository;
         this.programaCarreraRepository = programaCarreraRepository;
@@ -78,291 +80,39 @@ public class ProgramaServiceImpl implements ProgramaService {
         this.cargaMapper = cargaMapper;
         this.programaCarreraMapper = programaCarreraMapper;
         this.emailService = emailService;
+        this.workflow = workflow;
+        this.contexto = contexto;
     }
 
 
     @Override
     @Transactional
-    public ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO programaDTO, UserEntity actor){
-        Integer anioActual = LocalDate.now().getYear();
-
-        if (programaRepository.existsByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual)) {
-            programaRepository.deleteByMateriaIdAndAnio(programaDTO.getMateriaId(), anioActual);
-            programaRepository.flush();
-        }
-
-        ProgramaEntity programaEntity = cargaMapper.toEntity(programaDTO);
-
-        MateriaEntity materia = materiaService.getEntityById(programaDTO.getMateriaId());
-
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
-        if (!udeActor.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if(!udeActor.hasRole(Rol.ADMINISTRACION)){
-            throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
-        }
-
-        programaEntity.setAnio(anioActual);
-
-        programaEntity.setMateria(materia);
-
-        UsuarioDepartamentoEntity udeProfesor = udeService.findByUsuarioIdAndDepartamentoId(programaDTO.getProfesorResponsableId(), deptId);
-        if (!udeProfesor.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if(!udeProfesor.hasRole(Rol.DOCENTE)){
-            throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
-        }
-
-
-        programaEntity.setProfesorResponsable(udeProfesor);
-
-
-        List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO = programaDTO.getBloqueMultiple();
-        List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, programaEntity);
-
-        programaEntity.setBloqueMultiple(bloquesMultiplesEntity);
-
-        EstadoPrograma estado = EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION;
-
-        boolean completoAdministracion =
-                programaEntity.getCargaHorariaTotal() != null &&
-                        programaEntity.getCargaHorariaSemanal() != null &&
-                        programaEntity.getCreditos() != null &&
-                        programaEntity.getCantidadSemanas() != null &&
-                        programaEntity.getMateria() != null &&
-                        programaEntity.getProfesorResponsable() != null &&
-                        !programaEntity.getBloqueMultiple().isEmpty();
-
-        if (completoAdministracion) {
-            estado = EstadoPrograma.COMPLETO_POR_ADMINISTRACION;
-        }
-
-        programaEntity.registrarNuevoEstado(estado, udeActor, Rol.ADMINISTRACION, null);
-        ProgramaEntity createdProgramaEntity = programaRepository.save(programaEntity);
-
-        // EMAIL SEND
-//        UserEntity profesorResponsable = userService.getEntityById(programaDTO.getProfesorResponsableId());
-        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesor.getEmail(), udeProfesor.getUsuario(), materia);
-
-        return responseMapper.toDTO(createdProgramaEntity);
+    public ProgramaResponseDTO create(Long deptId, ProgramaCargaDTO datos, UserEntity actor) {
+        return responseMapper.toDTO(workflow.crear(deptId, datos, actor));
     }
 
     @Override
     @Transactional
-    public ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
-        if (!udeActor.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if(!udeActor.hasRole(Rol.ADMINISTRACION)) {
-            throw new IllegalStateException("El usuario no tiene rol ADMINISTRATIVO");
-        }
-
-
-        if (!existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION)
-                && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_ADMINISTRACION)) {
-            throw new IllegalStateException("El administrativo no puede cargar datos en el estado actual.");
-        }
-
-        // Aplicar solo campos modificados (PATCH)
-        Optional.ofNullable(programaDTO.getProfesorResponsableId())
-                .ifPresent(profesorId -> {
-                    UserEntity profesorActual = existingProgram.getProfesorResponsable().getUsuario();
-                    if(profesorActual != null && profesorActual.getId().equals(profesorId))
-                        return; // Si es el mismo no lo cambia
-
-                    UsuarioDepartamentoEntity udeProfesorNuevo = udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId);
-                    if (!udeProfesorNuevo.isActivo()) {
-                        throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-                    }
-                    if(!udeProfesorNuevo.hasRole(Rol.DOCENTE)){
-                        throw new IllegalStateException("El usuario elegido como profesor no tiene rol DOCENTE");
-                    }
-
-                    existingProgram.setProfesorResponsable(udeProfesorNuevo);
-                });
-
-        Optional.ofNullable(programaDTO.getBloqueMultiple())
-                .ifPresent(bloquesMultiplesDTO -> {
-                    existingProgram.getBloqueMultiple().forEach(pc -> {
-                        pc.getCorrelativasFuertes().clear();
-                        pc.getCorrelativasDebiles().clear();
-                    });
-
-                    programaRepository.saveAndFlush(existingProgram);
-
-                    existingProgram.getBloqueMultiple().clear();
-
-                    programaRepository.saveAndFlush(existingProgram);
-
-                    List<ProgramaCarreraEntity> bloquesMultiplesEntity = getProgramaCarreraEntities(bloquesMultiplesDTO, existingProgram);
-                    existingProgram.getBloqueMultiple().addAll(bloquesMultiplesEntity);
-                });
-
-        Optional.ofNullable(programaDTO.getCargaHorariaTotal())
-                .ifPresent(existingProgram::setCargaHorariaTotal);
-
-        Optional.ofNullable(programaDTO.getCargaHorariaSemanal())
-                .ifPresent(existingProgram::setCargaHorariaSemanal);
-
-        Optional.ofNullable(programaDTO.getCreditos())
-                .ifPresent(existingProgram::setCreditos);
-
-        Optional.ofNullable(programaDTO.getCantidadSemanas())
-                .ifPresent(existingProgram::setCantidadSemanas);
-
-        // ----------------------------------------------------------
-        // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
-        // ----------------------------------------------------------
-
-
-        boolean completoAdministrativo =
-                existingProgram.getMateria() != null &&
-                        existingProgram.getProfesorResponsable() != null &&
-                        existingProgram.getBloqueMultiple() != null &&
-                        existingProgram.getCargaHorariaTotal() != null &&
-                        existingProgram.getCargaHorariaSemanal() != null &&
-                        existingProgram.getCreditos() != null &&
-                        existingProgram.getCantidadSemanas() != null;
-
-        if (completoAdministrativo) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_ADMINISTRACION, udeActor, Rol.ADMINISTRACION, null);
-        }
-
-        ProgramaEntity saved = programaRepository.save(existingProgram);
-
-        // EMAIL SEND
-        UsuarioDepartamentoEntity udeProfesorResponsable = existingProgram.getProfesorResponsable();
-        emailService.sendEmailNotificacionCargaAdministrativo(udeProfesorResponsable.getEmail(), udeProfesorResponsable.getUsuario(), existingProgram.getMateria());
-
-        return responseMapper.toDTO(saved);
+    public ProgramaResponseDTO administrativoCarga(Long deptId, Long id, ProgramaCargaDTO datos, UserEntity actor) {
+        return responseMapper.toDTO(workflow.cargar(deptId, id, datos, actor, Rol.ADMINISTRACION));
     }
 
     @Override
     @Transactional
-    public ProgramaResponseDTO profesorCarga(Long deptId, Long id, ProgramaCargaDTO programaDTO, UserEntity actor) {
-        ProgramaEntity existingProgram = programaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioIdAndDepartamentoId(actor.getId(), deptId);
-        if (!udeActor.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if(!udeActor.hasRole(Rol.DOCENTE)) {
-            throw new IllegalStateException("El usuario no tiene rol DOCENTE");
-        }
-
-        if (!existingProgram.getEstadoActual().equals(EstadoPrograma.COMPLETO_POR_ADMINISTRACION)
-                && !existingProgram.getEstadoActual().equals(EstadoPrograma.INCOMPLETO_POR_PROFESOR)
-                && !existingProgram.getEstadoActual().equals(EstadoPrograma.RECHAZADO_A_PROFESOR)) {
-            throw new IllegalStateException("El profesor no puede cargar datos en el estado actua;l.");
-        }
-
-
-        // Aplicar solo campos modificados (PATCH)
-        Optional.ofNullable(programaDTO.getCargaHorariaPractica())
-                .ifPresent(existingProgram::setCargaHorariaPractica);
-
-        Optional.ofNullable(programaDTO.getFundamentacion())
-                .ifPresent(existingProgram::setFundamentacion);
-
-        Optional.ofNullable(programaDTO.getObjetivos())
-                .ifPresent(existingProgram::setObjetivos);
-
-        Optional.ofNullable(programaDTO.getProgramaAnalitico())
-                .ifPresent(existingProgram::setProgramaAnalitico);
-
-        Optional.ofNullable(programaDTO.getMetodologia())
-                .ifPresent(existingProgram::setMetodologia);
-
-        Optional.ofNullable(programaDTO.getModalidadEvaluacion())
-                .ifPresent(existingProgram::setModalidadEvaluacion);
-
-        Optional.ofNullable(programaDTO.getBibliografia())
-                .ifPresent(existingProgram::setBibliografia);
-
-        // ----------------------------------------------------------
-        // EVALUAR SI TODOS LOS CAMPOS OBLIGATORIOS ESTÁN COMPLETOS
-        // ----------------------------------------------------------
-
-
-        boolean completoProfesor =
-                existingProgram.getCargaHorariaPractica() != null &&
-                        existingProgram.getFundamentacion() != null &&
-                        existingProgram.getObjetivos() != null &&
-                        existingProgram.getProgramaAnalitico() != null &&
-                        existingProgram.getMetodologia() != null &&
-                        existingProgram.getModalidadEvaluacion() != null &&
-                        existingProgram.getBibliografia() != null;
-
-        if (completoProfesor) {
-            existingProgram.registrarNuevoEstado(EstadoPrograma.COMPLETO_POR_PROFESOR, udeActor, Rol.DOCENTE, null);
-
-            // 2. Crear registros de decisión pendientes y enviar mails
-            for (ProgramaCarreraEntity pg : existingProgram.getBloqueMultiple()) {
-                DecisionComisionEntity decision = new DecisionComisionEntity();
-                decision.setProgramaCarrera(pg);
-                pg.setDecisionComision(decision);
-
-                decision.setAprobado(false); // Aún no aprobó
-
-                decisionRepository.save(decision);
-            }
-        }
-
-        ProgramaEntity saved = programaRepository.save(existingProgram);
-
-        // EMAIL SEND
-        for(ProgramaCarreraEntity bloque : existingProgram.getBloqueMultiple()) {
-            UsuarioDepartamentoEntity udeComision = bloque.getCarreraPlan().getCarrera().getComision();
-            emailService.sendEmailNotificacionCargaDocente(udeComision.getEmail(), existingProgram, bloque.getCarreraPlan().getCarrera());
-        }
-
-        return responseMapper.toDTO(saved);
+    public ProgramaResponseDTO docenteCarga(Long deptId, Long id, ProgramaCargaDTO datos, UserEntity actor) {
+        return responseMapper.toDTO(workflow.cargar(deptId, id, datos, actor, Rol.DOCENTE));
     }
 
     @Override
     @Transactional
-    public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO estadoUpdateDTO, Rol rolActivo) {
-        UsuarioDepartamentoEntity udeActor = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-        if (!udeActor.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if ((rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR) || rolActivo.equals(Rol.DOCENTE)) && !udeActor.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
+    public ProgramaResponseDTO actualizarEstado(Authentication auth, Long deptId, Long carreraId, Long programId, EstadoUpdateDTO datos, Rol rolActivo) {
+        return responseMapper.toDTO(workflow.decidir(auth.getName(), deptId, programId, carreraId, rolActivo, datos));
+    }
 
-        ProgramaEntity programa = programaRepository.findById(programId)
-                .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
-
-
-        switch (rolActivo) {
-            case DOCENTE:
-                procesarDecisionDocente(programa, estadoUpdateDTO, udeActor);
-                break;
-
-            case COORDINACION_COMISION_CURRICULAR:
-                procesarDecisionCoordinador(programa, carreraId, estadoUpdateDTO, udeActor);
-                break;
-
-            case SECRETARIA:
-                procesarDecisionSecretaria(programa, estadoUpdateDTO, udeActor);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Acción inválida");
-        }
-
-        programaRepository.save(programa);
-
-        return responseMapper.toDTO(programa);
+    @Override
+    @Transactional
+    public ProgramaResponseDTO secretariaCarga(Long deptId, Long id, ProgramaCargaDTO datos, UserEntity actor) {
+        return responseMapper.toDTO(workflow.cargar(deptId, id, datos, actor, Rol.SECRETARIA));
     }
 
     @Override
@@ -371,6 +121,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         ProgramaEntity foundProgram = programaRepository.findWithAllDetailsById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Programa no existente"));
 
+        if (foundProgram != null) contexto.consultarActual(foundProgram);
         return responseMapper.toDTO(foundProgram);
     }
 
@@ -389,7 +140,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     public ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId) {
         ProgramaEntity foundProgram = programaRepository.findFirstByMateriaIdAndEstadoActualOrderByAnioDesc(
                     materiaId,
-                    EstadoPrograma.APROBADO_POR_SECRETARIA
+                    EstadoPrograma.APROBADO
                 ).orElse(null);
 
         return responseMapper.toDTO(foundProgram);
@@ -409,7 +160,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
         Integer anioActual = LocalDate.now().getYear();
 
-        Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual);
+        Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual).and(ProgramaSpecifications.departamento(deptId));
 
         // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
         if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
@@ -417,11 +168,14 @@ public class ProgramaServiceImpl implements ProgramaService {
                     ProgramaSpecifications.departamento(deptId)
             );
         }
-        // 2. Si es profesor ve los programas que tiene asignados
+        // 2. Si es docente ve los programas que tiene asignados
         else if (rolActivo.equals(Rol.DOCENTE) ) {
             spec = spec
                     .and(ProgramaSpecifications.departamento(deptId))
                     .and(ProgramaSpecifications.docente(auth.getName()));
+        }
+        else if (rolActivo == Rol.COORDINADOR_AREA) {
+            spec = ProgramaSpecifications.departamento(deptId).and(ProgramaSpecifications.areaCoordinada(ude.getId()));
         }
         else {
             throw new AccessDeniedException(
@@ -460,7 +214,8 @@ public class ProgramaServiceImpl implements ProgramaService {
                         nombreCarrera
                 ),
 
-                ProgramaSpecifications.estado(estado)
+                ProgramaSpecifications.estado(estado),
+                ProgramaSpecifications.search(search)
         );
 
         Page<ProgramaEntity> programs =
@@ -469,83 +224,30 @@ public class ProgramaServiceImpl implements ProgramaService {
         return programs.map(responseMapper::toDTO);
     }
 
-     @Override
-     @Transactional(readOnly = true)
-     public Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
-         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-         if (!ude.isActivo()) {
-             throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-         }
-         if (!ude.hasRole(rolActivo)) { // Si el rol proporcionado no esta en el dept se rechaza
-             throw new AccessDeniedException("No autorizado");
-         }
-
-         Integer anioActual = LocalDate.now().getYear();
-
-         Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual);
-
-
-         if (rolActivo.equals(Rol.ADMINISTRACION)) {
-             spec = spec
-                     .and(ProgramaSpecifications.departamento(deptId))
-                     .and(ProgramaSpecifications.estadoIn(List.of(
-                        EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
-                        EstadoPrograma.RECHAZADO_A_ADMINISTRACION
-                     )));
-         }
-         else if (rolActivo.equals(Rol.DOCENTE) ) {
-             spec = spec
-                     .and(ProgramaSpecifications.departamento(deptId))
-                     .and(ProgramaSpecifications.docente(auth.getName()))
-                     .and(ProgramaSpecifications.estadoIn(List.of(
-                             EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-                             EstadoPrograma.INCOMPLETO_POR_PROFESOR,
-                             EstadoPrograma.RECHAZADO_A_PROFESOR
-                     )));
-         }
-         else if (rolActivo.equals(Rol.SECRETARIA) ) {
-             spec = spec
-                     .and(ProgramaSpecifications.departamento(deptId))
-                     .and(ProgramaSpecifications.estado(
-                             EstadoPrograma.APROBADO_POR_COMISION
-                     ));
-         }
-
-         Page<ProgramaEntity> programs =
-                 programaRepository.findAll(spec, pageable);
-
-         return programs.map(responseReducedMapper::toDTO);
-     }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
+        UsuarioDepartamentoEntity actor = exigirActor(auth, deptId, rolActivo);
+        if (rolActivo == Rol.COORDINACION_COMISION_CURRICULAR) {
+            throw new AccessDeniedException("Utilice la bandeja de pendientes de comisión curricular");
+        }
+        Specification<ProgramaEntity> spec = alcanceProgramas(actor, rolActivo)
+                .and(ProgramaSpecifications.anio(LocalDate.now().getYear()))
+                .and(filtroPendientes(actor, rolActivo));
+        return programaRepository.findAll(spec, pageable).map(responseReducedMapper::toDTO);
+    }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProgramaResponseDTO> getListPendientesCoordinador(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable) {
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
-        if (!ude.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
+        UsuarioDepartamentoEntity actor = exigirActor(auth, deptId, rolActivo);
+        if (rolActivo != Rol.COORDINACION_COMISION_CURRICULAR) {
+            throw new AccessDeniedException("Seleccione el rol de coordinación de comisión curricular");
         }
-        if (!ude.hasRole(rolActivo) || !rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
-
-        Integer anioActual = LocalDate.now().getYear();
-
-        Specification<ProgramaEntity> spec = Specification.allOf(
-                ProgramaSpecifications.anio(anioActual),
-
-                ProgramaSpecifications.coordinador(
-                        auth.getName(),
-                        null
-                ),
-
-                ProgramaSpecifications.estado(EstadoPrograma.COMPLETO_POR_PROFESOR)
-        );
-
-        Page<ProgramaEntity> programs =
-                programaRepository.findAll(spec, pageable);
-
-        return programs.map(responseMapper::toDTO);
-
+        Specification<ProgramaEntity> spec = alcanceProgramas(actor, rolActivo)
+                .and(ProgramaSpecifications.anio(LocalDate.now().getYear()))
+                .and(filtroPendientes(actor, rolActivo));
+        return programaRepository.findAll(spec, pageable).map(responseMapper::toDTO);
     }
 
     @Override
@@ -553,6 +255,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     public List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId) {
         MateriaEntity materia = materiaService.getEntityById(materiaId);
         return materia.getProgramas().stream()
+                .filter(contexto::puedeConsultarActual)
                 .map(responseReducedMapper::toDTO)
                 .collect(Collectors.toList());
     }
@@ -569,336 +272,93 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public DashboardResumenDTO getDashboardResumen(
-            Authentication auth,
-            Long deptId,
-            Rol rolActivo
-    ) {
-        UsuarioDepartamentoEntity ude =
-                udeService.findByUsuarioLegajoAndDepartamentoId(
-                        auth.getName(),
-                        deptId
-                );
-        if (!ude.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if (!ude.hasRole(rolActivo)) {
-            throw new AccessDeniedException("No autorizado");
-        }
-
-        Integer anioActual = LocalDate.now().getYear();
-
-        if (rolActivo.equals(Rol.DOCENTE)) {
-            return getDashboardDocenteResumen(deptId, auth, anioActual);
-
-        } else if (rolActivo.equals(Rol.COORDINACION_COMISION_CURRICULAR)) {
-            return getDashboardCoordResumen(deptId, auth, anioActual);
-
-        } else {
-            return getDashboardAdminResumen(deptId, anioActual);
-        }
-    }
-
-    private DashboardResumenDTO getDashboardAdminResumen(
-            Long deptId,
-            Integer anioActual
-    ) {
-        Specification<ProgramaEntity> baseSpec = Specification.allOf(
-                ProgramaSpecifications.anio(anioActual),
-                ProgramaSpecifications.departamento(deptId)
-        );
-
-        long programasTotales =
-                programaRepository.count(baseSpec);
-
-        long programasVigentes =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_SECRETARIA
-                                )
-                        )
-                );
-
-        long pendienteAdministracion =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
-                                        )
-                                )
-                        )
-                );
-
-        long pendienteDocente =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
-                                                EstadoPrograma.RECHAZADO_A_PROFESOR
-                                        )
-                                )
-                        )
-                );
-
-        long pendienteComisiones =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.COMPLETO_POR_PROFESOR
-                                )
-                        )
-                );
-
-        long pendienteSecretaria =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_COMISION
-                                )
-                        )
-                );
-
-        long areas =
-                areaService.countByDepartamentoId(deptId);
-
-        long carreras =
-                carreraService.countByDepartamentoId(deptId);
-
-        long materias =
-                materiaService.countByDepartamentoId(deptId);
-
-        long usuarios =
-                udeService.countByDepartamentoId(deptId);
-
-        long docentes =
-                udeService.countByDepartamentoIdAndRolesContaining(
-                        deptId,
-                        Rol.DOCENTE
-                );
-
-        long administrativos =
-                udeService.countByDepartamentoIdAndRolesContaining(
-                        deptId,
-                        Rol.ADMINISTRACION
-                );
-
+    public DashboardResumenDTO getDashboardResumen(Authentication auth, Long deptId, Rol rolActivo) {
+        UsuarioDepartamentoEntity actor = exigirActor(auth, deptId, rolActivo);
+        Specification<ProgramaEntity> alcance = alcanceProgramas(actor, rolActivo)
+                .and(ProgramaSpecifications.anio(LocalDate.now().getYear()));
+        boolean gestionDepartamental = switch (rolActivo) {
+            case ADMINISTRACION, SECRETARIA, DIRECCION_ADMINISTRATIVA, SYSTEM_ADMIN -> true;
+            default -> false;
+        };
+        // Mantener los campos no aplicables de las respuestas existentes: cero para Área y null para Docente/CCC.
+        Long noAplica = rolActivo == Rol.COORDINADOR_AREA ? 0L : null;
+        long pendienteSecretariaInicial = programaRepository.count(alcance.and(etapaSecretariaInicial()));
+        long pendienteSecretariaFinal = programaRepository.count(alcance.and(etapaSecretariaFinal()));
         return new DashboardResumenDTO(
-                areas,
-                carreras,
-                materias,
-                usuarios,
-                docentes,
-                administrativos,
-                programasTotales,
-                programasVigentes,
-                pendienteAdministracion,
-                pendienteDocente,
-                null,
-                pendienteComisiones,
-                pendienteSecretaria
-        );
+                gestionDepartamental ? Long.valueOf(areaService.countByDepartamentoId(deptId)) : noAplica,
+                gestionDepartamental ? Long.valueOf(carreraService.countByDepartamentoId(deptId)) : noAplica,
+                gestionDepartamental ? Long.valueOf(materiaService.countByDepartamentoId(deptId)) : noAplica,
+                gestionDepartamental ? Long.valueOf(udeService.countByDepartamentoId(deptId)) : noAplica,
+                gestionDepartamental ? Long.valueOf(udeService.countByDepartamentoIdAndRolesContaining(deptId, Rol.DOCENTE)) : noAplica,
+                gestionDepartamental ? Long.valueOf(udeService.countByDepartamentoIdAndRolesContaining(deptId, Rol.ADMINISTRACION)) : noAplica,
+                programaRepository.count(alcance),
+                programaRepository.count(alcance.and(ProgramaSpecifications.estado(EstadoPrograma.APROBADO))),
+                contarEnEtapa(alcance, Rol.ADMINISTRACION),
+                contarEnEtapa(alcance, Rol.DOCENTE),
+                rolActivo == Rol.DOCENTE
+                        ? Long.valueOf(programaRepository.count(alcance.and(ProgramaSpecifications.estado(EstadoPrograma.RECHAZADO_A_DOCENTE))))
+                        : noAplica,
+                contarEnEtapa(alcance, Rol.COORDINACION_COMISION_CURRICULAR),
+                pendienteSecretariaInicial + pendienteSecretariaFinal,
+                contarEnEtapa(alcance, Rol.COORDINADOR_AREA),
+                pendienteSecretariaInicial,
+                pendienteSecretariaFinal);
     }
 
-
-    private DashboardResumenDTO getDashboardDocenteResumen(
-            Long deptId,
-            Authentication auth,
-            Integer anioActual
-    ) {
-        Specification<ProgramaEntity> baseSpec = Specification.allOf(
-                ProgramaSpecifications.anio(anioActual),
-                ProgramaSpecifications.departamento(deptId),
-                ProgramaSpecifications.docente(
-                        auth.getName()
-                )
-        );
-
-        long programasTotales =
-                programaRepository.count(baseSpec);
-
-        long programasVigentes =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_SECRETARIA
-                                )
-                        )
-                );
-
-        long pendienteAdministracion =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
-                                        )
-                                )
-                        )
-                );
-
-        long pendienteDocente =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
-                                                EstadoPrograma.RECHAZADO_A_PROFESOR
-                                        )
-                                )
-                        )
-                );
-
-        long rechazadoDocente =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.RECHAZADO_A_PROFESOR
-                                )
-                        )
-                );
-
-        long pendienteComisiones =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.COMPLETO_POR_PROFESOR
-                                )
-                        )
-                );
-
-        long pendienteSecretaria =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_COMISION
-                                )
-                        )
-                );
-
-        return new DashboardResumenDTO(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                programasTotales,
-                programasVigentes,
-                pendienteAdministracion,
-                pendienteDocente,
-                rechazadoDocente,
-                pendienteComisiones,
-                pendienteSecretaria
-        );
+    private UsuarioDepartamentoEntity exigirActor(Authentication auth, Long deptId, Rol rol) {
+        if (auth == null) throw new AccessDeniedException("Debe iniciar sesión");
+        return contexto.exigir(auth.getName(), deptId, rol);
     }
 
-    private DashboardResumenDTO getDashboardCoordResumen(
-            Long deptId,
-            Authentication auth,
-            Integer anioActual
-    ) {
-        Specification<ProgramaEntity> baseSpec = Specification.allOf(
-                ProgramaSpecifications.anio(anioActual),
-                ProgramaSpecifications.departamento(deptId),
-                ProgramaSpecifications.coordinador(
-                        auth.getName(),
-                        null
-                )
-        );
-
-        long totalProgramas =
-                programaRepository.count(baseSpec);
-
-        long programasVigentes =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_SECRETARIA
-                                )
-                        )
-                );
-
-        long pendienteAdministracion =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.RECHAZADO_A_ADMINISTRACION
-                                        )
-                                )
-                        )
-                );
-
-        long pendienteDocente =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estadoIn(
-                                        List.of(
-                                                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-                                                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
-                                                EstadoPrograma.RECHAZADO_A_PROFESOR
-                                        )
-                                )
-                        )
-                );
-
-        long pendienteComisiones =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.COMPLETO_POR_PROFESOR
-                                )
-                        )
-                );
-
-        long pendienteSecretaria =
-                programaRepository.count(
-                        baseSpec.and(
-                                ProgramaSpecifications.estado(
-                                        EstadoPrograma.APROBADO_POR_COMISION
-                                )
-                        )
-                );
-
-        return new DashboardResumenDTO(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                totalProgramas,
-                programasVigentes,
-                pendienteAdministracion,
-                pendienteDocente,
-                null,
-                pendienteComisiones,
-                pendienteSecretaria
-        );
+    /** Alcance de consulta, independiente de la etapa y el año del programa. */
+    private Specification<ProgramaEntity> alcanceProgramas(UsuarioDepartamentoEntity actor, Rol rol) {
+        Specification<ProgramaEntity> departamento = ProgramaSpecifications.departamento(actor.getDepartamento().getId());
+        return switch (rol) {
+            case ADMINISTRACION, SECRETARIA, DIRECCION_ADMINISTRATIVA, SYSTEM_ADMIN -> departamento;
+            case DOCENTE -> departamento.and(ProgramaSpecifications.docenteResponsable(actor.getId()));
+            case COORDINADOR_AREA -> departamento.and(ProgramaSpecifications.areaCoordinada(actor.getId()));
+            // El departamento activo determina las carreras asignadas, no el departamento dueño del programa.
+            case COORDINACION_COMISION_CURRICULAR -> ProgramaSpecifications.carrerasCoordinadas(actor.getId());
+        };
     }
 
+    /** Estar en CCC no implica que este coordinador todavía tenga una decisión pendiente. */
+    private Specification<ProgramaEntity> filtroPendientes(UsuarioDepartamentoEntity actor, Rol rol) {
+        Specification<ProgramaEntity> etapa = etapaPendiente(rol);
+        return rol == Rol.COORDINACION_COMISION_CURRICULAR
+                ? etapa.and(ProgramaSpecifications.pendienteComision(actor.getId()))
+                : etapa;
+    }
+
+    private long contarEnEtapa(Specification<ProgramaEntity> alcance, Rol rol) {
+        return programaRepository.count(alcance.and(etapaPendiente(rol)));
+    }
+
+    private Specification<ProgramaEntity> etapaPendiente(Rol rol) {
+        if (rol == Rol.SECRETARIA) return etapaSecretariaInicial().or(etapaSecretariaFinal());
+        List<EstadoPrograma> estados = switch (rol) {
+            case ADMINISTRACION -> List.of(EstadoPrograma.RECHAZADO_A_ADMINISTRACION);
+            case DOCENTE -> List.of(EstadoPrograma.PENDIENTE_DE_DOCENTE, EstadoPrograma.RECHAZADO_A_DOCENTE);
+            case COORDINADOR_AREA -> List.of(EstadoPrograma.PENDIENTE_DE_COORDINACION_AREA);
+            case COORDINACION_COMISION_CURRICULAR -> List.of(EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
+            default -> throw new AccessDeniedException("El rol activo no tiene una bandeja de pendientes en esta consulta");
+        };
+        return ProgramaSpecifications.estadoIn(estados);
+    }
+
+    private Specification<ProgramaEntity> etapaSecretariaInicial() {
+        return ProgramaSpecifications.estadoIn(List.of(EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL, EstadoPrograma.RECHAZADO_A_SECRETARIA));
+    }
+
+    private Specification<ProgramaEntity> etapaSecretariaFinal() {
+        return ProgramaSpecifications.estado(EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL);
+    }
 
     @Override
     @Transactional
     public boolean tieneProgramasActivosComoDocente(UsuarioDepartamentoEntity ude) {
 
-        List<EstadoPrograma> estadosActivos = List.of(
-                EstadoPrograma.INCOMPLETO_POR_ADMINISTRACION,
-                EstadoPrograma.RECHAZADO_A_ADMINISTRACION,
-                EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-                EstadoPrograma.INCOMPLETO_POR_PROFESOR,
-                EstadoPrograma.RECHAZADO_A_PROFESOR,
-                EstadoPrograma.COMPLETO_POR_PROFESOR,
-                EstadoPrograma.APROBADO_POR_COMISION
-        );
+        List<EstadoPrograma> estadosActivos = List.of(EstadoPrograma.PENDIENTE_DE_COORDINACION_AREA, EstadoPrograma.PENDIENTE_DE_DOCENTE, EstadoPrograma.RECHAZADO_A_SECRETARIA, EstadoPrograma.RECHAZADO_A_DOCENTE, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES, EstadoPrograma.RECHAZADO_A_ADMINISTRACION, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL, EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL);
 
         Specification<ProgramaEntity> spec = Specification.allOf(
                 ProgramaSpecifications.departamento(ude.getDepartamento().getId()),
@@ -918,251 +378,4 @@ public class ProgramaServiceImpl implements ProgramaService {
     }
 
 
-    // BORRADOR
-    @Override
-    @Transactional
-    public void saveDraft(Long deptId, Long materiaId, ProgramaDraftDTO dto, UserEntity user, Rol rolActivo) {
-        Long userId = user.getId();
-
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-        if (!ude.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
-
-        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
-            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
-        }
-
-        ProgramaDraftEntity draft = draftRepository
-                .findByUsuarioIdAndMateriaId(
-                        userId,
-                        materiaId
-                )
-                .orElse(new ProgramaDraftEntity());
-
-        draft.setUsuarioId(userId);
-        draft.setMateriaId(materiaId);
-        draft.setPayloadJson(dto.getPayloadJson());
-        draft.setLastUpdated(LocalDateTime.now());
-
-        draftRepository.save(draft);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ProgramaDraftDTO getDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
-        Long userId = user.getId();
-
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-        if (!ude.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
-        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
-            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
-        }
-
-        return draftRepository
-                .findByUsuarioIdAndMateriaId(
-                        user.getId(),
-                        materiaId
-                )
-                .map(d -> new ProgramaDraftDTO(d.getPayloadJson()))
-                .orElse(null);
-    }
-
-    @Override
-    @Transactional
-    public void deleteDraft(Long deptId, Long materiaId, UserEntity user, Rol rolActivo) {
-        Long userId = user.getId();
-
-        UsuarioDepartamentoEntity ude = udeService.findByUsuarioIdAndDepartamentoId(userId, deptId);
-        if (!ude.isActivo()) {
-            throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
-        }
-        if (!(ude.hasRole(rolActivo))) { // Si el rol proporcionado no esta en el dept se rechaza
-            throw new AccessDeniedException("No autorizado");
-        }
-
-        if (!(rolActivo.equals(Rol.ADMINISTRACION) || rolActivo.equals(Rol.DOCENTE))) {
-            throw new AccessDeniedException("Solo los administrativos y docentes pueden tener borradores");
-        }
-
-        draftRepository.deleteByUsuarioIdAndMateriaId(
-                user.getId(),
-                materiaId
-        );
-    }
-
-    private void procesarDecisionDocente(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
-
-        switch (estadoUpdateDTO.getAccion()) {
-            case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO, udeActor, Rol.DOCENTE);
-                break;
-
-            case APROBAR:
-                throw new IllegalArgumentException("Un DOCENTE no tiene la opcion de APROBAR");
-        }
-    }
-
-    private void procesarDecisionCoordinador(ProgramaEntity programa, Long carreraId, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
-
-        // 1. Buscar la decisión de este coordinador específico
-        DecisionComisionEntity decision = decisionRepository.findByProgramaIdAndCarreraIdAndComisionId(programa.getId(), carreraId, udeActor.getId())
-                .orElseThrow(() -> new IllegalStateException("Usted no es coordinador de este programa"));
-
-        switch (estadoUpdateDTO.getAccion()) {
-            case APROBAR:
-                ProgramaCarreraEntity bloque = programaCarreraRepository.findByProgramaIdAndCarreraPlanId(programa.getId(), carreraId)
-                        .orElseThrow(() -> new IllegalStateException("Esta carrera no está relacionada con este programa"));
-
-                bloque.setContribucion(estadoUpdateDTO.getContribucionCarrera());
-                programaCarreraRepository.save(bloque);
-
-                decision.setAprobado(true);
-                decision.setFechaDecision(LocalDateTime.now());
-                decisionRepository.save(decision);
-
-                // 2. ¿Todos los coordinadores involucrados han aprobado?
-                long pendientes = decisionRepository.countByProgramaCarreraProgramaIdAndAprobadoFalse(programa.getId());
-
-                if (pendientes == 0) {
-                    // SOLO AQUÍ cambiamos el estado global
-                    programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_COMISION, udeActor, Rol.COORDINACION_COMISION_CURRICULAR, "Aprobación unánime de comisiones");
-
-                    programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
-
-                    programaRepository.save(programa);
-
-                    // EMAIL SEND
-                    UsuarioDepartamentoEntity udeSecretaria = programa.getMateria().getDepartamento().getSecretaria();
-                    emailService.sendEmailNotificacionAprobacionComision(udeSecretaria.getEmail(), udeSecretaria.getUsuario(), programa.getMateria());
-                }
-
-                break;
-
-            case RECHAZAR:
-                CarreraEntity carrera = carreraService.getCarreraEntityById(carreraId);
-
-                rechazar(programa, estadoUpdateDTO, udeActor, Rol.COORDINACION_COMISION_CURRICULAR);
-                programa.getBloqueMultiple().forEach(pc -> pc.setDecisionComision(null));
-                programaRepository.save(programa);
-
-                // Notifica al resto de comisiones
-                programa.getBloqueMultiple().stream()
-                        .map(pc -> pc.getCarreraPlan().getCarrera().getComision())
-                        .filter(Objects::nonNull)
-                        // No avisar a la comisión que realizó el rechazo
-                        .filter(udeComision -> !udeComision.getId().equals(udeActor.getId()))
-                        // Evitar mails duplicados
-                        .collect(Collectors.toMap(
-                                UsuarioDepartamentoEntity::getId,
-                                Function.identity(),
-                                (a, b) -> a
-                        ))
-                        .values()
-                        .forEach(udeComision ->
-                                emailService.sendEmailNotificacionRechazoOtrasComisiones(udeComision.getEmail(), udeComision.getUsuario(), udeActor.getUsuario(), programa.getMateria(), carrera, estadoUpdateDTO.getDestinoRechazo(), estadoUpdateDTO.getJustificacion()));
-                break;
-
-        }
-    }
-
-    private void procesarDecisionSecretaria(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor) {
-
-        switch (estadoUpdateDTO.getAccion()) {
-            case APROBAR:
-                programa.registrarNuevoEstado(EstadoPrograma.APROBADO_POR_SECRETARIA, udeActor, Rol.SECRETARIA, null);
-                break;
-
-            case RECHAZAR:
-                rechazar(programa, estadoUpdateDTO, udeActor, Rol.SECRETARIA);
-                break;
-
-        }
-    }
-
-
-    private void rechazar(ProgramaEntity programa, EstadoUpdateDTO estadoUpdateDTO, UsuarioDepartamentoEntity udeActor, Rol actorRol) {
-
-        Rol destinoRechazo = estadoUpdateDTO.getDestinoRechazo();
-
-        if (destinoRechazo == null) {
-            throw new IllegalArgumentException("Debe especificar destino al rechazar");
-        }
-
-        UsuarioDepartamentoEntity udeDestinatario;
-
-        EstadoPrograma nuevoEstado;
-        udeDestinatario = switch (destinoRechazo) {
-            case Rol.ADMINISTRACION -> {
-                nuevoEstado = EstadoPrograma.RECHAZADO_A_ADMINISTRACION;
-                yield programa.getAdministracionResponsable();
-            }
-            case Rol.DOCENTE -> {
-                nuevoEstado = EstadoPrograma.RECHAZADO_A_PROFESOR;
-                yield programa.getProfesorResponsable();
-            }
-            default ->
-                    throw new IllegalArgumentException("No se puede realizar la acción de rechazar a menos que sea a ADMINISTRACION o a PROFESOR");
-        };
-        ;
-
-        programa.registrarNuevoEstado(nuevoEstado, udeActor, actorRol, estadoUpdateDTO.getJustificacion());
-
-        // EMAIL SEND
-        emailService.sendEmailNotificacionRechazo(udeDestinatario.getEmail(), udeDestinatario.getUsuario(), actorRol, udeActor.getUsuario(), programa.getMateria(), estadoUpdateDTO.getJustificacion());
-
-    }
-
-    private List<ProgramaCarreraEntity> getProgramaCarreraEntities(List<ProgramaCarreraCreateDTO> bloquesMultiplesDTO, ProgramaEntity programaEntity) {
-        List<ProgramaCarreraEntity> bloquesMultiplesEntity = new ArrayList<>();
-        List<String> carrerasSinComision = new ArrayList<>();
-
-        for (ProgramaCarreraCreateDTO bloqueDTO : bloquesMultiplesDTO) {
-            ProgramaCarreraEntity bloqueEntity = programaCarreraMapper.toEntity(bloqueDTO);
-            bloqueEntity.setPrograma(programaEntity);
-
-            CarreraPlanEntity plan = carreraService.getPlanEntityById(bloqueDTO.getCarreraPlanId());
-            CarreraEntity carrera = plan.getCarrera();
-            if(carrera.getComision() == null){
-                carrerasSinComision.add(carrera.getNombre());
-                continue;
-            }
-
-            bloqueEntity.setCarreraPlan(plan);
-            List<MateriaEntity> correlativasFuertes = materiaService.listEntities(bloqueDTO.getCorrelativasFuertesIds());
-            if(bloqueDTO.getCorrelativasFuertesIds().size() != correlativasFuertes.size()){
-                throw new EntityNotFoundException("Una o más materias correlativas fuertes especificadas no fueron encontradas. Por favor, verifica los IDs.");
-            }
-
-            List<MateriaEntity> correlativasDebiles = materiaService.listEntities(bloqueDTO.getCorrelativasDebilesIds());
-            if(bloqueDTO.getCorrelativasDebilesIds().size() != correlativasDebiles.size()){
-                throw new EntityNotFoundException("Una o más materias correlativas débiles especificadas no fueron encontradas. Por favor, verifica los IDs.");
-            }
-
-            bloqueEntity.setCorrelativasFuertes(correlativasFuertes);
-            bloqueEntity.setCorrelativasDebiles(correlativasDebiles);
-
-            bloquesMultiplesEntity.add(bloqueEntity);
-        }
-
-        if (!carrerasSinComision.isEmpty()) {
-
-            String carreras = String.join(", ", carrerasSinComision);
-
-            throw new IllegalStateException(
-                    "Las carreras asociadas al programa deben tener asignada una comisión curricular: "
-                            + carreras
-            );
-        }
-
-        return bloquesMultiplesEntity;
-    }
 }

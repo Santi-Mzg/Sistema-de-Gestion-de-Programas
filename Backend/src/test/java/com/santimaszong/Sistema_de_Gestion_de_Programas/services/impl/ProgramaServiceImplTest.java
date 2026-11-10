@@ -179,7 +179,7 @@
 //            Long id,
 //            EstadoPrograma estado,
 //            UsuarioDepartamentoEntity adminUde,
-//            UsuarioDepartamentoEntity profesorUde,
+//            UsuarioDepartamentoEntity docenteUde,
 //            MateriaEntity materia,
 //            List<ProgramaCarreraEntity> bloques
 //    ) {
@@ -191,7 +191,7 @@
 //        p.setCreditos(4);
 //        p.setCantidadSemanas(16);
 //        p.setMateria(materia);
-//        p.setProfesorResponsable(profesorUde);
+//        p.setDocenteResponsable(docenteUde);
 //        p.registrarNuevoEstado(estado, adminUde, Rol.ADMINISTRACION, null);
 //        if (bloques != null) {
 //            p.setBloqueMultiple(new ArrayList<>(bloques));
@@ -201,7 +201,7 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 1a – create(): admin con TODOS los campos cargados
-//    //           → estado COMPLETO_POR_ADMINISTRACION
+//    //           → estado PENDIENTE_DE_SECRETARIA_INICIAL
 //    //           → emailService.sendEmailNotificacionCargaAdministrativo llamado
 //    // ═════════════════════════════════════════════════════════════════════
 //
@@ -210,12 +210,12 @@
 //        // Given
 //        Long deptId = 1L;
 //        Long materiaId = 2L;
-//        Long profesorId = 3L;
+//        Long docenteId = 3L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(profesorId, "prof001");
+//        UserEntity docenteUser = buildUser(docenteId, "prof001");
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(10L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(20L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(20L, docenteUser, Rol.DOCENTE);
 //
 //        DepartamentoEntity dept = buildDeptWithSecretaria(udeAdmin);
 //        MateriaEntity materia = buildMateria(materiaId, dept);
@@ -229,7 +229,7 @@
 //
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materiaId);
-//        dto.setProfesorResponsableId(profesorId);
+//        dto.setDocenteResponsableId(docenteId);
 //        dto.setBloqueMultiple(List.of(bloqueDto));
 //        dto.setCargaHorariaTotal(64);
 //        dto.setCargaHorariaSemanal(4);
@@ -251,7 +251,7 @@
 //        when(cargaMapper.toEntity(dto)).thenReturn(mappedEntity);
 //        when(materiaService.getEntityById(materiaId)).thenReturn(materia);
 //        when(udeService.findByUsuarioIdAndDepartamentoId(adminUser.getId(), deptId)).thenReturn(udeAdmin);
-//        when(udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId)).thenReturn(udeProfesor);
+//        when(udeService.findByUsuarioIdAndDepartamentoId(docenteId, deptId)).thenReturn(udeDocente);
 //        when(programaCarreraMapper.toEntity(any(ProgramaCarreraCreateDTO.class))).thenReturn(bloqueEntity);
 //        when(carreraService.getPlanEntityById(1L)).thenReturn(plan);
 //        when(materiaService.listEntities(anyList())).thenReturn(List.of());
@@ -262,14 +262,14 @@
 //
 //        // Then
 //        assertThat(mappedEntity.getEstadoActual())
-//                .as("Con todos los campos completos, el estado debe ser COMPLETO_POR_ADMINISTRACION")
-//                .isEqualTo(EstadoPrograma.COMPLETO_POR_ADMINISTRACION);
+//                .as("Con todos los campos completos, el estado debe ser PENDIENTE_DE_SECRETARIA_INICIAL")
+//                .isEqualTo(EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL);
 //        assertThat(mappedEntity.getHistorialEstados())
 //                .hasSize(1);
 //        assertThat(mappedEntity.getHistorialEstados().get(0).getActorRol())
 //                .isEqualTo(Rol.ADMINISTRACION);
 //        verify(emailService).sendEmailNotificacionCargaAdministrativo(
-//                eq(udeProfesor.getEmail()), eq(profesorUser), eq(materia));
+//                eq(udeDocente.getEmail()), eq(docenteUser), eq(materia));
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════
@@ -282,19 +282,19 @@
 //        // Given
 //        Long deptId = 1L;
 //        Long materiaId = 2L;
-//        Long profesorId = 3L;
+//        Long docenteId = 3L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(profesorId, "prof001");
+//        UserEntity docenteUser = buildUser(docenteId, "prof001");
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(10L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(20L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(20L, docenteUser, Rol.DOCENTE);
 //
 //        DepartamentoEntity dept = new DepartamentoEntity();
 //        MateriaEntity materia = buildMateria(materiaId, dept);
 //
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materiaId);
-//        dto.setProfesorResponsableId(profesorId);
+//        dto.setDocenteResponsableId(docenteId);
 //        dto.setBloqueMultiple(List.of()); // sin bloques → completoAdministracion = false
 //        dto.setCargaHorariaTotal(64);
 //        dto.setCargaHorariaSemanal(4);
@@ -311,7 +311,7 @@
 //        when(cargaMapper.toEntity(dto)).thenReturn(mappedEntity);
 //        when(materiaService.getEntityById(materiaId)).thenReturn(materia);
 //        when(udeService.findByUsuarioIdAndDepartamentoId(adminUser.getId(), deptId)).thenReturn(udeAdmin);
-//        when(udeService.findByUsuarioIdAndDepartamentoId(profesorId, deptId)).thenReturn(udeProfesor);
+//        when(udeService.findByUsuarioIdAndDepartamentoId(docenteId, deptId)).thenReturn(udeDocente);
 //        when(programaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 //
 //        // When
@@ -338,7 +338,7 @@
 //
 //        ProgramaCargaDTO dto = new ProgramaCargaDTO();
 //        dto.setMateriaId(materiaId);
-//        dto.setProfesorResponsableId(3L);
+//        dto.setDocenteResponsableId(3L);
 //        dto.setBloqueMultiple(List.of());
 //
 //        ProgramaEntity mappedEntity = new ProgramaEntity();
@@ -355,22 +355,22 @@
 //    }
 //
 //    // ═════════════════════════════════════════════════════════════════════
-//    // TEST 3 – profesorCarga(): todos los campos del profesor completos
-//    //          → COMPLETO_POR_PROFESOR
+//    // TEST 3 – docenteCarga(): todos los campos del docente completos
+//    //          → PENDIENTE_DE_COMISIONES_CURRICULARES
 //    //          → DecisionComisionEntity creada por cada bloque
 //    //          → email enviado a la comisión de cada carrera
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
-//    void profesorCarga_givenAllRequiredFields_whenCarga_thenStateIsCompletoPorProfesorAndDecisionCreatedAndEmailSent() {
+//    void docenteCarga_givenAllRequiredFields_whenCarga_thenStateIsCompletoPorDocenteAndDecisionCreatedAndEmailSent() {
 //        // Given
 //        Long deptId = 1L;
 //        Long programaId = 10L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //
 //        // La comisión de la carrera es udeAdmin (en el test no importa qué UDE sea,
 //        // solo que esté asignada para resolver bloque→plan→carrera→comision.email)
@@ -380,8 +380,8 @@
 //        ProgramaCarreraEntity bloque = buildBloqueEntity(plan);
 //
 //        ProgramaEntity existingPrograma = buildPrograma(
-//                programaId, EstadoPrograma.COMPLETO_POR_ADMINISTRACION,
-//                udeAdmin, udeProfesor, materia, List.of(bloque)
+//                programaId, EstadoPrograma.PENDIENTE_DE_SECRETARIA_INICIAL,
+//                udeAdmin, udeDocente, materia, List.of(bloque)
 //        );
 //        bloque.setPrograma(existingPrograma);
 //
@@ -396,15 +396,15 @@
 //        dto.setBibliografia("Autor, A. (2024). Título.");
 //
 //        when(programaRepository.findById(programaId)).thenReturn(Optional.of(existingPrograma));
-//        when(udeService.findByUsuarioIdAndDepartamentoId(profesorUser.getId(), deptId)).thenReturn(udeProfesor);
+//        when(udeService.findByUsuarioIdAndDepartamentoId(docenteUser.getId(), deptId)).thenReturn(udeDocente);
 //        when(programaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 //
 //        // When
-//        service.profesorCarga(deptId, programaId, dto, profesorUser);
+//        service.docenteCarga(deptId, programaId, dto, docenteUser);
 //
-//        // Then – estado pasa a COMPLETO_POR_PROFESOR
+//        // Then – estado pasa a PENDIENTE_DE_COMISIONES_CURRICULARES
 //        assertThat(existingPrograma.getEstadoActual())
-//                .isEqualTo(EstadoPrograma.COMPLETO_POR_PROFESOR);
+//                .isEqualTo(EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
 //
 //        // Un DecisionComisionEntity guardado por cada bloque (1 bloque → 1 decisión)
 //        verify(decisionRepository, times(1)).save(any(DecisionComisionEntity.class));
@@ -434,21 +434,21 @@
 //        Long programaId = 10L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //        MateriaEntity materia = buildMateria(2L, new DepartamentoEntity());
 //
 //        ProgramaEntity programa = buildPrograma(
-//                programaId, EstadoPrograma.COMPLETO_POR_PROFESOR,
-//                udeAdmin, udeProfesor, materia, List.of()
+//                programaId, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES,
+//                udeAdmin, udeDocente, materia, List.of()
 //        );
 //
 //        EstadoUpdateDTO estadoDto = new EstadoUpdateDTO();
 //        estadoDto.setAccion(AccionPrograma.APROBAR);
 //
 //        when(auth.getName()).thenReturn("prof001");
-//        when(udeService.findByUsuarioLegajoAndDepartamentoId("prof001", deptId)).thenReturn(udeProfesor);
+//        when(udeService.findByUsuarioLegajoAndDepartamentoId("prof001", deptId)).thenReturn(udeDocente);
 //        when(programaRepository.findById(programaId)).thenReturn(Optional.of(programa));
 //
 //        // When / Then
@@ -471,19 +471,19 @@
 //        Long programaId = 10L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UserEntity coordUser = buildUser(3L, "coord001");
 //
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //        UsuarioDepartamentoEntity udeCoord = buildUde(7L, coordUser, Rol.COORDINACION_COMISION_CURRICULAR);
 //
 //        DepartamentoEntity dept = buildDeptWithSecretaria(udeAdmin);
 //        MateriaEntity materia = buildMateria(2L, dept);
 //
 //        ProgramaEntity programa = buildPrograma(
-//                programaId, EstadoPrograma.COMPLETO_POR_PROFESOR,
-//                udeAdmin, udeProfesor, materia, new ArrayList<>()
+//                programaId, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES,
+//                udeAdmin, udeDocente, materia, new ArrayList<>()
 //        );
 //
 //        DecisionComisionEntity decision = new DecisionComisionEntity();
@@ -509,10 +509,10 @@
 //        // When
 //        service.actualizarEstado(auth, deptId, carreraId, programaId, estadoDto, Rol.COORDINACION_COMISION_CURRICULAR);
 //
-//        // Then – el programa sigue en COMPLETO_POR_PROFESOR
+//        // Then – el programa sigue en PENDIENTE_DE_COMISIONES_CURRICULARES
 //        assertThat(programa.getEstadoActual())
 //                .as("Con decisiones pendientes, el estado global no debe cambiar")
-//                .isEqualTo(EstadoPrograma.COMPLETO_POR_PROFESOR);
+//                .isEqualTo(EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES);
 //
 //        // No se notifica a la secretaría
 //        verify(emailService, never()).sendEmailNotificacionAprobacionComision(any(), any(), any());
@@ -520,7 +520,7 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 5b – actualizarEstado(): COORDINADOR + APROBAR, última comisión
-//    //            pendiente (count = 0) → APROBADO_POR_COMISION + email secretaría
+//    //            pendiente (count = 0) → PENDIENTE_DE_SECRETARIA_FINAL + email secretaría
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
@@ -531,12 +531,12 @@
 //        Long programaId = 10L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UserEntity coordUser = buildUser(3L, "coord001");
 //        UserEntity secretariaUser = buildUser(4L, "secre001");
 //
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //        UsuarioDepartamentoEntity udeCoord = buildUde(7L, coordUser, Rol.COORDINACION_COMISION_CURRICULAR);
 //        UsuarioDepartamentoEntity udeSecretaria = buildUde(8L, secretariaUser, Rol.SECRETARIA);
 //
@@ -548,8 +548,8 @@
 //        ProgramaCarreraEntity bloque = buildBloqueEntity(plan);
 //
 //        ProgramaEntity programa = buildPrograma(
-//                programaId, EstadoPrograma.COMPLETO_POR_PROFESOR,
-//                udeAdmin, udeProfesor, materia, List.of(bloque)
+//                programaId, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES,
+//                udeAdmin, udeDocente, materia, List.of(bloque)
 //        );
 //        bloque.setPrograma(programa);
 //
@@ -574,12 +574,12 @@
 //        // When
 //        service.actualizarEstado(auth, deptId, carreraId, programaId, estadoDto, Rol.COORDINACION_COMISION_CURRICULAR);
 //
-//        // Then – el estado global pasa a APROBADO_POR_COMISION
+//        // Then – el estado global pasa a PENDIENTE_DE_SECRETARIA_FINAL
 //        assertThat(programa.getEstadoActual())
-//                .isEqualTo(EstadoPrograma.APROBADO_POR_COMISION);
+//                .isEqualTo(EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL);
 //        assertThat(programa.getHistorialEstados())
 //                .extracting(EstadoHistoricoEntity::getEstado)
-//                .contains(EstadoPrograma.APROBADO_POR_COMISION);
+//                .contains(EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL);
 //
 //        // Se notifica a la secretaría con su usuario y la materia
 //        verify(emailService).sendEmailNotificacionAprobacionComision(
@@ -591,11 +591,11 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 6 – actualizarEstado(): SECRETARIA rechaza con destinoRechazo=DOCENTE
-//    //          → RECHAZADO_A_PROFESOR + email al docente con justificación
+//    //          → RECHAZADO_A_DOCENTE + email al docente con justificación
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
-//    void actualizarEstado_givenSecretariaRejectsToDocente_whenActualizarEstado_thenStateIsRechazadoAProfesorAndEmailWithJustification() {
+//    void actualizarEstado_givenSecretariaRejectsToDocente_whenActualizarEstado_thenStateIsRechazadoADocenteAndEmailWithJustification() {
 //        // Given
 //        Long deptId = 1L;
 //        Long carreraId = 1L;
@@ -603,19 +603,19 @@
 //        String justificacion = "Falta bibliografía actualizada posterior a 2020";
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UserEntity secretariaUser = buildUser(4L, "secre001");
 //
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //        UsuarioDepartamentoEntity udeSecretaria = buildUde(8L, secretariaUser, Rol.SECRETARIA);
 //
 //        DepartamentoEntity dept = buildDeptWithSecretaria(udeSecretaria);
 //        MateriaEntity materia = buildMateria(2L, dept);
 //
 //        ProgramaEntity programa = buildPrograma(
-//                programaId, EstadoPrograma.APROBADO_POR_COMISION,
-//                udeAdmin, udeProfesor, materia, List.of()
+//                programaId, EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL,
+//                udeAdmin, udeDocente, materia, List.of()
 //        );
 //
 //        EstadoUpdateDTO estadoDto = new EstadoUpdateDTO();
@@ -631,14 +631,14 @@
 //        // When
 //        service.actualizarEstado(auth, deptId, carreraId, programaId, estadoDto, Rol.SECRETARIA);
 //
-//        // Then – estado pasa a RECHAZADO_A_PROFESOR
+//        // Then – estado pasa a RECHAZADO_A_DOCENTE
 //        assertThat(programa.getEstadoActual())
-//                .isEqualTo(EstadoPrograma.RECHAZADO_A_PROFESOR);
+//                .isEqualTo(EstadoPrograma.RECHAZADO_A_DOCENTE);
 //
 //        // Email al docente con el emisor, justificación y materia correctos
 //        verify(emailService).sendEmailNotificacionRechazo(
-//                eq(udeProfesor.getEmail()),
-//                eq(profesorUser),
+//                eq(udeDocente.getEmail()),
+//                eq(docenteUser),
 //                eq(Rol.SECRETARIA),
 //                eq(secretariaUser),
 //                eq(materia),
@@ -659,17 +659,17 @@
 //        Long programaId = 10L;
 //
 //        UserEntity adminUser = buildUser(1L, "admin001");
-//        UserEntity profesorUser = buildUser(2L, "prof001");
+//        UserEntity docenteUser = buildUser(2L, "prof001");
 //        UserEntity secretariaUser = buildUser(4L, "secre001");
 //
 //        UsuarioDepartamentoEntity udeAdmin = buildUde(5L, adminUser, Rol.ADMINISTRACION);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //        UsuarioDepartamentoEntity udeSecretaria = buildUde(8L, secretariaUser, Rol.SECRETARIA);
 //
 //        MateriaEntity materia = buildMateria(2L, new DepartamentoEntity());
 //        ProgramaEntity programa = buildPrograma(
-//                programaId, EstadoPrograma.APROBADO_POR_COMISION,
-//                udeAdmin, udeProfesor, materia, List.of()
+//                programaId, EstadoPrograma.PENDIENTE_DE_SECRETARIA_FINAL,
+//                udeAdmin, udeDocente, materia, List.of()
 //        );
 //
 //        EstadoUpdateDTO estadoDto = new EstadoUpdateDTO();
@@ -689,21 +689,21 @@
 //
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 8a – getListAnioActual(): rol DOCENTE
-//    //           → invoca findByProfesorResponsableUsuarioLegajoAndMateria...
+//    //           → invoca findByDocenteResponsableUsuarioLegajoAndMateria...
 //    //           → NO invoca findProgramasByCoordinadorLegajoAndAnio
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
-//    void getListAnioActual_givenDocenteRole_whenGetList_thenQueriesByProfesorLegajo() {
+//    void getListAnioActual_givenDocenteRole_whenGetList_thenQueriesByDocenteLegajo() {
 //        // Given
 //        Long deptId = 1L;
 //        String legajo = "prof001";
-//        UserEntity profesorUser = buildUser(2L, legajo);
-//        UsuarioDepartamentoEntity udeProfesor = buildUde(6L, profesorUser, Rol.DOCENTE);
+//        UserEntity docenteUser = buildUser(2L, legajo);
+//        UsuarioDepartamentoEntity udeDocente = buildUde(6L, docenteUser, Rol.DOCENTE);
 //
 //        when(auth.getName()).thenReturn(legajo);
-//        when(udeService.findByUsuarioLegajoAndDepartamentoId(legajo, deptId)).thenReturn(udeProfesor);
-//        when(programaRepository.findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
+//        when(udeService.findByUsuarioLegajoAndDepartamentoId(legajo, deptId)).thenReturn(udeDocente);
+//        when(programaRepository.findByDocenteResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
 //                eq(legajo), eq(deptId), anyInt()
 //        )).thenReturn(List.of());
 //
@@ -711,7 +711,7 @@
 //        service.getListAnioActual(auth, deptId, Rol.DOCENTE);
 //
 //        // Then – se usa la query específica del rol DOCENTE
-//        verify(programaRepository).findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
+//        verify(programaRepository).findByDocenteResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(
 //                eq(legajo), eq(deptId), anyInt()
 //        );
 //        verify(programaRepository, never())
@@ -721,7 +721,7 @@
 //    // ═════════════════════════════════════════════════════════════════════
 //    // TEST 8b – getListAnioActual(): rol COORDINACION_COMISION_CURRICULAR
 //    //           → invoca findProgramasByCoordinadorLegajoAndAnio
-//    //           → NO invoca findByProfesorResponsable...
+//    //           → NO invoca findByDocenteResponsable...
 //    // ═════════════════════════════════════════════════════════════════════
 //
 //    @Test
@@ -743,6 +743,6 @@
 //        // Then – se usa la query específica del rol COORDINACION
 //        verify(programaRepository).findProgramasByCoordinadorLegajoAndAnio(eq(legajo), anyInt());
 //        verify(programaRepository, never())
-//                .findByProfesorResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(any(), any(), any());
+//                .findByDocenteResponsableUsuarioLegajoAndMateriaDepartamentoIdAndAnio(any(), any(), any());
 //    }
 //}

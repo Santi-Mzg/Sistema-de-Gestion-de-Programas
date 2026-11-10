@@ -9,6 +9,13 @@ import java.util.Optional;
 
 @Repository
 public interface ProgramaDraftRepository extends JpaRepository<ProgramaDraftEntity, Long> {
+    Optional<ProgramaDraftEntity> findByUsuarioIdAndMateriaIdAndAnioAndRolAndProgramaIdAndPlanId(
+            Long usuarioId, Long materiaId, Integer anio,
+            com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol rol, Long programaId, Long planId);
+    void deleteByUsuarioIdAndMateriaIdAndAnioAndRolAndProgramaIdAndPlanId(
+            Long usuarioId, Long materiaId, Integer anio,
+            com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol rol, Long programaId, Long planId);
+
     Optional<ProgramaDraftEntity> findByUsuarioIdAndMateriaId(
             Long usuarioId,
             Long materiaId
