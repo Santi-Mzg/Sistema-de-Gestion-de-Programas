@@ -7,6 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
+    "lint:ci": "node scripts/lint-ci.mjs",
+    "typecheck": "tsc --noEmit --incremental false",
     "generate:api": "orval",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -76,6 +78,8 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.7.0",
     "axios": "^1.13.2",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.5",
     "jsdom": "^25.0.1",
     "orval": "^7.17.0",
     "postcss": "^8.5",
