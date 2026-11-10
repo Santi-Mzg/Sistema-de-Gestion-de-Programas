@@ -14,11 +14,13 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
   const data = await res.json();
+  const isLocalDevelopment = process.env.NODE_ENV === "development"
+    && process.env.SILABUS_DEV_LOCAL === "true";
 
   (await cookies()).set("jwt", data.token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: !isLocalDevelopment,
+    sameSite: isLocalDevelopment ? "lax" : "none",
     path: "/",
     maxAge: 60 * 60 * 24,
   });

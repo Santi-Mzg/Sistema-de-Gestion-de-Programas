@@ -6,8 +6,10 @@ import com.resend.services.emails.model.CreateEmailOptions;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.EmailSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Profile;
 
 @Service
+@Profile("!dev-local")
 public class ResendEmailSender implements EmailSender {
 
     private final Resend resend;
