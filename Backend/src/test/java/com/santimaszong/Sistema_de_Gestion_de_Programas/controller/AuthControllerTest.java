@@ -6,15 +6,12 @@ import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.dto.auth.LoginReq
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.entities.*;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.domain.enums.Rol;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.repositories.*;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.email.providers.ResendEmailSender;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.services.ai.formatterAPA.providers.GeminiBibliografiaFormatterService;
+import com.santimaszong.Sistema_de_Gestion_de_Programas.support.IsolatedApplicationTest;
 import com.santimaszong.Sistema_de_Gestion_de_Programas.services.pdf.PdfGeneratorService;
-import com.santimaszong.Sistema_de_Gestion_de_Programas.util.seeder.DatabaseSeeder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,12 +28,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests de integración HTTP para AuthController.
  *
  * Cubre: login exitoso, login fallido, /me y forgot-password.
- * Misma estrategia de mocks que ProgramaControllerTest para compartir el contexto de Spring.
+ * Usa el aislamiento común de IsolatedApplicationTest; PDF también se simula en esta clase.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
-class AuthControllerTest {
+class AuthControllerTest extends IsolatedApplicationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
@@ -46,10 +42,7 @@ class AuthControllerTest {
     @Autowired private DepartamentoRepository deptRepository;
     @Autowired private UsuarioDepartamentoRepository udeRepository;
 
-    @MockBean private ResendEmailSender resendEmailSender;
-    @MockBean private GeminiBibliografiaFormatterService geminiBibliografiaFormatterService;
     @MockBean private PdfGeneratorService pdfGeneratorService;
-    @MockBean private DatabaseSeeder databaseSeeder;
 
     private static final String TEST_LEGAJO   = "auth-test-user";
     private static final String TEST_PASSWORD = "testpass123";
