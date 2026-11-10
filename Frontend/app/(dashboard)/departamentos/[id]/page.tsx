@@ -1,4 +1,5 @@
 "use client"
+import { invalidarEdicionDepartamento } from "@/lib/invalidacion-consultas";
 
 import type React from "react"
 
@@ -11,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DepartamentoResponseDTO, DepartamentoCreateDTO, UserResponseDTO, UserResponseReducedDTO } from "@/app/api/generated/model"
-import { getGetDepartamentoQueryKey, getListDepartamentosQueryKey, getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
+import { getGetDepartamentoQueryKey, getListUsersDepartamentoQueryKey, useGetDepartamento, useListUsersDepartamento, useUpdateDepartamento, useUpdateDireccionAdministrativa, useUpdateSecretaria } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useRole } from "@/context/role-context"
 import { toast } from "@/hooks/use-toast"
@@ -82,19 +83,22 @@ export default function EditDepartamentoPage() {
 
 
 
-  useEffect(() => {
-    if(!departamento) return
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof departamento] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== departamento) {
+    setPreviousFormSources([departamento])
+    if (departamento) {
 
-    setFormData({ 
-        nombre: departamento.nombre,
-        direccion: departamento.direccion,
-        telefono: departamento.telefono,
-        email: departamento.email,
-        sitioWeb: departamento.sitioWeb,
-    })
-    setDireccionAdministrativa(departamento.direccionAdministrativa)
-    setSecretaria(departamento.secretaria)
-  }, [departamento])
+      setFormData({
+          nombre: departamento.nombre,
+          direccion: departamento.direccion,
+          telefono: departamento.telefono,
+          email: departamento.email,
+          sitioWeb: departamento.sitioWeb,
+      })
+      setDireccionAdministrativa(departamento.direccionAdministrativa)
+      setSecretaria(departamento.secretaria)
+    }
+  }
 
   console.log("Departamento loaded:", departamento?.direccionAdministrativa);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -107,20 +111,14 @@ export default function EditDepartamentoPage() {
   
   const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateDepartamento({
       mutation: {
-          onSuccess: () => { 
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
 
-            queryClient.invalidateQueries({
-              queryKey: getListDepartamentosQueryKey()
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetDepartamentoQueryKey(Number(id))
-            });
+            await invalidarEdicionDepartamento(queryClient, Number(id));
 
             router.push('/departamentos'); 
           },
@@ -168,20 +166,14 @@ export default function EditDepartamentoPage() {
 
   const { mutate: mutateDireccion, isPending: isPendingDireccion } = useUpdateDireccionAdministrativa({
       mutation: {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: `Dirección Administrativa actualizada exitosamente`,
               variant: "success",
             })
 
-            queryClient.invalidateQueries({
-              queryKey: getListDepartamentosQueryKey()
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetDepartamentoQueryKey(Number(id))
-            });
+            await invalidarEdicionDepartamento(queryClient, Number(id));
           },
           onError: (error: Error) => {
             toast({
@@ -216,20 +208,14 @@ export default function EditDepartamentoPage() {
 
   const { mutate: mutateSecretaria, isPending: isPendingSecretaria } = useUpdateSecretaria({
       mutation: {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: `Secretaría Académica actualizada exitosamente`,
               variant: "success",
             })
 
-            queryClient.invalidateQueries({
-              queryKey: getListDepartamentosQueryKey()
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetDepartamentoQueryKey(Number(id))
-            });
+            await invalidarEdicionDepartamento(queryClient, Number(id));
           },
           onError: (error: Error) => {
             toast({
@@ -316,7 +302,7 @@ export default function EditDepartamentoPage() {
             <Card className="border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  Información General
+                  Información general
                 </CardTitle>
                 <CardDescription className="text-base">Datos del departamento</CardDescription>
               </CardHeader>
@@ -324,7 +310,7 @@ export default function EditDepartamentoPage() {
                 <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
-                      Nombre del Departamento *
+                      Nombre del departamento *
                     </Label>
                     <Input
                       id="nombre"
@@ -388,7 +374,7 @@ export default function EditDepartamentoPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="sitioWeb" className="text-sm font-semibold">
-                      Sitio Web
+                      Sitio web
                     </Label>
                     <Input
                       id="sitioWeb"
@@ -410,7 +396,7 @@ export default function EditDepartamentoPage() {
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isPendingDpto ? "Guardando..." : "Guardar Cambios"}
+                        {isPendingDpto ? "Guardando..." : "Guardar cambios"}
                       </Button>
                     </div>
                   )}
@@ -425,7 +411,7 @@ export default function EditDepartamentoPage() {
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
-                  Dirección Administrativa
+                  Dirección administrativa
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -433,8 +419,8 @@ export default function EditDepartamentoPage() {
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Dirección Actual
+                      <p className="text-xs font-semibold text-muted-foreground tracking-wide mb-3">
+                        Dirección actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
                         <div>
@@ -456,7 +442,7 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingDireccion}
                       >
                         <User size={18} className="mr-2" />
-                        {isPendingDireccion ? "Asignando..." : "Cambiar Dirección"}
+                        {isPendingDireccion ? "Asignando..." : "Cambiar dirección"}
                       </Button>
                     )}
                   </div>
@@ -473,7 +459,7 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingDireccion}
                       >
                         <User size={18} className="mr-2" />
-                        {isPendingDireccion ? "Asignando..." : "Asignar Dirección"}
+                        {isPendingDireccion ? "Asignando..." : "Asignar dirección"}
                       </Button>
                     )}
                   </div>
@@ -486,7 +472,7 @@ export default function EditDepartamentoPage() {
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
-                  Secretaría Académica
+                  Secretaría académica
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -494,8 +480,8 @@ export default function EditDepartamentoPage() {
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Secretaría Actual
+                      <p className="text-xs font-semibold text-muted-foreground tracking-wide mb-3">
+                        Secretaría actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
                         {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
@@ -521,7 +507,7 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingSecretaria}
                       >
                         <User size={18} className="mr-2" />
-                        {isPendingSecretaria ? "Asignando..." : "Cambiar Secretaría"}
+                        {isPendingSecretaria ? "Asignando..." : "Cambiar secretaría"}
                       </Button>
                     )}
                   </div>
@@ -538,7 +524,7 @@ export default function EditDepartamentoPage() {
                         disabled={isPendingSecretaria}
                       >
                         <User size={18} className="mr-2" />
-                        {isPendingSecretaria ? "Asignando..." : "Asignar Secretaría"}
+                        {isPendingSecretaria ? "Asignando..." : "Asignar secretaría"}
                       </Button>
                     )}
                   </div>
@@ -558,10 +544,10 @@ export default function EditDepartamentoPage() {
           onConfirm={handleDirectorChange}
           currentUser={departamento?.direccionAdministrativa}
           availableUsers={usuarios}
-          title="Seleccionar Dirección Administrativa"
+          title="Seleccionar dirección administrativa"
           description="Elige un usuario para asignar como Dirección Administrativa"
-          roleLabel="Dirección Actual"
-          confirmLabel="Asignar Dirección"
+          roleLabel="Dirección actual"
+          confirmLabel="Asignar dirección"
           isLoading={isLoading || usuariosQuery.isLoading}
         />
       )}
@@ -574,10 +560,10 @@ export default function EditDepartamentoPage() {
           onConfirm={handleSecretariaChange}
           currentUser={departamento?.secretaria}
           availableUsers={usuarios}
-          title="Seleccionar Secretaría Académica"
+          title="Seleccionar secretaría académica"
           description="Elige un usuario para asignar como Secretaría Académica"
-          roleLabel="Secretaría Actual"
-          confirmLabel="Asignar Secretaría"
+          roleLabel="Secretaría actual"
+          confirmLabel="Asignar secretaría"
           isLoading={isLoading || usuariosQuery.isLoading}
         />
       )}

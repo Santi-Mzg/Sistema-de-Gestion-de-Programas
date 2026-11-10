@@ -26,7 +26,7 @@ export function AboutDialog({
           </DialogTitle>
 
           <DialogDescription>
-            Sistema de Gestión de Programas Académicos
+            Sistema de gestión de programas académicos
           </DialogDescription>
         </DialogHeader>
 

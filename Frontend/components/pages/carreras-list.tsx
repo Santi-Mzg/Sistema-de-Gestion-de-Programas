@@ -1,10 +1,11 @@
 "use client"
+import { invalidarCambioCarrera } from "@/lib/invalidacion-consultas";
 
 import { useState, useMemo, useEffect } from "react"
 import { Search, Trash2, Eye, GraduationCap } from "lucide-react"
-import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { CarreraResponseDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetCarreraQueryKey, getListCarrerasDepartamentoQueryKey, useDeleteCarrera } from "@/app/api/generated/client"
+import { useDeleteCarrera } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -46,15 +47,15 @@ export function CarrerasList({
 
 
   useEffect(() => {
-    if(activeRole === UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR) {
+    if(activeRole === Rol.COORDINACION_COMISION_CURRICULAR) {
       setHeader({
-        title: `Carreras Asignadas`,
+        title: `Carreras asignadas`,
         subtitle: "Consulta las carreras asignadas como coordinador/a de comisiones curriculares",
         icon: GraduationCap,
       })
     } else {
       setHeader({
-        title: `Carreras Departamentales`,
+        title: `Carreras departamentales`,
         subtitle: "Gestiona y consulta todas las carreras del departamento",
         icon: GraduationCap,
       })
@@ -90,15 +91,7 @@ export function CarrerasList({
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
-            queryKey: getListCarrerasDepartamentoQueryKey(
-              activeDepartamento!.departamentoId!
-            ),
-          });
-
-          queryClient.removeQueries({
-            queryKey: getGetCarreraQueryKey(variables.id)
-          });
+          void invalidarCambioCarrera(queryClient, { departamentoId: activeDepartamento!.departamentoId!, carreraId: variables.id, eliminado: true });
         },
         onError: (error: unknown) => {
 
@@ -217,10 +210,10 @@ export function CarrerasList({
                           <Eye size={16} className="mr-1" />
                           Ver
                         </Button>
-                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) && (
+                        {(activeRole === Rol.ADMINISTRACION || 
+                          activeRole === Rol.SECRETARIA || 
+                          activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === Rol.SYSTEM_ADMIN) && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -241,12 +234,12 @@ export function CarrerasList({
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron carreras</p>
-                      {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                        activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-                        activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                        activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                      {(activeRole === Rol.ADMINISTRACION || 
+                        activeRole === Rol.SECRETARIA || 
+                        activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+                        activeRole === Rol.SYSTEM_ADMIN) &&
                         <Link href="/carreras/crear">
-                          <Button>Crear Carrera</Button>
+                          <Button>Crear carrera</Button>
                         </Link>
                       }
                     </div>
@@ -272,11 +265,11 @@ export function CarrerasList({
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
                 <Trash2 size={24} />
-                Confirmar Eliminación
+                Confirmar eliminación
               </DialogTitle>
               <DialogDescription className="text-base pt-2">
                 ¿Estás seguro de que deseas eliminar la carrera{" "}
-                <span className="font-semibold text-foreground">"{selectedCarrera?.nombre}"</span>?
+                <span className="font-semibold text-foreground">&quot;{selectedCarrera?.nombre}&quot;</span>?
               </DialogDescription>
             </DialogHeader>
 

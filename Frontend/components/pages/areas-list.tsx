@@ -1,10 +1,11 @@
 "use client"
+import { invalidarCambioArea } from "@/lib/invalidacion-consultas";
 
 import { useState, useMemo, useEffect } from "react"
 import { Search, Edit2, Trash2, Layers } from "lucide-react"
-import { AreaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { AreaResponseDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetAreaQueryKey, getListAreasDepartamentoQueryKey, useDeleteArea } from "@/app/api/generated/client"
+import { useDeleteArea } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -26,13 +27,13 @@ interface AreasListProps {
 }
 
 
-export function AreasList({ 
+export function AreasList({
   areas = [],
   page,
   pageSize,
   totalPages,
   totalElements,
-  onPageChange  
+  onPageChange
 }: AreasListProps) {
   const { setHeader } = useHeader()
   const { activeRole } = useRole()
@@ -45,17 +46,17 @@ export function AreasList({
 
 
 
-  const hasPermission = (activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA ||
-                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN)
+  const hasPermission = (activeRole === Rol.DIRECCION_ADMINISTRATIVA ||
+                          activeRole === Rol.SECRETARIA ||
+                          activeRole === Rol.SYSTEM_ADMIN)
 
   useEffect(() => {
     setHeader({
-      title: `Áreas Departamentales`,
-      subtitle: "Gestiona y consulta todas las áreas del departamento",
+      title: activeRole === "COORDINADOR_AREA" ? "Mis áreas" : "Áreas departamentales",
+      subtitle: activeRole === "COORDINADOR_AREA" ? "Consulta las áreas que coordina" : "Gestiona y consulta todas las áreas del departamento",
       icon: Layers,
     })
-  }, [])
+  }, [activeRole])
 
   const handleDeleteClick = (area: AreaResponseDTO) => {
     setSelectedArea(area)
@@ -63,7 +64,7 @@ export function AreasList({
   }
 
   const sortedAreas = useMemo(() => {
-    const sorted = areas.sort((a, b) => {
+    const sorted = [...areas].sort((a, b) => {
       const aValue = a.nombre ?? ""
       const bValue = b.nombre ?? ""
 
@@ -84,15 +85,7 @@ export function AreasList({
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
-            queryKey: getListAreasDepartamentoQueryKey(
-              activeDepartamento!.departamentoId!
-            ),
-          });
-
-          queryClient.removeQueries({
-            queryKey: getGetAreaQueryKey(variables.id)
-          });
+          void invalidarCambioArea(queryClient, { departamentoId: activeDepartamento!.departamentoId!, areaId: variables.id, eliminado: true });
         },
         onError: (error: unknown) => {
 
@@ -100,9 +93,9 @@ export function AreasList({
 
           if (axios.isAxiosError(error)) {
             const backendError = error.response?.data;
-            
-            errorMessage = backendError?.errors?.Error || 
-                          backendError?.message || 
+
+            errorMessage = backendError?.errors?.Error ||
+                          backendError?.message ||
                           "Ocurrió un error inesperado";
           } else if (error instanceof Error) {
             errorMessage = error.message;
@@ -226,9 +219,9 @@ export function AreasList({
                     <div className="flex flex-col items-center justify-center gap-1">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron áreas</p>
-                        {hasPermission && 
+                        {hasPermission &&
                           <Link href="/areas/crear">
-                            <Button>Crear Área</Button>
+                            <Button>Crear área</Button>
                           </Link>
                         }
                     </div>
@@ -237,8 +230,8 @@ export function AreasList({
               )}
             </tbody>
           </table>
-          <PageNavigation 
-            page={page}   
+          <PageNavigation
+            page={page}
             totalPages={totalPages}
             totalElements={totalElements}
             pageSize={pageSize}
@@ -254,11 +247,11 @@ export function AreasList({
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
                 <Trash2 size={24} />
-                Confirmar Eliminación
+                Confirmar eliminación
               </DialogTitle>
               <DialogDescription className="text-base pt-2">
                 ¿Estás seguro de que deseas eliminar el área{" "}
-                <span className="font-semibold text-foreground">"{selectedArea?.nombre}"</span>?
+                <span className="font-semibold text-foreground">&quot;{selectedArea?.nombre}&quot;</span>?
               </DialogDescription>
             </DialogHeader>
 

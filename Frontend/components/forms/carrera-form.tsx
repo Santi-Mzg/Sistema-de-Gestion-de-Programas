@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioCarrera } from "@/lib/invalidacion-consultas";
 
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { CreateCarreraFormData, createCarreraSchema } from "@/lib/schemas/carrera"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useDept } from "@/context/dept-context"
-import { getListCarrerasDepartamentoQueryKey, useCreateCarrera } from "@/app/api/generated/client"
+import { useCreateCarrera } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +32,7 @@ export function CarreraForm() {
 
   useEffect(() => {
     setHeader({
-      title: `Crear Carrera`,
+      title: `Crear carrera`,
       subtitle: "Formulario de creación de una nueva carrera dentro del departamento",
       icon: GraduationCap,
     })
@@ -58,9 +59,7 @@ export function CarreraForm() {
 
           reset()
 
-          queryClient.invalidateQueries({
-            queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-          });
+          void invalidarCambioCarrera(queryClient, { departamentoId: activeDepartamento?.departamentoId });
 
           router.push('/carreras'); 
         },
@@ -110,10 +109,10 @@ export function CarreraForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre de la Carrera *
+              Nombre de la carrera *
             </Label>
             <Input
               id="nombre"
@@ -138,7 +137,7 @@ export function CarreraForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label className="text-sm font-semibold">
               Plan *
@@ -195,7 +194,7 @@ export function CarreraForm() {
         </div>
 
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>

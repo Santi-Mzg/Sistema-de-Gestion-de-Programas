@@ -1,11 +1,12 @@
 "use client"
+import { invalidarCambioMateria } from "@/lib/invalidacion-consultas";
 
 import { useState, useMemo, useEffect } from "react"
 import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, AlertCircle, BookOpen, BookOpenText } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { MateriaResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { MateriaResponseDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetMateriaQueryKey, getListMateriasDepartamentoQueryKey, useDeleteMateria } from "@/app/api/generated/client"
+import { useDeleteMateria } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -52,7 +53,7 @@ export function MateriasList({
 
   useEffect(() => {
     setHeader({
-      title: `Materias Departamentales`,
+      title: `Materias departamentales`,
       subtitle: "Gestiona y consulta todas las materias del departamento",
       icon: BookOpenText,
     })
@@ -104,22 +105,14 @@ export function MateriasList({
 
   const { mutate, isPending } = useDeleteMateria({
     mutation: {
-        onSuccess: (_, variables) => {
+        onSuccess: async (_, variables) => {
           toast({
             title: "✓ Éxito",
             description: "Materia eliminada exitosamente",
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
-            queryKey: getListMateriasDepartamentoQueryKey(
-              activeDepartamento!.departamentoId!
-            ),
-          });
-
-          queryClient.removeQueries({
-            queryKey: getGetMateriaQueryKey(variables.id)
-          });
+          await invalidarCambioMateria(queryClient, { departamentoId: activeDepartamento!.departamentoId!, materiaId: variables.id, eliminado: true });
         },
         onError: (error: unknown) => {
 
@@ -281,12 +274,12 @@ export function MateriasList({
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron materia</p>
-                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                        {(activeRole === Rol.ADMINISTRACION || 
+                          activeRole === Rol.SECRETARIA || 
+                          activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === Rol.SYSTEM_ADMIN) &&
                           <Link href="/materias/crear">
-                            <Button>Crear Materia</Button>
+                            <Button>Crear materia</Button>
                           </Link>
                         }
                     </div>
@@ -312,11 +305,11 @@ export function MateriasList({
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
               <AlertCircle size={24} />
-              Confirmar Eliminación
+              Confirmar eliminación
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               ¿Estás seguro de que deseas eliminar la materia{" "}
-              <span className="font-semibold text-foreground">"{selectedMateria?.nombre}"</span>?
+              <span className="font-semibold text-foreground">&quot;{selectedMateria?.nombre}&quot;</span>?
             </DialogDescription>
           </DialogHeader>
 

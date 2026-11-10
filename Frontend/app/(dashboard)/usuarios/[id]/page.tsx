@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioUsuario } from "@/lib/invalidacion-consultas";
 
 import type React from "react"
 
@@ -11,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { UserResponseDTO, UserCreateDTO, UserResponseReducedDTO, UsuarioDepartamentoDTO } from "@/app/api/generated/model"
 import { useDept } from "@/context/dept-context"
-import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
+import { getGetUserByIdQueryKey, useGetUserById, useUpdateUser } from "@/app/api/generated/client"
 import { useHeader } from "@/context/header-context"
 import { toast } from "@/hooks/use-toast"
 import axios from "axios"
@@ -19,9 +20,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 
 export default function EditUserPage() {
-  const { id } = useParams<{ id: string }>()
   const { activeDepartamento } = useDept()
-  const queryClient = useQueryClient(); 
   
 
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
@@ -36,6 +35,12 @@ export default function EditUserPage() {
   }
 
 
+  return <EditUserEditor activeDepartamento={activeDepartamento} />
+}
+
+function EditUserEditor({ activeDepartamento }: { activeDepartamento: UsuarioDepartamentoDTO }) {
+  const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
   const router = useRouter()
   const userQuery = useGetUserById(Number(id),
     {
@@ -65,15 +70,18 @@ export default function EditUserPage() {
   })
 
 
-  useEffect(() => {
-    if(!user) return
-    setFormData({ 
-        nombre: user?.nombre || "",
-        apellido: user?.apellido || "",
-        legajo: user?.legajo || "",
-        email: userDpto?.email || "",
-    })
-  }, [user])
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof user] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== user) {
+    setPreviousFormSources([user])
+    if (user) {
+      setFormData({
+          nombre: user?.nombre || "",
+          apellido: user?.apellido || "",
+          legajo: user?.legajo || "",
+          email: userDpto?.email || "",
+      })
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -93,13 +101,7 @@ export default function EditUserPage() {
               variant: "success",
             })    
 
-            queryClient.invalidateQueries({
-              queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetUserByIdQueryKey(Number(id))
-            });
+            void invalidarCambioUsuario(queryClient, { departamentoId: activeDepartamento?.departamentoId, usuarioId: Number(id) });
 
             router.push('/usuarios'); 
           },
@@ -188,7 +190,7 @@ export default function EditUserPage() {
             <Card className="border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  Información General
+                  Información general
                 </CardTitle>
                 <CardDescription className="text-base">Actualiza los datos básicos del usuario</CardDescription>
               </CardHeader>
@@ -244,7 +246,7 @@ export default function EditUserPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-semibold">
-                        Email Departamental
+                        Email departamental
                       </Label>
                       <Input
                         id="email"
@@ -275,7 +277,7 @@ export default function EditUserPage() {
                       className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <Save size={18} className="mr-2" />
-                      {isPending ? "Guardando..." : "Guardar Cambios"}
+                      {isPending ? "Guardando..." : "Guardar cambios"}
                     </Button>
                   </div>
                 </form>

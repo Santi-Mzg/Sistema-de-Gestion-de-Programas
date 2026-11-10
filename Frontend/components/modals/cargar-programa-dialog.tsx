@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
-import type { ProgramaResponseDTO, ProgramaResponseDTOEstado } from "@/app/api/generated/model"
+import type { ProgramaResponseDTO, EstadoPrograma } from "@/app/api/generated/model"
 import { getProgramStateLabel } from "@/lib/utils"
 
 interface CargarProgramaVigenteDialogProps {
@@ -39,7 +39,7 @@ export function CargarProgramaVigenteDialog({
               <AlertCircle className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <DialogTitle>Programa Anterior Encontrado</DialogTitle>
+              <DialogTitle>Programa anterior encontrado</DialogTitle>
               <DialogDescription className="text-sm mt-1">
                 Se encontró un programa anterior para esta materia
               </DialogDescription>
@@ -59,12 +59,12 @@ export function CargarProgramaVigenteDialog({
             </p>
             <p className="text-sm">
               <span className="font-semibold text-foreground">Docente responsable:</span>{" "}
-              <span className="text-muted-foreground">{programa.profesorResponsable?.apellido}, {programa.profesorResponsable?.nombre} (Legajo: {programa.profesorResponsable?.legajo})</span>
+              <span className="text-muted-foreground">{programa.docenteResponsable?.apellido}, {programa.docenteResponsable?.nombre} (Legajo: {programa.docenteResponsable?.legajo})</span>
             </p>
             <p className="text-sm">
               <span className="font-semibold text-foreground">Último estado:</span>{" "}
               <span className="text-muted-foreground">
-                {getProgramStateLabel(programa.estado as ProgramaResponseDTOEstado)}
+                {getProgramStateLabel(programa.estado as EstadoPrograma)}
               </span>
             </p>
           </div>

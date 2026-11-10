@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioDepartamento } from "@/lib/invalidacion-consultas";
 
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -6,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getListDepartamentosQueryKey, useCreateDepartamento } from "@/app/api/generated/client"
+import { useCreateDepartamento } from "@/app/api/generated/client"
 import { toast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
@@ -38,7 +39,7 @@ export function DepartamentoForm() {
 
   useEffect(() => {
     setHeader({
-      title: `Crear Departamento`,
+      title: `Crear departamento`,
       subtitle: "Formulario de creación de un nuevo departamento",
       icon: Building2,
     })
@@ -55,9 +56,7 @@ export function DepartamentoForm() {
 
         reset()
         
-        queryClient.invalidateQueries({
-          queryKey: getListDepartamentosQueryKey()
-        })
+        void invalidarCambioDepartamento(queryClient);
         
         router.push('/departamentos')
       },
@@ -88,10 +87,10 @@ export function DepartamentoForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre del Departamento *
+              Nombre del departamento *
             </Label>
             <Input
               id="nombre"
@@ -145,7 +144,7 @@ export function DepartamentoForm() {
 
         <div className="space-y-2">
           <Label htmlFor="sitioWeb" className="text-sm font-semibold">
-            Sitio Web
+            Sitio web
           </Label>
           <Input
             id="sitioWeb"
@@ -156,7 +155,7 @@ export function DepartamentoForm() {
           {errors.sitioWeb && <span className="text-red-500 text-sm">{errors.sitioWeb.message}</span>}
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>

@@ -1,10 +1,11 @@
 "use client"
+import { invalidarCambioUsuario } from "@/lib/invalidacion-consultas";
 
 import { useState, useMemo, useEffect } from "react"
 import { Search, ChevronUp, ChevronDown, Edit2, Trash2, Users } from "lucide-react"
-import { UserResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { UserResponseDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetUserByIdQueryKey, getListUsersDepartamentoQueryKey, useDeleteUserFromDepartamento } from "@/app/api/generated/client"
+import { useDeleteUserFromDepartamento } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import { useDept } from "@/context/dept-context"
@@ -51,7 +52,7 @@ export function UsuariosList({
 
   useEffect(() => {
     setHeader({
-      title: `Usuarios Departamentales`,
+      title: `Usuarios departamentales`,
       subtitle: "Gestiona y consulta todas las usuarios del departamento",
       icon: Users,
     })
@@ -73,15 +74,7 @@ export function UsuariosList({
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
-            queryKey: getListUsersDepartamentoQueryKey(
-              activeDepartamento!.departamentoId!
-            ),
-          });
-
-          queryClient.removeQueries({
-            queryKey: getGetUserByIdQueryKey(variables.id)
-          });
+          void invalidarCambioUsuario(queryClient, { departamentoId: activeDepartamento!.departamentoId!, usuarioId: variables.id, eliminado: true });
         },
         onError: (error: unknown) => {
 
@@ -238,13 +231,13 @@ export function UsuariosList({
                     onClick={() => handleSort("email")}
                     className="flex items-center gap-1 font-semibold hover:opacity-80 transition-opacity"
                   >
-                    Email Departamental
+                    Email departamental
                     {sortField === "email" &&
                       (sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                   </button>
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
-                    Roles Departamentales
+                    Roles departamentales
                 </th>
                 {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
                   <th className="px-3 py-2 font-semibold text-left w-40">
@@ -264,7 +257,7 @@ export function UsuariosList({
                     <td className="px-3 py-1.5 text-foreground/80">{user.apellido}</td>
                     <td className="px-3 py-1.5 text-foreground/80">{user.nombre}</td>
                     <td className="px-3 py-1.5 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.email}</td>
-                    <td className="px-3 py-1.5 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as UsuarioDepartamentoDTORolesItem)).join(", ")}</td>
+                    <td className="px-3 py-1.5 text-foreground/80">{user.departamentos?.find(dept => dept.departamentoId === activeDepartamento?.departamentoId)?.roles?.map(rol => getRoleLabel(rol as Rol)).join(", ")}</td>
                     {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA' || activeRole === 'ADMINISTRACION') && (
                       <td className="px-3 py-1.5">
                         <div className="flex items-center justify-center gap-1">
@@ -297,12 +290,12 @@ export function UsuariosList({
                     <div className="flex flex-col items-center justify-center gap-1">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron usuarios</p>
-                        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-                          activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+                        {(activeRole === Rol.ADMINISTRACION || 
+                          activeRole === Rol.SECRETARIA || 
+                          activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+                          activeRole === Rol.SYSTEM_ADMIN) &&
                           <Link href="/usuarios/crear">
-                            <Button>Crear Usuario</Button>
+                            <Button>Crear usuario</Button>
                           </Link>
                         }
                     </div>
@@ -328,7 +321,7 @@ export function UsuariosList({
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
               <Trash2 size={24} />
-              Confirmar Baja
+              Confirmar baja
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               ¿Estás seguro de que deseas dar de baja del departamento al usuario{" "}
@@ -358,7 +351,7 @@ export function UsuariosList({
               disabled={isPending}
               className="bg-destructive"
             >
-              {isPending ? "Eliminando..." : "Eliminar Usuario"}
+              {isPending ? "Eliminando..." : "Eliminar usuario"}
             </Button>
           </DialogFooter>
         </DialogContent>

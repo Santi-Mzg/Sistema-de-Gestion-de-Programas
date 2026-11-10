@@ -108,7 +108,7 @@ export default function SetPasswordPage() {
                   </div>
                 </div>
               </div>
-              <CardTitle className="text-2xl text-green-800">Contraseña Establecida</CardTitle>
+              <CardTitle className="text-2xl text-green-800">Contraseña establecida</CardTitle>
               <CardDescription className="text-green-600">
                 Su cuenta ha sido configurada exitosamente.
               </CardDescription>
@@ -119,7 +119,7 @@ export default function SetPasswordPage() {
               </p>
               <Link href="/login">
                 <Button className="w-full" size="lg">
-                  Iniciar Sesión
+                  Iniciar sesión
                 </Button>
               </Link>
             </CardContent>
@@ -144,7 +144,7 @@ export default function SetPasswordPage() {
                   <AlertCircle size={32} className="text-destructive" />
                 </div>
               </div>
-              <CardTitle className="text-xl text-destructive">Enlace Invalido</CardTitle>
+              <CardTitle className="text-xl text-destructive">Enlace invalido</CardTitle>
               <CardDescription>
                 El enlace que utilizaste no es valido o ha expirado.
               </CardDescription>
@@ -152,7 +152,7 @@ export default function SetPasswordPage() {
             <CardContent className="text-center">
               <Link href="/login">
                 <Button variant="outline" className="w-full">
-                  Volver al Inicio
+                  Volver al inicio
                 </Button>
               </Link>
             </CardContent>
@@ -185,7 +185,7 @@ export default function SetPasswordPage() {
                 <ShieldCheck size={32} className="text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">Establecer Contraseña</h1>
+            <h1 className="text-2xl font-bold text-white">Establecer contraseña</h1>
             <p className="text-primary-foreground/80 text-sm mt-1">
               Crea una contraseña segura para activar tu cuenta
             </p>
@@ -196,7 +196,7 @@ export default function SetPasswordPage() {
               {/* New Password Field */}
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Nueva Contraseña
+                  Nueva contraseña
                 </label>
                 <div className="relative">
                   <Input
@@ -252,7 +252,7 @@ export default function SetPasswordPage() {
               {/* Confirm Password Field */}
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                  Confirmar Contrasña
+                  Confirmar contrasña
                 </label>
                 <div className="relative">
                   <Input
@@ -327,7 +327,7 @@ export default function SetPasswordPage() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={18} />
-                    Establecer Contraseña
+                    Establecer contraseña
                   </span>
                 )}
               </Button>

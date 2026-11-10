@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioMateria } from "@/lib/invalidacion-consultas";
 
 import type React from "react"
 
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AreaResponseDTO, MateriaCreateDTO } from "@/app/api/generated/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { getListAreasDepartamentoQueryKey, getListMateriasCarreraPlanQueryKey, getListMateriasDepartamentoQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
+import { getListAreasDepartamentoQueryKey, getListMateriasCarreraPlanQueryKey, useCreateMateria, useListAreasDepartamento } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { AlertCircle, BookOpenText } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
@@ -33,7 +34,7 @@ export function MateriaForm() {
 
   useEffect(() => {
     setHeader({
-      title: `Crear Materia`,
+      title: `Crear materia`,
       subtitle: "Formulario de creación de una nueva materia dentro del departamento",
       icon: BookOpenText,
     })
@@ -73,7 +74,7 @@ export function MateriaForm() {
 
   const { mutate, isPending } = useCreateMateria({
       mutation: {
-        onSuccess: () => {
+        onSuccess: async () => {
           toast({
             title: "✓ Éxito",
             description: "Materia creada exitosamente",
@@ -82,9 +83,7 @@ export function MateriaForm() {
 
           reset()
 
-          queryClient.invalidateQueries({
-            queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-          });
+          await invalidarCambioMateria(queryClient, { departamentoId: activeDepartamento!.departamentoId! });
 
           router.push('/materias'); 
 
@@ -159,7 +158,7 @@ export function MateriaForm() {
           <p className="text-yellow-700">No hay áreas registradas. Deben haber áreas registradas para poder crear materias.</p>
           {(activeRole === 'SYSTEM_ADMIN' || activeRole === 'DIRECCION_ADMINISTRATIVA' || activeRole === 'SECRETARIA') &&
             <Link href="/areas/crear">
-              <Button>Crear Área</Button>
+              <Button>Crear área</Button>
             </Link>
           }
         </div>
@@ -170,10 +169,10 @@ export function MateriaForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre de la Materia
+              Nombre de la materia
             </Label>
             <Input
               id="nombre"
@@ -197,7 +196,7 @@ export function MateriaForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="departamento" className="text-sm font-semibold">
               Departamento
@@ -234,7 +233,7 @@ export function MateriaForm() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>

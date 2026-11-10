@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
                   <CheckCircle size={32} className="text-green-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl">Correo Enviado</CardTitle>
+              <CardTitle className="text-2xl">Correo enviado</CardTitle>
               <CardDescription>Verifica tu bandeja de entrada</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
 
               <div className="space-y-3 pt-4">
                 <Button asChild className="w-full bg-transparent" variant="outline">
-                  <Link href="/login">Volver a Iniciar Sesión</Link>
+                  <Link href="/login">Volver a iniciar sesión</Link>
                 </Button>
                 <Button
                   onClick={() => {
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
         {/* Recovery Card */}
         <Card className="border-2 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-2xl">Recuperar Contraseña</CardTitle>
+            <CardTitle className="text-2xl">Recuperar contraseña</CardTitle>
             <CardDescription>Ingrese su legajo para recibir un link de recuperación en sus mails asociados al sistema</CardDescription>
           </CardHeader>
           <CardContent>
@@ -158,7 +158,7 @@ export default function ForgotPasswordPage() {
 
               {/* Submit Button */}
               <Button type="submit" className="w-full" disabled={isLoading} size="lg">
-                {isLoading ? "Enviando..." : "Enviar Mail de Recuperación"}
+                {isLoading ? "Enviando..." : "Enviar mail de recuperación"}
               </Button>
             </form>
           </CardContent>

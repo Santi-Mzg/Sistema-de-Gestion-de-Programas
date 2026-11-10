@@ -29,17 +29,18 @@ export function LabelWithTooltip({
   tooltipSide = "top",
 }: LabelWithTooltipProps) {
   return (
-    <Label
-      htmlFor={htmlFor}
+    <div
       className={cn(
-        "flex items-center gap-1.5 text-sm font-semibold",
+        "flex items-center gap-1.5 text-sm font-semibold leading-none",
         className
       )}
     >
-      <span>
-        {label}
-        {required && <span className="text-destructive"> *</span>}
-      </span>
+      <Label htmlFor={htmlFor} className="font-semibold">
+        <span>
+          {label}
+          {required && <span className="text-destructive"> *</span>}
+        </span>
+      </Label>
 
       {tooltip && (
         <TooltipProvider delayDuration={300}>
@@ -48,6 +49,7 @@ export function LabelWithTooltip({
               <button
                 type="button"
                 tabIndex={-1}
+                aria-label={`Ayuda sobre ${label}`}
                 className="cursor-help"
               >
                 <Info
@@ -66,6 +68,6 @@ export function LabelWithTooltip({
           </Tooltip>
         </TooltipProvider>
       )}
-    </Label>
+    </div>
   );
 }

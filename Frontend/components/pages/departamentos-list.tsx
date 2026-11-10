@@ -1,11 +1,12 @@
 "use client"
+import { invalidarCambioDepartamento } from "@/lib/invalidacion-consultas";
 
 import { useState, useMemo, useEffect } from "react"
 import { Search, ChevronUp, ChevronDown, Filter, Edit2, Trash2, Eye, Plus, Building2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { DepartamentoResponseDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
-import { getGetDepartamentoQueryKey, getListDepartamentosQueryKey, useDeleteDepartamento } from "@/app/api/generated/client"
+import { useDeleteDepartamento } from "@/app/api/generated/client"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -32,7 +33,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
 
   useEffect(() => {
     setHeader({
-      title: `Departamentos Universitarios`,
+      title: `Departamentos universitarios`,
       subtitle: "Gestiona y consulta todos los departamentos del sistema",
       icon: Building2,
     })
@@ -79,13 +80,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
             variant: "success",
           })
 
-          queryClient.invalidateQueries({
-            queryKey: getListDepartamentosQueryKey(),
-          });
-
-          queryClient.removeQueries({
-            queryKey: getGetDepartamentoQueryKey(variables.id)
-          });
+          void invalidarCambioDepartamento(queryClient, { departamentoId: variables.id, eliminado: true });
 
         },
         onError: (error: unknown) => {
@@ -155,13 +150,13 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
               className="pl-12 py-3 text-base border-2 border-border rounded-xl"
             />
           </div>
-          {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && 
+          {activeRole === Rol.SYSTEM_ADMIN && 
             <Button size="lg"
                     variant="outline"
                     onClick={() => router.push(`/departamentos/crear`)}
                     className="border-2 hover:bg-primary hover:text-primary-foreground">
               <Plus size={16} className="mr-1" />
-              Crear Departamento
+              Crear departamento
             </Button>
           }
         </div>
@@ -190,7 +185,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     Email
                 </th>
                 <th className="px-3 py-2 font-semibold text-left">
-                    Sitio Web
+                    Sitio web
                 </th>
                 <th className="px-3 py-2 font-semibold text-left w-40">
                   Acciones
@@ -234,7 +229,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                           <Eye size={16} className="mr-1" />
                           Ver
                         </Button>
-                        {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && (
+                        {activeRole === Rol.SYSTEM_ADMIN && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -255,9 +250,9 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Search size={48} className="opacity-40" />
                       <p className="text-lg font-medium">No se encontraron departamentos</p>
-                        {activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN && (
+                        {activeRole === Rol.SYSTEM_ADMIN && (
                           <Link href="/departamentos/crear">
-                            <Button>Crear Departamento</Button>
+                            <Button>Crear departamento</Button>
                           </Link>
                         )}
                     </div>
@@ -275,11 +270,11 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-destructive flex items-center gap-2">
                 <Trash2 size={24} />
-                Confirmar Eliminación
+                Confirmar eliminación
               </DialogTitle>
               <DialogDescription className="text-base pt-2">
                 ¿Estás seguro de que deseas eliminar el departamento{" "}
-                <span className="font-semibold text-foreground">"{selectedDepartamento?.nombre}"</span>?
+                <span className="font-semibold text-foreground">&quot;{selectedDepartamento?.nombre}&quot;</span>?
               </DialogDescription>
             </DialogHeader>
 
@@ -304,7 +299,7 @@ export function DepartamentosList({ departamentos = [] }: DepartamentosListProps
                 disabled={isSubmitting}
                 className="bg-destructive"
               >
-                {isSubmitting ? "Eliminando..." : "Eliminar Departamento"}
+                {isSubmitting ? "Eliminando..." : "Eliminar departamento"}
               </Button>
             </DialogFooter>
           </DialogContent>

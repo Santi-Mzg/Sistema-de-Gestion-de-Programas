@@ -19,7 +19,6 @@ import axios from "axios"
 
 
 export default function MainUserPage() {
-  const { user } = useAuth()
   const { activeDepartamento } = useDept()
 
   if (!activeDepartamento || !activeDepartamento.departamentoId) {
@@ -33,6 +32,11 @@ export default function MainUserPage() {
     )
   }
 
+  return <MainUserEditor activeDepartamento={activeDepartamento} />
+}
+
+function MainUserEditor({ activeDepartamento }: { activeDepartamento: UsuarioDepartamentoDTO }) {
+  const { user } = useAuth()
   const router = useRouter()
 
   const { setHeader } = useHeader()
@@ -55,16 +59,19 @@ export default function MainUserPage() {
   })
 
 
-  useEffect(() => {
-    if(!user) return
-    setFormData({ 
-        nombre: user?.nombre || "",
-        apellido: user?.apellido || "",
-        legajo: user?.legajo || "",
-        email: activeDepartamento?.email || "",
-        password: ""
-    })
-  }, [user])
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof user] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== user) {
+    setPreviousFormSources([user])
+    if (user) {
+      setFormData({
+          nombre: user?.nombre || "",
+          apellido: user?.apellido || "",
+          legajo: user?.legajo || "",
+          email: activeDepartamento?.email || "",
+          password: ""
+      })
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -164,7 +171,7 @@ export default function MainUserPage() {
             <Card className="border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  Información General
+                  Información general
                 </CardTitle>
                 <CardDescription className="text-base">Actualiza sus datos básicos</CardDescription>
               </CardHeader>
@@ -220,7 +227,7 @@ export default function MainUserPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-semibold">
-                        Email Departamental
+                        Email departamental
                       </Label>
                       <Input
                         id="email"
@@ -237,7 +244,7 @@ export default function MainUserPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="password" className="text-sm font-semibold">
-                        Nueva Contraseña
+                        Nueva contraseña
                       </Label>
                       <Input
                         id="password"
@@ -253,7 +260,7 @@ export default function MainUserPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="checkNewPassword" className="text-sm font-semibold">
-                        Confirmar Contraseña
+                        Confirmar contraseña
                       </Label>
                       <Input
                         id="checkNewPassword"
@@ -282,7 +289,7 @@ export default function MainUserPage() {
                       className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <Save size={18} className="mr-2" />
-                      {isPending ? "Guardando..." : "Guardar Cambios"}
+                      {isPending ? "Guardando..." : "Guardar cambios"}
                     </Button>
                   </div>
                 </form>

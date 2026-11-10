@@ -27,7 +27,7 @@ export function HeaderProvider({ children }: { children: ReactNode }) {
   const setHeader = ({ title, subtitle, icon, badge }: { title: string; subtitle?: string; icon?: LucideIcon; badge?: ReactNode }) => {
     setHeaderConfig({
       title,
-      subtitle: subtitle ?? "Gestión Académica",
+      subtitle: subtitle ?? "Gestión académica",
       icon,
       badge,
     })

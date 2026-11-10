@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioMateria } from "@/lib/invalidacion-consultas";
 
 import type React from "react"
 
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MateriaResponseDTO, MateriaCreateDTO, UserResponseDTO, UserResponseReducedDTO, AreaResponseDTO } from "@/app/api/generated/model"
-import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey, getListMateriasDepartamentoQueryKey } from "@/app/api/generated/client"
+import { useGetMateria, useUpdateMateria, useUpdateDireccionAdministrativa, useListAreasDepartamento, getGetMateriaQueryKey, getListAreasDepartamentoQueryKey} from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
 import { useHeader } from "@/context/header-context"
@@ -76,14 +77,17 @@ export default function EditMateriaPage() {
       areaId: areas?.find(a => a.nombre === materia?.area)?.id || areas?.[0]?.id,
   })
 
-  useEffect(() => {
-    if(!materia) return
-    setFormData({ 
-        nombre: materia.nombre,
-        codigo: materia.codigo,
-        areaId: areas?.find(a => a.nombre === materia.area)?.id || areas?.[0]?.id,
-      })
-  }, [materia, areas, activeDepartamento])
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof materia, typeof areas, typeof activeDepartamento] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== materia || previousFormSources[1] !== areas || previousFormSources[2] !== activeDepartamento) {
+    setPreviousFormSources([materia, areas, activeDepartamento])
+    if (materia) {
+      setFormData({
+          nombre: materia.nombre,
+          codigo: materia.codigo,
+          areaId: areas?.find(a => a.nombre === materia.area)?.id || areas?.[0]?.id,
+        })
+    }
+  }
   
 
   
@@ -97,20 +101,14 @@ export default function EditMateriaPage() {
   
   const { mutate: mutateDpto, isPending } = useUpdateMateria({
     mutation: {
-          onSuccess: () => { 
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
 
-            queryClient.invalidateQueries({
-              queryKey: getListMateriasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetMateriaQueryKey(Number(id))
-            });
+            await invalidarCambioMateria(queryClient, { departamentoId: activeDepartamento!.departamentoId!, materiaId: Number(id) });
 
             router.push('/materias'); 
           },
@@ -246,7 +244,7 @@ export default function EditMateriaPage() {
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                   <Building2 size={24} />
-                  Información General
+                  Información general
                 </CardTitle>
                 <CardDescription className="text-base">Actualiza los datos básicos de la materia</CardDescription>
               </CardHeader>
@@ -254,7 +252,7 @@ export default function EditMateriaPage() {
                 <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
-                      Nombre del Materia *
+                      Nombre del materia *
                     </Label>
                     <Input
                       id="nombre"
@@ -299,7 +297,7 @@ export default function EditMateriaPage() {
                           className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           required
                         >
-                          <option value="">Seleccionar Área...</option>
+                          <option value="">Seleccionar área...</option>
                           {areas.map((area) => (
                             <option key={area.id} value={area.id}>
                               {area.nombre}
@@ -337,7 +335,7 @@ export default function EditMateriaPage() {
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isPending ? "Guardando..." : "Guardar Cambios"}
+                        {isPending ? "Guardando..." : "Guardar cambios"}
                       </Button>
                     </div>
                   }

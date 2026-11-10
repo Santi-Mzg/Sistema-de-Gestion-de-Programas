@@ -4,15 +4,19 @@ import { LogOut, ChevronRight, Building2, Contact, UserRoundCog, Home, FileText,
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/context/role-context"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useDept } from "@/context/dept-context"
 import { DepartamentoSelectorDialog } from "@/components/modals/departamento-selector-dialog"
-import { UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { Rol } from "@/app/api/generated/model"
 import { useLogoutFlow } from "@/hooks/use-logout"
 import { RoleSelectorDialog } from "../modals/role-selector-dialog copy"
 import { getRoleLabel } from "@/lib/utils"
 import { useAuth } from "@/context/auth-context"
 import { AboutDialog } from "../modals/about-dialog"
+
+const subscribeToHydration = () => () => {}
+const clientSnapshot = () => true
+const serverSnapshot = () => false
 
 export function Sidebar() {
   const { logout } = useLogoutFlow()
@@ -23,18 +27,14 @@ export function Sidebar() {
   const [isDeptDialogOpen, setIsDeptDialogOpen] = useState(false)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot)
 
 
   const menuConfig = {
     SYSTEM_ADMIN: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Departamentos", icon: <Building2 size={18}/>, href: "/departamentos" },
       { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
@@ -44,8 +44,8 @@ export function Sidebar() {
     ],
     DIRECCION_ADMINISTRATIVA: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
       { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
@@ -54,8 +54,8 @@ export function Sidebar() {
     ],
     SECRETARIA: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Areas", icon: <Layers size={18}/>, href: "/areas" },
       { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
@@ -64,8 +64,8 @@ export function Sidebar() {
     ],
     ADMINISTRACION: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
       { label: "Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
       { label: "Usuarios", icon: <Users size={18}/>, href: "/usuarios" },
@@ -73,15 +73,22 @@ export function Sidebar() {
     ],
     COORDINACION_COMISION_CURRICULAR: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
-      { label: "Mis Carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mis carreras", icon: <GraduationCap size={18}/>, href: "/carreras" },
+      { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
+    ],
+    COORDINADOR_AREA: [
+      { label: "Inicio", icon: <Home size={18}/>, href: "/" },
+      { label: "Mi perfil", icon: <User size={18}/>, href: "/mi-perfil" },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mis áreas", icon: <Layers size={18}/>, href: "/areas" },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
     DOCENTE: [
       { label: "Inicio", icon: <Home size={18}/>, href: "/" },
-      { label: "Mi Perfil", icon: <User size={18}/>, href: `/mi-perfil` },
-      { label: "Mi Departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
+      { label: "Mi perfil", icon: <User size={18}/>, href: `/mi-perfil` },
+      { label: "Mi departamento", icon: <University size={18}/>, href: `/departamentos/${activeDepartamento?.departamentoId}` },
       { label: "Programas", icon: <FileText size={18}/>, href: "/programas" },
     ],
   }
@@ -101,7 +108,7 @@ export function Sidebar() {
     const updateScrollState = () => {
       const hasMoreContentDown =
         element.scrollTop + element.clientHeight < element.scrollHeight - 2
-      
+
         const hasMoreContentUp =
         element.scrollTop > 2
 
@@ -127,7 +134,7 @@ export function Sidebar() {
       setActiveDepartamento(deptName)
   }
 
-  const handleRoleChange = (role: UsuarioDepartamentoDTORolesItem) => {
+  const handleRoleChange = (role: Rol) => {
     if (role)
       setActiveRole(role)
   }
@@ -175,7 +182,7 @@ export function Sidebar() {
               <img src="/uns_pluma_v3.png" alt="Logo UNS" className="h-9 ml-1" />
             </div>
           </Link>
-          <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de Gestión de Programas</p>
+          <p className="text-xs text-sidebar-foreground/60 text-center mt-1">Sistema de gestión de programas</p>
         </div>
 
         <div className="shrink-0 flex-1" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
@@ -189,7 +196,7 @@ export function Sidebar() {
             >
               <Building2 size={22} className="text-sidebar-foreground/70 shrink-0" />
               <div className="flex-1 text-left min-w-0">
-                <p className="text-xs text-sidebar-foreground/60">Departamento Activo</p>
+                <p className="text-xs text-sidebar-foreground/60">Departamento activo</p>
                 <p className="text-sm font-medium text-sidebar-foreground">
                   {mounted
                   ? activeDepartamento?.departamentoNombre || "Seleccionar"
@@ -211,10 +218,10 @@ export function Sidebar() {
             >
               <UserRoundCog size={22} className="text-sidebar-foreground/70 shrink-0" />
               <div className="flex-1 text-left min-w-0">
-                <p className="text-xs text-sidebar-foreground/60">Rol Activo</p>
+                <p className="text-xs text-sidebar-foreground/60">Rol activo</p>
                 <p className="text-sm font-medium text-sidebar-foreground">
                   {mounted
-                  ? getRoleLabel(activeRole as UsuarioDepartamentoDTORolesItem) || "Seleccionar"
+                  ? getRoleLabel(activeRole as Rol) || "Seleccionar"
                   : "Seleccionar"}
                 </p>
               </div>
@@ -268,7 +275,7 @@ export function Sidebar() {
               </Link>
             ))}
           </div>
-      
+
           {canScrollDown && (
             <div
               className="
@@ -286,7 +293,7 @@ export function Sidebar() {
             </div>
           )}
         </div>
-        
+
         {/* Footer */}
         <div className="p-1 border-t border-b border-blue-200/50 shrink-0">
           <Button
@@ -298,7 +305,7 @@ export function Sidebar() {
           >
             <LogOut size={18} className="shrink-0 transition-transform group-hover:scale-110"/>
             <span className="text-sm font-bold">
-              {isLoading ? "Cerrando Sesión..." : "Cerrar Sesión"}
+              {isLoading ? "Cerrando sesión..." : "Cerrar sesión"}
             </span>
           </Button>
         </div>

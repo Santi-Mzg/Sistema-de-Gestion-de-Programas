@@ -5,25 +5,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { Building2, Check, UserRoundCog } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import { DepartamentoResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model"
+import { DepartamentoResponseDTO, Rol } from "@/app/api/generated/model"
 import { getRoleLabel } from "@/lib/utils"
 
 const ROL_PRIORITY: Record<string, number> = {
-  [UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN]: 1,
-  [UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA]: 2,
-  [UsuarioDepartamentoDTORolesItem.SECRETARIA]: 3,
-  [UsuarioDepartamentoDTORolesItem.COORDINACION_COMISION_CURRICULAR]: 4,
-  [UsuarioDepartamentoDTORolesItem.DOCENTE]: 5,
-  [UsuarioDepartamentoDTORolesItem.ADMINISTRACION]: 6,
+  [Rol.SYSTEM_ADMIN]: 1,
+  [Rol.DIRECCION_ADMINISTRATIVA]: 2,
+  [Rol.SECRETARIA]: 3,
+  [Rol.COORDINACION_COMISION_CURRICULAR]: 4,
+  [Rol.DOCENTE]: 5,
+  [Rol.ADMINISTRACION]: 6,
 };
 
 interface RoleSelectorDialogProps {
   activeDeptName: string | undefined
   open: boolean
   onOpenChange: (open: boolean) => void
-  availableRoles: UsuarioDepartamentoDTORolesItem[]
-  activeRole: UsuarioDepartamentoDTORolesItem | null
-  onSelectRole: (role: UsuarioDepartamentoDTORolesItem) => void
+  availableRoles: Rol[]
+  activeRole: Rol | null
+  onSelectRole: (role: Rol) => void
 }
 
 export function RoleSelectorDialog({
@@ -34,7 +34,7 @@ export function RoleSelectorDialog({
   activeRole,
   onSelectRole,
 }: RoleSelectorDialogProps) {
-  const [selectedRole, setSelectedRole] = useState<UsuarioDepartamentoDTORolesItem>(activeRole || "" as UsuarioDepartamentoDTORolesItem)
+  const [selectedRole, setSelectedRole] = useState<Rol>(activeRole || "" as Rol)
 
   const rolesOrdenados = availableRoles?.slice().sort((a, b) => {
     const pesoA = ROL_PRIORITY[a] ?? 99; // 99 por si aparece un rol nuevo no mapeado
@@ -56,7 +56,7 @@ export function RoleSelectorDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserRoundCog className="h-6 w-6 text-primary" />
-            Seleccionar Rol
+            Seleccionar rol
           </DialogTitle>
           <DialogDescription>Elige un rol para continuar trabajando</DialogDescription>
         </DialogHeader>

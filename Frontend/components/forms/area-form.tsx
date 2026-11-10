@@ -1,4 +1,5 @@
 "use client"
+import { invalidarCambioArea } from "@/lib/invalidacion-consultas";
 
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -6,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getListAreasDepartamentoQueryKey, useCreateArea } from "@/app/api/generated/client"
+import { useCreateArea } from "@/app/api/generated/client"
 import { useDept } from "@/context/dept-context"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
@@ -50,9 +51,7 @@ export function AreaForm() {
           variant: "success",
         })
         reset()
-        queryClient.invalidateQueries({
-          queryKey: getListAreasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-        })
+        void invalidarCambioArea(queryClient, { departamentoId: activeDepartamento?.departamentoId });
         router.push('/areas')
       },
       onError: (error: unknown) => {
@@ -95,11 +94,11 @@ export function AreaForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
 
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-semibold">
-              Nombre del Área *
+              Nombre del área *
             </Label>
             <Input
               id="nombre"
@@ -125,7 +124,7 @@ export function AreaForm() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>

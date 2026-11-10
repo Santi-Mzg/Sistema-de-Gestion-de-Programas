@@ -1,4 +1,5 @@
 "use client"
+import { invalidarEdicionCarrera, invalidarCambioPlan } from "@/lib/invalidacion-consultas";
 
 import type React from "react"
 
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { CarreraResponseDTO, CarreraCreateDTO, UserResponseDTO, UserResponseReducedDTO, CarreraPlanCreateDTO } from "@/app/api/generated/model"
-import { getGetCarreraQueryKey, getListCarrerasDepartamentoQueryKey, getListUsersDepartamentoQueryKey, useCreateCarreraPlan, useDeleteCarreraPlan, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
+import { getGetCarreraQueryKey, getListUsersDepartamentoQueryKey, useCreateCarreraPlan, useDeleteCarreraPlan, useGetCarrera, useListUsersDepartamento, useUpdateCarrera, useUpdateComision } from "@/app/api/generated/client"
 import { UserSelectorDialog } from "@/components/modals/user-selector-dialog"
 import { useDept } from "@/context/dept-context"
 import { useRole } from "@/context/role-context"
@@ -96,16 +97,19 @@ export default function EditCarreraPage() {
 
   const usuarios: UserResponseDTO[] | undefined = usuariosQuery.data?.content;
 
-  useEffect(() => {
-    if(!carrera) return
+  const [previousFormSources, setPreviousFormSources] = useState<[typeof carrera, typeof activeDepartamento] | null>(null)
+  if (previousFormSources === null || previousFormSources[0] !== carrera || previousFormSources[1] !== activeDepartamento) {
+    setPreviousFormSources([carrera, activeDepartamento])
+    if (carrera) {
 
-    setFormData({ 
-        nombre: carrera.nombre,
-        duracion: carrera.duracion,
-    })
+      setFormData({
+          nombre: carrera.nombre,
+          duracion: carrera.duracion,
+      })
 
-    setComision(carrera.comision)
-  }, [carrera, activeDepartamento])
+      setComision(carrera.comision)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -117,20 +121,14 @@ export default function EditCarreraPage() {
   
   const { mutate: mutateDpto, isPending: isPendingDpto } = useUpdateCarrera({
       mutation: {
-          onSuccess: () => { 
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: "Información actualizada exitosamente",
               variant: "success",
             })    
 
-            queryClient.invalidateQueries({
-              queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetCarreraQueryKey(Number(id))
-            });
+            await invalidarEdicionCarrera(queryClient, activeDepartamento!.departamentoId!, Number(id));
 
             router.push('/carreras'); 
           },
@@ -178,20 +176,14 @@ export default function EditCarreraPage() {
 
     const { mutate, isPending } = useUpdateComision({
         mutation: {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast({
               title: "✓ Éxito",
               description: `Coordinación de la Comisión Curricular actualizada exitosamente`,
               variant: "success",
             })
             
-            queryClient.invalidateQueries({
-              queryKey: getListCarrerasDepartamentoQueryKey(activeDepartamento?.departamentoId)
-            });
-
-            queryClient.invalidateQueries({
-              queryKey: getGetCarreraQueryKey(Number(id))
-            });
+            await invalidarEdicionCarrera(queryClient, activeDepartamento!.departamentoId!, Number(id));
 
           },
           onError: (error: Error) => {
@@ -227,7 +219,7 @@ export default function EditCarreraPage() {
 
     const { mutate: createPlan, isPending: isCreatingPlan } = useCreateCarreraPlan({
     mutation: {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast({
           title: "✓ Éxito",
           description: "Plan creado exitosamente",
@@ -235,7 +227,7 @@ export default function EditCarreraPage() {
         })
         setNewPlanData({ anio: "", version: 1 })
         setShowNewPlanForm(false)
-        queryClient.invalidateQueries({ queryKey: getGetCarreraQueryKey(Number(id)) })
+        void invalidarCambioPlan(queryClient, Number(id));
       },
       onError: (error: Error) => {
         toast({
@@ -249,14 +241,14 @@ export default function EditCarreraPage() {
 
   const { mutate: deletePlan, isPending: isDeletingPlan } = useDeleteCarreraPlan({
     mutation: {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast({
           title: "✓ Éxito",
           description: "Plan eliminado exitosamente",
           variant: "success",
         })
         setDeletePlanId(null)
-        queryClient.invalidateQueries({ queryKey: getGetCarreraQueryKey(Number(id)) })
+        void invalidarCambioPlan(queryClient, Number(id));
       },
       onError: (error: Error) => {
         toast({
@@ -348,7 +340,7 @@ export default function EditCarreraPage() {
             <Card className="mb-6 border-2 border-border shadow-xl">
               <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5 border-b-2 border-border">
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
-                  Información General
+                  Información general
                 </CardTitle>
                 <CardDescription className="text-base">Datos de la carrera</CardDescription>
               </CardHeader>
@@ -356,7 +348,7 @@ export default function EditCarreraPage() {
                 <form className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="nombre" className="text-sm font-semibold">
-                      Nombre de la Carrera *
+                      Nombre de la carrera *
                     </Label>
                     <Input
                       id="nombre"
@@ -395,7 +387,7 @@ export default function EditCarreraPage() {
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         <Save size={18} className="mr-2" />
-                        {isPendingDpto ? "Guardando..." : "Guardar Datos"}
+                        {isPendingDpto ? "Guardando..." : "Guardar datos"}
                       </Button>
                     </div>
                   }
@@ -408,7 +400,7 @@ export default function EditCarreraPage() {
                   <div>
                     <CardTitle className="text-xl text-primary flex items-center gap-2">
                       <FileText size={16} />
-                      Planes de la Carrera
+                      Planes de la carrera
                     </CardTitle>
                     {/* <CardDescription className="text-base">Gestión de planes de la carrera</CardDescription> */}
                   </div>
@@ -419,7 +411,7 @@ export default function EditCarreraPage() {
                       className="bg-primary hover:bg-primary/90"
                     >
                       <Plus size={16} className="mr-1" />
-                      Nuevo Plan
+                      Nuevo plan
                     </Button>
                   )}
                 </div>
@@ -427,7 +419,7 @@ export default function EditCarreraPage() {
               <CardContent className="p-6 space-y-4">
                 {showNewPlanForm && (
                   <div className="border-2 border-primary/30 rounded-lg p-4 bg-primary/5">
-                    <h3 className="text-lg font-semibold mb-4 text-primary">Crear Nuevo Plan</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-primary">Crear nuevo plan</h3>
                     <form onSubmit={handleCreatePlan} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -478,7 +470,7 @@ export default function EditCarreraPage() {
                           disabled={isCreatingPlan || !newPlanData.anio}
                           className="flex-1 bg-primary hover:bg-primary/90"
                         >
-                          {isCreatingPlan ? "Creando..." : "Crear Plan"}
+                          {isCreatingPlan ? "Creando..." : "Crear plan"}
                         </Button>
                         <Button
                           type="button"
@@ -544,7 +536,7 @@ export default function EditCarreraPage() {
               <CardHeader className="bg-linear-to-br from-primary/10 to-accent/10 border-b-2 border-primary/20">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <User size={22} />
-                  Comisión Curricular
+                  Comisión curricular
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -552,8 +544,8 @@ export default function EditCarreraPage() {
                   <div className="space-y-6">
                     {/* Current Director Display */}
                     <div className="bg-linear-to-br from-muted/50 to-muted/30 rounded-xl p-5 border-2 border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                        Comisión Actual
+                      <p className="text-xs font-semibold text-muted-foreground tracking-wide mb-3">
+                        Comisión actual
                       </p>
                       <div className="flex flex-col items-center text-center gap-3">
                         {/* <Avatar className="h-20 w-20 border-4 border-primary shadow-lg">
@@ -579,7 +571,7 @@ export default function EditCarreraPage() {
                         disabled={isPending}
                       >
                         <User size={18} className="mr-2" />
-                        {isPending ? "Asignando..." : "Cambiar Comisión"}
+                        {isPending ? "Asignando..." : "Cambiar comisión"}
                       </Button>
                     )}
                   </div>
@@ -596,7 +588,7 @@ export default function EditCarreraPage() {
                         disabled={isPending}
                       >
                         <User size={18} className="mr-2" />
-                        {isPending ? "Asignando..." : "Asignar Comisión"}
+                        {isPending ? "Asignando..." : "Asignar comisión"}
                       </Button>
                     )}
                   </div>
@@ -614,20 +606,20 @@ export default function EditCarreraPage() {
           onConfirm={handleComisionChange}
           currentUser={carrera?.comision}
           availableUsers={usuarios}
-          title="Seleccionar Comisión"
+          title="Seleccionar comisión"
           description="Elige un usuario para asignar como Coordinador/a de la Comisión Curricular"
-          roleLabel="Comisión Actual"
-          confirmLabel="Asignar Comisión"
+          roleLabel="Comisión actual"
+          confirmLabel="Asignar comisión"
           isLoading={isLoading || isPending || usuariosQuery.isLoading}
         />
       }
 
       {havePermissions && (
-      <Dialog open={!!deletePlanId} onOpenChange={(open: any) => !open && setDeletePlanId(null)}>
+      <Dialog open={!!deletePlanId} onOpenChange={(open: boolean) => !open && setDeletePlanId(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle /> Confirmar Eliminación
+              <AlertCircle /> Confirmar eliminación
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
               ¿Estás seguro de que deseas eliminar este plan? 
@@ -650,7 +642,7 @@ export default function EditCarreraPage() {
               disabled={isDeletingPlan}
               onClick={() => deletePlan({ id: deletePlanId! })}
             >
-              {isDeletingPlan ? "Eliminando..." : "Eliminar Plan"}
+              {isDeletingPlan ? "Eliminando..." : "Eliminar plan"}
             </Button>
           </DialogFooter>
         </DialogContent>

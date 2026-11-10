@@ -1,7 +1,13 @@
 "use client"
 
-import { getListCarrerasDepartamentoQueryKey, useListCarrerasDepartamento } from "@/app/api/generated/client";
-import { CarreraResponseDTO, UsuarioDepartamentoDTORolesItem } from "@/app/api/generated/model";
+import {
+  getListCarrerasDepartamentoQueryKey,
+  useListCarrerasDepartamento,
+  getListCarrerasAsignadasQueryKey,
+  useListCarrerasAsignadas
+} from "@/app/api/generated/client";
+import { useAuth } from '@/context/auth-context';
+import { CarreraResponseDTO, Rol } from "@/app/api/generated/model";
 import { CarrerasList } from "@/components/pages/carreras-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +20,7 @@ import { useEffect, useState } from "react";
 export default function Carreras() {
     const { activeDepartamento } = useDept()
     const { activeRole } = useRole()
+    const { user } = useAuth()
     const router = useRouter()
     const [page, setPage] = useState(0)
     const pageSize = 10
@@ -29,7 +36,8 @@ export default function Carreras() {
       return () => clearTimeout(timeout)
     }, [searchInput])
 
-    const carrerasQuery = useListCarrerasDepartamento(activeDepartamento?.departamentoId ?? 0, 
+    const esCCC = activeRole === Rol.COORDINACION_COMISION_CURRICULAR;
+    const carrerasDepartamentoQuery = useListCarrerasDepartamento(activeDepartamento?.departamentoId ?? 0,
       {
         page,
         size: pageSize,
@@ -37,7 +45,7 @@ export default function Carreras() {
       },
       {
         query: {
-          enabled: !!activeDepartamento?.departamentoId,
+          enabled: !!activeDepartamento?.departamentoId && !!activeRole && !esCCC,
           staleTime: 1000 * 60 * 5,
           queryKey: getListCarrerasDepartamentoQueryKey(
             activeDepartamento?.departamentoId,
@@ -50,6 +58,13 @@ export default function Carreras() {
         }
       }
     );
+    const carrerasParams = { page, size: pageSize, search: search || undefined };
+    const carrerasAsignadasQuery = useListCarrerasAsignadas(activeDepartamento?.departamentoId ?? 0, carrerasParams, { query: {
+      enabled: !!activeDepartamento?.departamentoId && !!user?.id && esCCC,
+      staleTime: 0,
+      queryKey: [...getListCarrerasAsignadasQueryKey(activeDepartamento?.departamentoId, carrerasParams), { usuarioId: user?.id, rol: activeRole }],
+    } });
+    const carrerasQuery = esCCC ? carrerasAsignadasQuery : carrerasDepartamentoQuery;
     
     const carreras: CarreraResponseDTO[] | undefined = carrerasQuery.data?.content;
     const totalPages: number = carrerasQuery.data?.totalPages ?? 0;
@@ -84,16 +99,16 @@ export default function Carreras() {
             className="pl-12 py-3 text-base border-2 border-border rounded-xl"
           />
         </div>
-        {(activeRole === UsuarioDepartamentoDTORolesItem.ADMINISTRACION || 
-            activeRole === UsuarioDepartamentoDTORolesItem.SECRETARIA || 
-            activeRole === UsuarioDepartamentoDTORolesItem.DIRECCION_ADMINISTRATIVA || 
-            activeRole === UsuarioDepartamentoDTORolesItem.SYSTEM_ADMIN) &&
+        {(activeRole === Rol.ADMINISTRACION || 
+            activeRole === Rol.SECRETARIA || 
+            activeRole === Rol.DIRECCION_ADMINISTRATIVA || 
+            activeRole === Rol.SYSTEM_ADMIN) &&
           <Button size="lg"
                   variant="outline"
                   onClick={() => router.push(`/carreras/crear`)}
                   className="border-2 hover:bg-primary hover:text-primary-foreground">
             <Plus size={16} className="mr-1" />
-            Crear Carrera
+            Crear carrera
           </Button>
         }
       </div>

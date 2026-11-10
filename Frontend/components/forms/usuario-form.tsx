@@ -1,9 +1,10 @@
 "use client"
+import { invalidarCambioUsuario } from "@/lib/invalidacion-consultas";
 
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { UserCreateDTO, UserCreateDTORolesItem } from "@/app/api/generated/model"
-import { getListUsersDepartamentoQueryKey, useCreateUser } from "@/app/api/generated/client"
+import { UserCreateDTO, Rol } from "@/app/api/generated/model"
+import { useCreateUser } from "@/app/api/generated/client"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useDept } from "@/context/dept-context"
@@ -18,15 +19,15 @@ import { CreateUserFormData, createUserSchema } from "@/lib/schemas/user"
 import { Input } from "../ui/input"
 
 const ROLES_PERMITIDOS = [
-  UserCreateDTORolesItem.ADMINISTRACION,
-  UserCreateDTORolesItem.DOCENTE
+  Rol.ADMINISTRACION,
+  Rol.DOCENTE
 ];
 
 
 const AVAILABLE_ROLES = ROLES_PERMITIDOS.map((value) => {
   let label = value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " ");
 
-  if (value === UserCreateDTORolesItem.ADMINISTRACION) {
+  if (value === Rol.ADMINISTRACION) {
       label = "Administración";
     }
 
@@ -43,7 +44,7 @@ export function UsuarioForm() {
 
   useEffect(() => {
     setHeader({
-      title: `Crear Usuario`,
+      title: `Crear usuario`,
       subtitle: "Formulario de creación de un nuevo usuario ",
       icon: Users,
     })
@@ -72,9 +73,7 @@ export function UsuarioForm() {
 
         reset()
 
-        queryClient.invalidateQueries({
-          queryKey: getListUsersDepartamentoQueryKey(activeDepartamento?.departamentoId)
-        });
+        void invalidarCambioUsuario(queryClient, { departamentoId: activeDepartamento?.departamentoId });
 
         router.push('/usuarios'); 
       },
@@ -105,7 +104,7 @@ export function UsuarioForm() {
         apellido: formData.apellido,
         legajo: formData.legajo,
         email: formData.email,
-        roles: formData.roles as UserCreateDTORolesItem[],
+        roles: formData.roles as Rol[],
       }
 
     mutate({ 
@@ -132,7 +131,7 @@ export function UsuarioForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* INPUT ESTÁNDAR */}
       <div className="border-l-4 border-primary px-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="apellido" className="text-sm font-semibold">Apellido *</Label>
             <Input
@@ -154,7 +153,7 @@ export function UsuarioForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label htmlFor="legajo" className="text-sm font-semibold">Legajo</Label>
             <Input
@@ -211,7 +210,7 @@ export function UsuarioForm() {
           {errors.roles && <span className="text-red-500 text-sm">{errors.roles.message}</span>}
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button type="submit" disabled={isPending} className="flex-1 bg-primary hover:bg-primary/90">
             {isPending ? "Creando..." : "Crear"}
           </Button>
