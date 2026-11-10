@@ -11,7 +11,7 @@ export const createCarreraSchema = z.object({
 
   planAnio: z
     .string({
-      required_error: "Debe seleccionar un año",
+      error: "Debe seleccionar un año",
     })
     .min(1, "Debe seleccionar un año")
     .refine(
@@ -28,8 +28,7 @@ export const createCarreraSchema = z.object({
     (value) => (Number.isNaN(value) ? undefined : value),
     z
       .number({
-        required_error: "La versión es obligatoria",
-        invalid_type_error: "La versión debe ser un número",
+        error: "La versión es obligatoria"
       })
       .int("La versión debe ser un número entero")
       .min(1, "La versión debe ser mayor a 0")

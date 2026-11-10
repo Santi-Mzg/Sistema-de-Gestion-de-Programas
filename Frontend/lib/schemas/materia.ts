@@ -15,8 +15,7 @@ export const createMateriaSchema = z.object({
 
   areaId: z
     .number({
-      required_error: "Debe seleccionar un área",
-      invalid_type_error: "Debe seleccionar un área",
+        error: "Debe seleccionar un área"
     })
     .positive("Debe seleccionar un área"),
 });

@@ -16,8 +16,7 @@ const numeroRequerido = (message: string) =>
     },
     z
       .number({
-        required_error: message,
-        invalid_type_error: message,
+          error: message
       })
       .int(message)
       .positive(message)
@@ -25,7 +24,7 @@ const numeroRequerido = (message: string) =>
 
   const textoRequerido = (mensaje: string) =>
     z.string({
-      required_error: mensaje,
+      error: mensaje,
     })
     .trim()
     .min(1, mensaje);
@@ -63,15 +62,13 @@ export const programaAdminSchema = z.object({
   contenidosMinimos: z.string().optional(),
   materiaId: z
     .number({
-      required_error: "Debe seleccionar una materia.",
-      invalid_type_error: "Debe seleccionar una materia.",
+      error: "Debe seleccionar una materia.",
     })
     .min(1, "Debe seleccionar una materia."),
 
   docenteResponsableId: z
     .number({
-      required_error: "Debe seleccionar un docente responsable.",
-      invalid_type_error: "Debe seleccionar un docente responsable.",
+      error: "Debe seleccionar un docente responsable.",
     })
     .min(1, "Debe seleccionar un docente responsable."),
 
@@ -85,15 +82,13 @@ export const programaAdminSchema = z.object({
 
   cantidadSemanas: z
     .number({
-      required_error: "La cantidad de semanas es obligatoria.",
-      invalid_type_error: "La cantidad de semanas es obligatoria.",
+      error: "La cantidad de semanas es obligatoria.",
     })
     .min(1, "Debe ser mayor que 0."),
 
   cargaHorariaSemanal: z
     .number({
-      required_error: "La carga horaria semanal es obligatoria.",
-      invalid_type_error: "La carga horaria semanal es obligatoria.",
+      error: "La carga horaria semanal es obligatoria.",
     })
     .min(1, "Debe ser mayor que 0."),
 
@@ -103,8 +98,7 @@ export const programaAdminSchema = z.object({
 
   creditos: z
     .number({
-      required_error: "Los créditos son obligatorios.",
-      invalid_type_error: "Los créditos son obligatorios.",
+      error: "Los créditos son obligatorios.",
     })
     .min(1, "Debe ser mayor que 0."),
 
