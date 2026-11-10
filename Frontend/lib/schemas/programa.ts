@@ -29,7 +29,7 @@ const numeroRequerido = (message: string) =>
     })
     .trim()
     .min(1, mensaje);
-    
+
 
 export const programaCarreraSchema = z.object({
   key: z.string().optional(),
@@ -56,16 +56,11 @@ export const programaCarreraSchema = z.object({
     .trim()
     .optional(),
 
-  contenidosMinimos: z
-    .string()
-    .trim()
-    .min(1, "Los contenidos mínimos son obligatorios."),
+
 })
 
-export type ProgramaCarreraFormData = z.infer<typeof programaCarreraSchema>;
-
-
 export const programaAdminSchema = z.object({
+  contenidosMinimos: z.string().optional(),
   materiaId: z
     .number({
       required_error: "Debe seleccionar una materia.",
@@ -73,7 +68,7 @@ export const programaAdminSchema = z.object({
     })
     .min(1, "Debe seleccionar una materia."),
 
-  profesorResponsableId: z
+  docenteResponsableId: z
     .number({
       required_error: "Debe seleccionar un docente responsable.",
       invalid_type_error: "Debe seleccionar un docente responsable.",
@@ -81,8 +76,12 @@ export const programaAdminSchema = z.object({
     .min(1, "Debe seleccionar un docente responsable."),
 
   bloqueMultiple: z
-    .array(programaCarreraSchema)
-    .min(1, "Debe agregar al menos una carrera."),
+    .array(programaCarreraSchema.extend({
+      // Administración consulta estos campos; su completitud se exige en Secretaría inicial.
+      carreraPlanId: z.number().optional(),
+      ubicacionEnPlan: z.string().optional(),
+    }))
+    .default([]),
 
   cantidadSemanas: z
     .number({
@@ -119,6 +118,12 @@ export const programaAdminSchema = z.object({
 
 });
 
+export const programaSecretariaInicialSchema = programaAdminSchema.extend({
+  contenidosMinimos: textoRequerido("Los contenidos mínimos son obligatorios"),
+  bloqueMultiple: z.array(programaCarreraSchema).min(1, "Debe agregar al menos una carrera"),
+});
+export type ProgramaSecretariaInicialFormData = z.infer<typeof programaSecretariaInicialSchema>;
+
 export type ProgramaAdminFormData = z.infer<typeof programaAdminSchema>;
 
 
@@ -140,11 +145,11 @@ export const programaDocenteSchema = z.object({
   ),
 
   metodologia: textoRequerido(
-    "La metodología es obligatoria"
+    "La metodología de enseñanza y actividades de aprendizaje es obligatoria"
   ),
 
   modalidadEvaluacion: textoRequerido(
-    "La modalidad de evaluación es obligatoria"
+    "El sistema de evaluación es obligatorio"
   ),
 
   bibliografia: textoRequerido(

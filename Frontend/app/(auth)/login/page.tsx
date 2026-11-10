@@ -1,5 +1,6 @@
 "use client"
 
+import axios from "axios"
 import { useContext, useState } from "react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { loginSchema, type LoginFormData } from "@/lib/schemas"
+import { loginSchema, type LoginFormData } from "@/lib/schemas/auth"
 import { useLoginFlow } from "@/hooks/use-login"
 import { AboutDialog } from "@/components/modals/about-dialog"
 
@@ -37,9 +38,11 @@ export default function LoginPage() {
       })
 
       router.push("/")
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error?.response?.data?.errors?.Error || error?.response?.data?.message || "Error al iniciar sesión"
+        axios.isAxiosError(error)
+          ? error.response?.data?.errors?.Error || error.response?.data?.message || "Error al iniciar sesión"
+          : "Error al iniciar sesión"
       setBackendError(errorMessage)
       console.error("Error al iniciar sesión:", error)
     } finally {
@@ -65,7 +68,7 @@ export default function LoginPage() {
                 
                 <img src="/uns_pluma_orig_bgless.png" alt="Logo UNS" className="h-18 ml-1" />
               </div>
-              <p className="text-muted-foreground mt-2">Sistema de Gestión de Programas</p>
+              <p className="text-muted-foreground mt-2">Sistema de gestión de programas</p>
             </div>
           </Link>
         </div>
@@ -73,7 +76,7 @@ export default function LoginPage() {
         {/* Login Card */}
         <Card className="border-2 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+            <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
             <CardDescription>Ingresa tus credenciales para acceder al sistema</CardDescription>
           </CardHeader>
           <CardContent>
@@ -91,7 +94,7 @@ export default function LoginPage() {
               {/* Legajo Field */}
               <div className="space-y-2">
                 <label htmlFor="legajo" className="text-sm font-medium text-foreground">
-                  Número de Legajo
+                  Número de legajo
                 </label>
                 <Input
                   id="legajo"
@@ -135,7 +138,7 @@ export default function LoginPage() {
 
               {/* Submit Button */}
               <Button type="submit" className="w-full" disabled={isLoading} size="lg">
-                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
 
               {/* Forgot Password Link */}
