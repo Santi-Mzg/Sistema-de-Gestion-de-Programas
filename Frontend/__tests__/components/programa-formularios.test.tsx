@@ -248,6 +248,35 @@ describe('campos y operaciones de cada formulario', () => {
     return user;
   }
 
+  it('creación desde cero muestra los errores y envía una sola vez después de completar los campos', async () => {
+    estado.vigente = undefined;
+    mostrar(<SyllabusCreationForm />);
+    const user = await seleccionarMateriaCreacion();
+
+    await user.click(screen.getByRole('button', { name: 'Enviar a secretaría' }));
+    expect(await screen.findByText('Debe seleccionar un docente responsable.')).toBeInTheDocument();
+    expect(screen.getByText('La cantidad de semanas es obligatoria.')).toBeInTheDocument();
+    expect(screen.getByText('La carga horaria semanal es obligatoria.')).toBeInTheDocument();
+    expect(screen.getByText('Los créditos son obligatorios.')).toBeInTheDocument();
+    expect(request).not.toHaveBeenCalled();
+
+    await user.click(screen.getByText('Seleccionar docente...'));
+    await user.click(screen.getByRole('option', { name: /Pérez, Ana/ }));
+    await user.type(screen.getByLabelText('Cantidad de semanas *'), '16');
+    await user.type(screen.getByLabelText('Carga horaria semanal *'), '4');
+    await user.type(screen.getByLabelText('Créditos *'), '6');
+    await user.click(screen.getByRole('button', { name: 'Enviar a secretaría' }));
+
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+    expect(request).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/departamentos/6/programas', method: 'POST',
+      data: expect.objectContaining({ materiaId: 1, docenteResponsableId: 10,
+        cantidadSemanas: 16, cargaHorariaSemanal: 4, cargaHorariaTotal: 64,
+        creditos: 6, bloqueMultiple: [] }),
+    }));
+    await waitFor(() => expect(estado.push).toHaveBeenCalledWith('/'));
+  });
+
   it('la materia inicial espera la carga del departamento y permite cambiar la selección después', async () => {
     estado.materiasCargadas = false; estado.vigente = undefined;
     const vista = mostrar(<SyllabusCreationForm materiaIdInicial="1" />);

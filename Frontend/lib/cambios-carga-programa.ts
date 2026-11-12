@@ -1,8 +1,8 @@
 import type { ProgramaResponseDTO } from '@/app/api/generated/model';
-import type { ProgramaAdminFormData, ProgramaDocenteFormData } from '@/lib/schemas/programa';
+import type { ProgramaAdminFormInput, ProgramaDocenteFormInput } from '@/lib/schemas/programa';
 
 /** Compara únicamente los campos que el actor puede guardar, contra el programa persistido. */
-export function tieneCambiosCargaDocente(valores: ProgramaDocenteFormData, programa?: ProgramaResponseDTO): boolean {
+export function tieneCambiosCargaDocente(valores: ProgramaDocenteFormInput, programa?: ProgramaResponseDTO): boolean {
   if (!programa) return false;
 
   return (valores.cargaHorariaPractica ?? 0) !== (programa.cargaHorariaPractica ?? 0)
@@ -10,7 +10,7 @@ export function tieneCambiosCargaDocente(valores: ProgramaDocenteFormData, progr
       .some(campo => (valores[campo] ?? '') !== (programa[campo] ?? ''));
 }
 
-export function tieneCambiosCargaSecretaria(valores: ProgramaAdminFormData, programa?: ProgramaResponseDTO): boolean {
+export function tieneCambiosCargaSecretaria(valores: ProgramaAdminFormInput, programa?: ProgramaResponseDTO): boolean {
   if (!programa) return false;
 
   if ((valores.materiaId ?? 0) !== (programa.materia?.id ?? 0)

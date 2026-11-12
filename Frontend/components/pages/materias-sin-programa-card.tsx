@@ -48,14 +48,14 @@ export function MateriasSinProgramaCard({ deptId, rol }: { deptId: number; rol: 
                   <td className="px-3 py-2 text-muted-foreground">{materia.codigo}</td>
                   <td className="px-3 py-2 text-muted-foreground">{materia.area}</td>
                   <td className="px-3 py-2 text-center"><div className="flex flex-wrap items-center justify-center gap-2">
-                    <Button asChild variant="outline" size="icon" className="h-7 w-7">
-                      <Link href={`/materias/${materia.id}`} aria-label={`Ver materia ${materia.nombre}`}><Eye size={16} /></Link>
-                    </Button>
                     {rol === 'ADMINISTRACION' && !!materia.id && <Button asChild variant="outline" size="sm">
                       <Link href={`/programas/crear?materiaId=${materia.id}`} aria-label={`Crear programa de ${materia.nombre}`}>
                         <Plus size={16} />Crear programa
                       </Link>
                     </Button>}
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/materias/${materia.id}`} aria-label={`Ver materia ${materia.nombre}`}><Eye size={16} /></Link>
+                    </Button>
                   </div></td>
                 </tr>) : <tr><td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                   {search ? 'No se encontraron materias con esa búsqueda.' : 'Todas las materias del departamento tienen un programa para el año actual.'}

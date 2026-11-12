@@ -30,7 +30,7 @@ import {
   FieldErrors,
   useWatch,
 } from "react-hook-form";
-import { ProgramaSecretariaInicialFormData } from "@/lib/schemas/programa"
+import { ProgramaSecretariaInicialFormData, ProgramaSecretariaInicialFormInput } from "@/lib/schemas/programa"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 
 interface ProgramaCarreraBlockProps {
@@ -38,10 +38,10 @@ interface ProgramaCarreraBlockProps {
   index: number;
   carreras: CarreraResponseDTO[];
   carreraPlanIdsSeleccionados: number[];
-  control: Control<ProgramaSecretariaInicialFormData>;
-  register: UseFormRegister<ProgramaSecretariaInicialFormData>;
-  setValue: UseFormSetValue<ProgramaSecretariaInicialFormData>;
-  errors: FieldErrors<ProgramaSecretariaInicialFormData>;
+  control: Control<ProgramaSecretariaInicialFormInput, unknown, ProgramaSecretariaInicialFormData>;
+  register: UseFormRegister<ProgramaSecretariaInicialFormInput>;
+  setValue: UseFormSetValue<ProgramaSecretariaInicialFormInput>;
+  errors: FieldErrors<ProgramaSecretariaInicialFormInput>;
   onRemove: (index: number) => void;
 }
 export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlock({

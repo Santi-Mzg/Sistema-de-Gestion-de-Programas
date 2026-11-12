@@ -52,7 +52,7 @@ import { formComboboxStyles } from "@/lib/form-field-styles"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ProgramaSecretariaInicialFormData, programaSecretariaInicialSchema } from "@/lib/schemas/programa"
+import { ProgramaSecretariaInicialFormData, ProgramaSecretariaInicialFormInput, programaSecretariaInicialSchema } from "@/lib/schemas/programa"
 import { FieldErrors, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 import { RechazoConCambiosDialog } from '@/components/modals/rechazo-con-cambios-dialog';
@@ -99,7 +99,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
     setFocus,
     handleSubmit,
     formState: { errors, isDirty }
-  } = useForm<ProgramaSecretariaInicialFormData>({
+  } = useForm<ProgramaSecretariaInicialFormInput, unknown, ProgramaSecretariaInicialFormData>({
       resolver: zodResolver(programaSecretariaInicialSchema),
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -270,7 +270,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
   }
 
   const onInvalid = (
-    formErrors: FieldErrors<ProgramaSecretariaInicialFormData>
+    formErrors: FieldErrors<ProgramaSecretariaInicialFormInput>
   ) => {
     if (formErrors.materiaId) {
       focusPopover(materiaButtonRef)

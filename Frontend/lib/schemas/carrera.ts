@@ -40,4 +40,5 @@ export const createCarreraSchema = z.object({
     .min(1, "La duración es obligatoria")
 });
 
-export type CreateCarreraFormData = z.infer<typeof createCarreraSchema>;
+export type CreateCarreraFormInput = z.input<typeof createCarreraSchema>;
+export type CreateCarreraFormData = z.output<typeof createCarreraSchema>;

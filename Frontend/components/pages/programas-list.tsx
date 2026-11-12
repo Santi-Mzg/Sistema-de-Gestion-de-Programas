@@ -5,7 +5,7 @@ import {
 } from "@/app/api/generated/client";
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, FileText, FolderClock, Trash2 } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, FileText, FolderClock, Trash2, Plus } from "lucide-react"
 import { EstadoPrograma, ProgramaResponseReducedDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { ProgramaAcciones } from "./programa-acciones"
@@ -301,7 +301,7 @@ export function ProgramasList({
                       <p className="text-base">No se encontraron programas con los filtros seleccionados</p>
                       {(activeRole === "ADMINISTRACION") && (
                         <Link href="/programas/crear">
-                          <Button>Nuevo programa</Button>
+                          <Button className="h-9" size='sm'><Plus size={16} className="mr-1" />Nuevo programa</Button>
                         </Link>
                       )}
                     </div>

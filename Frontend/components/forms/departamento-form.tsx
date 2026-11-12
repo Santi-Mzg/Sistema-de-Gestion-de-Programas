@@ -14,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useHeader } from "@/context/header-context"
 import { Building2 } from "lucide-react"
 import axios from "axios"
-import { departamentoSchema, DepartamentoFormData } from "@/lib/schemas/departamento"
+import { departamentoSchema, DepartamentoFormData, DepartamentoFormInput } from "@/lib/schemas/departamento"
 
 export function DepartamentoForm() {
   const router = useRouter()
@@ -26,7 +26,7 @@ export function DepartamentoForm() {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<DepartamentoFormData>({
+  } = useForm<DepartamentoFormInput, unknown, DepartamentoFormData>({
     resolver: zodResolver(departamentoSchema),
     defaultValues: {
       nombre: "",

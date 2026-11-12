@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CreateCarreraFormData, createCarreraSchema } from "@/lib/schemas/carrera"
+import { CreateCarreraFormData, CreateCarreraFormInput, createCarreraSchema } from "@/lib/schemas/carrera"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useDept } from "@/context/dept-context"
 import { useCreateCarrera } from "@/app/api/generated/client"
@@ -44,7 +44,7 @@ export function CarreraForm() {
     formState: { errors }, 
     reset,
     setValue
-  } = useForm<CreateCarreraFormData>({
+  } = useForm<CreateCarreraFormInput, unknown, CreateCarreraFormData>({
     resolver: zodResolver(createCarreraSchema)
   })
 

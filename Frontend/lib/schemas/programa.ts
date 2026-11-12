@@ -1,8 +1,9 @@
 import { z } from "zod"
 
 const numeroRequerido = (message: string) =>
-  z.preprocess(
-    (value) => {
+  // Los controles numéricos entregan números (incluido NaN) o un valor aún sin completar.
+  z.preprocess<number | undefined, z.ZodNumber, number | undefined>(
+    (value: unknown) => {
       if (
         value === undefined ||
         value === null ||
@@ -116,9 +117,11 @@ export const programaSecretariaInicialSchema = programaAdminSchema.extend({
   contenidosMinimos: textoRequerido("Los contenidos mínimos son obligatorios"),
   bloqueMultiple: z.array(programaCarreraSchema).min(1, "Debe agregar al menos una carrera"),
 });
-export type ProgramaSecretariaInicialFormData = z.infer<typeof programaSecretariaInicialSchema>;
+export type ProgramaSecretariaInicialFormInput = z.input<typeof programaSecretariaInicialSchema>;
+export type ProgramaSecretariaInicialFormData = z.output<typeof programaSecretariaInicialSchema>;
 
-export type ProgramaAdminFormData = z.infer<typeof programaAdminSchema>;
+export type ProgramaAdminFormInput = z.input<typeof programaAdminSchema>;
+export type ProgramaAdminFormData = z.output<typeof programaAdminSchema>;
 
 
 export const programaDocenteSchema = z.object({
@@ -151,4 +154,5 @@ export const programaDocenteSchema = z.object({
   ),
 });
 
-export type ProgramaDocenteFormData = z.infer<typeof programaDocenteSchema>;
+export type ProgramaDocenteFormInput = z.input<typeof programaDocenteSchema>;
+export type ProgramaDocenteFormData = z.output<typeof programaDocenteSchema>;

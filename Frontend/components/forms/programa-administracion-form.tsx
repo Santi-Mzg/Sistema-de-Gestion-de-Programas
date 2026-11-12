@@ -50,7 +50,7 @@ import { formComboboxStyles } from "@/lib/form-field-styles"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ProgramaAdminFormData, programaAdminSchema } from "@/lib/schemas/programa"
+import { ProgramaAdminFormData, ProgramaAdminFormInput, programaAdminSchema } from "@/lib/schemas/programa"
 import { FieldErrors, useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
 import { ProgramaCarreraBlockView } from "./programa-carrera-block-view"
@@ -84,7 +84,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
     setFocus,
     handleSubmit,
     formState: { errors, isDirty }
-  } = useForm<ProgramaAdminFormData>({
+  } = useForm<ProgramaAdminFormInput, unknown, ProgramaAdminFormData>({
       resolver: zodResolver(programaAdminSchema),
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -246,7 +246,7 @@ export function SyllabusAdministrativoForm({ id }: SyllabusFormProps) {
   }
 
   const onInvalid = (
-    formErrors: FieldErrors<ProgramaAdminFormData>
+    formErrors: FieldErrors<ProgramaAdminFormInput>
   ) => {
     if (formErrors.materiaId) {
       focusPopover(materiaButtonRef)

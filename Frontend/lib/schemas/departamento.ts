@@ -26,4 +26,5 @@ export const departamentoSchema = z.object({
 });
 
 
-export type DepartamentoFormData = z.infer<typeof departamentoSchema>;
+export type DepartamentoFormInput = z.input<typeof departamentoSchema>;
+export type DepartamentoFormData = z.output<typeof departamentoSchema>;

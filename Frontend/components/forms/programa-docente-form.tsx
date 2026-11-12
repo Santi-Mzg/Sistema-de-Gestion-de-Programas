@@ -21,7 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useHeader } from "@/context/header-context"
 import axios from "axios"
-import { ProgramaDocenteFormData, programaDocenteSchema } from "@/lib/schemas/programa"
+import { ProgramaDocenteFormData, ProgramaDocenteFormInput, programaDocenteSchema } from "@/lib/schemas/programa"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useWatch } from "react-hook-form"
 import { LabelWithTooltip } from "../ui/label-with-tooltip"
@@ -49,7 +49,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
       reset,
       handleSubmit,
       formState: { errors, isDirty }
-    } = useForm<ProgramaDocenteFormData>({
+    } = useForm<ProgramaDocenteFormInput, unknown, ProgramaDocenteFormData>({
         resolver: zodResolver(programaDocenteSchema),
         defaultValues: {
             cargaHorariaPractica: undefined,

@@ -148,7 +148,7 @@ export function AdministracionDashboard() {
             size="lg"
           >
             <Plus size={20} />
-            {showForm ? "Cancelar" : "Crear nuevo programa"}
+            {showForm ? "Cancelar" : "Crear programa"}
           </Button>
         </Link>
       </div>
