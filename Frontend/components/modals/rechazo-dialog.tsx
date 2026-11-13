@@ -28,25 +28,32 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destin
   const [step, setStep] = useState<"destino" | "justificacion">("destino")
   const [selectedDestino, setSelectedDestino] = useState<Rol>("ADMINISTRACION")
   const [justificacion, setJustificacion] = useState("")
+  const [previousOpen, setPreviousOpen] = useState(open)
+
+  // Una nueva apertura inicia otro intento; confirmar o recibir un error conserva el actual.
+  if (previousOpen !== open) {
+    setPreviousOpen(open)
+    if (open) {
+      setStep("destino")
+      setSelectedDestino(destinos?.[0] ?? "ADMINISTRACION")
+      setJustificacion("")
+    }
+  }
 
   const handleNextStep = () => {
-    setStep("justificacion")
+    if (!isLoading) setStep("justificacion")
   }
 
   const handleConfirm = () => {
-    onConfirm(selectedDestino, justificacion)
-    setStep("destino")
-    setJustificacion("")
+    if (!isLoading && justificacion.trim()) onConfirm(selectedDestino, justificacion)
   }
 
   const handleCancel = () => {
-    onOpenChange(false)
-    setStep("destino")
-    setJustificacion("")
+    if (!isLoading) onOpenChange(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={value => { if (!isLoading) onOpenChange(value) }}>
       <DialogContent className="sm:max-w-md">
         {step === "destino" ? (
           <>
@@ -58,7 +65,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destin
             <div className="space-y-3">
               {(destinos ?? (activeRole === 'DOCENTE' ? ['ADMINISTRACION', 'SECRETARIA'] : ['ADMINISTRACION', 'SECRETARIA', 'DOCENTE'])).map(destino => (
                 <label key={destino} className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-primary/5">
-                  <input type="radio" name="destino" value={destino} checked={selectedDestino === destino}
+                  <input type="radio" name="destino" value={destino} checked={selectedDestino === destino} disabled={isLoading}
                     onChange={() => setSelectedDestino(destino as Rol)} />
                   <span className="font-semibold">{destino === 'ADMINISTRACION' ? 'Administración' : destino === 'SECRETARIA' ? 'Secretaría inicial' : 'Docente responsable'}</span>
                 </label>
@@ -66,10 +73,10 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destin
             </div>
 
             <DialogFooter className="gap-3">
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button type="button" onClick={handleNextStep} className="bg-primary hover:bg-primary/90">
+              <Button type="button" onClick={handleNextStep} disabled={isLoading} className="bg-primary hover:bg-primary/90">
                 Siguiente
               </Button>
             </DialogFooter>
@@ -98,6 +105,7 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destin
                 <Textarea
                   id="justificacion"
                   value={justificacion}
+                  disabled={isLoading}
                   onChange={(e) => setJustificacion(e.target.value)}
                   placeholder="Describe los motivos del rechazo y qué debe corregirse..."
                   className="border-border focus:border-primary min-h-24 resize-none"
@@ -106,10 +114,10 @@ export function RechazoDialog({ open, onOpenChange, onConfirm, isLoading, destin
             </div>
 
             <DialogFooter className="gap-3">
-              <Button type="button" variant="outline" onClick={() => setStep("destino")}>
+              <Button type="button" variant="outline" onClick={() => setStep("destino")} disabled={isLoading}>
                 Atrás
               </Button>
-              <Button type="button" onClick={handleCancel} variant="outline">
+              <Button type="button" onClick={handleCancel} variant="outline" disabled={isLoading}>
                 Cancelar
               </Button>
               <Button

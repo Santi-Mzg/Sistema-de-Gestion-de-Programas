@@ -46,6 +46,7 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
   const { mutate, isPending } = useActualizarEstado({
     mutation: {
       onSuccess: async (data, variables) => {
+        setRechazDialogOpen(false)
         toast({
           title: "✓ Éxito",
           description: `Programa ${variables.data.accion === EstadoUpdateDTOAccion.APROBAR ? "aprobado" : "rechazado"} exitosamente`,
@@ -151,8 +152,6 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
       destinoRechazo: destino,
       justificacion: justificacion,
     }
-
-    setRechazDialogOpen(false)
 
     mutate({
       deptId: activeDepartamento?.departamentoId ?? 0,

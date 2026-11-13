@@ -133,6 +133,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
   const { mutate: mutateEstado, isPending: isPendingEstado } = useActualizarEstado({
     mutation: {
       onSuccess: async (data, variables) => {
+        setRechazDialogOpen(false)
         toast({
           title: "✓ Éxito",
           description: `Programa rechazado exitosamente`,
@@ -264,7 +265,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
   })
 
   useEffect(() => {
-    if (!isDirty || rechazDialogOpen) return
+    if (!isDirty || rechazDialogOpen || isPendingEstado) return
     if (!activeDepartamento?.departamentoId) return
     if (!programa?.materia?.id) return
 
@@ -284,6 +285,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
     return () => clearTimeout(handler)
   }, [
     rechazDialogOpen,
+    isPendingEstado,
     formValues,
     isDirty,
     activeDepartamento?.departamentoId,
@@ -770,7 +772,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
           <Button
             type="button"
             onClick={handleSubmit(onSubmit)}
-            disabled={isPendingDocente || isPendingFormatoAPA}
+            disabled={isPendingDocente || isPendingFormatoAPA || isPendingEstado}
             className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
           >
             {isPendingDocente ? "Cargando..." : "Cargar datos"}
@@ -779,7 +781,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
             <Button
               type="button"
               onClick={() => setRechazDialogOpen(true)}
-              disabled={isPendingDocente}
+              disabled={isPendingDocente || isPendingEstado}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
               ✕ Rechazar

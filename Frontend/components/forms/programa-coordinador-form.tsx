@@ -63,16 +63,10 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
   });
   const saveDraft = useSaveDraft();
   const valorInicial = programa?.bloqueMultiple?.find(b => b.plan?.id === carreraId)?.contribucion ?? '';
-  useEffect(() => {
-    if (!bloque || rechazDialogOpen || (bloque.contribucion ?? '') === valorInicial || !programa?.materia?.id) return;
-    const timer = setTimeout(() => saveDraft.mutate({ deptId: activeDepartamento!.departamentoId!, materiaId: programa.materia!.id!,
-      params: draftParams, data: { payloadJson: JSON.stringify({ contribucion: bloque.contribucion ?? '' }) } }), 2000);
-    return () => clearTimeout(timer);
-  }, [bloque?.contribucion, valorInicial, rechazDialogOpen, programa?.materia?.id, activeDepartamento?.departamentoId, activeRole, carreraId]);
-
   const { mutate, isPending } = useActualizarEstado({
     mutation: {
       onSuccess: async (data, variables) => {
+        setRechazDialogOpen(false);
         toast({
           title: "✓ Éxito",
           description: `Programa ${variables.data.accion === EstadoUpdateDTOAccion.APROBAR ? "aprobado" : "rechazado"} exitosamente`,
@@ -105,6 +99,13 @@ export function SyllabusCoordinadorForm({ id, carreraId }: SyllabusFormProps) {
         },
     }
   });
+
+  useEffect(() => {
+    if (!bloque || rechazDialogOpen || isPending || (bloque.contribucion ?? '') === valorInicial || !programa?.materia?.id) return;
+    const timer = setTimeout(() => saveDraft.mutate({ deptId: activeDepartamento!.departamentoId!, materiaId: programa.materia!.id!,
+      params: draftParams, data: { payloadJson: JSON.stringify({ contribucion: bloque.contribucion ?? '' }) } }), 2000);
+    return () => clearTimeout(timer);
+  }, [bloque?.contribucion, valorInicial, rechazDialogOpen, isPending, programa?.materia?.id, activeDepartamento?.departamentoId, activeRole, carreraId]);
 
     const {setHeader} = useHeader();
 

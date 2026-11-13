@@ -18,8 +18,13 @@ type Props = {
 /** La elección es local: solo la confirmación del rechazo ejecuta una escritura. */
 export function RechazoConCambiosDialog({ open, onOpenChange, onConfirm, isLoading, hayCambios }: Props) {
   const [eleccion, setEleccion] = useState<boolean | null>(null);
+  const [previousOpen, setPreviousOpen] = useState(open);
   const { activeRole } = useRole();
-  const cancelar = () => { setEleccion(null); onOpenChange(false); };
+  if (previousOpen !== open) {
+    setPreviousOpen(open);
+    if (open) setEleccion(null);
+  }
+  const cancelar = () => { if (!isLoading) onOpenChange(false); };
   return <>
     <Dialog open={open && hayCambios && eleccion === null} onOpenChange={value => { if (!value) cancelar(); }}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg">
@@ -28,9 +33,9 @@ export function RechazoConCambiosDialog({ open, onOpenChange, onConfirm, isLoadi
           <DialogDescription>La elección se aplicará cuando confirme el destino y la justificación. Si cancela, conserva su trabajo y el borrador.</DialogDescription>
         </DialogHeader>
         <DialogFooter className="min-w-0 flex-col gap-2 sm:flex-col sm:space-x-0">
-          <Button className="h-auto min-h-9 w-full whitespace-normal break-words py-2" onClick={() => setEleccion(true)}>Guardar cambios y continuar</Button>
-          <Button className="h-auto min-h-9 w-full whitespace-normal break-words py-2" variant="outline" onClick={() => setEleccion(false)}>Descartar cambios y continuar</Button>
-          <Button className="h-auto min-h-9 w-full whitespace-normal break-words py-2" variant="outline" onClick={cancelar}>Cancelar</Button>
+          <Button type="button" disabled={isLoading} className="h-auto min-h-9 w-full whitespace-normal break-words py-2" onClick={() => setEleccion(true)}>Guardar cambios y continuar</Button>
+          <Button type="button" disabled={isLoading} className="h-auto min-h-9 w-full whitespace-normal break-words py-2" variant="outline" onClick={() => setEleccion(false)}>Descartar cambios y continuar</Button>
+          <Button type="button" disabled={isLoading} className="h-auto min-h-9 w-full whitespace-normal break-words py-2" variant="outline" onClick={cancelar}>Cancelar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

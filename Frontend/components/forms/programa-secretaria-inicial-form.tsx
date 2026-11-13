@@ -72,6 +72,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
   const [rechazoOpen, setRechazoOpen] = useState(false);
   const estadoMutation = useActualizarEstado({ mutation: {
     onSuccess: async () => {
+      setRechazoOpen(false);
       await invalidarConsultasPrograma(queryClient, {
         departamentoId: activeDepartamento!.departamentoId!, programaId: id,
       });
@@ -369,7 +370,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
   })
 
   useEffect(() => {
-    if (!isDirty || rechazoOpen) return
+    if (!isDirty || rechazoOpen || estadoMutation.isPending) return
     if (!activeDepartamento?.departamentoId) return
     if (!programa?.materia?.id) return
 
@@ -389,6 +390,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
     return () => clearTimeout(handler)
   }, [
     rechazoOpen,
+    estadoMutation.isPending,
     formValues,
     isDirty,
     activeDepartamento?.departamentoId,
@@ -1095,7 +1097,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Button
               type="button"
               onClick={handleSubmit(onSubmit, onInvalid)}
-              disabled={isPending}
+              disabled={isPending || estadoMutation.isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
               {isPending ? "Cargando..." : "Enviar al docente"}
@@ -1104,7 +1106,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Button
               type="button"
               onClick={() => setRechazoOpen(true)}
-              disabled={isPending}
+              disabled={isPending || estadoMutation.isPending}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
               ✕ Rechazar
