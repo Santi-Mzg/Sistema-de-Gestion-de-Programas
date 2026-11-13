@@ -84,6 +84,97 @@ function esperarDatosConsulta(container: HTMLElement) {
   expect(control(container, 'fundamentacion')).toBeDisabled();
 }
 
+const actoresRechazo = [
+  { nombre: 'CCC', rol: 'COORDINACION_COMISION_CURRICULAR', destino: 'Docente responsable', formulario: () => <SyllabusCoordinadorForm id={12} carreraId={8} /> },
+  { nombre: 'Docente', rol: 'DOCENTE', destino: 'Secretaría inicial', formulario: () => <SyllabusDocenteForm id={12} /> },
+  { nombre: 'Secretaría inicial', rol: 'SECRETARIA', destino: 'Administración', formulario: () => <SyllabusSecretariaInicialForm id={12} /> },
+  { nombre: 'Área', rol: 'COORDINADOR_AREA', destino: 'Docente responsable', formulario: () => <SyllabusSecretariaForm id={12} /> },
+  { nombre: 'Secretaría final', rol: 'SECRETARIA', destino: 'Docente responsable', formulario: () => <SyllabusSecretariaForm id={12} /> },
+];
+
+async function completarRechazo(caso: typeof actoresRechazo[number], guardarCambios?: boolean) {
+  estado.rol = caso.rol;
+  const vista = mostrar(caso.formulario());
+  if (guardarCambios !== undefined) {
+    const campo = caso.nombre === 'CCC' ? 'contribucion' : caso.nombre === 'Docente' ? 'objetivos' : 'contenidosMinimos';
+    fireEvent.change(control(vista.container, campo), { target: { value: 'Edición pendiente de guardar' } });
+  }
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: /^(?:✕\s*)?Rechazar$/ }));
+  if (guardarCambios !== undefined) {
+    await user.click(screen.getByRole('button', { name: guardarCambios ? 'Guardar cambios y continuar' : 'Descartar cambios y continuar' }));
+  }
+  await user.click(screen.getByRole('radio', { name: caso.destino }));
+  await user.click(screen.getByRole('button', { name: 'Siguiente' }));
+  await user.type(screen.getByLabelText('Justificación *'), 'Corregir la información indicada');
+  return user;
+}
+
+describe('ciclo del diálogo de rechazo en todos los actores', () => {
+  it.each(actoresRechazo)('$nombre conserva la justificación mientras envía y cierra al confirmar éxito, antes del refetch', async caso => {
+    let resolverEnvio!: (programa: ProgramaResponseDTO) => void;
+    let resolverRefresco!: () => void;
+    request.mockImplementation(() => new Promise<ProgramaResponseDTO>(resolve => { resolverEnvio = resolve; }));
+    vi.spyOn(client, 'invalidateQueries').mockImplementation(() => new Promise<void>(resolve => { resolverRefresco = resolve; }));
+    const user = await completarRechazo(caso);
+    await user.click(screen.getByRole('button', { name: /^(?:✕\s*)?Rechazar$/ }));
+    expect(screen.getByRole('dialog', { name: 'Justificación del rechazo' })).toBeInTheDocument();
+    expect(screen.queryByText('¿A quién enviar el rechazo?')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Justificación *')).toHaveValue('Corregir la información indicada');
+    expect(screen.getByRole('button', { name: 'Procesando...' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Procesando...' }));
+    expect(request).toHaveBeenCalledTimes(1);
+    await act(async () => resolverEnvio(estado.programa!));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(estado.push).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /^(?:✕\s*)?Rechazar$/ })).toBeDisabled();
+    await act(async () => resolverRefresco());
+    await waitFor(() => expect(estado.push).toHaveBeenCalledWith('/'));
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(actoresRechazo)('$nombre conserva destino y justificación si falla y permite reintentar', async caso => {
+    request.mockRejectedValueOnce(new Error('Error simulado'));
+    const user = await completarRechazo(caso);
+    await user.click(screen.getByRole('button', { name: /^(?:✕\s*)?Rechazar$/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Rechazar' })).toBeEnabled());
+    expect(screen.getByLabelText('Justificación *')).toHaveValue('Corregir la información indicada');
+    expect(screen.getByRole('dialog')).toHaveTextContent(caso.destino);
+    expect(estado.push).not.toHaveBeenCalled();
+    expect(request).toHaveBeenCalledTimes(1);
+    const primeraDecision = request.mock.calls[0][0];
+    await user.click(screen.getByRole('button', { name: 'Rechazar' }));
+    await waitFor(() => expect(estado.push).toHaveBeenCalledWith('/'));
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[1][0]).toEqual(primeraDecision);
+  });
+
+  it.each(actoresRechazo.slice(0, 3))('$nombre no recrea el borrador al cerrar tras éxito mientras refresca consultas', async caso => {
+    let resolverEnvio!: (programa: ProgramaResponseDTO) => void;
+    let resolverRefresco!: () => void;
+    request.mockImplementation(() => new Promise<ProgramaResponseDTO>(resolve => { resolverEnvio = resolve; }));
+    const refrescar = vi.spyOn(client, 'invalidateQueries').mockImplementation(() => new Promise<void>(resolve => { resolverRefresco = resolve; }));
+    const user = await completarRechazo(caso, true);
+    await user.click(screen.getByRole('button', { name: 'Rechazar' }));
+    expect(request).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ guardarCambios: true }) }));
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        resolverEnvio(estado.programa!);
+        await vi.advanceTimersByTimeAsync(3000);
+      });
+      expect(refrescar).toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(estado.saveDraft).not.toHaveBeenCalled();
+      expect(estado.deleteDraft).not.toHaveBeenCalled();
+      expect(estado.push).not.toHaveBeenCalled();
+      await act(async () => { resolverRefresco(); await vi.advanceTimersByTimeAsync(0); });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe('campos y operaciones de cada formulario', () => {
   it.each([false, true])('Docente ofrece el borrador cuando llega con caché inicial %s y respeta cancelarlo', async enCache => {
     estado.rol = 'DOCENTE';

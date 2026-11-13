@@ -362,7 +362,7 @@
             BLOQUE MÚLTIPLE – CARRERAS / PLANES
         </div>
 
-        <div th:each="pc, iter : ${programa.bloqueMultiple}" class="bloque-carrera">
+        <div th:each="pc, iter : ${bloquesPdf}" class="bloque-carrera">
 
             <div class="bloque-carrera-header">
                 <table class="info-basica">
@@ -419,9 +419,6 @@
             <div class="seccion-titulo">Cómo contribuye la materia a la carrera/plan</div>
             <div class="contenido" th:text="${pc.contribucion}" style="white-space: pre-wrap;"></div>
 
-            <div class="seccion-titulo">Contenidos mínimos de la materia en la carrera/plan</div>
-            <div class="contenido" th:text="${pc.contenidosMinimos}" style="white-space: pre-wrap;"></div>
-
         </div>
     </div>
 
@@ -444,6 +441,9 @@
             </ul>
         </div>
     </div>
+
+    <div class="seccion-titulo">CONTENIDOS MÍNIMOS</div>
+    <div class="contenido" th:text="${programa.contenidosMinimos}" style="white-space: pre-wrap;"></div>
 
     <div class="seccion-titulo">PROGRAMA ANALÍTICO</div>
     <div class="contenido">

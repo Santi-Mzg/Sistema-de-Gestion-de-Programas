@@ -237,8 +237,9 @@ public class ProgramaController {
 
     // PDF
     @GetMapping("/programas/{id}/pdf")
-    public ResponseEntity<byte[]> generarPDF(@PathVariable Long id) {
-        byte[] pdf = pdfService.generarPdf(id);
+    public ResponseEntity<byte[]> generarPDF(@PathVariable Long id,
+                                             @RequestParam(name = "planIds", required = false) List<Long> planIds) {
+        byte[] pdf = pdfService.generarPdf(id, planIds);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);

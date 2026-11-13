@@ -1,7 +1,9 @@
 "use client"
 import { invalidarConsultasPrograma } from "@/lib/invalidacion-consultas";
 import {
-  useDeletePrograma
+  useDeletePrograma,
+  useGetPrograma,
+  getGetProgramaQueryKey
 } from "@/app/api/generated/client";
 
 import { useState, useMemo, useEffect } from "react"
@@ -22,6 +24,7 @@ import { useDept } from "@/context/dept-context"
 import { useQueryClient } from "@tanstack/react-query"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import axios from "axios"
+import { PDFGeneratorDialog } from "../modals/pdf-generator-dialog";
 
 interface ProgramasListProps {
   programas?: ProgramaResponseReducedDTO[]
@@ -52,9 +55,12 @@ export function ProgramasList({
   const queryClient = useQueryClient()
   const { mutateAsync: eliminarPrograma, isPending: eliminando } = useDeletePrograma()
   const [programaAEliminar, setProgramaAEliminar] = useState<ProgramaResponseReducedDTO | null>(null)
+  const [programaPDF, setProgramaPDF] = useState<ProgramaResponseReducedDTO | null>(null)
+  const [generandoPDF, setGenerandoPDF] = useState(false)
   const deptId = activeDepartamento?.departamentoId
   const puedeEliminar = activeRole === Rol.SECRETARIA
     || activeRole === Rol.SYSTEM_ADMIN
+  const puedePDF = activeRole === Rol.SECRETARIA || activeRole === Rol.SYSTEM_ADMIN
   const router = useRouter()
   const [sortField, setSortField] = useState<SortField>("nombreMateria")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
@@ -66,7 +72,16 @@ export function ProgramasList({
   if (previousFormSources === null || previousFormSources[0] !== activeRole || previousFormSources[1] !== deptId) {
     setPreviousFormSources([activeRole, deptId])
     setProgramaAEliminar(null)
+    setProgramaPDF(null)
   }
+
+  const programaPdfQuery = useGetPrograma(programaPDF?.id ?? 0, {
+    query: {
+      queryKey: [...getGetProgramaQueryKey(programaPDF?.id ?? 0), { rol: activeRole, departamentoId: deptId }],
+      enabled: puedePDF && !!programaPDF?.id,
+      retry: false,
+    },
+  })
 
   const handleEliminarConfirm = async () => {
     if (!puedeEliminar || !programaAEliminar?.id || !deptId || eliminando) return
@@ -149,18 +164,26 @@ export function ProgramasList({
     }
   }
 
-  const handleGenerarPDF = async (programaId?: number) => {
-    if (!programaId) return;
+  const handleGenerarPDF = async (planIds?: number[]) => {
+    const programaId = programaPDF?.id;
+    if (!puedePDF || !programaId || generandoPDF || planIds?.length === 0) return;
+    setGenerandoPDF(true);
     const ventana = window.open('about:blank', '_blank');
     try {
-      const contenido = await customInstance<Blob>({ url: '/api/programas/' + programaId + '/pdf', responseType: 'blob' });
+      const contenido = await customInstance<Blob>({
+        url: '/api/programas/' + programaId + '/pdf', responseType: 'blob',
+        ...(planIds ? { params: { planIds: planIds.join(',') } } : {}),
+      });
       const url = URL.createObjectURL(contenido);
       if (ventana) ventana.location.href = url;
       else { const enlace = document.createElement('a'); enlace.href = url; enlace.download = 'programa.pdf'; enlace.click(); }
       setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setProgramaPDF(null);
     } catch {
       ventana?.close();
       toast({ title: 'No se pudo generar el PDF', description: 'Compruebe que el programa esté aprobado y su rol tenga permiso.', variant: 'destructive' });
+    } finally {
+      setGenerandoPDF(false);
     }
   };
 
@@ -285,8 +308,7 @@ export function ProgramasList({
                         onVer={() => router.push(`/programas/${programa.id}`)}
                         onHistorial={() => router.push(`/programas/${programa.id}/historial-estados`)}
                         onVersiones={!esVistaVersiones ? () => router.push(`/programas/materia/${programa.materia?.id}/versiones`) : undefined}
-                        onPdf={(activeRole === 'SECRETARIA' || activeRole === 'SYSTEM_ADMIN') && programa.estado === 'APROBADO'
-                          ? () => { void handleGenerarPDF(programa.id) } : undefined}
+                        onPdf={puedePDF && programa.estado === 'APROBADO' ? () => setProgramaPDF(programa) : undefined}
                         onEliminar={puedeEliminar ? () => setProgramaAEliminar(programa) : undefined}
                         eliminarDeshabilitado={eliminando || !programa.id || !deptId}
                       />
@@ -320,6 +342,21 @@ export function ProgramasList({
           />
         </div>
       </div>
+      {puedePDF && programaPDF && (
+        <PDFGeneratorDialog
+          key={programaPDF.id}
+          open
+          onOpenChange={open => {
+            if (!open) setProgramaPDF(null)
+          }}
+          bloques={programaPdfQuery.data?.bloqueMultiple ?? []}
+          cargando={programaPdfQuery.isLoading || programaPdfQuery.isFetching}
+          error={programaPdfQuery.isError}
+          generando={generandoPDF}
+          onReintentar={() => { void programaPdfQuery.refetch() }}
+          onGenerar={planIds => { void handleGenerarPDF(planIds) }}
+        />
+      )}
       {puedeEliminar && (
         <Dialog open={programaAEliminar !== null} onOpenChange={open => {
           if (!open && !eliminando) setProgramaAEliminar(null)
