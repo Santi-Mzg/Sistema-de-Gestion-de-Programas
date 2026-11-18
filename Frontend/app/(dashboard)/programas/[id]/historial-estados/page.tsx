@@ -2,13 +2,12 @@
 
 import { getGetProgramaQueryKey } from "@/app/api/generated/client";
 import { useGetPrograma } from "@/app/api/generated/client";
-import { EstadoPrograma } from "@/app/api/generated/model";
 import { ProgramaResponseDTO } from "@/app/api/generated/model/programaResponseDTO";
 import { EstadoHistorialFlow } from "@/components/pages/historial-estados-flow";
 import { useHeader } from "@/context/header-context";
 import { useRole } from "@/context/role-context";
-import { getProgramStateLabel } from "@/lib/utils";
-import { AlertCircle, History, Orbit } from "lucide-react";
+import { cn, getProgramStateLabel, getProgramStateStyles } from "@/lib/utils";
+import { AlertCircle, History } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -32,13 +31,15 @@ export default function HistorialEstado() {
 
   useEffect(() => {
     setHeader({
-      title: programa ? `Historial de Estados de ${programa?.materia?.nombre} (${programa?.materia?.codigo}) - Año ${programa?.anio}` : "Nuevo programa académico",
-      subtitle: "Historial de estados de programa académico",
+      title: programa ? `Historial de estados de ${programa.materia?.nombre} (${programa.materia?.codigo}) - Año ${programa.anio}` : "Historial de estados",
+      subtitle: "Intervenciones y devoluciones del programa en orden cronológico",
       badge: (
-        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
-          <Orbit className="text-primary" size={18} />
-          <span className="font-semibold text-primary">{getProgramStateLabel(programa?.estado as EstadoPrograma)}</span>
-        </div>
+        programa?.estado ? <span className={cn(
+          "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-xs font-semibold",
+          getProgramStateStyles(programa.estado),
+        )}>
+          {getProgramStateLabel(programa.estado)}
+        </span> : undefined
       ),
       icon: History
     })
@@ -49,7 +50,7 @@ export default function HistorialEstado() {
       <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-yellow-700">Cargando...</p>
+          <p className="text-muted-foreground">Cargando historial de estados...</p>
         </div>
       </div>
     )
@@ -67,6 +68,8 @@ export default function HistorialEstado() {
   }
 
     return (
-      <EstadoHistorialFlow historial={programa?.historialEstados} />
+      <div className="mx-auto w-full max-w-5xl pb-6">
+        <EstadoHistorialFlow historial={programa.historialEstados} />
+      </div>
     );
 }
