@@ -329,7 +329,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
             {...register(
               `bloqueMultiple.${index}.ubicacionEnPlan`
             )}     
-            placeholder="ej: Segundo cuatrimestre"
             aria-invalid={!!blockErrors?.ubicacionEnPlan}
             className={cn(
               "border-2 focus:border-primary",
@@ -431,7 +430,6 @@ export const ProgramaCarreraCreateBlock = React.memo(function ProgramaCarreraBlo
         <Textarea
           id={`contribucion-${index}`}
           value={block.contribucion}
-          placeholder="Describe la contribución a esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
           disabled
         />

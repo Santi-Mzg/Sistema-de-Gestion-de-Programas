@@ -171,7 +171,6 @@ export function CoordinadorDashboard() {
           totalCarreras={carrerasQuery.data?.totalElements ?? 0}
           cargandoCarreras={carrerasQuery.isLoading}
           errorCarreras={!!carrerasQuery.error}
-          pendientesRevision={totalElements}
           onPendingClick={handlePendingClick}
         />
       }

@@ -716,8 +716,8 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
     <>
       <form className="space-y-8">
         {/* BLOQUE ÚNICO */}
-        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Información básica</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
@@ -755,8 +755,8 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
               <Popover open={openMateriaSelector} onOpenChange={setOpenMateriaSelector}>
                 <PopoverTrigger asChild>
                   <Button
-                  ref={materiaButtonRef}
-                  aria-label="Materia"
+                    ref={materiaButtonRef}
+                    aria-label="Materia"
                     type="button"
                     variant="outline"
                     role="combobox"
@@ -935,7 +935,7 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
           <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
           {/* Carga Horaria */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
                 Cantidad de semanas *
@@ -1025,21 +1025,20 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
                 {errors.creditos && <span className="text-red-500 text-sm">{errors.creditos.message}</span>}
               </div>
             </div>
-          </div>
-
-          {/* Carga Práctica */}
-          <div className="space-y-2">
-            <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-              Carga horaria práctica
-            </Label>
-            <Input
-              id="cargaPractica"
-              type="number"
-              value={watch("cargaHorariaPractica") ?? ""}
-              placeholder="ej: 64"
-              className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              readOnly
-            />
+            {/* Carga Práctica */}
+            <div className="space-y-2">
+              <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
+                Carga horaria práctica
+              </Label>
+              <Input
+                id="cargaPractica"
+                type="number"
+                value={watch("cargaHorariaPractica") ?? ""}
+                placeholder="ej: 64"
+                className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                readOnly
+              />
+            </div>
           </div>
         </div>
 
@@ -1059,7 +1058,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="fundamentacion"
               value={watch("fundamentacion") ?? ""}
-              placeholder="Indique fundamentación de la inclusión de la asignatura en el plan de estudio teniendo en cuenta los descriptores de conocimiento."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1078,7 +1076,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="objetivos"
               value={watch("objetivos") ?? ""}
-              placeholder="Indique los objetos de conocimiento que surgen de agrupar los contenidos que integran saberes del programa analítico"
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1097,7 +1094,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="contenidosMínimos"
               value={watch("contenidosMinimos") ?? ""}
-              placeholder=""
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1115,7 +1111,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="programa"
               value={watch("programaAnalitico") ?? ""}
-              placeholder="Indique la nómina de unidades temáticas y su desarrollo."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1137,10 +1132,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="metodologia"
               value={watch("metodologia") ?? ""}
-              placeholder="Indique las estrategias pedagógicas que utiliza en general y amplíe en caso de metodologías particulares. Desagregue cuando se trate de
-                  prácticas de gabinete, laboratorios, trabajos transversales a diversas asignaturas, actividades remotas (sincrónicas o asincrónicas), viajes o
-                  visitas, trabajos de campo, etc.*
-                  "
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1161,7 +1152,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="evaluacion"
               value={watch("modalidadEvaluacion") ?? ""}
-              placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1179,7 +1169,6 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
             <Textarea
               id="bibliografia"
               value={watch("bibliografia") ?? ""}
-              placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
               readOnly
             />
@@ -1194,7 +1183,7 @@ export function SyllabusCreationForm({ materiaIdInicial }: SyllabusCreationFormP
               disabled={isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
-              {isPending ? "Cargando..." : "Enviar a secretaría"}
+              {isPending ? "Cargando..." : "Cargar programa"}
             </Button>
             <Button
               type="button"

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -22,10 +22,13 @@ afterEach(() => { cleanup(); client.clear(); vi.clearAllMocks(); });
 describe('paginación de pendientes CCC', () => {
   it('envía página y tamaño y mantiene cachés diferentes para cada página', async () => {
     const request = vi.mocked(customInstance);
-    request.mockImplementation(async config => (config.url?.endsWith('/dashboard/resumen') ? {}
+    request.mockImplementation(async config => (config.url?.endsWith('/dashboard/resumen') ? { revisionesPendientes: 9 }
       : { content: [], totalElements: 6, totalPages: 3 }) as never);
     render(<CoordinadorDashboard />, { wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider> });
     await screen.findByText('Página 0');
+    const tarjeta = screen.getByText('Requieren mi atención').closest('[data-slot="card"]') as HTMLElement;
+    expect(within(tarjeta).getByText('9')).toBeInTheDocument();
+    expect(within(tarjeta).getByText('Revisiones pendientes')).toBeInTheDocument();
     expect(request).toHaveBeenCalledWith(expect.objectContaining({ url: '/api/departamentos/6/programas-coordinacion/pendientes',
       params: { rolActivo: 'COORDINACION_COMISION_CURRICULAR', page: 0, size: 2 } }));
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente pendiente' }));
@@ -34,5 +37,22 @@ describe('paginación de pendientes CCC', () => {
       params: { rolActivo: 'COORDINACION_COMISION_CURRICULAR', page: 1, size: 2 },
     })));
     expect(client.getQueryCache().findAll({ predicate: query => query.queryKey[0] === '/api/departamentos/6/programas-coordinacion/pendientes' })).toHaveLength(2);
+    await screen.findByText('Página 1');
+    const tarjetaActual = screen.getByText('Requieren mi atención').closest('[data-slot="card"]') as HTMLElement;
+    expect(within(tarjetaActual).getByText('9')).toBeInTheDocument();
+  });
+
+  it.each([2, 0])('usa las %i revisiones del resumen aunque la bandeja informe un programa', async revisiones => {
+    const request = vi.mocked(customInstance);
+    request.mockImplementation(async config => (config.url?.endsWith('/dashboard/resumen')
+      ? { programasTotales: 1, programasVigentes: 0, pendienteComisiones: 1, revisionesPendientes: revisiones }
+      : { content: [], totalElements: 1, totalPages: 1 }) as never);
+    render(<CoordinadorDashboard />, { wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider> });
+    await screen.findByText('Página 0');
+    const tarjeta = screen.getByText('Requieren mi atención').closest('[data-slot="card"]') as HTMLElement;
+    expect(within(tarjeta).getByText(String(revisiones))).toBeInTheDocument();
+    expect(within(tarjeta).queryByText('1')).not.toBeInTheDocument();
+    expect(within(tarjeta).getByText(revisiones ? 'Revisiones pendientes' : 'No tienes revisiones pendientes')).toBeInTheDocument();
+    expect(screen.getByText('Programas en curso')).toBeInTheDocument();
   });
 });

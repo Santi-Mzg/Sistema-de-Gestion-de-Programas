@@ -657,8 +657,8 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
 
 
         {/* BLOQUE ÚNICO */}
-        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Información básica</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
@@ -829,7 +829,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
           <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
           {/* Carga Horaria */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label htmlFor="semanas" className="text-sm font-semibold text-foreground">
                 Cantidad de semanas *
@@ -923,21 +923,20 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
                 {errors.creditos && <span className="text-red-500 text-sm">{errors.creditos.message}</span>}
               </div>
             </div>
-          </div>
-
-          {/* Carga Práctica */}
-          <div className="space-y-2">
-            <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-              Carga horaria práctica
-            </Label>
-            <Input
-              id="cargaPractica"
-              type="number"
-              value={programa.cargaHorariaPractica}
-              placeholder="ej: 64"
-              className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              disabled
-            />
+            {/* Carga Práctica */}
+            <div className="space-y-2">
+              <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
+                Carga horaria práctica
+              </Label>
+              <Input
+                id="cargaPractica"
+                type="number"
+                value={programa.cargaHorariaPractica}
+                placeholder="ej: 64"
+                className="border-border focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                disabled
+              />
+            </div>
           </div>
         </div>
 
@@ -956,7 +955,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="fundamentacion"
               value={programa.fundamentacion}
-              placeholder="Justifica la importancia de esta materia..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -975,7 +973,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="objetivos"
               value={programa.objetivos}
-              placeholder="Define los objetivos de aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -999,7 +996,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Detalla los contenidos mínimo del curso..."
             />
             <div className="min-h-5">
               {errors.contenidosMinimos && (
@@ -1023,7 +1019,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="programa"
               value={programa.programaAnalitico}
-              placeholder="Detalla el contenido temático del curso..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -1045,7 +1040,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="metodologia"
               value={programa.metodologia}
-              placeholder="Describe los métodos de enseñanza..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -1066,7 +1060,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="evaluacion"
               value={programa.modalidadEvaluacion}
-              placeholder="Especifica cómo se evaluará el aprendizaje..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -1085,7 +1078,6 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
             <Textarea
               id="bibliografia"
               value={programa.bibliografia}
-              placeholder="Referencias bibliográficas recomendadas..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -1100,7 +1092,7 @@ export function SyllabusSecretariaInicialForm({ id}: SyllabusFormProps) {
               disabled={isPending || estadoMutation.isPending}
               className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
             >
-              {isPending ? "Cargando..." : "Enviar al docente"}
+              {isPending ? "Cargando..." : "Cargar programa"}
             </Button>
           {
             <Button

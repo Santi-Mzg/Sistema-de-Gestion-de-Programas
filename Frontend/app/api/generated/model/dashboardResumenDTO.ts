@@ -22,4 +22,5 @@ export interface DashboardResumenDTO {
   pendienteCoordinacionArea?: number;
   pendienteSecretariaInicial?: number;
   pendienteSecretariaFinal?: number;
+  revisionesPendientes?: number;
 }

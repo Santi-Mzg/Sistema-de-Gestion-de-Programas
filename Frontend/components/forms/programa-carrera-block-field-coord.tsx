@@ -135,7 +135,6 @@ export const ProgramaCarreraBlockFieldCoord = React.memo(function ProgramaCarrer
                     ...block,
                     contribucion: e.target.value,
                   })}
-          placeholder="Describe la contribución a esta carrera..."
           className="border-border focus:border-primary min-h-16 resize-none"
         />
       </div>

@@ -264,7 +264,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
               label="Rechazados"
               value={stats.pendienteAdministracion ?? 0}
               icon={<CircleAlert size={16} />}
-              className="border-amber-500 bg-amber-50 text-amber-700"
+              className="border-red-500 bg-red-50 text-red-700"
             />
             
             <MateriasSinProgramaIndicador cantidad={pendientesSinProgramas} />

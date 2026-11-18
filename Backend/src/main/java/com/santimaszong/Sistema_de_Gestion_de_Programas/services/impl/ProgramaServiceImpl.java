@@ -175,7 +175,9 @@ public class ProgramaServiceImpl implements ProgramaService {
                     .and(ProgramaSpecifications.docente(auth.getName()));
         }
         else if (rolActivo == Rol.COORDINADOR_AREA) {
-            spec = ProgramaSpecifications.departamento(deptId).and(ProgramaSpecifications.areaCoordinada(ude.getId()));
+            spec = spec
+                    .and(ProgramaSpecifications.departamento(deptId))
+                    .and(ProgramaSpecifications.areaCoordinada(ude.getId()));
         }
         else {
             throw new AccessDeniedException(
@@ -274,8 +276,9 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional(readOnly = true)
     public DashboardResumenDTO getDashboardResumen(Authentication auth, Long deptId, Rol rolActivo) {
         UsuarioDepartamentoEntity actor = exigirActor(auth, deptId, rolActivo);
+        int anioActual = LocalDate.now().getYear();
         Specification<ProgramaEntity> alcance = alcanceProgramas(actor, rolActivo)
-                .and(ProgramaSpecifications.anio(LocalDate.now().getYear()));
+                .and(ProgramaSpecifications.anio(anioActual));
         boolean gestionDepartamental = switch (rolActivo) {
             case ADMINISTRACION, SECRETARIA, DIRECCION_ADMINISTRATIVA, SYSTEM_ADMIN -> true;
             default -> false;
@@ -302,7 +305,10 @@ public class ProgramaServiceImpl implements ProgramaService {
                 pendienteSecretariaInicial + pendienteSecretariaFinal,
                 contarEnEtapa(alcance, Rol.COORDINADOR_AREA),
                 pendienteSecretariaInicial,
-                pendienteSecretariaFinal);
+                pendienteSecretariaFinal,
+                rolActivo == Rol.COORDINACION_COMISION_CURRICULAR
+                        ? Long.valueOf(decisionRepository.countRevisionesPendientes(actor.getId(), anioActual))
+                        : noAplica);
     }
 
     private UsuarioDepartamentoEntity exigirActor(Authentication auth, Long deptId, Rol rol) {

@@ -14,6 +14,7 @@ import {
   CircleCheckBig,
   ClipboardList,
   UserCog,
+  Pencil,
 } from "lucide-react"
 
 import {
@@ -73,7 +74,7 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
             </span>
 
             <span className="text-[13px] text-muted-foreground">
-              programas vigentes
+              {stats.programasVigentes == 1 ? 'programa vigente' : 'programas vigentes'}
             </span>
           </div>
 
@@ -260,12 +261,20 @@ export function DashboardStats( { stats, onPendingClick }: DashboardStatsProps) 
           </div>
 
           <div className="mt-auto grid grid-cols-1 gap-2 border-t pt-2">
-            <StatBox
-              label="A revisar"
-              value={pendientesSecretaria}
-              icon={<ClipboardList size={16} />}
-              className="border-sky-500 bg-sky-50 text-sky-700"
-            />
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <StatBox
+                label="A completar"
+                value={stats.pendienteSecretariaInicial ?? 0}
+                icon={<Pencil size={16} />}
+                className="border-sky-500 bg-sky-50 text-sky-700"
+              />
+              <StatBox
+                label="A revisar"
+                value={stats.pendienteSecretariaFinal ?? 0}
+                icon={<ClipboardList size={16} />}
+                className="border-blue-500 bg-blue-50 text-blue-700"
+              />
+            </div>
             <MateriasSinProgramaIndicador cantidad={materiasSinPrograma} />
           </div>
         </CardContent>

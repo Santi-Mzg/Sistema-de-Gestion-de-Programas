@@ -226,7 +226,7 @@ export function DashboardStats({
               label="Rechazados"
               value={stats.rechazadoDocente ?? 0}
               icon={<CircleAlert size={16} />}
-              className="border-amber-500 bg-amber-50 text-amber-700"
+              className="border-red-500 bg-red-50 text-red-700"
             />
           </div>
         </CardContent>

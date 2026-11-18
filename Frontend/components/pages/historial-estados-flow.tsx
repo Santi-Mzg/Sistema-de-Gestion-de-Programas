@@ -43,51 +43,35 @@ const estadoConfig: Record<
     isRejection: boolean
   }
 > = {
-  INCOMPLETO_POR_ADMINISTRACION: {
-    label: "Pendiente administración (incompleto)",
+  PENDIENTE_DE_SECRETARIA_INICIAL: {
+    label: "Pendiente carga secretaría",
     color: "text-amber-700",
     bgColor: "bg-amber-50",
-    borderColor: "border-amber-300",
-    icon: Clock,
-    isRejection: false,
-  },
-  RECHAZADO_A_ADMINISTRACION: {
-    label: "Rechazado a administración",
-    color: "text-red-700",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-300",
-    icon: XCircle,
-    isRejection: true,
-  },
-  PENDIENTE_DE_SECRETARIA_INICIAL: {
-    label: "Pendiente docente",
-    color: "text-blue-700",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-300",
+    borderColor: "border-amber-500",
     icon: CheckCircle2,
     isRejection: false,
   },
-  INCOMPLETO_POR_DOCENTE: {
-    label: "Pendiente docente (incompleto)",
-    color: "text-amber-700",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-300",
-    icon: Clock,
+  PENDIENTE_DE_DOCENTE: {
+    label: "Pendiente carga docente",
+    color: "text-blue-700",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-500",
+    icon: CheckCircle2,
     isRejection: false,
   },
-  RECHAZADO_A_DOCENTE: {
-    label: "Rechazado a docente",
-    color: "text-red-700",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-300",
-    icon: XCircle,
-    isRejection: true,
+  PENDIENTE_DE_COORDINACION_AREA: {
+    label: "En revisión (coordinación de área)",
+    color: "text-fuchsia-700",
+    bgColor: "bg-fuchsia-50",
+    borderColor: "border-fuchsia-500",
+    icon: CheckCircle2,
+    isRejection: false,
   },
   PENDIENTE_DE_COMISIONES_CURRICULARES: {
     label: "En revisión (comisiones curriculares)",
     color: "text-violet-700",
     bgColor: "bg-violet-50",
-    borderColor: "border-violet-300",
+    borderColor: "border-violet-500",
     icon: CheckCircle2,
     isRejection: false,
   },
@@ -95,7 +79,7 @@ const estadoConfig: Record<
     label: "En revisión (secretaría)",
     color: "text-sky-700",
     bgColor: "bg-sky-50",
-    borderColor: "border-sky-300",
+    borderColor: "border-sky-500",
     icon: CheckCircle2,
     isRejection: false,
   },
@@ -103,9 +87,33 @@ const estadoConfig: Record<
     label: "Aprobado",
     color: "text-emerald-700",
     bgColor: "bg-emerald-50",
-    borderColor: "border-emerald-400",
+    borderColor: "border-emerald-500",
     icon: CheckCircle2,
     isRejection: false,
+  },
+  RECHAZADO_A_ADMINISTRACION: {
+    label: "Rechazado a administración",
+    color: "text-red-700",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-500",
+    icon: XCircle,
+    isRejection: true,
+  },
+  RECHAZADO_A_SECRETARIA_INICIAL: {
+    label: "Rechazado a secretaría",
+    color: "text-red-700",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-500",
+    icon: XCircle,
+    isRejection: true,
+  },
+  RECHAZADO_A_DOCENTE: {
+    label: "Rechazado a docente",
+    color: "text-red-700",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-500",
+    icon: XCircle,
+    isRejection: true,
   },
 }
 
@@ -116,15 +124,6 @@ estadoConfig.PENDIENTE_DE_COORDINACION_AREA = {
   ...estadoConfig.PENDIENTE_DE_SECRETARIA_INICIAL, label: 'Pendiente coordinación de área',
   color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-amber-300',
 };
-
-const rolLabels: Record<string, string> = {
-  SYSTEM_ADMIN: "Administrador del sistema",
-  DIRECCION_ADMINISTRATIVA: "Dirección administrativa",
-  SECRETARIA: "Secretaría",
-  COORDINACION_COMISION_CURRICULAR: "Coordinación comisión curricular",
-  DOCENTE: "Docente",
-  ADMINISTRACION: "Administración",
-}
 
 
 function EstadoCard({ estado, isFirst }: { estado: EstadoHistoricoResponseDTO; isFirst: boolean }) {

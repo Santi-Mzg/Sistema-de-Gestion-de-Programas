@@ -46,7 +46,7 @@ export function DashboardStats( {
     totalCarreras = carreras.length,
     cargandoCarreras = false,
     errorCarreras = false,
-    pendientesRevision = stats.pendienteComisiones ?? 0,
+    pendientesRevision = stats.revisionesPendientes ?? 0,
     onPendingClick
  }: DashboardStatsProps) {
 
@@ -234,7 +234,7 @@ export function DashboardStats( {
           </CardTitle>
 
           <CardDescription className="text-[13px]">
-            Programas pendientes de tu intervención
+            Revisiones pendientes de tu intervención
           </CardDescription>
         </CardHeader>
 
@@ -252,8 +252,8 @@ export function DashboardStats( {
 
             <p className="text-[13px] text-muted-foreground">
               {pendientesRevision > 0
-                ? "Programas pendientes"
-                : "No tienes acciones pendientes"}
+                ? "Revisiones pendientes"
+                : "No tienes revisiones pendientes"}
             </p>
           </div>
         </CardContent>

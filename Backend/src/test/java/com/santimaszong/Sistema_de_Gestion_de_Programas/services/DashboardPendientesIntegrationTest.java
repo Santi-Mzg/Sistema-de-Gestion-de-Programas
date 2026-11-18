@@ -162,6 +162,50 @@ class DashboardPendientesIntegrationTest {
         Page<ProgramaResponseDTO> resultado = servicio.getListPendientesCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR, pagina);
         assertThat(resultado.getContent()).extracting(ProgramaResponseDTO::getId).containsExactly(esperado.getId());
         assertThat(resultado.getTotalElements()).isEqualTo(1);
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isEqualTo(2);
+    }
+
+    @Test
+    void resumenCccCuentaCadaPlanYDescuentaLasDecisionesYaTomadas() {
+        ProgramaEntity p = programa(anio, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES, areaOtroDepartamento, actorOtroDepartamento);
+        DecisionComisionEntity primera = decision(p, actor, 2, ResultadoDecisionComision.PENDIENTE);
+        DecisionComisionEntity segunda = decision(p, actor, 2, ResultadoDecisionComision.PENDIENTE);
+        // Dos planes de la misma carrera también requieren dos revisiones independientes.
+        segunda.getProgramaCarrera().getCarreraPlan().setCarrera(primera.getProgramaCarrera().getCarreraPlan().getCarrera());
+        segunda.getProgramaCarrera().getCarreraPlan().setVersion(2);
+        em.flush();
+
+        DashboardResumenDTO inicial = resumen(Rol.COORDINACION_COMISION_CURRICULAR);
+        assertThat(inicial.revisionesPendientes()).isEqualTo(2);
+        assertThat(inicial.programasTotales()).isEqualTo(1);
+        assertThat(inicial.pendienteComisiones()).isEqualTo(1);
+        assertThat(servicio.getListPendientesCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR, pagina).getTotalElements()).isEqualTo(1);
+
+        primera.setResultado(ResultadoDecisionComision.APROBADA); em.flush();
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isEqualTo(1);
+        segunda.setResultado(ResultadoDecisionComision.APROBADA); em.flush();
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isZero();
+    }
+
+    @Test
+    void resumenCccSigueLaAsignacionActualDeLaCarrera() {
+        ProgramaEntity p = programa(anio, EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES, areaPropia, actor);
+        DecisionComisionEntity pendiente = decision(p, actor, 2, ResultadoDecisionComision.PENDIENTE);
+        em.flush();
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isEqualTo(1);
+        pendiente.getProgramaCarrera().getCarreraPlan().getCarrera().setComision(otroActor); em.flush();
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isZero();
+    }
+
+    @ParameterizedTest
+    @EnumSource(EstadoPrograma.class)
+    void revisionesPendientesSoloCuentaLaEtapaDeComisiones(EstadoPrograma estado) {
+        ProgramaEntity p = programa(anio, estado, areaPropia, actor);
+        decision(p, actor, 2, ResultadoDecisionComision.PENDIENTE);
+        em.flush();
+
+        long esperado = estado == EstadoPrograma.PENDIENTE_DE_COMISIONES_CURRICULARES ? 1L : 0L;
+        assertThat(resumen(Rol.COORDINACION_COMISION_CURRICULAR).revisionesPendientes()).isEqualTo(esperado);
     }
 
     @Test
@@ -207,6 +251,7 @@ class DashboardPendientesIntegrationTest {
         assertThat(resumen.programasVigentes()).isZero();
         assertThat(resumen.pendienteCoordinacionArea()).isEqualTo(1);
         assertThat(servicio.getListPendientesCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR, pagina)).isEmpty();
+        assertThat(resumen.revisionesPendientes()).isZero();
     }
 
     @ParameterizedTest
@@ -411,12 +456,13 @@ class DashboardPendientesIntegrationTest {
         ProgramaEntity p = new ProgramaEntity(); p.setAnio(anio); p.setMateria(m); p.setEstadoActual(estado);
         p.setDocenteResponsable(docente); p.setRondaRevision(2); em.persist(p); return p;
     }
-    private void decision(ProgramaEntity programa, UsuarioDepartamentoEntity comision, int ronda, ResultadoDecisionComision resultado) {
+    private DecisionComisionEntity decision(ProgramaEntity programa, UsuarioDepartamentoEntity comision, int ronda, ResultadoDecisionComision resultado) {
         CarreraEntity c = new CarreraEntity(); c.setNombre("Carrera " + ++secuencia); c.setDuracion("5 años");
         c.setDepartamento(comision.getDepartamento()); c.setComision(comision); em.persist(c);
         CarreraPlanEntity plan = new CarreraPlanEntity(); plan.setCarrera(c); plan.setAnio(String.valueOf(anio)); plan.setVersion(1); em.persist(plan);
         ProgramaCarreraEntity bloque = new ProgramaCarreraEntity(); bloque.setPrograma(programa); bloque.setCarreraPlan(plan); em.persist(bloque);
         DecisionComisionEntity decision = new DecisionComisionEntity(); decision.setPrograma(programa); decision.setProgramaCarrera(bloque);
         decision.setCarreraPlanId(plan.getId()); decision.setRonda(ronda); decision.setResultado(resultado); em.persist(decision);
+        return decision;
     }
 }

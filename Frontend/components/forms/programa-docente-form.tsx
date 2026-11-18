@@ -387,8 +387,8 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
         )}
 
         {/* BLOQUE ÚNICO */}
-        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-          <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
+        <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+          <h2 className="text-lg font-bold text-primary">Información básica</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
@@ -495,7 +495,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
           <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
           {/* Carga Horaria */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 [&>*]:min-w-0">
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-foreground">Cantidad de semanas</Label>
               <Input defaultValue={programa.cantidadSemanas || ""} readOnly className="border-border focus:border-primary" />
@@ -520,27 +520,25 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
               />
               <Input defaultValue={programa.creditos || ""} readOnly className="border-border focus:border-primary" />
             </div>
-          </div>
-
-          {/* Carga Práctica */}
-          <div className="space-y-2">
-            <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
-              Carga horaria práctica *
-            </Label>
-            <Input
-              id="cargaPractica"
-              type="number"
-              {...register("cargaHorariaPractica", {
-                valueAsNumber: true,
-              })}
-              placeholder="ej: 64"
-              min={0}
-              max={programa.cargaHorariaTotal}
-              className={`border-2 focus:border-primary ${
-                errors.cargaHorariaPractica
-                  ? "border-red-500"
-                  : "border-border"
-              }`}
+            {/* Carga Práctica */}
+            <div className="space-y-2">
+              <Label htmlFor="cargaPractica" className="text-sm font-semibold text-foreground">
+                Carga horaria práctica *
+              </Label>
+              <Input
+                id="cargaPractica"
+                type="number"
+                {...register("cargaHorariaPractica", {
+                  valueAsNumber: true,
+                })}
+                placeholder="ej: 64"
+                min={0}
+                max={programa.cargaHorariaTotal}
+                className={`border-2 focus:border-primary ${
+                  errors.cargaHorariaPractica
+                    ? "border-red-500"
+                    : "border-border"
+                }`}
               />
               <div className="min-h-5">
                 {errors.cargaHorariaPractica && (
@@ -549,10 +547,11 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                   </p>
                 )}
               </div>
+            </div>
           </div>
         </div>
 
-          {/* Campos de texto largo */}
+        {/* Campos de texto largo */}
         <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
           <h2 className="text-lg font-bold text-primary">Contenido académico</h2>
 
@@ -569,7 +568,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
             <Textarea
               id="fundamentacion"
               {...register("fundamentacion")}
-              placeholder="Justifica la importancia de esta materia..."
               className={`border-border focus:border-primary min-h-24 resize-none bg-background ${
                   errors.fundamentacion
                     ? "border-red-500"
@@ -603,7 +601,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Define los objetivos de aprendizaje..."
             />
             <div className="min-h-5">
               {errors.objetivos && (
@@ -627,7 +624,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
             <Textarea
               id="contenidosMinimos"
               value={programa.contenidosMinimos}
-              placeholder="Detalla el contenido mínimo del curso..."
               className="border-border focus:border-primary min-h-20 resize-none"
               disabled
             />
@@ -651,7 +647,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Detalla el contenido temático del curso..."
             />
             <div className="min-h-5">
               {errors.programaAnalitico && (
@@ -683,7 +678,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Describe los métodos de enseñanza..."
             />
             <div className="min-h-5">
               {errors.metodologia && (
@@ -713,7 +707,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Especifica cómo se evaluará el aprendizaje..."
             />
             <div className="min-h-5">
               {errors.modalidadEvaluacion && (
@@ -754,7 +747,6 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
                 ? "border-red-500"
                 : "border-border"
               }`}
-              placeholder="Sommerville, I. (2015)..."
               disabled={isPendingFormatoAPA}
             />
             <div className="min-h-5">
@@ -775,7 +767,7 @@ export function SyllabusDocenteForm({ id }: SyllabusFormProps) {
             disabled={isPendingDocente || isPendingFormatoAPA || isPendingEstado}
             className="flex-1 bg-primary hover:bg-accent text-primary-foreground font-medium"
           >
-            {isPendingDocente ? "Cargando..." : "Cargar datos"}
+            {isPendingDocente ? "Cargando..." : "Cargar programa"}
           </Button>
           {
             <Button

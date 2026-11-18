@@ -90,7 +90,12 @@ export function CoordinadorAreaDashboard() {
   };
 
   if (!enabled || resumen.isLoading || programasQuery.isLoading || areasQuery.isLoading) {
-    return <div className="p-8 max-w-7xl mx-auto" role="status">Cargando programas y áreas asignadas...</div>;
+    return  <div role="status" className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando...</p>
+              </div>
+            </div>;
   }
   if (resumen.error || programasQuery.error || areasQuery.error) {
     return <div className="p-8 max-w-7xl mx-auto">

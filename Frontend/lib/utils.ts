@@ -51,11 +51,11 @@ export const getProgramStateStyles = (state: EstadoPrograma): string =>{
   const stateStyles: Record<EstadoPrograma, string> = {
     PENDIENTE_DE_DOCENTE: "border-blue-500 bg-blue-50 text-blue-700",
     RECHAZADO_A_SECRETARIA: "border-destructive bg-destructive/10 text-destructive",
-    PENDIENTE_DE_COORDINACION_AREA: "border-amber-500 bg-amber-50 text-amber-700",
+    PENDIENTE_DE_COORDINACION_AREA: "border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700",
     RECHAZADO_A_DOCENTE: "border-destructive bg-destructive/10 text-destructive",
     PENDIENTE_DE_COMISIONES_CURRICULARES: "border-violet-500 bg-violet-50 text-violet-700",
     RECHAZADO_A_ADMINISTRACION: "border-destructive bg-destructive/10 text-destructive",
-    PENDIENTE_DE_SECRETARIA_INICIAL: "border-blue-500 bg-blue-50 text-blue-700",
+    PENDIENTE_DE_SECRETARIA_INICIAL: "border-amber-500 bg-amber-50 text-amber-700",
     PENDIENTE_DE_SECRETARIA_FINAL: "border-sky-500 bg-sky-50 text-sky-700",
     APROBADO: "border-emerald-500 bg-emerald-50 text-emerald-700",
   }

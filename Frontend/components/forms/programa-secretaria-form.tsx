@@ -166,8 +166,8 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
   return (
     <form className="space-y-8 pb-8">
       {/* BLOQUE ÚNICO */}
-      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg">
-        <h2 className="text-lg font-bold text-primary mb-6">Información básica</h2>
+      <div className="border-l-4 border-primary p-6 py-4 bg-primary/5 rounded-r-lg space-y-6">
+        <h2 className="text-lg font-bold text-primary">Información básica</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
@@ -274,7 +274,7 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
         <h2 className="text-lg font-bold text-primary">Cargas horarias y créditos</h2>
 
         {/* Carga Horaria */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 [&>*]:min-w-0">
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-foreground">Cantidad de semanas</Label>
             <Input defaultValue={programa.cantidadSemanas || ""} readOnly className="bg-background" />
@@ -299,11 +299,10 @@ export function SyllabusSecretariaForm({ id }: SyllabusFormProps) {
             />
             <Input defaultValue={programa.creditos || ""} readOnly className="bg-background" />
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold text-foreground">Carga horaria práctica</Label>
-          <Input defaultValue={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-foreground">Carga horaria práctica</Label>
+            <Input defaultValue={programa.cargaHorariaPractica || ""} readOnly className="bg-background" />
+          </div>
         </div>
       </div>
 

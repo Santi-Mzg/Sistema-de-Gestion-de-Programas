@@ -21,7 +21,7 @@ export function MateriasSinProgramaCard({ deptId, rol }: { deptId: number; rol: 
   const materias = query.data?.content ?? [];
 
   return <Card className="mb-6 mt-6">
-    <CardHeader><CardTitle>Materias sin programa del año actual</CardTitle></CardHeader>
+    <CardHeader><CardTitle>Materias sin programa en el año actual</CardTitle></CardHeader>
     <CardContent>
       <div className="relative mb-4">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

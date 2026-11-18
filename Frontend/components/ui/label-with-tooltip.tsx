@@ -31,7 +31,7 @@ export function LabelWithTooltip({
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-sm font-semibold leading-none",
+        "flex min-h-5 items-center gap-1.5 text-sm font-semibold leading-5",
         className
       )}
     >
