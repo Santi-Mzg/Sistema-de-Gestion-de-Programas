@@ -41,6 +41,7 @@ import type {
   EstadoUpdateDTO,
   ForgotPassword200,
   ForgotPasswordRequest,
+  GetAniosProgramasParams,
   GetDashboardResumenParams,
   GetDraftParams,
   ListAreasDepartamentoParams,
@@ -5625,6 +5626,112 @@ export function useMeSuspense<TData = Awaited<ReturnType<typeof me>>, TError = u
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getMeSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+export const getAniosProgramas = (
+    deptId: number,
+    params: GetAniosProgramasParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<number[]>(
+      {url: `/api/departamentos/${deptId}/programas/anios`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetAniosProgramasQueryKey = (deptId?: number,
+    params?: GetAniosProgramasParams,) => {
+    return [
+    `/api/departamentos/${deptId}/programas/anios`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+
+export const getGetAniosProgramasQueryOptions = <TData = Awaited<ReturnType<typeof getAniosProgramas>>, TError = unknown>(deptId: number,
+    params: GetAniosProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAniosProgramasQueryKey(deptId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAniosProgramas>>> = ({ signal }) => getAniosProgramas(deptId,params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(deptId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAniosProgramasQueryResult = NonNullable<Awaited<ReturnType<typeof getAniosProgramas>>>
+export type GetAniosProgramasQueryError = unknown
+
+
+
+export function useGetAniosProgramas<TData = Awaited<ReturnType<typeof getAniosProgramas>>, TError = unknown>(
+ deptId: number,
+    params: GetAniosProgramasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData>, }
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAniosProgramasQueryOptions(deptId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getGetAniosProgramasSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof getAniosProgramas>>, TError = unknown>(deptId: number,
+    params: GetAniosProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAniosProgramasQueryKey(deptId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAniosProgramas>>> = ({ signal }) => getAniosProgramas(deptId,params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAniosProgramasSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof getAniosProgramas>>>
+export type GetAniosProgramasSuspenseQueryError = unknown
+
+
+
+export function useGetAniosProgramasSuspense<TData = Awaited<ReturnType<typeof getAniosProgramas>>, TError = unknown>(
+ deptId: number,
+    params: GetAniosProgramasParams, options?: { query?:UseSuspenseQueryOptions<Awaited<ReturnType<typeof getAniosProgramas>>, TError, TData>, }
+
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAniosProgramasSuspenseQueryOptions(deptId,params,options)
 
   const query = useSuspenseQuery(queryOptions) as  UseSuspenseQueryResult<TData, TError> & { queryKey: QueryKey };
 

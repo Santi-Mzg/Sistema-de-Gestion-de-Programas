@@ -149,7 +149,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String search, Pageable pageable) {
+    public Page<ProgramaResponseReducedDTO> getListPorAnio(Authentication auth, Long deptId, Rol rolActivo, Integer anio, EstadoPrograma estado, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
         if (!ude.isActivo()) {
             throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
@@ -158,9 +158,9 @@ public class ProgramaServiceImpl implements ProgramaService {
             throw new AccessDeniedException("No autorizado");
         }
 
-        Integer anioActual = LocalDate.now().getYear();
+        int anioConsulta = anio != null ? anio : LocalDate.now().getYear();
 
-        Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioActual).and(ProgramaSpecifications.departamento(deptId));
+        Specification<ProgramaEntity> spec = ProgramaSpecifications.anio(anioConsulta).and(ProgramaSpecifications.departamento(deptId));
 
         // 1. Si soy Admin, Director, Secretario o Administrativo veo todos los programas del departamento
         if (rolActivo.equals(Rol.SYSTEM_ADMIN) || rolActivo.equals(Rol.SECRETARIA) || rolActivo.equals(Rol.DIRECCION_ADMINISTRATIVA) || rolActivo.equals(Rol.ADMINISTRACION)) {
@@ -197,7 +197,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable) {
+    public Page<ProgramaResponseDTO> getListPorAnioCoordinador(Authentication auth, Long deptId, Rol rolActivo, Integer anio, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable) {
         UsuarioDepartamentoEntity ude = udeService.findByUsuarioLegajoAndDepartamentoId(auth.getName(), deptId);
         if (!ude.isActivo()) {
             throw new IllegalStateException("El usuario no se encuentra activo en el departamento");
@@ -206,10 +206,10 @@ public class ProgramaServiceImpl implements ProgramaService {
             throw new AccessDeniedException("No autorizado");
         }
 
-        Integer anioActual = LocalDate.now().getYear();
+        int anioConsulta = anio != null ? anio : LocalDate.now().getYear();
 
         Specification<ProgramaEntity> spec = Specification.allOf(
-                ProgramaSpecifications.anio(anioActual),
+                ProgramaSpecifications.anio(anioConsulta),
 
                 ProgramaSpecifications.coordinador(
                         auth.getName(),
@@ -309,6 +309,18 @@ public class ProgramaServiceImpl implements ProgramaService {
                 rolActivo == Rol.COORDINACION_COMISION_CURRICULAR
                         ? Long.valueOf(decisionRepository.countRevisionesPendientes(actor.getId(), anioActual))
                         : noAplica);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Integer> getAniosDisponibles(Authentication auth, Long deptId, Rol rolActivo) {
+        UsuarioDepartamentoEntity actor = exigirActor(auth, deptId, rolActivo);
+        int anioActual = LocalDate.now().getYear();
+        int anioMinimo = programaRepository.findBy(alcanceProgramas(actor, rolActivo),
+                consulta -> consulta.sortBy(org.springframework.data.domain.Sort.by("anio").ascending()).first())
+                .map(ProgramaEntity::getAnio).orElse(anioActual);
+        return java.util.stream.IntStream.rangeClosed(Math.min(anioMinimo, anioActual), anioActual)
+                .boxed().sorted(java.util.Comparator.reverseOrder()).toList();
     }
 
     private UsuarioDepartamentoEntity exigirActor(Authentication auth, Long deptId, Rol rol) {

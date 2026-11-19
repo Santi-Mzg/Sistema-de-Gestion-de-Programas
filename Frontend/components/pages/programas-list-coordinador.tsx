@@ -13,6 +13,7 @@ import { PageNavigation } from "../nav/page-nav"
 
 interface ProgramasListProps {
   programas?: ProgramaResponseDTO[]
+  anio?: number
   page: number
   pageSize: number
   totalPages: number
@@ -26,6 +27,7 @@ type SortOrder = "asc" | "desc"
 
 export function ProgramasListCoordinador({
     programas = [],
+    anio = new Date().getFullYear(),
     page,
     pageSize,
     totalPages,
@@ -33,10 +35,10 @@ export function ProgramasListCoordinador({
     filterCarreraPlan,
     onPageChange,
   }: ProgramasListProps) {
-  const { setHeader } = useHeader()
+  const { setHeader, title, subtitle } = useHeader()
   const { activeDepartamento } = useDept()
   const router = useRouter()
-  const [sortField, setSortField] = useState<SortField>("nombreMateria")
+  const [sortField, setSortField] = useState<SortField>("estado")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   const pathname = usePathname()
@@ -44,12 +46,15 @@ export function ProgramasListCoordinador({
 
   
   useEffect(() => {
+    const titulo = `Programas - ${anio}`
+    const subtitulo = "Gestiona y consulta los programas disponibles"
+    if (title === titulo && subtitle === subtitulo) return
     setHeader({
-      title: `Programas`,
-      subtitle: "Gestiona y consulta los programas disponibles",
+      title: titulo,
+      subtitle: subtitulo,
       icon: FileText,
     })
-  }, [])
+  }, [anio, title, subtitle, setHeader])
 
   // Filter and sort data
   const rowsDisplay = useMemo(() => {

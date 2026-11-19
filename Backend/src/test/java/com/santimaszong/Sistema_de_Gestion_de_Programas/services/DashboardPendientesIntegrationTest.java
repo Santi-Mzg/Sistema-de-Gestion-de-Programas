@@ -25,7 +25,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -426,9 +430,169 @@ class DashboardPendientesIntegrationTest {
                 .containsExactly(primero.getId(), segundo.getId());
     }
 
+    @ParameterizedTest
+    @EnumSource(Rol.class)
+    void versionesDeMateriaIncluyenTodosLosAniosYEstadosPermitidos(Rol rol) {
+        MateriaEntity materia = new MateriaEntity();
+        materia.setNombre("Materia con versiones"); materia.setCodigo("VERSIONES");
+        materia.setArea(areaPropia); materia.setDepartamento(departamento); em.persist(materia);
+        List<Long> esperados = new ArrayList<>();
+        int antiguedad = 0;
+        for (EstadoPrograma estado : EstadoPrograma.values()) {
+            ProgramaEntity p = new ProgramaEntity();
+            p.setMateria(materia); p.setAnio(anio - antiguedad++); p.setEstadoActual(estado);
+            p.setDocenteResponsable(actor); p.setRondaRevision(2); em.persist(p);
+            decision(p, actor, 2, ResultadoDecisionComision.PENDIENTE);
+            esperados.add(p.getId());
+        }
+        programa(anio, EstadoPrograma.APROBADO, areaPropia, actor);
+        Long materiaId = materia.getId();
+        when(materias.getEntityById(materiaId)).thenAnswer(inv -> em.find(MateriaEntity.class, materiaId));
+        em.flush(); em.clear();
+
+        assertThat(versiones(materiaId, rol)).extracting(ProgramaResponseReducedDTO::getId)
+                .containsExactlyInAnyOrderElementsOf(esperados);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Rol.class, names = {"DOCENTE", "COORDINACION_COMISION_CURRICULAR"})
+    void versionesDeMateriaExcluyenProgramasDeOtroResponsableSegunElRolActivo(Rol rol) {
+        ProgramaEntity propio = programa(anio - 2, EstadoPrograma.APROBADO, areaPropia, actor);
+        MateriaEntity materia = propio.getMateria();
+        ProgramaEntity ajeno = new ProgramaEntity();
+        ajeno.setMateria(materia); ajeno.setAnio(anio - 1); ajeno.setEstadoActual(EstadoPrograma.APROBADO);
+        ajeno.setDocenteResponsable(otroActor); ajeno.setRondaRevision(2); em.persist(ajeno);
+        decision(propio, actor, 2, ResultadoDecisionComision.APROBADA);
+        decision(ajeno, otroActor, 2, ResultadoDecisionComision.APROBADA);
+        Long materiaId = materia.getId();
+        Long programaPropioId = propio.getId();
+        when(materias.getEntityById(materiaId)).thenAnswer(inv -> em.find(MateriaEntity.class, materiaId));
+        em.flush(); em.clear();
+
+        assertThat(versiones(materiaId, rol)).extracting(ProgramaResponseReducedDTO::getId)
+                .containsExactly(programaPropioId);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Rol.class, names = "COORDINACION_COMISION_CURRICULAR", mode = EnumSource.Mode.EXCLUDE)
+    void listadoGeneralCombinaAnioAlcanceBusquedaEstadoYPaginacion(Rol rol) {
+        ProgramaEntity primero = programa(anio - 1, EstadoPrograma.APROBADO, areaPropia, actor);
+        primero.getMateria().setNombre("Redes primera");
+        ProgramaEntity segundo = programa(anio - 1, EstadoPrograma.APROBADO, areaPropia, actor);
+        segundo.getMateria().setNombre("Redes segunda");
+        ProgramaEntity actual = programa(anio, EstadoPrograma.APROBADO, areaPropia, actor);
+        actual.getMateria().setNombre("Redes actual");
+        programa(anio - 1, EstadoPrograma.APROBADO, areaPropia, actor);
+        ProgramaEntity otroEstado = programa(anio - 1, EstadoPrograma.RECHAZADO_A_DOCENTE, areaPropia, actor);
+        otroEstado.getMateria().setNombre("Redes otro estado");
+        ProgramaEntity otroDepartamento = programa(anio - 1, EstadoPrograma.APROBADO, areaOtroDepartamento, actorOtroDepartamento);
+        otroDepartamento.getMateria().setNombre("Redes otro departamento");
+        if (rol == Rol.DOCENTE || rol == Rol.COORDINADOR_AREA) {
+            ProgramaEntity fueraDeAlcance = programa(anio - 1, EstadoPrograma.APROBADO,
+                    rol == Rol.COORDINADOR_AREA ? areaAjena : areaPropia, otroActor);
+            fueraDeAlcance.getMateria().setNombre("Redes fuera de alcance");
+        }
+        em.flush();
+
+        Page<ProgramaResponseReducedDTO> primera = servicio.getListPorAnio(auth, departamento.getId(), rol,
+                anio - 1, EstadoPrograma.APROBADO, "redes", PageRequest.of(0, 1, pagina.getSort()));
+        Page<ProgramaResponseReducedDTO> segunda = servicio.getListPorAnio(auth, departamento.getId(), rol,
+                anio - 1, EstadoPrograma.APROBADO, "redes", PageRequest.of(1, 1, pagina.getSort()));
+        assertThat(primera.getTotalElements()).isEqualTo(2);
+        assertThat(primera.getTotalPages()).isEqualTo(2);
+        assertThat(primera.getContent()).extracting(ProgramaResponseReducedDTO::getId).containsExactly(primero.getId());
+        assertThat(segunda.getContent()).extracting(ProgramaResponseReducedDTO::getId).containsExactly(segundo.getId());
+        assertThat(servicio.getListPorAnio(auth, departamento.getId(), rol, null, EstadoPrograma.APROBADO, "redes", pagina).getContent())
+                .extracting(ProgramaResponseReducedDTO::getId).containsExactly(actual.getId());
+    }
+
+    @Test
+    void listadoCccCombinaAnioCarreraEstadoBusquedaYPaginacion() {
+        ProgramaEntity primero = programa(anio - 1, EstadoPrograma.APROBADO, areaPropia, actor);
+        primero.getMateria().setNombre("Redes propias");
+        DecisionComisionEntity decisionPropia = decision(primero, actor, 2, ResultadoDecisionComision.APROBADA);
+        ProgramaEntity segundo = programa(anio - 1, EstadoPrograma.APROBADO, areaOtroDepartamento, actorOtroDepartamento);
+        segundo.getMateria().setNombre("Redes compartidas"); decision(segundo, actor, 2, ResultadoDecisionComision.APROBADA);
+        ProgramaEntity actual = programa(anio, EstadoPrograma.APROBADO, areaPropia, actor);
+        actual.getMateria().setNombre("Redes actual"); decision(actual, actor, 2, ResultadoDecisionComision.APROBADA);
+        ProgramaEntity ajeno = programa(anio - 1, EstadoPrograma.APROBADO, areaPropia, actor);
+        ajeno.getMateria().setNombre("Redes de otra comisión"); decision(ajeno, otroActor, 2, ResultadoDecisionComision.APROBADA);
+        em.flush();
+
+        Page<ProgramaResponseDTO> primera = servicio.getListPorAnioCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR,
+                anio - 1, EstadoPrograma.APROBADO, null, "redes", PageRequest.of(0, 1, pagina.getSort()));
+        Page<ProgramaResponseDTO> segunda = servicio.getListPorAnioCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR,
+                anio - 1, EstadoPrograma.APROBADO, null, "redes", PageRequest.of(1, 1, pagina.getSort()));
+        assertThat(primera.getTotalElements()).isEqualTo(2);
+        assertThat(primera.getTotalPages()).isEqualTo(2);
+        assertThat(primera.getContent()).extracting(ProgramaResponseDTO::getId).containsExactly(primero.getId());
+        assertThat(segunda.getContent()).extracting(ProgramaResponseDTO::getId).containsExactly(segundo.getId());
+        String carrera = decisionPropia.getProgramaCarrera().getCarreraPlan().getCarrera().getNombre();
+        assertThat(servicio.getListPorAnioCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR,
+                anio - 1, EstadoPrograma.APROBADO, carrera, "redes", pagina).getContent())
+                .extracting(ProgramaResponseDTO::getId).containsExactly(primero.getId());
+        assertThat(buscarCcc("redes", null, EstadoPrograma.APROBADO, pagina).getContent())
+                .extracting(ProgramaResponseDTO::getId).containsExactly(actual.getId());
+    }
+
+    @ParameterizedTest
+    @EnumSource(Rol.class)
+    void aniosDisponiblesIncluyenLosIntermediosDesdeElMasAntiguoAccesible(Rol rol) {
+        ProgramaEntity propio = programa(anio - 3, EstadoPrograma.APROBADO, areaPropia, actor);
+        decision(propio, actor, 2, ResultadoDecisionComision.APROBADA);
+        ProgramaEntity ajeno = programa(anio - 20, EstadoPrograma.APROBADO, areaOtroDepartamento, actorOtroDepartamento);
+        decision(ajeno, otroActor, 2, ResultadoDecisionComision.APROBADA);
+        if (rol == Rol.DOCENTE || rol == Rol.COORDINADOR_AREA || rol == Rol.COORDINACION_COMISION_CURRICULAR) {
+            ProgramaEntity sinPermiso = programa(anio - 10, EstadoPrograma.APROBADO,
+                    rol == Rol.COORDINADOR_AREA ? areaAjena : areaPropia, otroActor);
+            decision(sinPermiso, otroActor, 2, ResultadoDecisionComision.APROBADA);
+        }
+        em.flush();
+        assertThat(servicio.getAniosDisponibles(auth, departamento.getId(), rol))
+                .containsExactly(anio, anio - 1, anio - 2, anio - 3);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Rol.class)
+    void sinProgramasDisponiblesSeOfreceElAnioActual(Rol rol) {
+        assertThat(servicio.getAniosDisponibles(auth, departamento.getId(), rol)).containsExactly(anio);
+    }
+
+    @Test
+    void aniosDeCccIncluyenSusCarrerasAunqueElProgramaSeaDeOtroDepartamento() {
+        ProgramaEntity compartido = programa(anio - 5, EstadoPrograma.APROBADO, areaOtroDepartamento, actorOtroDepartamento);
+        decision(compartido, actor, 2, ResultadoDecisionComision.APROBADA); em.flush();
+        assertThat(servicio.getAniosDisponibles(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR))
+                .containsExactly(anio, anio - 1, anio - 2, anio - 3, anio - 4, anio - 5);
+    }
+
+    @Test
+    void aniosDisponiblesExigenUnVinculoActivoYElRolSolicitado() {
+        actor.getRoles().remove(Rol.COORDINADOR_AREA); em.flush();
+        assertThatThrownBy(() -> servicio.getAniosDisponibles(auth, departamento.getId(), Rol.COORDINADOR_AREA))
+                .isInstanceOf(AccessDeniedException.class);
+        actor.setActivo(false); em.flush();
+        assertThatThrownBy(() -> servicio.getAniosDisponibles(auth, departamento.getId(), Rol.ADMINISTRACION))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    private List<ProgramaResponseReducedDTO> versiones(Long materiaId, Rol rol) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-Departamento-Activo", departamento.getId().toString());
+        request.addHeader("X-Rol-Activo", rol.name());
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            return servicio.getListByMateria(materiaId);
+        } finally {
+            RequestContextHolder.resetRequestAttributes();
+            SecurityContextHolder.clearContext();
+        }
+    }
+
     private Page<ProgramaResponseDTO> buscarCcc(String search, String carrera, EstadoPrograma estado, Pageable pageable) {
-        return servicio.getListAnioActualCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR,
-                estado, carrera, search, pageable);
+        return servicio.getListPorAnioCoordinador(auth, departamento.getId(), Rol.COORDINACION_COMISION_CURRICULAR,
+                null, estado, carrera, search, pageable);
     }
 
     @AfterEach

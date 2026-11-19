@@ -21,9 +21,10 @@ public interface ProgramaService {
     ProgramaResponseDTO getById(Long id);
     ProgramaResponseDTO getByMateriaIdAndAnio(Long materiaId);
     ProgramaResponseDTO getProgramaVigenteByMateria(Long materiaId);
-    Page<ProgramaResponseReducedDTO> getListAnioActual(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String search, Pageable pageable);
-    Page<ProgramaResponseDTO> getListAnioActualCoordinador(Authentication auth, Long deptId, Rol rolActivo, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable);
+    Page<ProgramaResponseReducedDTO> getListPorAnio(Authentication auth, Long deptId, Rol rolActivo, Integer anio, EstadoPrograma estado, String search, Pageable pageable);
+    Page<ProgramaResponseDTO> getListPorAnioCoordinador(Authentication auth, Long deptId, Rol rolActivo, Integer anio, EstadoPrograma estado, String nombreCarrera, String search, Pageable pageable);
     List<ProgramaResponseReducedDTO> getListByMateria(Long materiaId);
+    List<Integer> getAniosDisponibles(Authentication auth, Long deptId, Rol rolActivo);
     List<ProgramaResponseReducedDTO> listAll();
     void delete(Long id);
     Page<ProgramaResponseReducedDTO> getListPendientes(Authentication auth, Long deptId, Rol rolActivo, Pageable pageable);

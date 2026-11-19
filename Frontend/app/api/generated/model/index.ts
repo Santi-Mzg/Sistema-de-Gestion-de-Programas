@@ -66,3 +66,5 @@ export * from './userCreateDTO';
 export * from './userResponseDTO';
 export * from './userResponseReducedDTO';
 export * from './usuarioDepartamentoDTO';
+
+export * from './getAniosProgramasParams';

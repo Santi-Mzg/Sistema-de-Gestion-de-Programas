@@ -2,6 +2,7 @@ import { QueryClient, QueryObserver } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getGetDashboardResumenQueryKey, getGetProgramaQueryKey, getGetProgramaMateriaAnioQueryKey,
+  getGetAniosProgramasQueryKey,
   getGetProgramaVigenteQueryKey, getListProgramasMateriaQueryKey,
   getListProgramasQueryKey, getListProgramasPendientesQueryKey,
   getListProgramasCoordinacionQueryKey, getListProgramasPendientesCoordinadorQueryKey,
@@ -183,6 +184,37 @@ describe('coherencia de las consultas del circuito', () => {
     await invalidarConsultasPrograma(client, { departamentoId: 6, programaId: 12 });
     keys.forEach(key => expect(client.getQueryState(key)?.isInvalidated).toBe(true));
     expect(client.getQueryState(getGetProgramaQueryKey(99))?.isInvalidated).toBe(false);
+  });
+
+  it('invalida las versiones de una materia en todos los contextos de rol y departamento', async () => {
+    const claves = roles.flatMap(rolActivo => [6, 9].map(departamentoId => [
+      ...getListProgramasMateriaQueryKey(8), { rolActivo, departamentoId },
+    ]));
+    claves.forEach(clave => client.setQueryData(clave, []));
+    client.setQueryData(['consulta-ajena'], []);
+    await invalidarConsultasPrograma(client, { departamentoId: 6, programaId: 12 });
+    claves.forEach(clave => expect(client.getQueryState(clave)?.isInvalidated).toBe(true));
+    expect(client.getQueryState(['consulta-ajena'])?.isInvalidated).toBe(false);
+  });
+
+  it('invalida los listados generales y de CCC para todos los años consultados', async () => {
+    const claves = [2024, 2025, 2026].flatMap(anio => [
+      getListProgramasQueryKey(6, { rolActivo: 'ADMINISTRACION', anio }),
+      getListProgramasCoordinacionQueryKey(6, { rolActivo: 'COORDINACION_COMISION_CURRICULAR', anio }),
+    ]);
+    claves.forEach(clave => client.setQueryData(clave, []));
+    await invalidarConsultasPrograma(client, { departamentoId: 6, programaId: 12 });
+    claves.forEach(clave => expect(client.getQueryState(clave)?.isInvalidated).toBe(true));
+  });
+
+  it('actualiza los años disponibles del departamento y los de CCC de otros departamentos', async () => {
+    const incluidas = roles.map(rolActivo => getGetAniosProgramasQueryKey(6, { rolActivo }));
+    incluidas.push(getGetAniosProgramasQueryKey(9, { rolActivo: 'COORDINACION_COMISION_CURRICULAR' }));
+    const ajena = getGetAniosProgramasQueryKey(9, { rolActivo: 'SECRETARIA' });
+    [...incluidas, ajena].forEach(clave => client.setQueryData(clave, []));
+    await invalidarConsultasPrograma(client, { departamentoId: 6, programaId: 12, eliminado: true });
+    incluidas.forEach(clave => expect(client.getQueryState(clave)?.isInvalidated).toBe(true));
+    expect(client.getQueryState(ajena)?.isInvalidated).toBe(false);
   });
 
   it('el borrado retira el detalle y conserva los borradores', async () => {

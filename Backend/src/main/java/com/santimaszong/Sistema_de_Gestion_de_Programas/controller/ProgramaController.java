@@ -125,13 +125,19 @@ public class ProgramaController {
             Authentication auth,
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
+            @RequestParam(required = false) Integer anio,
             @RequestParam(required = false) EstadoPrograma estado,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(programaService.getListAnioActual(auth, deptId, rolActivo, estado, search, pageable));
+        return ResponseEntity.ok(programaService.getListPorAnio(auth, deptId, rolActivo, anio, estado, search, pageable));
+    }
+
+    @GetMapping("/departamentos/{deptId}/programas/anios")
+    public List<Integer> getAniosProgramas(Authentication auth, @PathVariable Long deptId, @RequestParam Rol rolActivo) {
+        return programaService.getAniosDisponibles(auth, deptId, rolActivo);
     }
 
     @GetMapping("/departamentos/{deptId}/programas-coordinacion")
@@ -139,6 +145,7 @@ public class ProgramaController {
             Authentication auth,
             @PathVariable Long deptId,
             @RequestParam Rol rolActivo,
+            @RequestParam(required = false) Integer anio,
             @RequestParam(required = false) EstadoPrograma estado,
             @RequestParam(required = false) String carrera,
             @RequestParam(required = false) String search,
@@ -146,7 +153,7 @@ public class ProgramaController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(programaService.getListAnioActualCoordinador(auth, deptId, rolActivo, estado, carrera, search, pageable));
+        return ResponseEntity.ok(programaService.getListPorAnioCoordinador(auth, deptId, rolActivo, anio, estado, carrera, search, pageable));
     }
 
      @GetMapping("/departamentos/{deptId}/programas/pendientes")

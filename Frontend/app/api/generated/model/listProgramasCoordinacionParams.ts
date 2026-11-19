@@ -9,6 +9,7 @@ import type { EstadoPrograma } from './estadoPrograma';
 
 export type ListProgramasCoordinacionParams = {
 rolActivo: Rol;
+anio?: number;
 estado?: EstadoPrograma;
 carrera?: string;
 search?: string;

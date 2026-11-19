@@ -2,22 +2,25 @@
 
 import { ProgramasList } from "@/components/pages/programas-list";
 import { EstadoPrograma, Rol } from "../../api/generated/model";
-import { getListProgramasCoordinacionQueryKey, getListProgramasQueryKey, useListProgramas, useListProgramasCoordinacion } from "../../api/generated/client";
+import { getGetAniosProgramasQueryKey, getListProgramasCoordinacionQueryKey, getListProgramasQueryKey, useGetAniosProgramas, useListProgramas, useListProgramasCoordinacion } from "../../api/generated/client";
 import { useDept } from "@/context/dept-context";
 import { useRole } from "@/context/role-context";
 import { ProgramasListCoordinador } from "@/components/pages/programas-list-coordinador";
 import { useEffect, useMemo, useState } from "react";
-import { Filter, Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { usePathname, useRouter } from "next/navigation"
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getProgramStateLabel } from "@/lib/utils";
+import { cn, getProgramStateLabel } from "@/lib/utils";
+import { singleLineFieldStyles } from "@/lib/form-field-styles";
 
 
 export default function Programas() {
 
     const [page, setPage] = useState(0)
     const pageSize = 10
+    const anioActual = new Date().getFullYear()
+    const [anio, setAnio] = useState(anioActual)
 
     // filtros generales
     const [search, setSearch] = useState("")
@@ -33,6 +36,21 @@ export default function Programas() {
     const deptId = activeDepartamento?.departamentoId
     const isCoordinacion = activeRole === Rol.COORDINACION_COMISION_CURRICULAR;
 
+    const aniosQuery = useGetAniosProgramas(deptId ?? 0, { rolActivo: activeRole as Rol }, { query: {
+      enabled: !!deptId && !!activeRole,
+      staleTime: 1000 * 60 * 5,
+      retry: false,
+      queryKey: [...getGetAniosProgramasQueryKey(deptId, { rolActivo: activeRole as Rol }), { anioActual }],
+    } });
+    const aniosDisponibles = aniosQuery.data ?? [anioActual]
+
+    useEffect(() => {
+      if (aniosQuery.data?.length && !aniosQuery.data.includes(anio)) {
+        setAnio(aniosQuery.data[0])
+        setPage(0)
+      }
+    }, [aniosQuery.data, anio])
+
     useEffect(() => {
       const timeout = setTimeout(() => {
         setSearch(searchInput.trim())
@@ -42,81 +60,28 @@ export default function Programas() {
       return () => clearTimeout(timeout)
     }, [searchInput])
 
-    const programasCoordinacionQuery = useListProgramasCoordinacion(
-        deptId!,
-        {
-          rolActivo: activeRole as Rol,
-          page,
-          size: pageSize,
-          search: search || undefined,
-          estado:
-            estado === "todos"
-              ? undefined
-              : estado as EstadoPrograma,
-          carrera:
-            carrera === "todos"
-              ? undefined
-              : carrera,
-        },
-        {
-          query: {
-            enabled: !!deptId && !!activeRole && isCoordinacion,
-            staleTime: 1000 * 60 * 5,
-            refetchOnWindowFocus: false,
-            queryKey: getListProgramasCoordinacionQueryKey(deptId!,
-              {
-                rolActivo: activeRole as Rol,
-                page,
-                size: pageSize,
-                search: search || undefined,
-                estado:
-                  estado === "todos"
-                    ? undefined
-                    : estado as EstadoPrograma,
-                carrera:
-                  carrera === "todos"
-                    ? undefined
-                    : carrera,
-              }),
-          },
-        }
-    );
-
-    const programasQuery = useListProgramas(
-        deptId!,
-        {
-          rolActivo: activeRole as Rol,
-          page,
-          size: pageSize,
-          search: search || undefined,
-          estado:
-            estado === "todos"
-              ? undefined
-              : estado as EstadoPrograma,
-        },
-        {
-          query: {
-            enabled: !!deptId && !!activeRole && !isCoordinacion,
-            staleTime: 1000 * 60 * 5,
-            refetchOnWindowFocus: false,
-            queryKey: getListProgramasQueryKey(deptId!,
-              {
-                rolActivo: activeRole as Rol,
-                page,
-                size: pageSize,
-                search: search || undefined,
-                estado:
-                  estado === "todos"
-                    ? undefined
-                    : estado as EstadoPrograma,
-              }),
-          },
-        }
-    );
-
-    const pathname = usePathname() // 2. Obtener la ruta actual
-    const router = useRouter()
-    const esVistaVersiones = pathname.includes("/versiones")
+    const parametros = {
+      rolActivo: activeRole as Rol,
+      anio,
+      page,
+      size: pageSize,
+      search: search || undefined,
+      estado: estado === "todos" ? undefined : estado as EstadoPrograma,
+    }
+    // Orval construye la clave con estos mismos parámetros, incluido el año.
+    const parametrosCoordinacion = { ...parametros, carrera: carrera === "todos" ? undefined : carrera }
+    const programasCoordinacionQuery = useListProgramasCoordinacion(deptId!, parametrosCoordinacion, { query: {
+      enabled: !!deptId && !!activeRole && isCoordinacion,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      queryKey: getListProgramasCoordinacionQueryKey(deptId!, parametrosCoordinacion),
+    } });
+    const programasQuery = useListProgramas(deptId!, parametros, { query: {
+      enabled: !!deptId && !!activeRole && !isCoordinacion,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      queryKey: getListProgramasQueryKey(deptId!, parametros),
+    } });
 
 
     const estadosDisponibles = Object.values(EstadoPrograma)
@@ -135,157 +100,72 @@ export default function Programas() {
       setPage(0)
     }
 
-    const isReady = !!deptId && !!activeRole && (programasQuery.isSuccess || programasCoordinacionQuery.isSuccess);
-
-    // if (!isReady) {
-    //   // return <LoadingSpinner text="Cargando datos de los programas..." />
-    //   return (
-    //     <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-    //       <div className="text-center">
-    //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-    //         <p className="text-yellow-700">Cargando datos de los programas...</p>
-    //       </div>
-    //     </div>
-    //   )
-    // }
-
-
-
-    if(isCoordinacion) {
-        const programas = programasCoordinacionQuery.data?.content ?? []
-        const totalPages = programasCoordinacionQuery.data?.totalPages ?? 0
-        const totalElements = programasCoordinacionQuery.data?.totalElements ?? 0
-        return (
-          <>
-            <div className="space-y-6 mb-8">
-              {/* Filter Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <Filter size={16} /> Carrera - Plan
-                  </label>
-                  <select
-                    value={carrera}
-                    onChange={(e) => handleCarreraChange(e.target.value)}
-                    className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="todos">Todas las carreras</option>
-                    {uniqueCarreraPlanes.map((carreraPlan) => (
-                      <option key={carreraPlan} value={carreraPlan || ""}>
-                        {carreraPlan}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <Filter size={16} /> Estado
-                  </label>
-                  <select
-                    value={estado}
-                    onChange={(e) => handleEstadoChange(e.target.value)}
-                    className="w-full px-4 py-2.5 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="todos">Todos los estados</option>
-                    {estadosDisponibles.map((estado) => (
-                      <option key={estado} value={estado || ""}>
-                        {getProgramStateLabel(estado as EstadoPrograma)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              {/* Search Bar */}
-              <div className="mb-4 flex md:flex-row md:items-center md:justify-between gap-4">
-                <div className="relative w-full">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                  <Input
-                    placeholder="Buscar por nombre, código, docente o departamento..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    className="pl-12 py-3 text-base border-2 border-border rounded-xl"
-                  />
-                </div>
-              </div>
-            </div>
-            {!isReady && (
-                <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-yellow-700">Cargando programas...</p>
-                  </div>
-                </div>
-              ) || (
-                <ProgramasListCoordinador
-                  programas={programas}
-                  page={page}
-                  pageSize={pageSize}
-                  totalPages={totalPages}
-                  totalElements={totalElements}
-                  filterCarreraPlan={carrera}
-                  onPageChange={setPage}
-                />
-              )}
-          </>
-       )
+    const handleAnioChange = (value: number) => {
+      if (!aniosDisponibles.includes(value) || value === anio) return
+      setAnio(value)
+      setPage(0)
     }
-    else {
-        const programas = programasQuery.data?.content ?? []
-        const totalPages = programasQuery.data?.totalPages ?? 0
-        const totalElements = programasQuery.data?.totalElements ?? 0
-        return (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-muted/30 p-3 rounded-lg border">
-                <div className="relative flex-1 min-w-[300px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input
-                  placeholder="Buscar por nombre, código, docente o departamento..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-9 h-9 text-sm rounded-md" // h-9 para hacerlo más bajo
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <Filter size={16} />
-                <select
-                  value={estado}
-                  onChange={(e) => handleEstadoChange(e.target.value)}
-                  className="h-9 px-3 py-1 text-sm border rounded-md bg-background"
-                >
-                  <option value="todos">Todos los estados</option>
-                  {estadosDisponibles.map((estado) => (
-                    <option key={estado} value={estado || ""}>
-                      {getProgramStateLabel(estado as EstadoPrograma)}
-                    </option>
-                  ))}
-                </select>
-                {!esVistaVersiones && (activeRole === Rol.ADMINISTRACION) &&
-                  <Button size="sm" onClick={() => router.push(`/programas/crear`)} className="h-9">
-                    <Plus size={16} className="mr-1" /> Nuevo programa
-                  </Button>
-                }
-              </div>
+
+    const consulta = isCoordinacion ? programasCoordinacionQuery : programasQuery
+    const isReady = !!deptId && !!activeRole && consulta.isSuccess
+    const selectorStyles = `${singleLineFieldStyles} border-border bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary`
+
+    return <>
+      <div className="mb-4 rounded-lg border bg-muted/30 p-3">
+        <div className={cn("grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_5.5rem]", isCoordinacion
+          ? "xl:grid-cols-[minmax(0,2fr)_minmax(0,1.25fr)_minmax(0,1.25fr)_5.5rem]"
+          : "xl:grid-cols-[minmax(0,2fr)_minmax(0,1.25fr)_5.5rem]")}>
+          <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-1">
+            <Label htmlFor="programas-busqueda">Buscar programas</Label>
+            <div className="relative">
+              <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <Input id="programas-busqueda" placeholder="Nombre, código, docente o departamento..."
+                value={searchInput} onChange={e => setSearchInput(e.target.value)} className="pl-9" />
             </div>
-            {!isReady && (
-              <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-96">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-yellow-700">Cargando programas...</p>
-                </div>
-              </div>
-            ) || (
-              <ProgramasList
-                programas={programas}
-                page={page}
-                pageSize={pageSize}
-                totalPages={totalPages}
-                totalElements={totalElements}
-                onPageChange={setPage}
-                esVistaVersiones={esVistaVersiones}
-              />
-            )}
-          </>
-        )
-    }
+          </div>
+          {isCoordinacion && <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-1">
+            <Label htmlFor="programas-carrera">Carrera</Label>
+            <select id="programas-carrera" value={carrera} onChange={e => handleCarreraChange(e.target.value)} className={selectorStyles}>
+              <option value="todos">Todas las carreras</option>
+              {uniqueCarreraPlanes.map(nombre => <option key={nombre} value={nombre}>{nombre}</option>)}
+            </select>
+          </div>}
+          <div className="min-w-0 space-y-2">
+            <Label htmlFor="programas-estado">Estado</Label>
+            <select id="programas-estado" value={estado} onChange={e => handleEstadoChange(e.target.value)} className={selectorStyles}>
+              <option value="todos">Todos los estados</option>
+              {estadosDisponibles.map(estado => <option key={estado} value={estado}>{getProgramStateLabel(estado)}</option>)}
+            </select>
+          </div>
+          <div className="min-w-0 space-y-2">
+            <Label htmlFor="programas-anio">Año</Label>
+            <select id="programas-anio" value={anio} onChange={e => handleAnioChange(Number(e.target.value))}
+              disabled={aniosQuery.isPending || aniosQuery.isError} aria-busy={aniosQuery.isFetching}
+              className={cn(selectorStyles, "w-[5.5rem] disabled:cursor-not-allowed disabled:opacity-50")}>
+              {aniosDisponibles.map(anio => <option key={anio} value={anio}>{anio}</option>)}
+            </select>
+          </div>
+        </div>
+        {aniosQuery.isError && <div role="alert" className="mt-3 flex flex-wrap items-center gap-2 text-sm text-destructive">
+          <p>No se pudieron cargar los años disponibles.</p>
+          <Button variant="outline" size="sm" onClick={() => { void aniosQuery.refetch() }}>Reintentar años</Button>
+        </div>}
+      </div>
+      {consulta.isError ? <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+        <p className="flex-1 text-destructive">No se pudieron cargar los programas del año {anio}.</p>
+        <Button variant="outline" onClick={() => { void consulta.refetch() }}>Reintentar</Button>
+      </div> : !isReady ? <div role="status" className="flex min-h-48 items-center justify-center p-6">
+        <div className="text-center">
+          <div aria-hidden="true" className="mx-auto mb-3 size-8 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="text-muted-foreground">Cargando programas de {anio}...</p>
+        </div>
+      </div> : isCoordinacion ? <ProgramasListCoordinador
+        programas={programasCoordinacionQuery.data?.content ?? []} anio={anio}
+        page={page} pageSize={pageSize} totalPages={consulta.data?.totalPages ?? 0}
+        totalElements={consulta.data?.totalElements ?? 0} filterCarreraPlan={carrera} onPageChange={setPage}
+      /> : <ProgramasList programas={programasQuery.data?.content ?? []} anio={anio}
+        page={page} pageSize={pageSize} totalPages={consulta.data?.totalPages ?? 0}
+        totalElements={consulta.data?.totalElements ?? 0} esVistaVersiones={false} onPageChange={setPage}
+      />}
+    </>
 }

@@ -7,7 +7,7 @@ import {
 } from "@/app/api/generated/client";
 
 import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronUp, ChevronDown, FileText, FolderClock, Trash2, Plus } from "lucide-react"
+import { Search, ChevronUp, ChevronDown, FileText, Trash2, Plus } from "lucide-react"
 import { EstadoPrograma, ProgramaResponseReducedDTO, Rol } from "@/app/api/generated/model"
 import { Button } from "../ui/button"
 import { ProgramaAcciones } from "./programa-acciones"
@@ -26,30 +26,28 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import axios from "axios"
 import { PDFGeneratorDialog } from "../modals/pdf-generator-dialog";
 
-interface ProgramasListProps {
+type ProgramasListProps = {
   programas?: ProgramaResponseReducedDTO[]
-  page: number
-  pageSize: number
-  totalPages: number
-  totalElements: number
-  esVistaVersiones: boolean
-  onPageChange: (page: number) => void
-}
+  anio?: number
+} & (
+  | { esVistaVersiones: true }
+  | {
+      esVistaVersiones: boolean
+      page: number
+      pageSize: number
+      totalPages: number
+      totalElements: number
+      onPageChange: (page: number) => void
+    }
+)
 
 
 type SortField = "anio" | "nombreMateria" | "estado" | "docenteResponsable" | "nombreDepartamento"
 type SortOrder = "asc" | "desc"
 
-export function ProgramasList({
-    programas = [],
-    page,
-    pageSize,
-    totalPages,
-    totalElements,
-    esVistaVersiones,
-    onPageChange
-  }: ProgramasListProps) {
-  const { setHeader } = useHeader()
+export function ProgramasList(props: ProgramasListProps) {
+  const { programas = [], esVistaVersiones } = props
+  const { setHeader, title, subtitle } = useHeader()
   const { activeRole } = useRole()
   const { activeDepartamento } = useDept()
   const queryClient = useQueryClient()
@@ -62,10 +60,10 @@ export function ProgramasList({
     || activeRole === Rol.SYSTEM_ADMIN
   const puedePDF = activeRole === Rol.SECRETARIA || activeRole === Rol.SYSTEM_ADMIN
   const router = useRouter()
-  const [sortField, setSortField] = useState<SortField>("nombreMateria")
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
+  const [sortField, setSortField] = useState<SortField>(esVistaVersiones ? "anio" : "estado")
+  const [sortOrder, setSortOrder] = useState<SortOrder>(esVistaVersiones ? "desc" : "asc")
 
-  const actualYear = new Date().getFullYear()
+  const anioListado = props.anio ?? new Date().getFullYear()
 
   // Una confirmación abierta no se reutiliza después de cambiar de contexto.
   const [previousFormSources, setPreviousFormSources] = useState<[typeof activeRole, typeof deptId] | null>(null)
@@ -90,7 +88,7 @@ export function ProgramasList({
       await eliminarPrograma({ id })
       setProgramaAEliminar(null)
       await invalidarConsultasPrograma(queryClient, { departamentoId: deptId, programaId: id, eliminado: true })
-      if (!esVistaVersiones && programas.length === 1 && page > 0) onPageChange(page - 1)
+      if (!props.esVistaVersiones && programas.length === 1 && props.page > 0) props.onPageChange(props.page - 1)
       toast({ title: "✓ Éxito", description: "Programa eliminado exitosamente", variant: "success" })
     } catch (error) {
       const mensaje = axios.isAxiosError(error)
@@ -101,19 +99,12 @@ export function ProgramasList({
   }
 
   useEffect(() => {
-    if(esVistaVersiones && programas.length > 0)
-        setHeader({
-          title: `Versiones del Programa de ${programas[0]?.materia?.nombre}`,
-          subtitle: "Consulta las versiones anteriores del programa seleccionado",
-          icon: FolderClock,
-        })
-    else
-        setHeader({
-          title: `Programas - ${actualYear}`,
-          subtitle: "Gestiona y consulta los programas disponibles",
-          icon: FileText,
-        })
-  }, [])
+    if (esVistaVersiones) return
+    const titulo = `Programas - ${anioListado}`
+    const subtitulo = "Gestiona y consulta los programas disponibles"
+    if (title === titulo && subtitle === subtitulo) return
+    setHeader({ title: titulo, subtitle: subtitulo, icon: FileText })
+  }, [esVistaVersiones, anioListado, title, subtitle, setHeader])
 
 
 
@@ -143,7 +134,11 @@ export function ProgramasList({
       }
     }
 
-    const sorted = programas.sort((a, b) => {
+    const sorted = [...programas].sort((a, b) => {
+      if (sortField === "anio") {
+        const diferencia = (a.anio ?? 0) - (b.anio ?? 0)
+        return sortOrder === "asc" ? diferencia : -diferencia
+      }
       const aValue = getSortValue(a, sortField)
       const bValue = getSortValue(b, sortField)
 
@@ -192,24 +187,33 @@ export function ProgramasList({
       <div className="max-w-full mx-auto">
 
         {/* Results Count */}
-        <div className="mb-4 text-sm text-muted-foreground">
-            {programas.length > 0 && (
-              <span>
-                Mostrando{" "}
-                <span className="font-medium text-foreground">
-                  {page * pageSize + 1}
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0 text-sm text-muted-foreground">
+              {props.esVistaVersiones ? (
+                <span>{programas.length} {programas.length === 1 ? "programa" : "programas"} de esta materia</span>
+              ) : programas.length > 0 && (
+                <span>
+                  Mostrando{" "}
+                  <span className="font-medium text-foreground">
+                    {props.page * props.pageSize + 1}
+                  </span>
+                  {" – "}
+                  <span className="font-medium text-foreground">
+                    {Math.min((props.page + 1) * props.pageSize, props.totalElements)}
+                  </span>
+                  {" de "}
+                  <span className="font-medium text-foreground">
+                    {props.totalElements}
+                  </span>{" "}
+                  programas
                 </span>
-                {" – "}
-                <span className="font-medium text-foreground">
-                  {Math.min((page + 1) * pageSize, totalElements)}
-                </span>
-                {" de "}
-                <span className="font-medium text-foreground">
-                  {totalElements}
-                </span>{" "}
-                programas
-              </span>
-            )}
+              )}
+          </div>
+          {activeRole === Rol.ADMINISTRACION && <div className="ml-auto flex shrink-0 justify-end">
+            <Button size="sm" onClick={() => router.push('/programas/crear')}>
+              <Plus size={16} />Nuevo programa
+            </Button>
+          </div>}
         </div>
 
         {/* Table */}
@@ -320,8 +324,10 @@ export function ProgramasList({
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search size={32} className="opacity-40" />
-                      <p className="text-base">No se encontraron programas con los filtros seleccionados</p>
-                      {(activeRole === "ADMINISTRACION") && (
+                      <p className="text-base">{esVistaVersiones
+                        ? "Esta materia no tiene programas disponibles para el rol y departamento activos."
+                        : "No se encontraron programas con los filtros seleccionados"}</p>
+                      {!esVistaVersiones && activeRole === "ADMINISTRACION" && (
                         <Link href="/programas/crear">
                           <Button className="h-9" size='sm'><Plus size={16} className="mr-1" />Nuevo programa</Button>
                         </Link>
@@ -332,14 +338,14 @@ export function ProgramasList({
               )}
             </tbody>
           </table>
-          <PageNavigation
-            page={page}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            pageSize={pageSize}
-            onPageChange={onPageChange}
-            itemLabel = "programas"
-          />
+          {!props.esVistaVersiones && <PageNavigation
+            page={props.page}
+            totalPages={props.totalPages}
+            totalElements={props.totalElements}
+            pageSize={props.pageSize}
+            onPageChange={props.onPageChange}
+            itemLabel="programas"
+          />}
         </div>
       </div>
       {puedePDF && programaPDF && (

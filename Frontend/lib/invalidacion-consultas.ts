@@ -1,6 +1,7 @@
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import {
   getGetDashboardResumenQueryKey,
+  getGetAniosProgramasQueryKey,
   getGetProgramaQueryKey,
   getListMateriasSinProgramaQueryKey,
   getListProgramasQueryKey,
@@ -38,6 +39,7 @@ export async function invalidarConsultasPrograma(
 
   const recursosDepartamento = new Set<string>([
     getListProgramasQueryKey(departamentoId)[0],
+    getGetAniosProgramasQueryKey(departamentoId)[0],
     getListProgramasPendientesQueryKey(departamentoId)[0],
     getGetDashboardResumenQueryKey(departamentoId)[0],
     getListMateriasSinProgramaQueryKey(departamentoId)[0],
@@ -50,7 +52,7 @@ export async function invalidarConsultasPrograma(
 
     // Una CCC puede revisar programas cuyo departamento dueño es otro.
     if (/^\/api\/departamentos\/\d+\/programas-coordinacion(?:\/pendientes)?$/.test(recurso)) return true;
-    if (/^\/api\/departamentos\/\d+\/dashboard\/resumen$/.test(recurso)
+    if (/^\/api\/departamentos\/\d+\/(?:dashboard\/resumen|programas\/anios)$/.test(recurso)
       && parametros && typeof parametros === 'object'
       && 'rolActivo' in parametros && parametros.rolActivo === 'COORDINACION_COMISION_CURRICULAR') return true;
 
